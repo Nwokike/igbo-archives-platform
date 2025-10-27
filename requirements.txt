@@ -14,7 +14,7 @@ django-recaptcha>=4.0.0
 django-dbbackup>=4.2.0
 django-taggit>=6.1.0
 django-htmx>=1.19.0
-django-editorjs-fields>=0.2.7
+django-editorjs-fields
 
 google-generativeai>=0.8.3
 tweepy>=4.14.0
