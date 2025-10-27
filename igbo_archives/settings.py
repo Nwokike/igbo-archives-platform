@@ -151,6 +151,10 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_QUERY_EMAIL = False
+
 PWA_APP_NAME = 'Igbo Archives'
 PWA_APP_DESCRIPTION = 'Preserving the Past, Inspiring the Future'
 PWA_APP_THEME_COLOR = '#3D2817'
@@ -181,8 +185,10 @@ PWA_APP_SPLASH_SCREEN = [
 PWA_APP_DIR = 'ltr'
 PWA_APP_LANG = 'en-US'
 
-RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY', '')
-RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY', '')
+RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
+RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe')
+
+SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
 
 PUSH_NOTIFICATIONS_SETTINGS = {
     "FCM_API_KEY": os.getenv('FCM_SERVER_KEY', ''),
@@ -256,7 +262,8 @@ else:
     # Console backend for development - emails print to console
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@igboarchives.com')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'igboarchives@gmail.com')
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'igboarchives@gmail.com')
 
 # Push Notifications Configuration
 PUSH_NOTIFICATIONS_SETTINGS = {

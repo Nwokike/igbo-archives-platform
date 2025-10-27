@@ -19,7 +19,7 @@
                 <div class="message-bubble-container {% if message.sender == user %}sent{% else %}received{% endif %}">
                     <div class="message-bubble">
                         <div class="message-sender">
-                            <a href="{% url 'users:profile' message.sender.username %}" class="text-decoration-none" style="{% if message.sender == user %}color: rgba(255,255,255,0.9);{% else %}color: var(--primary-color);{% endif %}">
+                            <a href="{% url 'users:profile' message.sender.username %}" class="text-decoration-none" style="{% if message.sender == user %}color: rgba(255,255,255,0.9);{% else %}color: var(--vintage-gold);{% endif %}">
                                 {{ message.sender.get_display_name }}
                             </a>
                         </div>
@@ -73,16 +73,16 @@
 
 .message-bubble {
     max-width: 70%;
-    background: var(--background-secondary);
+    background: var(--bg-secondary);
     border-radius: 12px;
     padding: 12px 16px;
     border: 1px solid var(--border-color);
 }
 
 .message-bubble-container.sent .message-bubble {
-    background: var(--primary-color);
+    background: var(--vintage-gold);
     color: white;
-    border-color: var(--primary-color);
+    border-color: var(--vintage-gold);
 }
 
 .message-sender {
@@ -112,7 +112,7 @@
 }
 
 .message-reply-form {
-    background: var(--background-secondary);
+    background: var(--bg-secondary);
     border-radius: 8px;
     padding: 20px;
     margin-top: 20px;

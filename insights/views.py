@@ -150,7 +150,13 @@ def insight_create(request):
         # Validate required fields
         if not title or not content_json:
             messages.error(request, 'Please fill in all required fields.')
-            return redirect('insights:create')
+            context = {
+                'archive_title': archive_title,
+                'initial_title': title or initial_title,
+                'initial_content': content_json or initial_content,
+                'initial_excerpt': excerpt or initial_excerpt,
+            }
+            return render(request, 'insights/create.html', context)
         
         # Generate unique slug
         base_slug = slugify(title)

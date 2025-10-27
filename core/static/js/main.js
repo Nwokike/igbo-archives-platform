@@ -104,7 +104,8 @@ function autoPlayCarousel() {
     const slides = document.querySelectorAll('.carousel-slide');
     if (slides.length > 1) {
         autoPlayInterval = setInterval(() => {
-            moveCarousel(1);
+            const randomSlide = Math.floor(Math.random() * slides.length);
+            goToSlide(randomSlide);
         }, 5000);
     }
 }

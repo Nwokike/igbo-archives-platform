@@ -105,7 +105,7 @@ def book_create(request):
         
         if not book_title or not review_title or not content_json:
             messages.error(request, 'Please fill in all required fields.')
-            return redirect('books:create')
+            return render(request, 'books/create.html')
         
         # Generate unique slug
         base_slug = slugify(review_title)

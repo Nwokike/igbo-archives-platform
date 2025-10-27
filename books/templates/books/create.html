@@ -3,6 +3,41 @@
 
 {% block title %}Create Book Review - Igbo Archives{% endblock %}
 
+{% block extra_css %}
+<style>
+.quill-editor-container {
+    height: 400px;
+    background: white;
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .quill-editor-container {
+        height: 300px;
+    }
+    
+    .quill-editor-container .ql-toolbar {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        padding: 8px 4px !important;
+        gap: 4px;
+    }
+    
+    .quill-editor-container .ql-toolbar button {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 4px !important;
+    }
+    
+    .quill-editor-container .ql-editor {
+        font-size: 16px !important;
+        padding: 12px !important;
+        min-height: 250px !important;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -56,8 +91,8 @@
 
                 <div class="mb-3">
                     <label class="form-label">Review Content *</label>
-                    <div id="editor" style="height: 400px; background: white;"></div>
-                    <input type="hidden" id="content" name="content" required>
+                    <div id="editor" class="quill-editor-container"></div>
+                    <input type="hidden" id="content_json" name="content_json" required>
                 </div>
 
                 <div class="mb-3">
@@ -159,7 +194,7 @@ quill.getModule('toolbar').addHandler('image', function() {
 // Form submission
 document.getElementById('bookForm').addEventListener('submit', function(e) {
     const content = quill.root.innerHTML;
-    document.getElementById('content').value = content;
+    document.getElementById('content_json').value = content;
     
     if (quill.getText().trim().length === 0) {
         e.preventDefault();

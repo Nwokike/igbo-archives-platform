@@ -38,7 +38,7 @@ def contact(request):
         subject = request.POST.get('subject')
         message_text = request.POST.get('message')
         
-        if hasattr(settings, 'DEFAULT_FROM_EMAIL') and settings.DEFAULT_FROM_EMAIL:
+        if hasattr(settings, 'ADMIN_EMAIL') and settings.ADMIN_EMAIL:
             try:
                 full_message = f"""
 Contact Form Submission
@@ -54,7 +54,7 @@ Message:
                     f'Contact Form: {subject}',
                     full_message,
                     settings.DEFAULT_FROM_EMAIL,
-                    [settings.DEFAULT_FROM_EMAIL],
+                    [settings.ADMIN_EMAIL],
                     fail_silently=False,
                 )
                 messages.success(request, 'Thank you for your message! We will get back to you soon.')

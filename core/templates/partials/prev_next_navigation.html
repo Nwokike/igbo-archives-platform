@@ -10,7 +10,7 @@
                     <img src="{% if previous.image %}{{ previous.image.url }}{% elif previous.featured_image %}{{ previous.featured_image.url }}{% else %}{{ previous.cover_image.url }}{% endif %}" alt="Thumbnail">
                 </div>
                 {% endif %}
-                <div class="nav-title">{{ previous.title|default:previous.review_title|truncatewords:8 }}</div>
+                <div class="nav-title">{% if previous.title %}{{ previous.title|truncatewords:8 }}{% elif previous.review_title %}{{ previous.review_title|truncatewords:8 }}{% endif %}</div>
             </div>
         </a>
         {% else %}
@@ -26,7 +26,7 @@
                     <img src="{% if next.image %}{{ next.image.url }}{% elif next.featured_image %}{{ next.featured_image.url }}{% else %}{{ next.cover_image.url }}{% endif %}" alt="Thumbnail">
                 </div>
                 {% endif %}
-                <div class="nav-title">{{ next.title|default:next.review_title|truncatewords:8 }}</div>
+                <div class="nav-title">{% if next.title %}{{ next.title|truncatewords:8 }}{% elif next.review_title %}{{ next.review_title|truncatewords:8 }}{% endif %}</div>
             </div>
         </a>
         {% else %}

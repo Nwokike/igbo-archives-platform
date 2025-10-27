@@ -99,7 +99,8 @@ def archive_create(request):
         # Validate required fields
         if not title or not description or not archive_type or not caption:
             messages.error(request, 'Please fill in all required fields.')
-            return redirect('archives:create')
+            categories = Category.objects.all()
+            return render(request, 'archives/create.html', {'categories': categories})
         
         # Create archive instance
         archive = Archive(
@@ -114,7 +115,7 @@ def archive_create(request):
             date_created=date_created,
             circa_date=circa_date,
             uploaded_by=request.user,
-            is_approved=True  # Auto-approve for logged-in users, or set to False for admin approval
+            is_approved=False  # Requires admin approval before appearing on frontend
         )
         
         # Handle file uploads based on type
