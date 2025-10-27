@@ -184,24 +184,6 @@ The platform uses a heritage-inspired color scheme:
 - **Profile features**: Bio, profile picture, social links
 - **Display**: full_name used everywhere, username only in URLs
 
-## 🔧 Recent Updates (Version 2.0)
-
-### Completed
-✅ Removed all featured archive functionality (model field, admin, filters, database)  
-✅ Replaced "Featured" sort with A-Z and Z-A alphabetical sorting  
-✅ Homepage carousel now shows random approved archives  
-✅ Archive detail recommendations use random selection  
-✅ Footer redesigned: 4 columns (desktop/tablet), 1 column (mobile)  
-✅ Footer Community section with social icons at bottom  
-✅ About section shortened to one sentence  
-✅ Rich text editor image button enhanced (gradient, pulse animation, tooltip)  
-✅ Image uploads use caption as title (not filename)  
-✅ Uploaded images require admin approval and category assignment  
-✅ Admin can edit category and approval status inline  
-✅ Profile dropdown functional with correct JavaScript  
-✅ List/grid view toggle works on mobile  
-✅ "View Archive" removed from carousel  
-
 ## 🛠️ Management Commands
 
 ### Backup Database
