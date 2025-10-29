@@ -6,7 +6,14 @@ class CoreConfig(AppConfig):
     name = 'core'
     
     def ready(self):
-        # Simple fix: Force django_comments to use our custom form
-        import django_comments
-        from core.forms import CaptchaThreadedCommentForm
-        django_comments.get_form = lambda: CaptchaThreadedCommentForm
+        # Override threadedcomments to use our custom CAPTCHA form
+        import threadedcomments
+        from django.utils.module_loading import import_string
+        from django.conf import settings
+        
+        def get_custom_form():
+            """Return the custom comment form defined in settings.COMMENT_FORM"""
+            form_path = getattr(settings, 'COMMENT_FORM', 'threadedcomments.forms.ThreadedCommentForm')
+            return import_string(form_path)
+        
+        threadedcomments.get_form = get_custom_form
