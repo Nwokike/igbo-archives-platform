@@ -5,7 +5,7 @@ from .models import InsightPost, EditSuggestion
 class InsightPostAdmin(admin.ModelAdmin):
     list_display = ['title', 'author', 'is_published', 'is_approved', 'created_at']
     list_filter = ['is_published', 'is_approved', 'created_at']
-    search_fields = ['title', 'content']
+    search_fields = ['title', 'excerpt']
     prepopulated_fields = {'slug': ('title',)}
 
 @admin.register(EditSuggestion)

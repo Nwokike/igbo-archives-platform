@@ -10,11 +10,8 @@ def validate_image_size(file):
     """Validate image file size - Max 5MB"""
     file_size = file.size
     max_mb = 5
-    min_mb = 2
     if file_size > max_mb * 1024 * 1024:
         raise ValidationError(f'Maximum file size is {max_mb}MB')
-    if file_size < min_mb * 1024 * 1024:
-        raise ValidationError(f'Minimum file size is {min_mb}MB for quality. Please use higher quality images.')
 
 def validate_video_size(file):
     """Validate video file size - max 50MB"""
@@ -24,24 +21,18 @@ def validate_video_size(file):
         raise ValidationError(f'Maximum video file size is {limit_mb}MB')
 
 def validate_document_size(file):
-    """Validate document file size - Max 5MB"""
+    """Validate document file size - Max 10MB"""
     file_size = file.size
-    max_mb = 5
-    min_mb = 2
+    max_mb = 10
     if file_size > max_mb * 1024 * 1024:
         raise ValidationError(f'Maximum document file size is {max_mb}MB')
-    if file_size < min_mb * 1024 * 1024:
-        raise ValidationError(f'Minimum document file size is {min_mb}MB')
 
 def validate_audio_size(file):
-    """Validate audio file size - Max 5MB"""
+    """Validate audio file size - Max 10MB"""
     file_size = file.size
-    max_mb = 5
-    min_mb = 2
+    max_mb = 10
     if file_size > max_mb * 1024 * 1024:
         raise ValidationError(f'Maximum audio file size is {max_mb}MB')
-    if file_size < min_mb * 1024 * 1024:
-        raise ValidationError(f'Minimum audio file size is {min_mb}MB for quality')
 
 class Category(models.Model):
     name = models.CharField(max_length=100)

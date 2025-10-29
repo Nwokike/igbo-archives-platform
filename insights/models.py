@@ -11,11 +11,8 @@ def validate_file_size(file):
     """Validate file size - images should be Max 5MB"""
     file_size = file.size
     max_mb = 5
-    min_mb = 2
     if file_size > max_mb * 1024 * 1024:
         raise ValidationError(f'Maximum file size is {max_mb}MB')
-    if file_size < min_mb * 1024 * 1024:
-        raise ValidationError(f'Minimum file size is {min_mb}MB for quality. Please use higher quality images.')
 
 class InsightPost(models.Model):
     title = models.CharField(max_length=255)
