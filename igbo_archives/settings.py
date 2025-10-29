@@ -207,8 +207,9 @@ DJANGO_NOTIFICATIONS_CONFIG = {
     'SOFT_DELETE': True
 }
 
-COMMENTS_APP = 'threadedcomments'
-COMMENT_FORM = 'core.forms.CaptchaThreadedCommentForm'
+# Comment system configuration (django-threadedcomments)
+# Custom app provides get_form() hook for CAPTCHA-enabled comment form
+COMMENTS_APP = 'commentapp'
 
 # Editor.js Configuration
 EDITORJS_DEFAULT_CONFIG_TOOLS = {
