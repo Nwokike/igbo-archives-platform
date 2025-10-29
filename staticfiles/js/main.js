@@ -104,7 +104,8 @@ function autoPlayCarousel() {
     const slides = document.querySelectorAll('.carousel-slide');
     if (slides.length > 1) {
         autoPlayInterval = setInterval(() => {
-            moveCarousel(1);
+            const randomSlide = Math.floor(Math.random() * slides.length);
+            goToSlide(randomSlide);
         }, 5000);
     }
 }
@@ -190,4 +191,69 @@ document.addEventListener('DOMContentLoaded', function() {
         
         lastScrollTop = scrollTop;
     }, { passive: true });
+    
+    // Notification Bell Dropdown
+    const notificationBell = document.getElementById('notificationBell');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    const profileButton = document.getElementById('profileButton');
+    const profileDropdown = document.getElementById('profileDropdown');
+    
+    if (notificationBell && notificationDropdown) {
+        notificationBell.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            
+            // Close profile dropdown if open
+            if (profileDropdown) {
+                profileDropdown.classList.remove('show');
+            }
+            
+            // Toggle notification dropdown
+            const isVisible = notificationDropdown.style.display === 'block';
+            
+            if (!isVisible) {
+                // Load notifications via AJAX
+                try {
+                    const response = await fetch('/profile/notifications/dropdown/');
+                    const html = await response.text();
+                    notificationDropdown.innerHTML = html;
+                    notificationDropdown.style.display = 'block';
+                } catch (error) {
+                    console.error('Error loading notifications:', error);
+                    notificationDropdown.innerHTML = '<div class="notification-loading">Error loading notifications</div>';
+                    notificationDropdown.style.display = 'block';
+                }
+            } else {
+                notificationDropdown.style.display = 'none';
+            }
+        });
+    }
+    
+    if (profileButton && profileDropdown) {
+        profileButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            // Close notification dropdown if open
+            if (notificationDropdown) {
+                notificationDropdown.style.display = 'none';
+            }
+            
+            // Toggle profile dropdown
+            const isVisible = profileDropdown.style.display === 'block';
+            if (isVisible) {
+                profileDropdown.style.display = 'none';
+            } else {
+                profileDropdown.style.display = 'block';
+            }
+        });
+    }
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', () => {
+        if (profileDropdown) {
+            profileDropdown.style.display = 'none';
+        }
+        if (notificationDropdown) {
+            notificationDropdown.style.display = 'none';
+        }
+    });
 });

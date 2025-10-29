@@ -266,17 +266,8 @@ body.dark-mode .logo-light { display: none; }
     border-radius: 12px;
     box-shadow: 0 8px 30px var(--shadow-hover);
     min-width: 220px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
+    display: none;
     z-index: 1001;
-}
-
-.profile-dropdown.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
 }
 
 .profile-dropdown-item {
@@ -614,9 +605,16 @@ body.dark-mode .logo-light { display: none; }
 
 .footer-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 3rem;
     margin-bottom: 2rem;
+}
+
+@media (max-width: 767px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
 }
 
 .footer-section h3 {
@@ -942,9 +940,21 @@ body.dark-mode .logo-light { display: none; }
 
 .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     margin-bottom: 3rem;
+}
+
+@media (max-width: 992px) {
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .feature-card {
@@ -1557,10 +1567,16 @@ body.dark-mode .carousel-nav {
     gap: 2rem;
 }
 
+.archive-view-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
 .archive-view-list .card {
     display: flex;
     flex-direction: row;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
 }
 
 .archive-view-list .card-img-top {
@@ -1568,6 +1584,7 @@ body.dark-mode .carousel-nav {
     height: 200px;
     object-fit: cover;
     border-radius: 12px 0 0 12px;
+    flex-shrink: 0;
 }
 
 .archive-view-list .card-body {

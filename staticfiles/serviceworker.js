@@ -1,4 +1,4 @@
-const CACHE_NAME = 'igbo-archives-v1';
+const CACHE_NAME = 'igbo-archives-v2';
 const urlsToCache = [
     '/',
     '/static/css/style.css',
