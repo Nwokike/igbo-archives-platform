@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     
     'django_comments',
     'threadedcomments',
+    'commentapp',
     'taggit',
     'django_htmx',
     'pwa',

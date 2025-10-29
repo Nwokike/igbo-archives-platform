@@ -9,13 +9,14 @@ A comprehensive Django-based web platform for preserving and celebrating Igbo cu
 ## Recent Major Fixes (October 29, 2025)
 
 ### CRITICAL BUGS FIXED TODAY
-- ✅ **Guest Comments CAPTCHA** - Fully functional with test keys
-  - Created `CaptchaThreadedCommentForm` in `core/forms.py` extending ThreadedCommentForm
-  - Added form override in `core/apps.py` ready() method to force django-comments to use custom form
-  - Custom template at `core/templates/comments/form.html` with proper labels (Name, Email, Comment)
-  - Created `core/templates/comments/posted.html` for seamless redirect after posting
-  - Comments now show small green toast notification instead of full "thank you" page
+- ✅ **Guest Comments CAPTCHA** - Production-ready implementation following Django best practices
+  - Created `CaptchaThreadedCommentForm` in `core/forms.py` - CAPTCHA only for anonymous users
+  - Created `commentapp` with official `get_form()` hook (no monkey-patching)
+  - Custom template at `core/templates/comments/form.html` with proper labels
+  - Smart CAPTCHA rendering: only shows for anonymous users, hidden for logged-in users
+  - Toast notification on comment submission (no redirect pages or loops)
   - CAPTCHA validates correctly using Google test keys
+  - Gracefully degrades if CAPTCHA keys are disabled
   
 - ✅ **Push Notifications Modernization** - Replaced obsolete django-push-notifications
   - Removed `django-push-notifications` (incompatible package)

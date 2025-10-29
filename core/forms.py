@@ -14,7 +14,7 @@ else:
 class CaptchaThreadedCommentForm(ThreadedCommentForm):
     """Custom threaded comment form with reCAPTCHA for anonymous users only"""
     
-    # Add CAPTCHA as class field for anonymous users
+    # Add CAPTCHA field (not required - will validate based on user authentication)
     if RECAPTCHA_ENABLED:
         captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox(), required=False)
     
@@ -30,17 +30,17 @@ class CaptchaThreadedCommentForm(ThreadedCommentForm):
         self.fields['comment'].widget.attrs.update({'class': 'modern-comment-input', 'rows': 3, 'placeholder': 'Share your thoughts...'})
         self.fields['comment'].label = 'Comment'
     
-    def clean(self):
-        """Only require CAPTCHA for anonymous users"""
+    def clean_captcha(self):
+        """Validate CAPTCHA only for anonymous users"""
         from django.core.exceptions import ValidationError
-        cleaned_data = super().clean()
         
-        # Check if user is authenticated by looking at the user_name field
-        # If user_name is empty, user is logged in (name comes from user object)
-        # If user_name has value, user is anonymous (filling out the form)
-        if RECAPTCHA_ENABLED and cleaned_data.get('name'):
-            # Anonymous user - require CAPTCHA
-            if 'captcha' in self.fields and not cleaned_data.get('captcha'):
-                raise ValidationError('Please complete the CAPTCHA verification.')
+        # If user is authenticated (has user attribute and is logged in), skip CAPTCHA validation
+        if hasattr(self, 'user') and self.user and self.user.is_authenticated:
+            return None
         
-        return cleaned_data
+        # For anonymous users, CAPTCHA is required
+        captcha_value = self.cleaned_data.get('captcha')
+        if not captcha_value:
+            raise ValidationError('Please complete the CAPTCHA verification.')
+        
+        return captcha_value

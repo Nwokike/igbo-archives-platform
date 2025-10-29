@@ -38,12 +38,14 @@
             {% endif %}
         </div>
         
+        {% if not user.is_authenticated and form.fields.captcha %}
         <div class="form-group captcha-wrapper">
             {{ form.captcha }}
             {% if form.captcha.errors %}
             <div class="form-error">{{ form.captcha.errors }}</div>
             {% endif %}
         </div>
+        {% endif %}
         
         <div class="comment-actions">
             <button type="submit" class="comment-submit-btn">
