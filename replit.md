@@ -9,10 +9,13 @@ A comprehensive Django-based web platform for preserving and celebrating Igbo cu
 ## Recent Major Fixes (October 29, 2025)
 
 ### CRITICAL BUGS FIXED TODAY
-- ✅ **Guest Comments CAPTCHA** - Fixed broken reCAPTCHA integration in all comment forms
-  - Created custom `CaptchaCommentForm` in `core/forms.py` with proper reCAPTCHA field
-  - Updated all guest comment form templates (archives, insights, books) to use form fields properly
-  - Configured custom form in settings with `COMMENTS_XTD_FORM_CLASS`
+- ✅ **Guest Comments CAPTCHA** - Fully functional with test keys
+  - Created `CaptchaThreadedCommentForm` in `core/forms.py` extending ThreadedCommentForm
+  - Added form override in `core/apps.py` ready() method to force django-comments to use custom form
+  - Custom template at `core/templates/comments/form.html` with proper labels (Name, Email, Comment)
+  - Created `core/templates/comments/posted.html` for seamless redirect after posting
+  - Comments now show small green toast notification instead of full "thank you" page
+  - CAPTCHA validates correctly using Google test keys
   
 - ✅ **Push Notifications Modernization** - Replaced obsolete django-push-notifications
   - Removed `django-push-notifications` (incompatible package)
@@ -251,10 +254,13 @@ For production deployment:
 - Website: igboarchives.com.ng
 
 ## Latest Changes Summary (October 29, 2025)
-**All critical bugs fixed for client review:**
-1. Guest comments now work with reCAPTCHA protection
-2. Push notifications modernized with django-webpush
-3. Archive detail page handles all media types without crashing
-4. Mobile UI significantly improved with better spacing
-5. Settings and requirements cleaned of all duplicates
-6. Server running smoothly with no errors
+**All critical features ready for client review:**
+1. ✅ Guest comments fully functional with reCAPTCHA protection (test mode)
+2. ✅ Comment submission shows elegant toast notification (no full-page redirect)
+3. ✅ Comment form has proper labels matching signup/login design
+4. ✅ Professional, compact mobile UI (not oversized/childish)
+5. ✅ Responsive images across all pages (max-width constraints)
+6. ✅ Push notifications modernized with django-webpush
+7. ✅ Archive detail page handles all media types correctly
+8. ✅ Settings and requirements cleaned of duplicates
+9. ✅ Server running smoothly with no errors
