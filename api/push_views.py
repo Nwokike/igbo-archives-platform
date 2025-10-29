@@ -1,24 +1,22 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-from push_notifications.models import WebPushDevice
+from webpush.models import PushInformation
 import json
 
 
 @login_required
 @require_POST
 def push_subscribe(request):
-    """Save push notification subscription for the user"""
+    """Save push notification subscription for the user using django-webpush"""
     try:
         data = json.loads(request.body)
         
-        # Create or update WebPush device
-        device, created = WebPushDevice.objects.update_or_create(
+        # Create or update WebPush subscription using django-webpush
+        subscription, created = PushInformation.objects.update_or_create(
             user=request.user,
             defaults={
-                'registration_id': json.dumps(data),
-                'p256dh': data.get('keys', {}).get('p256dh', ''),
-                'auth': data.get('keys', {}).get('auth', ''),
+                'subscription': data
             }
         )
         
@@ -36,9 +34,9 @@ def push_subscribe(request):
 @login_required
 @require_POST
 def push_unsubscribe(request):
-    """Remove push notification subscription"""
+    """Remove push notification subscription using django-webpush"""
     try:
-        WebPushDevice.objects.filter(user=request.user).delete()
+        PushInformation.objects.filter(user=request.user).delete()
         
         return JsonResponse({
             'status': 'success',
