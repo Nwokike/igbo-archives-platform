@@ -80,7 +80,7 @@
                     {% if user.is_authenticated %}
                         {% render_comment_form for review %}
                     {% else %}
-                        {% include "books/partials/guest_comment_form.html" with review=review %}
+                        {% render_comment_form for review %}
                     {% endif %}
                 </div>
             </article>

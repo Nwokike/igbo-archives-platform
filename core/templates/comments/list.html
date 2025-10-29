@@ -28,8 +28,8 @@
                 </div>
                 
                 <!-- Nested replies render recursively here via threadedcomments -->
-                {% if comment.children %}
-                    {% for child in comment.children %}
+                {% if comment.children.all %}
+                    {% for child in comment.children.all %}
                         {% include 'comments/list.html' with comment_list=child.get_descendants %}
                     {% endfor %}
                 {% endif %}

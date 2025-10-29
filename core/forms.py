@@ -1,5 +1,5 @@
 from django import forms
-from django_comments.forms import CommentForm
+from threadedcomments.forms import ThreadedCommentForm
 from django.conf import settings
 
 # Only import reCAPTCHA if keys are configured
@@ -11,20 +11,21 @@ else:
     RECAPTCHA_ENABLED = False
 
 
-class CaptchaCommentForm(CommentForm):
-    """Custom comment form with reCAPTCHA for guest comments"""
+class CaptchaThreadedCommentForm(ThreadedCommentForm):
+    """Custom threaded comment form with reCAPTCHA for guest comments"""
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Add reCAPTCHA field only if keys are configured
+        # Add reCAPTCHA field only if keys are configured (same as signup/login)
         if RECAPTCHA_ENABLED:
-            self.fields['captcha'] = ReCaptchaField(
-                widget=ReCaptchaV2Checkbox(),
-                label='Verify you are human'
-            )
+            self.fields['captcha'] = ReCaptchaField(widget=ReCaptchaV2Checkbox())
         
         # Style the existing fields
-        self.fields['name'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Your name'})
-        self.fields['email'].widget.attrs.update({'class': 'form-control', 'placeholder': 'your@email.com'})
-        self.fields['comment'].widget.attrs.update({'class': 'form-control', 'rows': 4, 'placeholder': 'Enter your comment...'})
+        self.fields['name'].widget.attrs.update({'class': 'modern-input', 'placeholder': 'Your name *'})
+        self.fields['name'].label = 'Name'
+        self.fields['email'].widget.attrs.update({'class': 'modern-input', 'placeholder': 'Email (optional)'})
+        self.fields['email'].label = 'Email'
+        self.fields['email'].required = False
+        self.fields['comment'].widget.attrs.update({'class': 'modern-comment-input', 'rows': 3, 'placeholder': 'Share your thoughts...'})
+        self.fields['comment'].label = 'Comment'

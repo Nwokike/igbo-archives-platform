@@ -208,7 +208,7 @@ DJANGO_NOTIFICATIONS_CONFIG = {
 }
 
 COMMENTS_APP = 'threadedcomments'
-COMMENTS_XTD_FORM_CLASS = 'core.forms.CaptchaCommentForm'
+COMMENT_FORM = 'core.forms.CaptchaThreadedCommentForm'
 
 # Editor.js Configuration
 EDITORJS_DEFAULT_CONFIG_TOOLS = {

@@ -1908,3 +1908,44 @@ body.dark-mode .carousel-nav {
         height: 140px;
     }
 }
+
+/* ============================================
+   COMPACT CAPTION & DESCRIPTION STYLES
+   ============================================ */
+.archive-caption,
+.insight-caption,
+.text-muted small {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.archive-content,
+.insight-content,
+.review-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.archive-content p,
+.insight-content p,
+.review-content p {
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 767px) {
+    .archive-caption,
+    .insight-caption,
+    .text-muted small {
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+    
+    .archive-content,
+    .insight-content,
+    .review-content {
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+}
