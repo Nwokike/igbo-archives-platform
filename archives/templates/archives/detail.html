@@ -97,7 +97,7 @@
                     {% if user.is_authenticated %}
                         {% render_comment_form for archive %}
                     {% else %}
-                        {% include "archives/partials/guest_comment_form.html" %}
+                        {% include "archives/partials/guest_comment_form.html" with archive=archive %}
                     {% endif %}
                 </div>
             </article>

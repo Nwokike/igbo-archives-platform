@@ -246,9 +246,6 @@ EDITORJS_DEFAULT_CONFIG_TOOLS = {
     "Checklist": "Checklist",
 }
 
-DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR / 'backups'}
-
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
 TWITTER_API_KEY = os.getenv('TWITTER_API_KEY', '')

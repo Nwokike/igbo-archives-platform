@@ -4,20 +4,56 @@
 A comprehensive Django-based web platform for preserving and celebrating Igbo culture, history, and heritage. Museum-quality experience with heritage-inspired design featuring sepia tones and vintage aesthetics.
 
 ## Current Status (October 29, 2025)
-**Production-Ready MVP** - All critical issues fixed, security hardened, fully functional.
+**Production-Ready MVP** - All critical issues fixed, ready for client review TODAY.
 
 ## Recent Major Fixes (October 29, 2025)
-### Security Fixes
+
+### CRITICAL BUGS FIXED TODAY
+- ✅ **Guest Comments CAPTCHA** - Fixed broken reCAPTCHA integration in all comment forms
+  - Created custom `CaptchaCommentForm` in `core/forms.py` with proper reCAPTCHA field
+  - Updated all guest comment form templates (archives, insights, books) to use form fields properly
+  - Configured custom form in settings with `COMMENTS_XTD_FORM_CLASS`
+  
+- ✅ **Push Notifications Modernization** - Replaced obsolete django-push-notifications
+  - Removed `django-push-notifications` (incompatible package)
+  - Installed modern `django-webpush` for web push notifications
+  - Updated `api/push_views.py` to use `webpush.models.PushInformation`
+  - Removed duplicate PUSH_NOTIFICATIONS_SETTINGS from settings.py
+  - Configured modern WEBPUSH_SETTINGS with VAPID keys
+  
+- ✅ **Archive Detail Template** - Fixed crashes with conditional media type handling
+  - Added proper conditional checks for different archive types (image, video, audio, document)
+  - Each media type now properly checks if file exists before rendering
+  - Fixed caption display using correct field name
+  
+- ✅ **Requirements.txt** - Cleaned up massive duplicates
+  - Removed duplicate entries for almost every package
+  - Clean, minimal requirements file
+  - Added django-webpush
+
+- ✅ **Settings.py** - Removed duplicate configurations
+  - Removed duplicate PUSH_NOTIFICATIONS_SETTINGS blocks
+  - Removed duplicate DBBACKUP_STORAGE settings
+  - Cleaned up to single source of truth
+
+- ✅ **Mobile UI** - Improved spacing for cleaner, less compacted interface
+  - Increased padding and spacing throughout mobile styles
+  - Larger touch targets (44px buttons instead of 36px)
+  - More breathing room in headers, navigation, and content
+  - Better readability with larger font sizes on mobile
+  - Matches modern design aesthetic like "mercer" website
+
+### Previous Security Fixes
 - ✅ Removed hardcoded SECRET_KEY fallback - now requires environment variable
 - ✅ Changed DEBUG default from True to False for production safety
 - ✅ Proper secrets management via Replit Secrets
 
-### Admin Panel Fixes
+### Previous Admin Panel Fixes
 - ✅ Fixed FieldError in insights/admin.py - removed 'content' from search_fields
 - ✅ Fixed FieldError in books/admin.py - removed 'content' from search_fields
 - ✅ Admin search now works correctly for all models
 
-### File Validation Fixes
+### Previous File Validation Fixes
 - ✅ Removed unrealistic 2MB minimum file size requirements
 - ✅ Archives now accept images of any reasonable size (max 5MB)
 - ✅ Documents and audio files increased to 10MB max
@@ -56,14 +92,15 @@ A comprehensive Django-based web platform for preserving and celebrating Igbo cu
 - Email-based authentication with django-allauth
 - Google OAuth integration support
 - Rich text editing with Editor.js (JSON-based block editor)
-- Push notifications support
+- **Modern Web Push Notifications** with django-webpush
+- **reCAPTCHA protected guest comments** with django-recaptcha
 - PWA (Progressive Web App) installable
 - SEO optimized with sitemaps and meta tags
 - Threaded comments with guest support
 - Tag-based organization
 - Dynamic HTMX filtering
 - Grid/list view toggle with localStorage persistence
-- Mobile-responsive design
+- **Mobile-responsive design with improved spacing**
 
 ### Database
 - **Development**: SQLite (db.sqlite3)
@@ -134,6 +171,7 @@ igbo-archives-platform/
 ├── core/                   # Core app
 │   ├── templates/          # Base templates, error pages
 │   ├── static/             # CSS, JS, images
+│   ├── forms.py            # Custom comment form with reCAPTCHA
 │   └── views.py            # Homepage, static pages
 ├── archives/               # Archives app
 │   ├── models.py           # Archive model
@@ -153,14 +191,14 @@ igbo-archives-platform/
 │   └── templates/          # User templates
 ├── api/                    # API endpoints
 │   ├── views.py            # Upload, archive browser
-│   └── push_views.py       # Push notifications
+│   └── push_views.py       # Modern push notifications (django-webpush)
 ├── academy/                # Academy app
 │   └── views.py            # Coming soon page
 ├── media/                  # User uploads
 ├── static/                 # Project static files
 ├── staticfiles/            # Collected static files
 ├── db.sqlite3              # SQLite database
-└── requirements.txt        # Python dependencies
+└── requirements.txt        # Python dependencies (cleaned)
 ```
 
 ## Known Issues / Future Improvements
@@ -179,6 +217,7 @@ igbo-archives-platform/
 - User permissions enforced (@login_required decorators)
 - Admin-only approval workflows
 - Secrets managed via environment variables
+- **reCAPTCHA spam protection on guest comments**
 
 ## User Preferences
 - Grid/list view stored in browser localStorage
@@ -204,7 +243,18 @@ For production deployment:
 8. Set up SSL certificate
 9. Configure proper logging
 10. Set up monitoring and backups
+11. Generate VAPID keys for push notifications: `python manage.py webpush_vapid_keys`
+12. Add real reCAPTCHA keys (currently using test keys)
 
 ## Support
 - Email: igboarchives@gmail.com
 - Website: igboarchives.com.ng
+
+## Latest Changes Summary (October 29, 2025)
+**All critical bugs fixed for client review:**
+1. Guest comments now work with reCAPTCHA protection
+2. Push notifications modernized with django-webpush
+3. Archive detail page handles all media types without crashing
+4. Mobile UI significantly improved with better spacing
+5. Settings and requirements cleaned of all duplicates
+6. Server running smoothly with no errors
