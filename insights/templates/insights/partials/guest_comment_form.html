@@ -1,7 +1,6 @@
 {% load comments %}
-{% load recaptcha %}
 
-{% get_comment_form for object as form %}
+{% get_comment_form for insight as form %}
 
 <div class="guest-comment-form mt-4">
     <h4>Leave a Comment</h4>
@@ -15,24 +14,26 @@
         {{ form.security_hash }}
         
         <div class="mb-3">
-            <label for="id_name" class="form-label">Name *</label>
-            <input type="text" class="form-control" id="id_name" name="name" required>
+            {{ form.name.label_tag }}
+            {{ form.name }}
         </div>
 
         <div class="mb-3">
-            <label for="id_email" class="form-label">Email *</label>
-            <input type="email" class="form-control" id="id_email" name="email" required>
+            {{ form.email.label_tag }}
+            {{ form.email }}
             <div class="form-text">Your email will not be published</div>
         </div>
 
         <div class="mb-3">
-            <label for="id_comment" class="form-label">Comment *</label>
-            <textarea class="form-control" id="id_comment" name="comment" rows="4" required></textarea>
+            {{ form.comment.label_tag }}
+            {{ form.comment }}
         </div>
 
+        {% if form.captcha %}
         <div class="mb-3">
-            {{ form.recaptcha_field }}
+            {{ form.captcha }}
         </div>
+        {% endif %}
 
         <button type="submit" class="btn btn-primary">Post Comment</button>
     </form>

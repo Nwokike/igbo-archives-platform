@@ -20,10 +20,43 @@
                     </small>
                 </div>
 
+                {% if archive.archive_type == 'image' and archive.image %}
                 <div class="archive-image mb-4">
                     <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" class="img-fluid rounded">
-                    <p class="text-muted mt-2"><small>{{ archive.alt_text }}</small></p>
+                    {% if archive.caption %}
+                    <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
+                    {% endif %}
                 </div>
+                {% elif archive.archive_type == 'video' and archive.video %}
+                <div class="archive-video mb-4">
+                    <video controls class="w-100 rounded">
+                        <source src="{{ archive.video.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    {% if archive.caption %}
+                    <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
+                    {% endif %}
+                </div>
+                {% elif archive.archive_type == 'audio' and archive.audio %}
+                <div class="archive-audio mb-4">
+                    <audio controls class="w-100">
+                        <source src="{{ archive.audio.url }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    {% if archive.caption %}
+                    <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
+                    {% endif %}
+                </div>
+                {% elif archive.archive_type == 'document' and archive.document %}
+                <div class="archive-document mb-4">
+                    <a href="{{ archive.document.url }}" class="btn btn-primary" download>
+                        <i class="fas fa-download"></i> Download Document
+                    </a>
+                    {% if archive.caption %}
+                    <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
+                    {% endif %}
+                </div>
+                {% endif %}
 
                 <div class="archive-content mb-4">
                     {{ archive.description|safe }}

@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'meta',
     'django_recaptcha',
     'dbbackup',
-    'push_notifications',
+    'webpush',
     'django_editorjs_fields',
     'notifications',
     
@@ -195,10 +195,11 @@ RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY', '6LeIxAcTAAAAAGG-vFI1
 
 SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
 
-PUSH_NOTIFICATIONS_SETTINGS = {
-    "FCM_API_KEY": os.getenv('FCM_SERVER_KEY', ''),
-    "WP_PRIVATE_KEY": os.getenv('WEBPUSH_PRIVATE_KEY', ''),
-    "WP_CLAIMS": {"sub": "mailto:contact@igboarchives.com"}
+# Modern Web Push Notifications with django-webpush
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": os.getenv('VAPID_PUBLIC_KEY', ''),
+    "VAPID_PRIVATE_KEY": os.getenv('VAPID_PRIVATE_KEY', ''),
+    "VAPID_ADMIN_EMAIL": "admin@igboarchives.com"
 }
 
 DJANGO_NOTIFICATIONS_CONFIG = {
@@ -207,6 +208,7 @@ DJANGO_NOTIFICATIONS_CONFIG = {
 }
 
 COMMENTS_APP = 'threadedcomments'
+COMMENTS_XTD_FORM_CLASS = 'core.forms.CaptchaCommentForm'
 
 # Editor.js Configuration
 EDITORJS_DEFAULT_CONFIG_TOOLS = {
@@ -270,22 +272,7 @@ else:
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'igboarchives@gmail.com')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'igboarchives@gmail.com')
 
-# Push Notifications Configuration
-PUSH_NOTIFICATIONS_SETTINGS = {
-    'WNS_PACKAGE_SECURITY_ID': os.getenv('WNS_PACKAGE_SECURITY_ID'),
-    'WNS_SECRET_KEY': os.getenv('WNS_SECRET_KEY'),
-    'GCM_API_KEY': os.getenv('FCM_SERVER_KEY'),  # Firebase Cloud Messaging
-    'APNS_CERTIFICATE': os.getenv('APNS_CERTIFICATE'),
-    'APNS_TOPIC': os.getenv('APNS_TOPIC'),
-    'WP_PRIVATE_KEY': os.getenv('VAPID_PRIVATE_KEY'),
-    'WP_CLAIMS': {
-        'sub': 'mailto:admin@igboarchives.com'
-    }
-}
-
-# VAPID Keys for Web Push (set these in environment variables)
-VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')
-VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
+# VAPID Keys for Web Push (django-webpush will use WEBPUSH_SETTINGS above)
 
 # ============================================
 # SEO CONFIGURATION (django-meta)
