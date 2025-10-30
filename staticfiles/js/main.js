@@ -1,4 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if coming back from comment submission
+    if (window.location.hash.includes('comment-')) {
+        const toast = document.createElement('div');
+        toast.innerHTML = '<i class="bi bi-check-circle"></i> Comment posted successfully!';
+        toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; font-size: 0.95rem;';
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.remove(), 3000);
+        
+        // Clear hash after showing notification
+        setTimeout(() => {
+            history.replaceState(null, null, ' ');
+        }, 100);
+    }
+    
     const darkModeToggle = document.querySelector('.night-mode-toggle');
     const body = document.body;
     

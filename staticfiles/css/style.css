@@ -665,24 +665,24 @@ body.dark-mode .logo-light { display: none; }
 }
 
 @media (max-width: 767px) {
-    /* Header adjustments */
+    /* PROFESSIONAL COMPACT MOBILE UI */
     .header-container {
-        padding: 0.5rem 1rem;
-        gap: 1rem;
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
     }
     
     .dark-mode-toggle {
         width: 36px;
         height: 36px;
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
     
     .logo-image {
-        height: 35px;
+        height: 32px;
     }
     
     .login-button, .profile-button {
-        padding: 0.4rem 1rem;
+        padding: 0.5rem 0.875rem;
         font-size: 0.85rem;
     }
     
@@ -692,7 +692,7 @@ body.dark-mode .logo-light { display: none; }
         font-size: 0.9rem;
     }
     
-    /* Make sub-navigation scrollable on mobile */
+    /* Compact sub-navigation */
     .sub-nav {
         display: block !important;
         overflow-x: auto;
@@ -702,17 +702,18 @@ body.dark-mode .logo-light { display: none; }
     
     .sub-nav-container {
         padding: 0 1rem;
-        gap: 0.75rem;
+        gap: 0.625rem;
         min-width: max-content;
     }
     
     .sub-nav-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
+        margin-bottom: 0.125rem;
     }
     
     .sub-nav-button, .sub-nav-link {
         font-size: 0.8rem;
-        padding: 0.4rem 0.75rem;
+        padding: 0.5rem 0.75rem;
         white-space: nowrap;
     }
     
@@ -721,20 +722,20 @@ body.dark-mode .logo-light { display: none; }
     }
     
     .sub-nav-search input {
-        min-width: 150px;
-        font-size: 0.85rem;
-        padding: 0.4rem 0.75rem;
+        min-width: 140px;
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
     }
     
-    /* Container adjustments */
+    /* Compact, professional spacing */
     .container-main {
-        padding: 1.5rem 1rem;
-        padding-bottom: 5rem; /* Space for mobile nav */
+        padding: 1.25rem 1rem;
+        padding-bottom: 5rem;
     }
     
-    /* Typography - smaller for mobile */
+    /* Professional typography */
     h1 { 
-        font-size: 1.75rem; 
+        font-size: 1.5rem; 
         margin-bottom: 1rem;
     }
     h2 { 
@@ -1665,5 +1666,286 @@ body.dark-mode .carousel-nav {
     .archive-view-list .card-img-top {
         width: 100%;
         border-radius: 12px 12px 0 0;
+    }
+}
+
+/* ============================================
+   IMAGE RESPONSIVE SIZING - COMPACT & CLEAN
+   ============================================ */
+.archive-image img,
+.insight-image img,
+.card-image img,
+.archive-detail img,
+.insight-detail img,
+.book-review-detail img {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Archive and Insight Featured Images - Compact */
+.archive-image,
+.insight-image {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+}
+
+.archive-image img,
+.insight-image img {
+    max-height: 500px;
+    width: 100%;
+    object-fit: cover;
+}
+
+/* Content Images - Responsive */
+.archive-content img,
+.insight-content img,
+.review-content img {
+    max-width: 100%;
+    height: auto !important;
+    max-height: 600px;
+    object-fit: contain;
+    display: block;
+    margin: 1.5rem auto;
+    border-radius: 8px;
+}
+
+/* Card Images - Grid View */
+.archive-card img,
+.insight-card img,
+.book-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+/* Upload Preview Images - Compact */
+.featured-option img,
+.image-preview img,
+.upload-preview img {
+    max-width: 120px !important;
+    max-height: 120px !important;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* Mobile Responsive Images */
+@media (max-width: 768px) {
+    .archive-image img,
+    .insight-image img {
+        max-height: 350px;
+    }
+    
+    .archive-content img,
+    .insight-content img,
+    .review-content img {
+        max-height: 400px;
+    }
+    
+    .archive-card img,
+    .insight-card img,
+    .book-card img {
+        height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .archive-image img,
+    .insight-image img {
+        max-height: 250px;
+    }
+    
+    .archive-content img,
+    .insight-content img,
+    .review-content img {
+        max-height: 300px;
+    }
+}
+
+/* ============================================
+   PROFESSIONAL MOBILE UI OVERRIDES
+   ============================================ */
+@media (max-width: 767px) {
+    /* Compact cards */
+    .card {
+        margin-bottom: 1rem;
+        border-radius: 8px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-text {
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+    
+    /* Compact archive/insight cards */
+    .archive-card,
+    .insight-card,
+    .book-card {
+        border-radius: 8px;
+    }
+    
+    .archive-card img,
+    .insight-card img,
+    .book-card img {
+        height: 160px;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    /* Compact buttons */
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+    
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Compact badges */
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    /* Compact forms */
+    .form-control {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+        margin-bottom: 0.375rem;
+    }
+    
+    /* Compact comment section */
+    .modern-comment-section {
+        padding: 1.25rem 1rem;
+        margin: 2rem 0;
+        border-radius: 8px;
+    }
+    
+    .comment-section-title {
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .modern-input,
+    .modern-comment-input {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+    
+    .comment-submit-btn {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+    
+    /* Compact meta info */
+    .text-muted,
+    .small,
+    small {
+        font-size: 0.75rem;
+    }
+    
+    /* Compact spacing */
+    .mt-1, .my-1 { margin-top: 0.5rem !important; }
+    .mt-2, .my-2 { margin-top: 0.75rem !important; }
+    .mt-3, .my-3 { margin-top: 1rem !important; }
+    .mt-4, .my-4 { margin-top: 1.5rem !important; }
+    .mt-5, .my-5 { margin-top: 2rem !important; }
+    
+    .mb-1, .my-1 { margin-bottom: 0.5rem !important; }
+    .mb-2, .my-2 { margin-bottom: 0.75rem !important; }
+    .mb-3, .my-3 { margin-bottom: 1rem !important; }
+    .mb-4, .my-4 { margin-bottom: 1.5rem !important; }
+    .mb-5, .my-5 { margin-bottom: 2rem !important; }
+    
+    .p-1 { padding: 0.5rem !important; }
+    .p-2 { padding: 0.75rem !important; }
+    .p-3 { padding: 1rem !important; }
+    .p-4 { padding: 1.5rem !important; }
+    .p-5 { padding: 2rem !important; }
+}
+
+/* Extra small devices - even more compact */
+@media (max-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+    
+    h1 { font-size: 1.375rem; }
+    h2 { font-size: 1.125rem; }
+    h3 { font-size: 1rem; }
+    h4 { font-size: 0.95rem; }
+    
+    .container-main {
+        padding: 1rem 0.875rem;
+    }
+    
+    .card-body {
+        padding: 0.875rem;
+    }
+    
+    .archive-card img,
+    .insight-card img,
+    .book-card img {
+        height: 140px;
+    }
+}
+
+/* ============================================
+   COMPACT CAPTION & DESCRIPTION STYLES
+   ============================================ */
+.archive-caption,
+.insight-caption,
+.text-muted small {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.archive-content,
+.insight-content,
+.review-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.archive-content p,
+.insight-content p,
+.review-content p {
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 767px) {
+    .archive-caption,
+    .insight-caption,
+    .text-muted small {
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+    
+    .archive-content,
+    .insight-content,
+    .review-content {
+        font-size: 0.875rem;
+        line-height: 1.5;
     }
 }

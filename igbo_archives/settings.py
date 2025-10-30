@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'whitenoise.runserver_nostatic',
     'django.contrib.sites',
     'django.contrib.sitemaps',
     
@@ -38,7 +39,6 @@ INSTALLED_APPS = [
     
     'django_comments',
     'threadedcomments',
-    'commentapp',
     'taggit',
     'django_htmx',
     'pwa',
@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'dbbackup',
     'webpush',
     'django_editorjs_fields',
-    'notifications',
     
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
@@ -59,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -203,14 +203,8 @@ WEBPUSH_SETTINGS = {
     "VAPID_ADMIN_EMAIL": "admin@igboarchives.com"
 }
 
-DJANGO_NOTIFICATIONS_CONFIG = {
-    'USE_JSONFIELD': True,
-    'SOFT_DELETE': True
-}
-
 # Comment system configuration (django-threadedcomments)
-# Custom app provides get_form() hook for CAPTCHA-enabled comment form
-COMMENTS_APP = 'commentapp'
+COMMENTS_APP = 'threadedcomments'
 
 # Editor.js Configuration
 EDITORJS_DEFAULT_CONFIG_TOOLS = {
