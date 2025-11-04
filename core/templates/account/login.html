@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load socialaccount %}
 
 {% block title %}Login - Igbo Archives{% endblock %}
 
@@ -59,14 +60,14 @@
                 <span>OR</span>
             </div>
 
-            <a href="{% url 'google_login' %}" class="btn btn-google">
+            <a href="{% provider_login_url 'google' %}" class="btn btn-google">
                 <i class="fab fa-google"></i> Continue with Google
             </a>
 
             <div class="auth-links">
-                <a href="/accounts/password/reset/">Forgot password?</a>
+                                <a href="{% url 'account_reset_password' %}">Forgot password?</a>
                 <span>·</span>
-                <a href="/accounts/signup/">Create an account</a>
+                <a href="{% url 'account_signup' %}">Create an account</a>
             </div>
         </form>
     </div>

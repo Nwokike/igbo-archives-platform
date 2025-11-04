@@ -8,9 +8,9 @@
     <h1>Preserving the Past, Inspiring the Future</h1>
     <p>Explore the rich cultural heritage of the Igbo people through our comprehensive digital archives, community insights, and educational resources.</p>
     <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-        <a href="/archives/" class="btn btn-primary" style="text-decoration: none;">Explore Archives</a>
+        <a href="{% url 'archives:list' %}" class="btn btn-primary" style="text-decoration: none;">Explore Archives</a>
         {% if not user.is_authenticated %}
-        <a href="/accounts/signup/" class="btn btn-primary" style="background: linear-gradient(135deg, #2E7D32 0%, #43A047 100%); text-decoration: none;">Join Community</a>
+        <a href="{% url 'account_signup' %}" class="btn btn-primary" style="background: linear-gradient(135deg, #2E7D32 0%, #43A047 100%); text-decoration: none;">Join Community</a>
         {% endif %}
     </div>
 </div>
@@ -73,7 +73,7 @@
                 </div>
                 <h3 class="card-title">Cultural Archives</h3>
                 <p class="card-text">Explore our extensive collection of photographs, documents, artifacts, and historical records that tell the story of Igbo people across generations.</p>
-                <a href="/archives/" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Browse Archives</a>
+                <a href="{% url 'archives:list' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Browse Archives</a>
             </div>
         </div>
         
@@ -88,7 +88,7 @@
                 </div>
                 <h3 class="card-title">Community Insights</h3>
                 <p class="card-text">Read and share perspectives on Igbo culture, traditions, and contemporary issues. Connect with writers and thinkers preserving our heritage through words.</p>
-                <a href="/insights/" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Read Insights</a>
+                <a href="{% url 'insights:list' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Read Insights</a>
             </div>
         </div>
         
@@ -102,7 +102,7 @@
                 </div>
                 <h3 class="card-title">Book Reviews</h3>
                 <p class="card-text">Discover and review books about Igbo culture, history, language, and literature. Build your knowledge through curated recommendations.</p>
-                <a href="/books/" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Browse Books</a>
+                <a href="{% url 'books:list' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Browse Books</a>
             </div>
         </div>
         
@@ -131,7 +131,7 @@
                 </div>
                 <h3 class="card-title">Igbo Academy</h3>
                 <p class="card-text">Coming soon! Learn the Igbo language, explore cultural traditions, folktales, music, arts, and more through interactive lessons.</p>
-                <a href="/academy/" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Learn More</a>
+                <a href="{% url 'academy:coming_soon' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Learn More</a>
             </div>
         </div>
         
@@ -148,9 +148,9 @@
                 <h3 class="card-title">Community</h3>
                 <p class="card-text">Join a vibrant community of culture enthusiasts, historians, and learners. Share knowledge, connect with others, and preserve our heritage together.</p>
                 {% if user.is_authenticated %}
-                <a href="/profile/dashboard/" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Your Dashboard</a>
+                <a href="{% url 'users:dashboard' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Your Dashboard</a>
                 {% else %}
-                <a href="/accounts/signup/" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Join Now</a>
+                <a href="{% url 'account_signup' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Join Now</a>
                 {% endif %}
             </div>
         </div>

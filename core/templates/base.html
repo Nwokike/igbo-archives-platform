@@ -56,7 +56,7 @@
                 </button>
                 
                 <!-- Logo - Center -->
-                <a class="logo-container" href="/">
+                <a class="logo-container" href="{% url 'core:home' %}">
                     <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives" class="logo-image logo-dark">
                     <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives" class="logo-image logo-light">
                 </a>
@@ -93,19 +93,19 @@
                         </button>
                         
                         <div class="profile-dropdown" id="profileDropdown">
-                            <a href="/profile/{{ user.username }}/" class="profile-dropdown-item">
+                            <a href="{% url 'users:profile' user.username %}" class="profile-dropdown-item">
                                 <i class="fas fa-user"></i> My Profile
                             </a>
-                            <a href="/profile/dashboard/" class="profile-dropdown-item">
+                            <a href="{% url 'users:dashboard' %}" class="profile-dropdown-item">
                                 <i class="fas fa-th-large"></i> Dashboard
                             </a>
-                            <a href="/profile/messages/" class="profile-dropdown-item">
+                            <a href="{% url 'users:inbox' %}" class="profile-dropdown-item">
                                 <i class="fas fa-envelope"></i> Messages
                             </a>
-                            <a href="/profile/notifications/" class="profile-dropdown-item">
+                            <a href="{% url 'users:notifications' %}" class="profile-dropdown-item">
                                 <i class="fas fa-bell"></i> Notifications
                             </a>
-                            <a href="/profile/{{ user.username }}/edit/" class="profile-dropdown-item">
+                            <a href="{% url 'users:profile_edit' user.username %}" class="profile-dropdown-item">
                                 <i class="fas fa-edit"></i> Edit Profile
                             </a>
                             <a href="{% url 'account_logout' %}" class="profile-dropdown-item" id="logoutLink">
@@ -113,7 +113,7 @@
                             </a>
                         </div>
                     {% else %}
-                        <a href="/accounts/login/" class="login-button">
+                        <a href="{% url 'account_login' %}" class="login-button">
                             <i class="fas fa-sign-in-alt"></i> Login
                         </a>
                     {% endif %}
@@ -124,16 +124,16 @@
         <!-- Desktop Navigation (Level 2) -->
         <nav class="desktop-nav">
             <div class="nav-container">
-                <a href="/archives/" class="nav-link {% if request.path == '/archives/' or request.path == '/' %}active{% endif %}">
+                <a href="{% url 'archives:list' %}" class="nav-link {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}active{% endif %}">
                     <i class="fas fa-archive"></i> Archives
                 </a>
-                <a href="/insights/" class="nav-link {% if '/insights/' in request.path %}active{% endif %}">
+                <a href="{% url 'insights:list' %}" class="nav-link {% if 'insights' in request.resolver_match.app_names %}active{% endif %}">
                     <i class="fas fa-lightbulb"></i> Insights
                 </a>
-                <a href="/books/" class="nav-link {% if '/books/' in request.path %}active{% endif %}">
+                <a href="{% url 'books:list' %}" class="nav-link {% if 'books' in request.resolver_match.app_names %}active{% endif %}">
                     <i class="fas fa-book"></i> Recommended Books
                 </a>
-                <a href="/academy/" class="nav-link {% if '/academy/' in request.path %}active{% endif %}">
+                <a href="{% url 'academy:coming_soon' %}" class="nav-link {% if 'academy' in request.resolver_match.app_names %}active{% endif %}">
                     <i class="fas fa-graduation-cap"></i> Academy
                 </a>
                 <a href="https://ai.igboarchives.com.ng" class="nav-link" target="_blank" rel="noopener noreferrer">
@@ -148,19 +148,19 @@
     
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-nav">
-        <a href="/archives/" class="mobile-nav-item {% if request.path == '/archives/' or request.path == '/' %}active{% endif %}">
+        <a href="{% url 'archives:list' %}" class="mobile-nav-item {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}active{% endif %}">
             <i class="fas fa-archive"></i>
             <span>Archives</span>
         </a>
-        <a href="/insights/" class="mobile-nav-item {% if '/insights/' in request.path %}active{% endif %}">
+        <a href="{% url 'insights:list' %}" class="mobile-nav-item {% if 'insights' in request.resolver_match.app_names %}active{% endif %}">
             <i class="fas fa-lightbulb"></i>
             <span>Insights</span>
         </a>
-        <a href="/books/" class="mobile-nav-item {% if '/books/' in request.path %}active{% endif %}">
+        <a href="{% url 'books:list' %}" class="mobile-nav-item {% if 'books' in request.resolver_match.app_names %}active{% endif %}">
             <i class="fas fa-book"></i>
             <span>Books</span>
         </a>
-        <a href="/academy/" class="mobile-nav-item {% if '/academy/' in request.path %}active{% endif %}">
+        <a href="{% url 'academy:coming_soon' %}" class="mobile-nav-item {% if 'academy' in request.resolver_match.app_names %}active{% endif %}">
             <i class="fas fa-graduation-cap"></i>
             <span>Academy</span>
         </a>
@@ -205,19 +205,19 @@
                 <!-- Quick Links -->
                 <div class="footer-section">
                     <h3>Quick Links</h3>
-                    <a href="/archives/" class="footer-link">Cultural Archives</a>
-                    <a href="/insights/" class="footer-link">Insights</a>
-                    <a href="/books/" class="footer-link">Book Reviews</a>
-                    <a href="/academy/" class="footer-link">Academy</a>
+                    <a href="{% url 'archives:list' %}" class="footer-link">Cultural Archives</a>
+                    <a href="{% url 'insights:list' %}" class="footer-link">Insights</a>
+                    <a href="{% url 'books:list' %}" class="footer-link">Book Reviews</a>
+                    <a href="{% url 'academy:coming_soon' %}" class="footer-link">Academy</a>
                 </div>
                 
                 <!-- Resources -->
                 <div class="footer-section">
                     <h3>Resources</h3>
-                    <a href="/about/" class="footer-link">About Us</a>
-                    <a href="/privacy/" class="footer-link">Privacy Policy</a>
-                    <a href="/terms/" class="footer-link">Terms of Service</a>
-                    <a href="/contact/" class="footer-link">Contact Us</a>
+                    <a href="{% url 'core:about' %}" class="footer-link">About Us</a>
+                    <a href="{% url 'core:privacy' %}" class="footer-link">Privacy Policy</a>
+                    <a href="{% url 'core:terms' %}" class="footer-link">Terms of Service</a>
+                    <a href="{% url 'core:contact' %}" class="footer-link">Contact Us</a>
                 </div>
                 
                 <!-- Community -->
@@ -226,10 +226,10 @@
                     <a href="https://ai.igboarchives.com.ng" class="footer-link" target="_blank" rel="noopener noreferrer">
                         <i class="fas fa-robot"></i> Igbo Archives AI
                     </a>
-                    <a href="/donate/" class="footer-link">
+                    <a href="{% url 'core:donate' %}" class="footer-link">
                         <i class="fas fa-heart"></i> Support Us
                     </a>
-                    <a href="/copyright/" class="footer-link">
+                    <a href="{% url 'core:copyright' %}" class="footer-link">
                         <i class="fas fa-copyright"></i> Copyright Policy
                     </a>
                     <div class="footer-link" style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; margin-top: 0.5rem;">
@@ -405,7 +405,7 @@
             if (!isVisible) {
                 // Load notifications via AJAX
                 try {
-                    const response = await fetch('/profile/notifications/dropdown/');
+                    const response = await fetch("{% url 'users:notification_dropdown' %}");
                     if (response.ok) {
                         const html = await response.text();
                         notificationDropdown.innerHTML = html;

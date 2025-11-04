@@ -67,4 +67,7 @@ Message:
 
 def donate(request):
     """Donation page"""
-    return render(request, 'core/donate.html')
+    context = {
+        'paypal_url': getattr(settings, 'PAYPAL_DONATION_URL', None)
+    }
+    return render(request, 'core/donate.html', context)

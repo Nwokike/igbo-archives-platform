@@ -25,9 +25,9 @@
                         Your contribution helps us preserve Igbo culture, digitize historical artifacts, create educational content, and build a thriving community. Every donation, big or small, makes a lasting impact on our mission to pass Igbo heritage to future generations.
                     </p>
                     
-                    {% if ENABLE_DONATIONS %}
+                                        {% if ENABLE_DONATIONS and paypal_url %}
                     <div style="text-align: center; margin-bottom: 2rem;">
-                        <a href="https://www.paypal.com/donate/?hosted_button_id=YOUR_PAYPAL_BUTTON_ID" 
+                        <a href="{{ paypal_url }}" 
                            target="_blank" 
                            rel="noopener noreferrer" 
                            class="btn btn-primary btn-lg" 
@@ -37,7 +37,7 @@
                     </div>
                     
                     <p style="text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
-                        <i class="fas fa-shield-alt"></i> Secure donation processing powered by PayPal
+                        <i class="fas fa-shield-alt"></i> Secure donation processing
                     </p>
                     {% else %}
                     <div class="alert alert-info">
