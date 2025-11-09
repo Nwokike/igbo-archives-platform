@@ -1,274 +1,307 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if coming back from comment submission
-    if (window.location.hash.includes('comment-')) {
-        const toast = document.createElement('div');
-        toast.innerHTML = '<i class="bi bi-check-circle"></i> Comment posted successfully!';
-        toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; font-size: 0.95rem;';
-        document.body.appendChild(toast);
-        
-        setTimeout(() => toast.remove(), 3000);
-        
-        // Clear hash after showing notification
-        setTimeout(() => {
-            history.replaceState(null, null, ' ');
-        }, 100);
-    }
-    
-    const darkModeToggle = document.querySelector('.night-mode-toggle');
-    const body = document.body;
-    
-    const darkMode = localStorage.getItem('darkMode');
-    if (darkMode === 'enabled') {
-        body.classList.add('dark-mode');
-        if (darkModeToggle) {
-            darkModeToggle.textContent = '☀️';
+(function() {
+    'use strict';
+
+    /**
+     * Helper function to get CSRF token from cookies.
+     * @param {string} name - The name of the cookie (usually 'csrftoken').
+     * @returns {string|null} The value of the cookie or null if not found.
+     */
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
         }
+        return cookieValue;
     }
-    
-    if (darkModeToggle) {
-        darkModeToggle.addEventListener('click', function() {
-            body.classList.toggle('dark-mode');
-            if (body.classList.contains('dark-mode')) {
-                localStorage.setItem('darkMode', 'enabled');
-                darkModeToggle.textContent = '☀️';
-            } else {
-                localStorage.setItem('darkMode', 'disabled');
-                darkModeToggle.textContent = '🌙';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- Dark Mode Handler ---
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            const body = document.body;
+            const icon = darkModeToggle.querySelector('i');
+            
+            // Apply saved theme on page load
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                body.classList.add('dark-mode');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+            
+            darkModeToggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                const isDarkMode = body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+                icon.classList.toggle('fa-moon', !isDarkMode);
+                icon.classList.toggle('fa-sun', isDarkMode);
+            });
+        }
+
+        // --- Sticky Header Handler ---
+        const stickyHeaderWrapper = document.querySelector('.sticky-header-wrapper');
+        if (stickyHeaderWrapper) {
+            const scrollThreshold = 100;
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                if (scrollTop > scrollThreshold) {
+                    stickyHeaderWrapper.classList.add('shrink');
+                } else {
+                    stickyHeaderWrapper.classList.remove('shrink');
+                }
+            }, { passive: true });
+        }
+
+        // --- Dropdown Menus (Profile & Notifications) ---
+        const profileButton = document.getElementById('profileButton');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const notificationBell = document.getElementById('notificationBell');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+
+        if (profileButton && profileDropdown) {
+            profileButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('show');
+                if (notificationDropdown) {
+                    notificationDropdown.style.display = 'none'; // Close other dropdown
+                }
+            });
+        }
+
+        if (notificationBell && notificationDropdown) {
+            notificationBell.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const bell = e.currentTarget;
+                const isVisible = notificationDropdown.style.display === 'block';
+
+                if (profileDropdown) {
+                    profileDropdown.classList.remove('show'); // Close other dropdown
+                }
+
+                if (!isVisible) {
+                    notificationDropdown.innerHTML = '<div class="notification-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+                    notificationDropdown.style.display = 'block';
+                    try {
+                        const response = await fetch(bell.dataset.url);
+                        if (response.ok) {
+                            notificationDropdown.innerHTML = await response.text();
+                        } else {
+                            notificationDropdown.innerHTML = '<div class="notification-empty"><i class="fas fa-bell-slash"></i><p>Failed to load</p></div>';
+                        }
+                    } catch (error) {
+                        console.error('Error loading notifications:', error);
+                        notificationDropdown.innerHTML = '<div class="notification-empty"><i class="fas fa-exclamation-triangle"></i><p>Error</p></div>';
+                    }
+                } else {
+                    notificationDropdown.style.display = 'none';
+                }
+            });
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (profileDropdown && profileDropdown.classList.contains('show')) {
+                profileDropdown.classList.remove('show');
+            }
+            if (notificationDropdown && notificationDropdown.style.display === 'block') {
+                if (!notificationBell.contains(e.target)) {
+                    notificationDropdown.style.display = 'none';
+                }
             }
         });
-    }
-    
-    let deferredPrompt;
-    const installButton = document.getElementById('pwaInstallBtn');
-    
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        if (installButton) {
-            installButton.style.display = 'flex';
+
+        // --- Instant Logout Handler ---
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = this.href; // Use the URL from the link
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = getCookie('csrftoken');
+                form.appendChild(csrfInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            });
         }
-    });
-    
-    if (installButton) {
-        installButton.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                deferredPrompt = null;
+        
+        // --- PWA Installation Prompt ---
+        let deferredPrompt;
+        const installButton = document.getElementById('pwaInstallBtn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installButton) {
+                installButton.style.display = 'flex';
+            }
+        });
+
+        if (installButton) {
+            installButton.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt = null;
+                    installButton.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            if (installButton) {
                 installButton.style.display = 'none';
             }
         });
-    }
-    
-    window.addEventListener('appinstalled', () => {
-        console.log('PWA was installed');
-        if (installButton) {
-            installButton.style.display = 'none';
+
+        // --- Comment Success Toast Notification ---
+        if (window.location.hash.includes('comment-')) {
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast success';
+            toast.innerHTML = '<i class="fas fa-check-circle"></i> Comment posted successfully!';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3500);
+            
+            // Clean the URL hash
+            setTimeout(() => {
+                history.replaceState(null, null, window.location.pathname + window.location.search);
+            }, 100);
+        }
+        
+        // --- Grid/List View Toggle ---
+        const gridViewBtn = document.getElementById('gridViewBtn');
+        const listViewBtn = document.getElementById('listViewBtn');
+        const contentContainer = document.getElementById('archiveGrid') || 
+                                 document.getElementById('insightsGrid') || 
+                                 document.getElementById('reviewsGrid');
+
+        if (contentContainer && gridViewBtn && listViewBtn) {
+            const pageType = contentContainer.id.replace('Grid', '');
+            
+            const toggleView = (view) => {
+                const isGrid = view === 'grid';
+                contentContainer.className = isGrid ? 'archive-view-grid' : 'archive-view-list';
+                gridViewBtn.classList.toggle('active', isGrid);
+                listViewBtn.classList.toggle('active', !isGrid);
+                localStorage.setItem(pageType + 'View', view);
+            };
+
+            gridViewBtn.addEventListener('click', () => toggleView('grid'));
+            listViewBtn.addEventListener('click', () => toggleView('list'));
+
+            // Apply saved view on page load
+            const savedView = localStorage.getItem(pageType + 'View') || 'grid';
+            toggleView(savedView);
+        }
+
+        // --- Carousel Logic ---
+        const carousel = document.getElementById('featuredCarousel');
+        if (carousel) {
+            let currentSlide = 0;
+            let autoPlayInterval;
+            const slides = carousel.querySelectorAll('.carousel-slide');
+            const dots = carousel.querySelectorAll('.carousel-dot');
+            const nextButton = carousel.querySelector('.carousel-next');
+            const prevButton = carousel.querySelector('.carousel-prev');
+
+            const goToSlide = (index) => {
+                slides[currentSlide].classList.remove('active');
+                dots[currentSlide].classList.remove('active');
+                currentSlide = (index + slides.length) % slides.length;
+                slides[currentSlide].classList.add('active');
+                dots[currentSlide].classList.add('active');
+            };
+
+            const resetAutoPlay = () => {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = setInterval(() => {
+                    goToSlide(currentSlide + 1);
+                }, 5000);
+            };
+
+            if (nextButton) {
+                nextButton.addEventListener('click', () => {
+                    goToSlide(currentSlide + 1);
+                    resetAutoPlay();
+                });
+            }
+
+            if (prevButton) {
+                prevButton.addEventListener('click', () => {
+                    goToSlide(currentSlide - 1);
+                    resetAutoPlay();
+                });
+            }
+
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    goToSlide(index);
+                    resetAutoPlay();
+                });
+            });
+
+                        if (slides.length > 1) {
+                resetAutoPlay();
+            }
+        }
+
+        // --- Recommended Carousel ---
+        const recommendedCarousel = document.querySelector('.recommended-carousel');
+        if (recommendedCarousel) {
+            const track = recommendedCarousel.querySelector('.carousel-track');
+            const prevButton = recommendedCarousel.querySelector('.prev-btn');
+            const nextButton = recommendedCarousel.querySelector('.next-btn');
+
+            const scrollCarousel = (direction) => {
+                if (!track) return;
+                const card = track.querySelector('.recommended-card');
+                if (!card) return;
+                
+                const cardWidth = card.offsetWidth;
+                const gap = 20;
+                const scrollAmount = (cardWidth + gap) * 2; // Scroll 2 cards
+
+                track.scrollBy({
+                    left: direction * scrollAmount,
+                    behavior: 'smooth'
+                });
+            };
+
+            if (prevButton) {
+                prevButton.addEventListener('click', () => scrollCarousel(-1));
+            }
+
+            if (nextButton) {
+                nextButton.addEventListener('click', () => scrollCarousel(1));
+            }
         }
     });
-});
 
+})();
+
+/**
+ * A function to copy text to the clipboard.
+ * Note: This remains in the global scope intentionally to be callable from rare `onclick` attributes if needed for specific simple cases.
+ * For new development, prefer using event listeners.
+ * @param {string} text - The text to copy.
+ */
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
+    navigator.clipboard.writeText(text).then(() => {
+        // You can implement a more elegant notification here if needed
         alert('Link copied to clipboard!');
-    }, function(err) {
+    }).catch(err => {
         console.error('Could not copy text: ', err);
     });
 }
-
-
-let currentSlide = 0;
-let autoPlayInterval;
-
-function moveCarousel(direction) {
-    const slides = document.querySelectorAll('.carousel-slide');
-    const dots = document.querySelectorAll('.carousel-dot');
-    
-    if (slides.length === 0) return;
-    
-    slides[currentSlide].classList.remove('active');
-    dots[currentSlide].classList.remove('active');
-    
-    currentSlide = (currentSlide + direction + slides.length) % slides.length;
-    
-    slides[currentSlide].classList.add('active');
-    dots[currentSlide].classList.add('active');
-    
-    resetAutoPlay();
-}
-
-function goToSlide(index) {
-    const slides = document.querySelectorAll('.carousel-slide');
-    const dots = document.querySelectorAll('.carousel-dot');
-    
-    if (slides.length === 0) return;
-    
-    slides[currentSlide].classList.remove('active');
-    dots[currentSlide].classList.remove('active');
-    
-    currentSlide = index;
-    
-    slides[currentSlide].classList.add('active');
-    dots[currentSlide].classList.add('active');
-    
-    resetAutoPlay();
-}
-
-function autoPlayCarousel() {
-    const slides = document.querySelectorAll('.carousel-slide');
-    if (slides.length > 1) {
-        autoPlayInterval = setInterval(() => {
-            const randomSlide = Math.floor(Math.random() * slides.length);
-            goToSlide(randomSlide);
-        }, 5000);
-    }
-}
-
-function resetAutoPlay() {
-    if (autoPlayInterval) {
-        clearInterval(autoPlayInterval);
-    }
-    autoPlayCarousel();
-}
-
-function toggleArchiveView(view) {
-    console.log('toggleArchiveView called with view:', view);
-    
-    let container = document.getElementById('archiveGrid') || 
-                    document.getElementById('insightsGrid') || 
-                    document.getElementById('reviewsGrid');
-    
-    const gridBtn = document.getElementById('gridViewBtn');
-    const listBtn = document.getElementById('listViewBtn');
-    
-    if (!container) {
-        console.error('Container not found! Looking for: archiveGrid, insightsGrid, or reviewsGrid');
-        return;
-    }
-    
-    console.log('Container found:', container.id, 'Current class:', container.className);
-    
-    const pageType = container.id.replace('Grid', '');
-    
-    if (view === 'grid') {
-        container.className = 'archive-view-grid';
-        gridBtn?.classList.add('active');
-        listBtn?.classList.remove('active');
-        localStorage.setItem(pageType + 'View', 'grid');
-        console.log('Switched to GRID view');
-    } else {
-        container.className = 'archive-view-list';
-        gridBtn?.classList.remove('active');
-        listBtn?.classList.add('active');
-        localStorage.setItem(pageType + 'View', 'list');
-        console.log('Switched to LIST view');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const carousel = document.getElementById('featuredCarousel');
-    if (carousel) {
-        autoPlayCarousel();
-        
-        carousel.addEventListener('mouseenter', () => {
-            if (autoPlayInterval) {
-                clearInterval(autoPlayInterval);
-            }
-        });
-        
-        carousel.addEventListener('mouseleave', () => {
-            autoPlayCarousel();
-        });
-    }
-    
-    let container = document.getElementById('archiveGrid') || 
-                    document.getElementById('insightsGrid') || 
-                    document.getElementById('reviewsGrid');
-    
-    if (container) {
-        const pageType = container.id.replace('Grid', '');
-        const savedView = localStorage.getItem(pageType + 'View') || 'grid';
-        toggleArchiveView(savedView);
-    }
-    
-    let lastScrollTop = 0;
-    const header = document.querySelector('.sticky-header-wrapper');
-    
-    window.addEventListener('scroll', () => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        if (scrollTop > 100) {
-            header?.classList.add('shrink');
-        } else {
-            header?.classList.remove('shrink');
-        }
-        
-        lastScrollTop = scrollTop;
-    }, { passive: true });
-    
-    // Notification Bell Dropdown
-    const notificationBell = document.getElementById('notificationBell');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-    const profileButton = document.getElementById('profileButton');
-    const profileDropdown = document.getElementById('profileDropdown');
-    
-    if (notificationBell && notificationDropdown) {
-        notificationBell.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            
-            // Close profile dropdown if open
-            if (profileDropdown) {
-                profileDropdown.classList.remove('show');
-            }
-            
-            // Toggle notification dropdown
-            const isVisible = notificationDropdown.style.display === 'block';
-            
-            if (!isVisible) {
-                // Load notifications via AJAX
-                try {
-                    const response = await fetch('/profile/notifications/dropdown/');
-                    const html = await response.text();
-                    notificationDropdown.innerHTML = html;
-                    notificationDropdown.style.display = 'block';
-                } catch (error) {
-                    console.error('Error loading notifications:', error);
-                    notificationDropdown.innerHTML = '<div class="notification-loading">Error loading notifications</div>';
-                    notificationDropdown.style.display = 'block';
-                }
-            } else {
-                notificationDropdown.style.display = 'none';
-            }
-        });
-    }
-    
-    if (profileButton && profileDropdown) {
-        profileButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            
-            // Close notification dropdown if open
-            if (notificationDropdown) {
-                notificationDropdown.style.display = 'none';
-            }
-            
-            // Toggle profile dropdown
-            const isVisible = profileDropdown.style.display === 'block';
-            if (isVisible) {
-                profileDropdown.style.display = 'none';
-            } else {
-                profileDropdown.style.display = 'block';
-            }
-        });
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', () => {
-        if (profileDropdown) {
-            profileDropdown.style.display = 'none';
-        }
-        if (notificationDropdown) {
-            notificationDropdown.style.display = 'none';
-        }
-    });
-});

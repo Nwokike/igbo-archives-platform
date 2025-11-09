@@ -27,8 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
     {% block extra_css %}{% endblock %}
     
@@ -65,14 +64,14 @@
                 <div class="user-menu">
                     {% if user.is_authenticated %}
                         <!-- Notification Bell -->
-                        <div class="notification-bell-container">
-                            <button class="notification-bell" id="notificationBell" aria-label="Notifications">
+                                                <div class.="notification-bell-container">
+                            <button class="notification-bell" id="notificationBell" aria-label="Notifications" data-url="{% url 'users:notification_dropdown' %}">
                                 <i class="fas fa-bell"></i>
                                 {% if user.notifications.unread.count > 0 %}
                                 <span class="notification-badge">{{ user.notifications.unread.count }}</span>
                                 {% endif %}
                             </button>
-                            <div class="notification-dropdown" id="notificationDropdown" style="display: none;">
+                            <div class="notification-dropdown" id="notificationDropdown">
                                 <!-- Content will be loaded dynamically -->
                                 <div class="notification-loading">
                                     <i class="fas fa-spinner fa-spin"></i> Loading...
@@ -192,12 +191,12 @@
         <div class="footer-container">
             <div class="footer-grid">
                 <!-- About Section -->
-                <div class="footer-section">
-                    <div style="margin-bottom: 1rem;">
-                        <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives" class="logo-image logo-dark" style="height: 40px; width: auto;">
-                        <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives" class="logo-image logo-light" style="height: 40px; width: auto;">
+                                <div class="footer-section">
+                    <div class="footer-logo-wrapper">
+                        <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives" class="logo-image logo-dark footer-logo">
+                        <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives" class="logo-image logo-light footer-logo">
                     </div>
-                    <p style="color: var(--text-secondary); line-height: 1.7;">
+                    <p class="footer-tagline">
                         Igbo Archives is a dedicated platform for preserving and celebrating the history and culture of the Igbo people.
                     </p>
                 </div>
@@ -232,212 +231,59 @@
                     <a href="{% url 'core:copyright' %}" class="footer-link">
                         <i class="fas fa-copyright"></i> Copyright Policy
                     </a>
-                    <div class="footer-link" style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; margin-top: 0.5rem;">
-                        <a href="https://www.facebook.com/IgboArchives/" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary); font-size: 1.5rem; transition: color 0.2s;">
+                                        <div class="social-links">
+                        <a href="https://www.facebook.com/IgboArchives/" target="_blank" rel="noopener noreferrer" class="social-icon">
                             <i class="fab fa-facebook"></i>
                         </a>
-                        <a href="https://www.instagram.com/IgboArchives.com.ng/" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary); font-size: 1.5rem; transition: color 0.2s;">
+                        <a href="https://www.instagram.com/IgboArchives.com.ng/" target="_blank" rel="noopener noreferrer" class="social-icon">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        <a href="https://mastodon.social/@Igbo_Archives" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary); font-size: 1.5rem; transition: color 0.2s;">
+                        <a href="https://mastodon.social/@Igbo_Archives" target="_blank" rel="noopener noreferrer" class="social-icon">
                             <i class="fab fa-mastodon"></i>
                         </a>
-                        <a href="https://twitter.com/IgboArchives" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary); font-size: 1.5rem; transition: color 0.2s;">
+                        <a href="https://twitter.com/IgboArchives" target="_blank" rel="noopener noreferrer" class="social-icon">
                             <i class="fab fa-twitter"></i>
                         </a>
                     </div>
                 </div>
             </div>
             
-            <!-- Footer Bottom -->
+                        <!-- Footer Bottom -->
             <div class="footer-bottom">
-                <p>&copy; 2025 Igbo Archives. All rights reserved. Preserving culture, inspiring the future.</p>
-                <p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">
-                    Developed by <a href="https://github.com/Nwokike" target="_blank" rel="noopener noreferrer" style="color: var(--vintage-gold); text-decoration: none;">Nwokike</a>
+                <p>&copy; {% now "Y" %} Igbo Archives. All rights reserved. Preserving culture, inspiring the future.</p>
+                <p class="developer-credit">
+                    Developed by <a href="https://github.com/Nwokike" target="_blank" rel="noopener noreferrer" class="developer-link">Nwokike</a>
                 </p>
             </div>
         </div>
     </footer>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="{% static 'js/main.js' %}"></script>
-    <script src="{% static 'js/push-notifications.js' %}"></script>
-    
-    <script>
-    // Instant logout without confirmation
-    document.addEventListener('DOMContentLoaded', function() {
-        const logoutLink = document.getElementById('logoutLink');
-        if (logoutLink) {
-            logoutLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Create and submit logout form
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '{% url "account_logout" %}';
-                
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-                if (csrfToken) {
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = 'csrfmiddlewaretoken';
-                    csrfInput.value = csrfToken.value;
-                    form.appendChild(csrfInput);
-                } else {
-                    // Get CSRF token from cookie if not in page
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = 'csrfmiddlewaretoken';
-                    csrfInput.value = getCookie('csrftoken');
-                    form.appendChild(csrfInput);
-                }
-                
-                document.body.appendChild(form);
-                form.submit();
-            });
-        }
-    });
-    
-    // Helper function to get CSRF token from cookie
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    </script>
-    
-    <script>
-    // Dark Mode Toggle
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const body = document.body;
-    const icon = darkModeToggle.querySelector('i');
-    
-    // Check for saved preference
-    if (localStorage.getItem('darkMode') === 'enabled') {
-        body.classList.add('dark-mode');
-        icon.classList.remove('fa-moon');
-        icon.classList.add('fa-sun');
-    }
-    
-    darkModeToggle.addEventListener('click', () => {
-        body.classList.toggle('dark-mode');
-        
-        if (body.classList.contains('dark-mode')) {
-            localStorage.setItem('darkMode', 'enabled');
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        } else {
-            localStorage.setItem('darkMode', 'disabled');
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-        }
-    });
-    
-    // Sticky Header Shrink on Scroll (includes both levels)
-    const stickyHeaderWrapper = document.querySelector('.sticky-header-wrapper');
-    let lastScrollTop = 0;
-    const scrollThreshold = 100;
-    
-    window.addEventListener('scroll', () => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        if (scrollTop > scrollThreshold) {
-            stickyHeaderWrapper.classList.add('shrink');
-        } else {
-            stickyHeaderWrapper.classList.remove('shrink');
-        }
-        
-        lastScrollTop = scrollTop;
-    }, { passive: true });
-    
-    // Profile Dropdown Toggle
-    const profileButton = document.getElementById('profileButton');
-    const profileDropdown = document.getElementById('profileDropdown');
-    
-    if (profileButton && profileDropdown) {
-        profileButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('show');
-            // Close notification dropdown if open
-            const notificationDropdown = document.getElementById('notificationDropdown');
-            if (notificationDropdown) {
-                notificationDropdown.style.display = 'none';
-            }
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', () => {
-            profileDropdown.classList.remove('show');
-        });
-        
-        // Prevent dropdown from closing when clicking inside it
-        profileDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-    
-    // Notification Bell Dropdown
-    const notificationBell = document.getElementById('notificationBell');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-    
-    if (notificationBell && notificationDropdown) {
-        notificationBell.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            
-            // Close profile dropdown if open
-            if (profileDropdown) {
-                profileDropdown.classList.remove('show');
-            }
-            
-            // Toggle notification dropdown
-            const isVisible = notificationDropdown.style.display === 'block';
-            
-            if (!isVisible) {
-                // Load notifications via AJAX
-                try {
-                    const response = await fetch("{% url 'users:notification_dropdown' %}");
-                    if (response.ok) {
-                        const html = await response.text();
-                        notificationDropdown.innerHTML = html;
-                        notificationDropdown.style.display = 'block';
-                    } else {
-                        notificationDropdown.innerHTML = '<div class="notification-empty"><i class="fas fa-bell-slash"></i><p>Failed to load notifications</p></div>';
-                        notificationDropdown.style.display = 'block';
-                    }
-                } catch (error) {
-                    console.error('Error loading notifications:', error);
-                    notificationDropdown.innerHTML = '<div class="notification-empty"><i class="fas fa-exclamation-triangle"></i><p>Error loading notifications</p></div>';
-                    notificationDropdown.style.display = 'block';
-                }
-            } else {
-                notificationDropdown.style.display = 'none';
-            }
-        });
-        
-        // Close notification dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!notificationBell.contains(e.target) && !notificationDropdown.contains(e.target)) {
-                notificationDropdown.style.display = 'none';
-            }
-        });
-        
-        // Prevent dropdown from closing when clicking inside it
-        notificationDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-    </script>
+        <script src="{% static 'js/main.js' %}"></script>
+        <script src="{% static 'js/push-notifications.js' %}"
+            id="push-notifications-script"
+            data-subscribe-url="{% url 'webpush:subscribe' %}"
+            data-unsubscribe-url="{% url 'webpush:unsubscribe' %}"
+            defer></script>
     
     {% block extra_js %}{% endblock %}
+
+    <!-- Push Notification Soft Prompt -->
+    <div id="push-notification-prompt" class="push-prompt">
+        <div class="push-prompt-content">
+            <div class="push-prompt-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="push-prompt-text">
+                <h4>Stay Connected in Real-Time</h4>
+                <p>Receive instant notifications for messages and interactions with your posts. You're in control and can manage these settings anytime.</p>
+            </div>
+        </div>
+        <div class="push-prompt-actions">
+            <button id="push-prompt-accept" class="btn btn-primary btn-sm">I Understand</button>
+            <button id="push-prompt-dismiss" class="btn btn-secondary btn-sm">Not Now</button>
+        </div>
+    </div>
 </body>
 </html>

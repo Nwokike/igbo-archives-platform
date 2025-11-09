@@ -7,10 +7,10 @@
 <div class="hero-section">
     <h1>Preserving the Past, Inspiring the Future</h1>
     <p>Explore the rich cultural heritage of the Igbo people through our comprehensive digital archives, community insights, and educational resources.</p>
-    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-        <a href="{% url 'archives:list' %}" class="btn btn-primary" style="text-decoration: none;">Explore Archives</a>
+        <div class="hero-buttons">
+        <a href="{% url 'archives:list' %}" class="btn btn-primary">Explore Archives</a>
         {% if not user.is_authenticated %}
-        <a href="{% url 'account_signup' %}" class="btn btn-primary" style="background: linear-gradient(135deg, #2E7D32 0%, #43A047 100%); text-decoration: none;">Join Community</a>
+        <a href="{% url 'account_signup' %}" class="btn btn-secondary">Join Community</a>
         {% endif %}
     </div>
 </div>
@@ -38,16 +38,16 @@
                 {% endfor %}
             </div>
             
-            <button class="carousel-nav carousel-prev" onclick="moveCarousel(-1); return false;" aria-label="Previous">
+                        <button class="carousel-nav carousel-prev" aria-label="Previous">
                 <i class="fas fa-chevron-left"></i>
             </button>
-            <button class="carousel-nav carousel-next" onclick="moveCarousel(1); return false;" aria-label="Next">
+            <button class="carousel-nav carousel-next" aria-label="Next">
                 <i class="fas fa-chevron-right"></i>
             </button>
             
             <div class="carousel-indicators">
                 {% for archive in featured_archives %}
-                <button class="carousel-dot {% if forloop.first %}active{% endif %}" onclick="goToSlide({{ forloop.counter0 }}); return false;" aria-label="Go to slide {{ forloop.counter }}"></button>
+                <button class="carousel-dot {% if forloop.first %}active{% endif %}" data-slide-to="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
                 {% endfor %}
             </div>
         </div>
@@ -60,8 +60,8 @@
     <p class="section-subtitle">A comprehensive digital platform dedicated to preserving and celebrating Igbo culture, history, and heritage for future generations.</p>
     
     <div class="archive-grid">
-        <div class="card">
-            <div class="card-body" style="text-align: center; padding: 2.5rem 1.5rem;">
+                <div class="card">
+            <div class="card-body text-center p-4">
                 <div class="icon-box icon-archives">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -73,12 +73,12 @@
                 </div>
                 <h3 class="card-title">Cultural Archives</h3>
                 <p class="card-text">Explore our extensive collection of photographs, documents, artifacts, and historical records that tell the story of Igbo people across generations.</p>
-                <a href="{% url 'archives:list' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Browse Archives</a>
+                <a href="{% url 'archives:list' %}" class="btn btn-primary mt-3">Browse Archives</a>
             </div>
         </div>
         
         <div class="card">
-            <div class="card-body" style="text-align: center; padding: 2.5rem 1.5rem;">
+            <div class="card-body text-center p-4">
                 <div class="icon-box icon-insights">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -88,12 +88,12 @@
                 </div>
                 <h3 class="card-title">Community Insights</h3>
                 <p class="card-text">Read and share perspectives on Igbo culture, traditions, and contemporary issues. Connect with writers and thinkers preserving our heritage through words.</p>
-                <a href="{% url 'insights:list' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Read Insights</a>
+                <a href="{% url 'insights:list' %}" class="btn btn-primary mt-3">Read Insights</a>
             </div>
         </div>
         
         <div class="card">
-            <div class="card-body" style="text-align: center; padding: 2.5rem 1.5rem;">
+            <div class="card-body text-center p-4">
                 <div class="icon-box icon-books">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
@@ -102,12 +102,12 @@
                 </div>
                 <h3 class="card-title">Book Reviews</h3>
                 <p class="card-text">Discover and review books about Igbo culture, history, language, and literature. Build your knowledge through curated recommendations.</p>
-                <a href="{% url 'books:list' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Browse Books</a>
+                <a href="{% url 'books:list' %}" class="btn btn-primary mt-3">Browse Books</a>
             </div>
         </div>
         
         <div class="card">
-            <div class="card-body" style="text-align: center; padding: 2.5rem 1.5rem;">
+            <div class="card-body text-center p-4">
                 <div class="icon-box icon-ai">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -117,12 +117,12 @@
                 </div>
                 <h3 class="card-title">Igbo Archives AI</h3>
                 <p class="card-text">Chat with our AI assistant to learn about Igbo culture, get translations, explore traditions, and receive personalized cultural insights.</p>
-                <a href="https://ai.igboarchives.com.ng" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Start Chatting</a>
+                <a href="https://ai.igboarchives.com.ng" target="_blank" rel="noopener noreferrer" class="btn btn-primary mt-3">Start Chatting</a>
             </div>
         </div>
         
         <div class="card">
-            <div class="card-body" style="text-align: center; padding: 2.5rem 1.5rem;">
+            <div class="card-body text-center p-4">
                 <div class="icon-box icon-academy">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
@@ -131,12 +131,12 @@
                 </div>
                 <h3 class="card-title">Igbo Academy</h3>
                 <p class="card-text">Coming soon! Learn the Igbo language, explore cultural traditions, folktales, music, arts, and more through interactive lessons.</p>
-                <a href="{% url 'academy:coming_soon' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Learn More</a>
+                <a href="{% url 'academy:coming_soon' %}" class="btn btn-primary mt-3">Learn More</a>
             </div>
         </div>
         
         <div class="card">
-            <div class="card-body" style="text-align: center; padding: 2.5rem 1.5rem;">
+            <div class="card-body text-center p-4">
                 <div class="icon-box icon-community">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -148,9 +148,9 @@
                 <h3 class="card-title">Community</h3>
                 <p class="card-text">Join a vibrant community of culture enthusiasts, historians, and learners. Share knowledge, connect with others, and preserve our heritage together.</p>
                 {% if user.is_authenticated %}
-                <a href="{% url 'users:dashboard' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Your Dashboard</a>
+                <a href="{% url 'users:dashboard' %}" class="btn btn-primary mt-3">Your Dashboard</a>
                 {% else %}
-                <a href="{% url 'account_signup' %}" class="btn btn-primary" style="margin-top: 1rem; text-decoration: none;">Join Now</a>
+                <a href="{% url 'account_signup' %}" class="btn btn-primary mt-3">Join Now</a>
                 {% endif %}
             </div>
         </div>
@@ -161,7 +161,7 @@
     <h2 class="section-title">Why Igbo Archives?</h2>
     <div class="why-igbo-container">
         <div class="why-igbo-grid">
-            <div class="why-igbo-item">
+                        <div class="why-igbo-item">
                 <div class="benefit-icon-box">
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="7"></rect>
@@ -170,8 +170,8 @@
                         <rect x="3" y="14" width="7" height="7"></rect>
                     </svg>
                 </div>
-                <h4 style="color: #3e2723; margin-bottom: 0.5rem; font-weight: 700;">Preserve Heritage</h4>
-                <p style="color: #5d4037;">Digitally preserve Igbo cultural artifacts for future generations</p>
+                <h4 class="why-igbo-title">Preserve Heritage</h4>
+                <p class="why-igbo-text">Digitally preserve Igbo cultural artifacts for future generations</p>
             </div>
             <div class="why-igbo-item">
                 <div class="benefit-icon-box">
@@ -181,8 +181,8 @@
                         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                     </svg>
                 </div>
-                <h4 style="color: #3e2723; margin-bottom: 0.5rem; font-weight: 700;">Global Access</h4>
-                <p style="color: #5d4037;">Connect Igbo people worldwide with their roots and heritage</p>
+                <h4 class="why-igbo-title">Global Access</h4>
+                <p class="why-igbo-text">Connect Igbo people worldwide with their roots and heritage</p>
             </div>
             <div class="why-igbo-item">
                 <div class="benefit-icon-box">
@@ -191,8 +191,8 @@
                         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                     </svg>
                 </div>
-                <h4 style="color: #3e2723; margin-bottom: 0.5rem; font-weight: 700;">Educational</h4>
-                <p style="color: #5d4037;">Comprehensive resources for learning and research</p>
+                <h4 class="why-igbo-title">Educational</h4>
+                <p class="why-igbo-text">Comprehensive resources for learning and research</p>
             </div>
             <div class="why-igbo-item">
                 <div class="benefit-icon-box">
@@ -201,8 +201,8 @@
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                 </div>
-                <h4 style="color: #3e2723; margin-bottom: 0.5rem; font-weight: 700;">Community-Driven</h4>
-                <p style="color: #5d4037;">Built by the community, for the community</p>
+                <h4 class="why-igbo-title">Community-Driven</h4>
+                <p class="why-igbo-text">Built by the community, for the community</p>
             </div>
         </div>
     </div>

@@ -43,8 +43,8 @@ def submit_url_to_indexnow(url, host=None):
         parsed = urlparse(url)
         host = parsed.netloc
     
-    # IndexNow API endpoint (can use Bing, Yandex, or others)
-    endpoint = "https://api.indexnow.org/indexnow"
+        # IndexNow API endpoint (can use Bing, Yandex, or others)
+    endpoint = getattr(settings, 'INDEXNOW_API_URL', "https://api.indexnow.org/indexnow")
     
     payload = {
         "host": host,

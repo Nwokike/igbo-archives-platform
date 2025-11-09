@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -107,7 +108,7 @@ def send_post_rejected_notification(post, reason, post_type='insight'):
         target_object=post,
         push_head="Post Revision Needed",
         push_body=f'Your {post_type} "{post_title}" was not approved.',
-        push_url="/dashboard/"  # Link to their dashboard
+        push_url=reverse('users:dashboard')  # Link to their dashboard
     )
     email_message = f'{description}\n\nYou can revise and resubmit it from your dashboard.'
     send_email_notification(author.email, f'Your {post_type.title()} needs revision', email_message)
@@ -166,12 +167,12 @@ def send_message_notification(message, recipient):
         target_object=message.thread,
         push_head="New Message",
         push_body=f'{message.sender.full_name} sent you a message.',
-        push_url=f"/messages/{message.thread.id}/"
+        push_url=reverse('users:thread', args=[message.thread.id])
     )
     
     subject = f'New message from {message.sender.full_name}'
     site_url = getattr(settings, "SITE_URL", "")
-    email_message = f'{description}\n\nSubject: {message.thread.subject}\n\nLog in to read and reply: {site_url}/profile/messages/{message.thread.id}/'
+    email_message = f'{description}\n\nSubject: {message.thread.subject}\n\nLog in to read and reply: {site_url}{reverse("users:thread", args=[message.thread.id])}'
     send_email_notification(recipient.email, subject, email_message)
 
 
@@ -192,7 +193,7 @@ def send_edit_suggestion_notification(suggestion):
         target_object=suggestion,
         push_head="New Edit Suggestion",
         push_body=f'{suggester.full_name} suggested an edit to your post.',
-        push_url="/dashboard/" # Or link to moderation
+        push_url=reverse('users:dashboard') # Or link to moderation
     )
     
     email_message = f'{description}\n\nSuggestion: {suggestion.suggestion_text}\n\nReview from your dashboard.'

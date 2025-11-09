@@ -49,7 +49,7 @@ class InsightSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return f'/insights/{obj.slug}/'
+        return reverse('insights:detail', args=[obj.slug])
 
 class BookSitemap(Sitemap):
     changefreq = "weekly"
@@ -62,7 +62,7 @@ class BookSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return f'/books/{obj.slug}/'
+        return reverse('books:detail', args=[obj.slug])
 
 class UserProfileSitemap(Sitemap):
     changefreq = "monthly"
@@ -72,4 +72,4 @@ class UserProfileSitemap(Sitemap):
         return User.objects.filter(is_active=True)
     
     def location(self, obj):
-        return f'/profile/{obj.username}/'
+        return reverse('users:profile', args=[obj.username])

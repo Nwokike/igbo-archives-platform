@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from threadedcomments.forms import ThreadedCommentForm
 from django.conf import settings
 
@@ -32,7 +33,7 @@ class CaptchaThreadedCommentForm(ThreadedCommentForm):
     
     def clean_captcha(self):
         """Validate CAPTCHA only for anonymous users"""
-        from django.core.exceptions import ValidationError
+
         
         # If user is authenticated (has user attribute and is logged in), skip CAPTCHA validation
         if hasattr(self, 'user') and self.user and self.user.is_authenticated:

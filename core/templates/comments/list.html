@@ -4,7 +4,7 @@
 <div class="comments-list">
     {% if comment_list %}
         {% for comment in comment_list %}
-            <div class="comment-box {% if comment.parent %}comment-reply{% endif %}" id="comment-{{ comment.id }}" style="margin-left: {% if comment.parent %}30px{% else %}0{% endif %}">
+            <div class="comment-box {% if comment.parent %}comment-reply{% endif %}" id="comment-{{ comment.id }}">
                 <div class="comment-header">
                     {% if comment.user %}
                         <a href="{% url 'users:profile' comment.user.username %}" class="comment-author text-decoration-none">{{ comment.user.get_display_name }}</a>
@@ -27,12 +27,7 @@
                     {% endif %}
                 </div>
                 
-                <!-- Nested replies render recursively here via threadedcomments -->
-                {% if comment.children.all %}
-                    {% for child in comment.children.all %}
-                        {% include 'comments/list.html' with comment_list=child.get_descendants %}
-                    {% endfor %}
-                {% endif %}
+                
             </div>
         {% endfor %}
     {% else %}
@@ -40,70 +35,4 @@
     {% endif %}
 </div>
 
-<style>
-.comment-box {
-    background: var(--background-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-}
 
-.comment-box.comment-reply {
-    border-left: 3px solid var(--primary-color);
-}
-
-.comment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.comment-author {
-    font-weight: 600;
-    color: var(--primary-color);
-    text-decoration: none;
-}
-
-.comment-author:hover {
-    text-decoration: underline;
-}
-
-.comment-time {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.comment-content {
-    margin: 10px 0;
-    line-height: 1.6;
-}
-
-.comment-actions {
-    display: flex;
-    gap: 15px;
-    margin-top: 10px;
-}
-
-.comment-reply-btn, .comment-delete-btn {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: none;
-}
-
-.comment-reply-btn:hover, .comment-delete-btn:hover {
-    color: var(--primary-color);
-}
-
-.no-comments {
-    text-align: center;
-    color: var(--text-secondary);
-    font-style: italic;
-    padding: 30px;
-}
-</style>

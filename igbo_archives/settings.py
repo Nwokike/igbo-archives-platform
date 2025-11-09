@@ -310,3 +310,4 @@ ENABLE_DONATIONS = bool(STRIPE_SECRET_KEY)
 # INDEXNOW CONFIGURATION
 # ============================================
 INDEXNOW_API_KEY = os.getenv('INDEXNOW_API_KEY', '')
+INDEXNOW_API_URL = "https://api.indexnow.org/indexnow"
