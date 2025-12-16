@@ -24,6 +24,7 @@ urlpatterns = [
     path('insights/', include('insights.urls')),
     path('books/', include('books.urls')),
     path('academy/', include('academy.urls')),
+    path('ai/', include('ai.urls')),
     path('comments/', include('django_comments.urls')),
     path('webpush/', include(('webpush.urls', 'webpush'), namespace='webpush')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

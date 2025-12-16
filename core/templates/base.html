@@ -135,7 +135,7 @@
                 <a href="{% url 'academy:coming_soon' %}" class="nav-link {% if 'academy' in request.resolver_match.app_names %}active{% endif %}">
                     <i class="fas fa-graduation-cap"></i> Academy
                 </a>
-                <a href="https://ai.igboarchives.com.ng" class="nav-link" target="_blank" rel="noopener noreferrer">
+                <a href="{% url 'ai:coming_soon' %}" class="nav-link {% if 'ai' in request.resolver_match.app_names %}active{% endif %}">
                     <i class="fas fa-robot"></i> Igbo Archives AI
                 </a>
             </div>
@@ -163,7 +163,7 @@
             <i class="fas fa-graduation-cap"></i>
             <span>Academy</span>
         </a>
-        <a href="https://ai.igboarchives.com.ng" class="mobile-nav-item" target="_blank" rel="noopener noreferrer">
+        <a href="{% url 'ai:coming_soon' %}" class="mobile-nav-item {% if 'ai' in request.resolver_match.app_names %}active{% endif %}">
             <i class="fas fa-robot"></i>
             <span>AI</span>
         </a>
@@ -222,7 +222,7 @@
                 <!-- Community -->
                 <div class="footer-section">
                     <h3>Community</h3>
-                    <a href="https://ai.igboarchives.com.ng" class="footer-link" target="_blank" rel="noopener noreferrer">
+                    <a href="{% url 'ai:coming_soon' %}" class="footer-link">
                         <i class="fas fa-robot"></i> Igbo Archives AI
                     </a>
                     <a href="{% url 'core:donate' %}" class="footer-link">

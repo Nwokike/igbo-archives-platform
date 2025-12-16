@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'insights.apps.InsightsConfig',
     'books.apps.BooksConfig',
     'academy.apps.AcademyConfig',
+    'ai.apps.AiConfig',
 ]
 
 MIDDLEWARE = [
