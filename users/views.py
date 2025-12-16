@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.contrib import messages as django_messages
+from django.db.models import Q
 from .models import Thread, Message
 from .forms import ProfileEditForm
-from django.contrib import messages as django_messages
-from django.db import models
 
 User = get_user_model()
+
 
 @login_required
 def dashboard(request):
@@ -14,36 +15,27 @@ def dashboard(request):
     from insights.models import InsightPost, EditSuggestion
     from books.models import BookReview
     
-    # Get user's data
-    messages_threads = request.user.message_threads.all()
+    user = request.user
     
-    # My Insights (published and pending)
-    my_insights = InsightPost.objects.filter(
-        author=request.user
-    ).filter(
-        models.Q(is_published=True) | models.Q(pending_approval=True)
-    ).order_by('-created_at')
+    messages_threads = user.message_threads.prefetch_related('participants')[:10]
     
-    # My Drafts (saved progress, not submitted)
-    my_drafts = InsightPost.objects.filter(
-        author=request.user,
-        is_published=False,
-        pending_approval=False
-    ).order_by('-updated_at')
+    all_insights = list(InsightPost.objects.filter(author=user).order_by('-created_at')[:50])
+    my_insights = [i for i in all_insights if i.is_published or i.pending_approval]
+    my_drafts = [i for i in all_insights if not i.is_published and not i.pending_approval]
     
-    # My Book Reviews
-    my_book_reviews = BookReview.objects.filter(reviewer=request.user).order_by('-created_at')
+    my_book_reviews = BookReview.objects.filter(
+        reviewer=user
+    ).order_by('-created_at')[:20]
     
-    # My Archives
-    my_archives = Archive.objects.filter(uploaded_by=request.user).order_by('-created_at')
+    my_archives = Archive.objects.filter(
+        uploaded_by=user
+    ).select_related('category').order_by('-created_at')[:20]
     
-    # Edit Suggestions Received on my posts
-    my_posts = InsightPost.objects.filter(author=request.user)
     edit_suggestions = EditSuggestion.objects.filter(
-        post__in=my_posts,
+        post__author=user,
         is_approved=False,
         is_rejected=False
-    ).select_related('post', 'suggested_by').order_by('-created_at')
+    ).select_related('post', 'suggested_by').order_by('-created_at')[:10]
     
     context = {
         'messages_threads': messages_threads,
@@ -56,6 +48,7 @@ def dashboard(request):
     
     return render(request, 'users/dashboard.html', context)
 
+
 def profile_view(request, username):
     from archives.models import Archive
     from insights.models import InsightPost
@@ -63,9 +56,17 @@ def profile_view(request, username):
     
     user = get_object_or_404(User, username=username)
     
-    archives = Archive.objects.filter(uploaded_by=user).order_by('-created_at')
-    insights = InsightPost.objects.filter(author=user, is_published=True).order_by('-created_at')
-    book_reviews = BookReview.objects.filter(reviewer=user).order_by('-created_at')
+    archives = Archive.objects.filter(
+        uploaded_by=user
+    ).select_related('category').order_by('-created_at')[:20]
+    
+    insights = InsightPost.objects.filter(
+        author=user, is_published=True
+    ).order_by('-created_at')[:20]
+    
+    book_reviews = BookReview.objects.filter(
+        reviewer=user
+    ).order_by('-created_at')[:20]
     
     context = {
         'profile_user': user,
@@ -76,9 +77,9 @@ def profile_view(request, username):
     
     return render(request, 'users/profile.html', context)
 
+
 @login_required
 def profile_edit(request, username):
-    # Only allow users to edit their own profile
     if request.user.username != username:
         django_messages.error(request, 'You can only edit your own profile.')
         return redirect('users:profile', username=username)
@@ -94,21 +95,27 @@ def profile_edit(request, username):
     
     return render(request, 'users/profile_edit.html', {'form': form})
 
+
 @login_required
 def message_inbox(request):
-    threads = request.user.message_threads.all()
+    threads = request.user.message_threads.prefetch_related('participants', 'messages')
     return render(request, 'users/inbox.html', {'threads': threads})
+
 
 @login_required
 def message_thread(request, thread_id):
-    thread = get_object_or_404(Thread, id=thread_id, participants=request.user)
+    thread = get_object_or_404(
+        Thread.objects.prefetch_related('messages', 'participants'),
+        id=thread_id, participants=request.user
+    )
     if request.method == 'POST':
         content = request.POST.get('content')
         if content:
             Message.objects.create(thread=thread, sender=request.user, content=content)
             return redirect('users:thread', thread_id=thread_id)
-    thread.messages.exclude(sender=request.user).update(is_read=True)
+    thread.messages.exclude(sender=request.user).filter(is_read=False).update(is_read=True)
     return render(request, 'users/thread.html', {'thread': thread})
+
 
 @login_required
 def compose_message(request, username):
@@ -122,6 +129,7 @@ def compose_message(request, username):
             Message.objects.create(thread=thread, sender=request.user, content=content)
             return redirect('users:thread', thread_id=thread.id)
     return render(request, 'users/compose.html', {'recipient': recipient})
+
 
 @login_required
 def delete_account(request):

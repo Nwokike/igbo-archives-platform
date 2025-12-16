@@ -6,12 +6,14 @@ from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
+
 def validate_image_size(file):
     """Validate image file size - Max 5MB"""
     file_size = file.size
     max_mb = 5
     if file_size > max_mb * 1024 * 1024:
         raise ValidationError(f'Maximum file size is {max_mb}MB')
+
 
 def validate_video_size(file):
     """Validate video file size - max 50MB"""
@@ -20,6 +22,7 @@ def validate_video_size(file):
     if file_size > limit_mb * 1024 * 1024:
         raise ValidationError(f'Maximum video file size is {limit_mb}MB')
 
+
 def validate_document_size(file):
     """Validate document file size - Max 10MB"""
     file_size = file.size
@@ -27,12 +30,14 @@ def validate_document_size(file):
     if file_size > max_mb * 1024 * 1024:
         raise ValidationError(f'Maximum document file size is {max_mb}MB')
 
+
 def validate_audio_size(file):
     """Validate audio file size - Max 10MB"""
     file_size = file.size
     max_mb = 10
     if file_size > max_mb * 1024 * 1024:
         raise ValidationError(f'Maximum audio file size is {max_mb}MB')
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -45,6 +50,7 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 class Archive(models.Model):
     ARCHIVE_TYPES = [
         ('image', 'Image'),
@@ -53,13 +59,11 @@ class Archive(models.Model):
         ('audio', 'Audio'),
     ]
     
-    # Basic Information
     title = models.CharField(max_length=255, help_text="Required: Archive title")
     description = models.TextField(help_text="Required: Detailed description (plain text)")
     archive_type = models.CharField(max_length=20, choices=ARCHIVE_TYPES, help_text="Required: Type of archive")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     
-    # Media Files
     image = models.ImageField(
         upload_to='archives/',
         validators=[
@@ -68,7 +72,7 @@ class Archive(models.Model):
         ],
         blank=True,
         null=True,
-        help_text="For image-type archives"
+        help_text="For image-type archives (max 5MB)"
     )
     video = models.FileField(
         upload_to='archives/videos/',
@@ -88,7 +92,7 @@ class Archive(models.Model):
         ],
         blank=True,
         null=True,
-        help_text="For document-type archives (max 5MB)"
+        help_text="For document-type archives (max 10MB)"
     )
     audio = models.FileField(
         upload_to='archives/audio/',
@@ -98,10 +102,9 @@ class Archive(models.Model):
         ],
         blank=True,
         null=True,
-        help_text="For audio-type archives (max 5MB)"
+        help_text="For audio-type archives (max 10MB)"
     )
     
-    # Featured image for non-image archives (e.g., video thumbnail)
     featured_image = models.ImageField(
         upload_to='archives/featured/',
         blank=True,
@@ -110,10 +113,9 @@ class Archive(models.Model):
             FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
             validate_image_size
         ],
-        help_text="Thumbnail for videos/audio (optional)"
+        help_text="Thumbnail for videos/audio (optional, max 5MB)"
     )
     
-    # Metadata
     caption = models.CharField(
         max_length=500,
         blank=True,
@@ -127,7 +129,6 @@ class Archive(models.Model):
         help_text="Required for images: Alt text for accessibility"
     )
     
-    # Historical Information
     original_author = models.CharField(
         max_length=255, 
         blank=True,
@@ -149,7 +150,6 @@ class Archive(models.Model):
         help_text="Optional: Where the photo/artifact was taken/found"
     )
     
-    # System fields
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='archives')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -160,6 +160,11 @@ class Archive(models.Model):
     class Meta:
         ordering = ['-created_at']
         verbose_name_plural = 'Archives'
+        indexes = [
+            models.Index(fields=['is_approved', '-created_at'], name='arch_approved_date_idx'),
+            models.Index(fields=['archive_type', 'is_approved'], name='arch_type_approved_idx'),
+            models.Index(fields=['category', 'is_approved'], name='arch_cat_approved_idx'),
+        ]
     
     def __str__(self):
         return self.title

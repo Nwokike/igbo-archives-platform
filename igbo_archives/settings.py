@@ -1,5 +1,6 @@
 """
 Django settings for igbo_archives project.
+Optimized for 1GB RAM constraint.
 """
 
 from pathlib import Path
@@ -18,7 +19,6 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
-# CSRF Settings for Replit and Render
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.replit.dev,https://*.repl.co,https://*.onrender.com').split(',')
 
 INSTALLED_APPS = [
@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django_recaptcha',
     'dbbackup',
     'webpush',
-    'django_editorjs_fields',
+    'huey.contrib.djhuey',
     
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
@@ -140,12 +140,12 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Disable email verification for development
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_LOGOUT_ON_GET = False  # Require POST for logout (no confirmation page)
+ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_FORMS = {
     'signup': 'users.forms.CustomSignupForm',
     'login': 'users.forms.CustomLoginForm',
@@ -202,51 +202,13 @@ RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY', '6LeIxAcTAAAAAGG-vFI1
 
 SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
 
-# Modern Web Push Notifications with django-webpush
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": os.getenv('VAPID_PUBLIC_KEY', ''),
     "VAPID_PRIVATE_KEY": os.getenv('VAPID_PRIVATE_KEY', ''),
     "VAPID_ADMIN_EMAIL": "admin@igboarchives.com"
 }
 
-# Comment system configuration (django-threadedcomments)
 COMMENTS_APP = 'threadedcomments'
-
-# Editor.js Configuration
-EDITORJS_DEFAULT_CONFIG_TOOLS = {
-    "Header": {
-        "class": "Header",
-        "inlineToolbar": ["link"],
-    },
-    "Paragraph": {
-        "class": "Paragraph",
-        "inlineToolbar": True,
-    },
-    "List": {
-        "class": "List",
-        "inlineToolbar": True,
-    },
-    "Quote": {
-        "class": "Quote",
-        "inlineToolbar": True,
-    },
-    "Delimiter": "Delimiter",
-    "Table": "Table",
-    "Warning": "Warning",
-    "Code": "Code",
-    "RawTool": "RawTool",
-    "Image": {
-        "class": "ImageTool",
-        "config": {
-            "endpoints": {
-                "byFile": "/api/upload-image/",
-                "byUrl": "/api/fetch-url/",
-            },
-        },
-    },
-    "Embed": "Embed",
-    "Checklist": "Checklist",
-}
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
@@ -255,8 +217,6 @@ TWITTER_API_SECRET = os.getenv('TWITTER_API_SECRET', '')
 TWITTER_ACCESS_TOKEN = os.getenv('TWITTER_ACCESS_TOKEN', '')
 TWITTER_ACCESS_TOKEN_SECRET = os.getenv('TWITTER_ACCESS_TOKEN_SECRET', '')
 
-# Email Configuration
-# Use console backend for development if no credentials are provided
 if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_API_KEY'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = 'smtp-relay.brevo.com'
@@ -265,17 +225,11 @@ if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_API_KEY'):
     EMAIL_HOST_USER = os.getenv('BREVO_EMAIL_USER')
     EMAIL_HOST_PASSWORD = os.getenv('BREVO_API_KEY')
 else:
-    # Console backend for development - emails print to console
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'igboarchives@gmail.com')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'igboarchives@gmail.com')
 
-# VAPID Keys for Web Push (django-webpush will use WEBPUSH_SETTINGS above)
-
-# ============================================
-# SEO CONFIGURATION (django-meta)
-# ============================================
 META_SITE_PROTOCOL = 'https'
 META_USE_OG_PROPERTIES = True
 META_USE_TWITTER_PROPERTIES = True
@@ -289,9 +243,6 @@ META_IMAGE_URL = '/static/images/logos/og-image.png'
 META_USE_SITES = True
 META_OG_NAMESPACES = ['og', 'fb']
 
-# ============================================
-# DATABASE BACKUP CONFIGURATION (django-dbbackup)
-# ============================================
 DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
 DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR / 'backups'}
 DBBACKUP_CLEANUP_KEEP = 10
@@ -300,20 +251,73 @@ DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
 DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
 DBBACKUP_MEDIA_FILENAME_TEMPLATE = 'igbo-archives-media-{datetime}.{extension}'
 
-# ============================================
-# MONETIZATION SETTINGS
-# ============================================
-# Google AdSense
 GOOGLE_ADSENSE_CLIENT_ID = os.getenv('GOOGLE_ADSENSE_CLIENT_ID', '')
 ENABLE_ADSENSE = bool(GOOGLE_ADSENSE_CLIENT_ID)
 
-# Donation Settings
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', '')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
 ENABLE_DONATIONS = bool(STRIPE_SECRET_KEY)
 
-# ============================================
-# INDEXNOW CONFIGURATION
-# ============================================
 INDEXNOW_API_KEY = os.getenv('INDEXNOW_API_KEY', '')
 INDEXNOW_API_URL = "https://api.indexnow.org/indexnow"
+
+# ============================================
+# CACHING CONFIGURATION (Memory-Efficient)
+# ============================================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'igbo-archives-cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}
+
+# ============================================
+# HUEY TASK QUEUE CONFIGURATION (Memory-Efficient)
+# ============================================
+from huey import SqliteHuey
+
+HUEY = SqliteHuey(
+    filename=str(BASE_DIR / 'huey.db'),
+    immediate=DEBUG,
+    results=True,
+    store_none=False,
+)
+
+# ============================================
+# LOGGING CONFIGURATION
+# ============================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'huey': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

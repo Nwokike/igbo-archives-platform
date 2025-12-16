@@ -22,14 +22,14 @@
 
                 {% if archive.archive_type == 'image' and archive.image %}
                 <div class="archive-image mb-4">
-                    <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" class="img-fluid rounded">
+                    <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" class="img-fluid rounded" loading="lazy" decoding="async">
                     {% if archive.caption %}
                     <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
                     {% endif %}
                 </div>
                 {% elif archive.archive_type == 'video' and archive.video %}
                 <div class="archive-video mb-4">
-                    <video controls class="w-100 rounded">
+                    <video controls class="w-100 rounded" preload="metadata">
                         <source src="{{ archive.video.url }}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -39,7 +39,7 @@
                 </div>
                 {% elif archive.archive_type == 'audio' and archive.audio %}
                 <div class="archive-audio mb-4">
-                    <audio controls class="w-100">
+                    <audio controls class="w-100" preload="metadata">
                         <source src="{{ archive.audio.url }}" type="audio/mpeg">
                         Your browser does not support the audio element.
                     </audio>
@@ -82,15 +82,12 @@
 
                 <hr>
 
-                <!-- Previous/Next Navigation -->
                 {% include 'partials/prev_next_navigation.html' with previous=previous_archive next=next_archive %}
 
-                <!-- Recommended Archives -->
                 {% include 'partials/recommended_carousel.html' with recommended=recommended %}
 
                 <hr>
 
-                <!-- Comments Section -->
                 <div class="comments-section mt-5">
                     <h3>Discussion</h3>
                     {% render_comment_list for archive %}
@@ -110,6 +107,15 @@
                         <h5 class="card-title">About This Archive</h5>
                         {% if archive.date_created %}
                         <p><strong>Date Created:</strong> {{ archive.date_created|date:"F d, Y" }}</p>
+                        {% endif %}
+                        {% if archive.circa_date %}
+                        <p><strong>Approximate Date:</strong> {{ archive.circa_date }}</p>
+                        {% endif %}
+                        {% if archive.original_author %}
+                        <p><strong>Original Author:</strong> {{ archive.original_author }}</p>
+                        {% endif %}
+                        {% if archive.location %}
+                        <p><strong>Location:</strong> {{ archive.location }}</p>
                         {% endif %}
                         <p>
                             <strong>Uploaded by:</strong> 

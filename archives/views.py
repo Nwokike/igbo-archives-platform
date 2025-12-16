@@ -1,36 +1,70 @@
+import random
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Archive, Category
+from django.core.cache import cache
 from django.core.paginator import Paginator
+from .models import Archive, Category
+
+
+def get_cached_categories():
+    """Cache categories for 1 hour - they rarely change"""
+    categories = cache.get('archive_categories')
+    if categories is None:
+        categories = list(Category.objects.all())
+        cache.set('archive_categories', categories, 3600)
+    return categories
+
+
+def get_random_recommendations(exclude_pk, category=None, tag_names=None, count=9):
+    """Memory-efficient random archive selection"""
+    cache_key = 'archive_ids_pool'
+    archive_ids = cache.get(cache_key)
+    
+    if archive_ids is None:
+        archive_ids = list(
+            Archive.objects.filter(is_approved=True)
+            .values_list('id', flat=True)[:500]
+        )
+        cache.set(cache_key, archive_ids, 300)
+    
+    available_ids = [aid for aid in archive_ids if aid != exclude_pk]
+    
+    if not available_ids:
+        return Archive.objects.none()
+    
+    random_ids = random.sample(available_ids, min(count, len(available_ids)))
+    return Archive.objects.filter(pk__in=random_ids).select_related('uploaded_by', 'category')
+
 
 def archive_list(request):
-    archives = Archive.objects.filter(is_approved=True)
+    archives = Archive.objects.filter(is_approved=True).select_related(
+        'uploaded_by', 'category'
+    ).prefetch_related('tags').only(
+        'id', 'title', 'archive_type', 'image', 'featured_image',
+        'alt_text', 'created_at', 'uploaded_by_id', 'category_id',
+        'uploaded_by__full_name', 'uploaded_by__username',
+        'category__name', 'category__slug'
+    )
     
-    category = request.GET.get('category')
-    if category:
+    if category := request.GET.get('category'):
         archives = archives.filter(category__slug=category)
     
-    search = request.GET.get('search')
-    if search:
+    if search := request.GET.get('search'):
         archives = archives.filter(title__icontains=search)
     
-    archive_type = request.GET.get('type')
-    if archive_type:
+    if archive_type := request.GET.get('type'):
         archives = archives.filter(archive_type=archive_type)
     
     sort = request.GET.get('sort', '-created_at')
     archives = archives.order_by(sort)
     
     paginator = Paginator(archives, 12)
-    page = request.GET.get('page')
-    archives = paginator.get_page(page)
-    
-    categories = Category.objects.all()
+    archives = paginator.get_page(request.GET.get('page'))
     
     context = {
         'archives': archives,
-        'categories': categories,
+        'categories': get_cached_categories(),
     }
     
     if request.htmx:
@@ -38,40 +72,28 @@ def archive_list(request):
     
     return render(request, 'archives/list.html', context)
 
+
 def archive_detail(request, pk):
-    archive = get_object_or_404(Archive, pk=pk, is_approved=True)
+    archive = get_object_or_404(
+        Archive.objects.select_related('uploaded_by', 'category'),
+        pk=pk, is_approved=True
+    )
     
-    # Get previous and next archives
     previous_archive = Archive.objects.filter(
-        is_approved=True,
-        created_at__lt=archive.created_at
-    ).order_by('-created_at').first()
+        is_approved=True, pk__lt=archive.pk
+    ).order_by('-pk').only('id', 'title').first()
     
     next_archive = Archive.objects.filter(
-        is_approved=True,
-        created_at__gt=archive.created_at
-    ).order_by('created_at').first()
+        is_approved=True, pk__gt=archive.pk
+    ).order_by('pk').only('id', 'title').first()
     
-    # Get recommended archives (9 total: same category, same tags, or featured)
-    recommended = Archive.objects.filter(is_approved=True).exclude(pk=archive.pk)
-    
-    if archive.category:
-        recommended = recommended.filter(category=archive.category)
-    
-    # If we need more, add by tags
-    if recommended.count() < 9:
-        tag_names = archive.tags.values_list('name', flat=True)
-        if tag_names:
-            recommended = Archive.objects.filter(
-                is_approved=True,
-                tags__name__in=tag_names
-            ).exclude(pk=archive.pk).distinct()
-    
-    # If still need more, add random archives
-    if recommended.count() < 9:
-        recommended = Archive.objects.filter(is_approved=True).exclude(pk=archive.pk).order_by('?')
-    
-    recommended = recommended[:9]
+    tag_names = list(archive.tags.values_list('name', flat=True))
+    recommended = get_random_recommendations(
+        archive.pk, 
+        category=archive.category,
+        tag_names=tag_names,
+        count=9
+    )
     
     context = {
         'archive': archive,
@@ -81,6 +103,7 @@ def archive_detail(request, pk):
     }
     
     return render(request, 'archives/detail.html', context)
+
 
 @login_required
 def archive_create(request):
@@ -96,13 +119,10 @@ def archive_create(request):
         date_created = request.POST.get('date_created') or None
         circa_date = request.POST.get('circa_date', '')
         
-        # Validate required fields
         if not title or not description or not archive_type or not caption:
             messages.error(request, 'Please fill in all required fields.')
-            categories = Category.objects.all()
-            return render(request, 'archives/create.html', {'categories': categories})
+            return render(request, 'archives/create.html', {'categories': get_cached_categories()})
         
-        # Create archive instance
         archive = Archive(
             title=title,
             description=description,
@@ -115,10 +135,9 @@ def archive_create(request):
             date_created=date_created,
             circa_date=circa_date,
             uploaded_by=request.user,
-            is_approved=False  # Requires admin approval before appearing on frontend
+            is_approved=False
         )
         
-        # Handle file uploads based on type
         if archive_type == 'image' and request.FILES.get('image'):
             archive.image = request.FILES['image']
         elif archive_type == 'video' and request.FILES.get('video'):
@@ -138,11 +157,12 @@ def archive_create(request):
         try:
             archive.save()
             
-            # Add tags
-            tags = request.POST.get('tags', '').split(',')
-            for tag in tags:
-                if tag.strip():
-                    archive.tags.add(tag.strip())
+            tags = [t.strip() for t in request.POST.get('tags', '').split(',') if t.strip()]
+            if tags:
+                archive.tags.add(*tags)
+            
+            cache.delete('archive_ids_pool')
+            cache.delete('featured_archive_ids')
             
             messages.success(request, 'Archive uploaded successfully!')
             return redirect('archives:detail', pk=archive.pk)
@@ -150,8 +170,8 @@ def archive_create(request):
             messages.error(request, f'Error uploading archive: {str(e)}')
             return redirect('archives:create')
     
-    categories = Category.objects.all()
-    return render(request, 'archives/create.html', {'categories': categories})
+    return render(request, 'archives/create.html', {'categories': get_cached_categories()})
+
 
 @login_required
 def archive_edit(request, pk):
@@ -169,7 +189,6 @@ def archive_edit(request, pk):
         archive.date_created = request.POST.get('date_created') or None
         archive.circa_date = request.POST.get('circa_date', '')
         
-        # Handle file uploads
         if request.FILES.get('image'):
             archive.image = request.FILES['image']
         if request.FILES.get('video'):
@@ -181,16 +200,17 @@ def archive_edit(request, pk):
         if request.FILES.get('featured_image'):
             archive.featured_image = request.FILES['featured_image']
         
-        # Clear existing tags and add new ones
         archive.tags.clear()
-        tags = request.POST.get('tags', '').split(',')
-        for tag in tags:
-            if tag.strip():
-                archive.tags.add(tag.strip())
+        tags = [t.strip() for t in request.POST.get('tags', '').split(',') if t.strip()]
+        if tags:
+            archive.tags.add(*tags)
         
         archive.save()
+        
+        cache.delete('archive_ids_pool')
+        cache.delete('featured_archive_ids')
+        
         messages.success(request, 'Archive updated successfully!')
         return redirect('archives:detail', pk=archive.pk)
     
-    categories = Category.objects.all()
-    return render(request, 'archives/edit.html', {'archive': archive, 'categories': categories})
+    return render(request, 'archives/edit.html', {'archive': archive, 'categories': get_cached_categories()})

@@ -9,6 +9,8 @@
         <div class="col-lg-8">
             <h1 class="mb-4">Upload Cultural Archive</h1>
             
+            <div id="uploadError" class="alert alert-danger d-none"></div>
+            
             <form method="post" enctype="multipart/form-data" id="archiveForm">
                 {% csrf_token %}
                 
@@ -44,35 +46,33 @@
                     </select>
                 </div>
 
-                <!-- File Upload (changes based on type) -->
                 <div class="mb-3" id="imageUploadSection" style="display:none;">
                     <label for="image" class="form-label">Image File *</label>
-                    <input type="file" class="form-control" id="image" name="image" accept=".jpg,.jpeg,.png,.webp">
+                    <input type="file" class="form-control" id="image" name="image" accept=".jpg,.jpeg,.png,.webp" onchange="validateFileSize(this, 5)">
                     <div class="form-text">Accepted formats: JPG, JPEG, PNG, WEBP (Max 5MB)</div>
                 </div>
 
                 <div class="mb-3" id="videoUploadSection" style="display:none;">
                     <label for="video" class="form-label">Video File *</label>
-                    <input type="file" class="form-control" id="video" name="video" accept=".mp4,.webm,.ogg,.mov">
+                    <input type="file" class="form-control" id="video" name="video" accept=".mp4,.webm,.ogg,.mov" onchange="validateFileSize(this, 50)">
                     <div class="form-text">Accepted formats: MP4, WEBM, OGG, MOV (Max 50MB)</div>
                 </div>
 
                 <div class="mb-3" id="documentUploadSection" style="display:none;">
                     <label for="document" class="form-label">Document File *</label>
-                    <input type="file" class="form-control" id="document" name="document" accept=".pdf,.doc,.docx,.txt">
-                    <div class="form-text">Accepted formats: PDF, DOC, DOCX, TXT (Max 5MB)</div>
+                    <input type="file" class="form-control" id="document" name="document" accept=".pdf,.doc,.docx,.txt" onchange="validateFileSize(this, 10)">
+                    <div class="form-text">Accepted formats: PDF, DOC, DOCX, TXT (Max 10MB)</div>
                 </div>
 
                 <div class="mb-3" id="audioUploadSection" style="display:none;">
                     <label for="audio" class="form-label">Audio File *</label>
-                    <input type="file" class="form-control" id="audio" name="audio" accept=".mp3,.wav,.ogg,.m4a">
-                    <div class="form-text">Accepted formats: MP3, WAV, OGG, M4A (Max 5MB)</div>
+                    <input type="file" class="form-control" id="audio" name="audio" accept=".mp3,.wav,.ogg,.m4a" onchange="validateFileSize(this, 10)">
+                    <div class="form-text">Accepted formats: MP3, WAV, OGG, M4A (Max 10MB)</div>
                 </div>
 
-                <!-- Featured Image for non-image archives -->
                 <div class="mb-3" id="featuredImageSection" style="display:none;">
                     <label for="featured_image" class="form-label">Featured Image/Thumbnail (Optional)</label>
-                    <input type="file" class="form-control" id="featured_image" name="featured_image" accept=".jpg,.jpeg,.png,.webp">
+                    <input type="file" class="form-control" id="featured_image" name="featured_image" accept=".jpg,.jpeg,.png,.webp" onchange="validateFileSize(this, 5)">
                     <div class="form-text">Thumbnail for videos/audio (optional, Max 5MB)</div>
                 </div>
 
@@ -121,7 +121,7 @@
                 </div>
 
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary">Upload Archive</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Upload Archive</button>
                     <a href="{% url 'archives:list' %}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
@@ -130,6 +130,26 @@
 </div>
 
 <script>
+function validateFileSize(input, maxMB) {
+    const errorDiv = document.getElementById('uploadError');
+    
+    if (input.files && input.files[0]) {
+        const fileSize = input.files[0].size;
+        const maxSize = maxMB * 1024 * 1024;
+        
+        if (fileSize > maxSize) {
+            errorDiv.textContent = `File is too large. Maximum size is ${maxMB}MB. Your file is ${(fileSize / (1024 * 1024)).toFixed(2)}MB.`;
+            errorDiv.classList.remove('d-none');
+            input.value = '';
+            return false;
+        } else {
+            errorDiv.classList.add('d-none');
+            return true;
+        }
+    }
+    return true;
+}
+
 function updateFileInput() {
     const archiveType = document.getElementById('archive_type').value;
     const imageSection = document.getElementById('imageUploadSection');
@@ -140,20 +160,17 @@ function updateFileInput() {
     const altTextSection = document.getElementById('altTextSection');
     const altTextField = document.getElementById('alt_text');
     
-    // Hide all sections
     imageSection.style.display = 'none';
     videoSection.style.display = 'none';
     documentSection.style.display = 'none';
     audioSection.style.display = 'none';
     featuredSection.style.display = 'none';
     
-    // Remove required from all file inputs
     document.getElementById('image').removeAttribute('required');
     document.getElementById('video').removeAttribute('required');
     document.getElementById('document').removeAttribute('required');
     document.getElementById('audio').removeAttribute('required');
     
-    // Show appropriate section and set required
     if (archiveType === 'image') {
         imageSection.style.display = 'block';
         document.getElementById('image').setAttribute('required', 'required');
@@ -178,5 +195,49 @@ function updateFileInput() {
         altTextSection.style.display = 'none';
     }
 }
+
+document.getElementById('archiveForm').addEventListener('submit', function(e) {
+    const archiveType = document.getElementById('archive_type').value;
+    const errorDiv = document.getElementById('uploadError');
+    
+    const fileLimits = {
+        'image': { field: 'image', maxMB: 5 },
+        'video': { field: 'video', maxMB: 50 },
+        'document': { field: 'document', maxMB: 10 },
+        'audio': { field: 'audio', maxMB: 10 }
+    };
+    
+    if (archiveType && fileLimits[archiveType]) {
+        const config = fileLimits[archiveType];
+        const input = document.getElementById(config.field);
+        
+        if (input.files && input.files[0]) {
+            const fileSize = input.files[0].size;
+            const maxSize = config.maxMB * 1024 * 1024;
+            
+            if (fileSize > maxSize) {
+                e.preventDefault();
+                errorDiv.textContent = `File is too large. Maximum size is ${config.maxMB}MB.`;
+                errorDiv.classList.remove('d-none');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return false;
+            }
+        }
+    }
+    
+    const featuredInput = document.getElementById('featured_image');
+    if (featuredInput.files && featuredInput.files[0]) {
+        if (featuredInput.files[0].size > 5 * 1024 * 1024) {
+            e.preventDefault();
+            errorDiv.textContent = 'Featured image is too large. Maximum size is 5MB.';
+            errorDiv.classList.remove('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+    }
+    
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+});
 </script>
 {% endblock %}

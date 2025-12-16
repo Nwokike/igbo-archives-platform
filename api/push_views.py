@@ -2,20 +2,22 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from webpush.models import PushInformation
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 @login_required
 @require_POST
-@csrf_exempt  # Service workers often can't send CSRF tokens
+@csrf_exempt
 def push_subscribe(request):
     """Save push notification subscription for the user using django-webpush"""
     try:
-        # Assumes request.body is the subscription object:
-        # {"endpoint": "...", "keys": {"p256dh": "...", "auth": "..."}}
+        from webpush.models import SubscriptionInfo, PushInformation
+        
         data = json.loads(request.body)
         
-        # Get the keys from the subscription object
         endpoint = data.get('endpoint')
         keys = data.get('keys', {})
         p256dh = keys.get('p256dh')
@@ -27,22 +29,27 @@ def push_subscribe(request):
                 'message': 'Subscription must have an endpoint.'
             }, status=400)
 
-        # Use update_or_create on the unique endpoint
-        # This correctly links a user to a specific subscription
-        subscription, created = PushInformation.objects.update_or_create(
+        subscription_info, _ = SubscriptionInfo.objects.update_or_create(
             endpoint=endpoint,
             defaults={
-                'user': request.user,
-                'p256dh': p256dh,
-                'auth': auth
+                'p256dh': p256dh or '',
+                'auth': auth or '',
             }
         )
+        
+        push_info, _ = PushInformation.objects.update_or_create(
+            user=request.user,
+            subscription=subscription_info,
+        )
+        
+        logger.info(f"Push subscription saved for user {request.user.id}")
         
         return JsonResponse({
             'status': 'success',
             'message': 'Push subscription saved successfully'
         })
     except Exception as e:
+        logger.error(f"Push subscribe error: {e}")
         return JsonResponse({
             'status': 'error',
             'message': str(e)
@@ -51,11 +58,12 @@ def push_subscribe(request):
 
 @login_required
 @require_POST
-@csrf_exempt  # Service workers often can't send CSRF tokens
+@csrf_exempt
 def push_unsubscribe(request):
     """Remove a specific push notification subscription"""
     try:
-        # Assumes request.body is the subscription object
+        from webpush.models import SubscriptionInfo, PushInformation
+        
         data = json.loads(request.body)
         endpoint = data.get('endpoint')
 
@@ -65,19 +73,24 @@ def push_unsubscribe(request):
                 'message': 'Endpoint not provided to unsubscribe.'
             }, status=400)
 
-        # Delete the specific subscription by its unique endpoint
-        # We also filter by user for security, so one user can't delete
-        # another user's subscription, even if they know the endpoint.
-        PushInformation.objects.filter(
-            endpoint=endpoint, 
-            user=request.user
-        ).delete()
+        subscription = SubscriptionInfo.objects.filter(endpoint=endpoint).first()
+        if subscription:
+            PushInformation.objects.filter(
+                user=request.user,
+                subscription=subscription
+            ).delete()
+            
+            if not PushInformation.objects.filter(subscription=subscription).exists():
+                subscription.delete()
+        
+        logger.info(f"Push subscription removed for user {request.user.id}")
         
         return JsonResponse({
             'status': 'success',
             'message': 'Push subscription removed successfully'
         })
     except Exception as e:
+        logger.error(f"Push unsubscribe error: {e}")
         return JsonResponse({
             'status': 'error',
             'message': str(e)

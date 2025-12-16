@@ -2,12 +2,21 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.core.files.storage import default_storage
 from archives.models import Archive, Category
 from insights.models import UploadedImage
 import json
 import os
+
+
+def get_cached_api_categories():
+    """Cache categories for API responses"""
+    categories = cache.get('api_categories')
+    if categories is None:
+        categories = list(Category.objects.values('id', 'name', 'slug'))
+        cache.set('api_categories', categories, 3600)
+    return categories
 
 
 @login_required
@@ -17,14 +26,15 @@ def archive_media_browser(request):
     Archive media browser API endpoint.
     Returns paginated list of archives for selection in post editor.
     """
-    # Filter parameters
     search = request.GET.get('search', '')
     archive_type = request.GET.get('type', '')
     category = request.GET.get('category', '')
     page = request.GET.get('page', 1)
     
-    # Build queryset
-    archives = Archive.objects.filter(is_approved=True)
+    archives = Archive.objects.filter(is_approved=True).select_related('category').only(
+        'id', 'title', 'description', 'archive_type', 'caption', 'alt_text',
+        'image', 'video', 'audio', 'document', 'featured_image'
+    )
     
     if search:
         archives = archives.filter(title__icontains=search)
@@ -35,11 +45,9 @@ def archive_media_browser(request):
     if category:
         archives = archives.filter(category__slug=category)
     
-    # Paginate
     paginator = Paginator(archives, 12)
     archives_page = paginator.get_page(page)
     
-    # Serialize data
     data = {
         'archives': [],
         'has_next': archives_page.has_next(),
@@ -58,7 +66,6 @@ def archive_media_browser(request):
             'alt_text': archive.alt_text,
         }
         
-        # Get the appropriate file URL
         if archive.archive_type == 'image' and archive.image:
             archive_data['url'] = archive.image.url
             archive_data['thumbnail'] = archive.image.url
@@ -82,7 +89,7 @@ def archive_media_browser(request):
 @require_http_methods(["POST"])
 def upload_image(request):
     """
-    Handle image uploads from Quill editor.
+    Handle image uploads from editor.
     Automatically creates Archive entry with caption and description.
     """
     if 'image' not in request.FILES:
@@ -92,36 +99,35 @@ def upload_image(request):
     caption = request.POST.get('caption', '').strip()
     description = request.POST.get('description', '').strip()
     
-    # Validate required metadata
     if not caption:
         return JsonResponse({'success': 0, 'error': 'Caption with copyright/source info is required'})
     if not description:
         return JsonResponse({'success': 0, 'error': 'Image description (alt text) is required'})
     
-    # Validate file size (Max 5MB)
     file_size = image_file.size
     if file_size > 5 * 1024 * 1024:
         return JsonResponse({'success': 0, 'error': 'Maximum file size is 5MB'})
-    if file_size < 1024:  # Minimum 1KB for sanity check
+    if file_size < 1024:
         return JsonResponse({'success': 0, 'error': 'File too small'})
     
-    # Validate file type
     allowed_extensions = ['jpg', 'jpeg', 'png', 'webp']
     file_extension = os.path.splitext(image_file.name)[1][1:].lower()
     if file_extension not in allowed_extensions:
         return JsonResponse({'success': 0, 'error': f'Only {", ".join(allowed_extensions)} files are allowed'})
     
-    # Create Archive entry automatically using caption as title
     archive = Archive.objects.create(
-        title=caption,  # Use caption as title instead of filename
+        title=caption,
         description=description,
         caption=caption,
         alt_text=description,
         archive_type='image',
         image=image_file,
         uploaded_by=request.user,
-        is_approved=False  # Require admin approval to assign category
+        is_approved=False
     )
+    
+    cache.delete('archive_ids_pool')
+    cache.delete('featured_archive_ids')
     
     file_url = request.build_absolute_uri(archive.image.url)
     
@@ -139,7 +145,6 @@ def upload_image(request):
 @login_required
 @require_http_methods(["GET"])
 def get_categories(request):
-    """Return all categories for archive submission."""
-    categories = Category.objects.all()
-    data = [{'id': cat.id, 'name': cat.name, 'slug': cat.slug} for cat in categories]
-    return JsonResponse({'categories': data})
+    """Return all categories for archive submission - cached."""
+    categories = get_cached_api_categories()
+    return JsonResponse({'categories': categories})

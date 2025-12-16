@@ -1,7 +1,15 @@
 {% if archives %}
     {% for archive in archives %}
     <div class="card h-100">
-        <img src="{{ archive.image.url }}" class="card-img-top" alt="{{ archive.alt_text }}" style="height: 200px; object-fit: cover;">
+        {% if archive.image %}
+        <img src="{{ archive.image.url }}" class="card-img-top" alt="{{ archive.alt_text }}" loading="lazy" decoding="async" style="height: 200px; object-fit: cover;">
+        {% elif archive.featured_image %}
+        <img src="{{ archive.featured_image.url }}" class="card-img-top" alt="{{ archive.alt_text }}" loading="lazy" decoding="async" style="height: 200px; object-fit: cover;">
+        {% else %}
+        <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+            <i class="fas fa-archive" style="font-size: 3rem;"></i>
+        </div>
+        {% endif %}
         <div class="card-body">
             <h5 class="card-title">{{ archive.title }}</h5>
             <p class="card-text">{{ archive.description|truncatewords:15 }}</p>
@@ -19,7 +27,6 @@
     </div>
     {% endfor %}
 
-    <!-- Pagination -->
     {% if archives.has_other_pages %}
     <div style="grid-column: 1 / -1; margin-top: 2rem;">
         <nav>

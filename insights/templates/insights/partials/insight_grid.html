@@ -2,7 +2,7 @@
     {% for post in posts %}
     <a href="{% url 'insights:detail' post.slug %}" class="card" style="text-decoration: none; color: inherit; display: block;">
         {% if post.featured_image %}
-        <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.alt_text }}" style="height: 200px; object-fit: cover;">
+        <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.alt_text }}" loading="lazy" decoding="async" style="height: 200px; object-fit: cover;">
         {% endif %}
         <div class="card-body">
             <h3 class="card-title">{{ post.title }}</h3>
@@ -14,7 +14,6 @@
     </a>
     {% endfor %}
 
-    <!-- Pagination -->
     {% if posts.has_other_pages %}
     <div style="grid-column: 1 / -1; margin-top: 2rem;">
         <nav>

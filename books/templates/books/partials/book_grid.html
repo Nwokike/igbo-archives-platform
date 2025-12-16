@@ -2,7 +2,7 @@
     {% for review in reviews %}
     <a href="{% url 'books:detail' review.slug %}" class="card" style="text-decoration: none; color: inherit; display: block;">
         {% if review.cover_image %}
-        <img src="{{ review.cover_image.url }}" class="card-img-top" alt="{{ review.book_title }}" style="height: 250px; object-fit: cover;">
+        <img src="{{ review.cover_image.url }}" class="card-img-top" alt="{{ review.book_title }}" loading="lazy" decoding="async" style="height: 250px; object-fit: cover;">
         {% else %}
         <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">
             <i class="fas fa-book" style="font-size: 3rem;"></i>

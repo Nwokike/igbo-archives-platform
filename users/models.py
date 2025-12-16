@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
+
 class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=200, blank=True)
     bio = models.TextField(blank=True)
@@ -15,6 +16,7 @@ class CustomUser(AbstractUser):
     
     def get_display_name(self):
         return self.full_name or (self.email.split('@')[0] if self.email else self.username)
+
 
 class Thread(models.Model):
     participants = models.ManyToManyField(CustomUser, related_name='message_threads')
@@ -28,6 +30,7 @@ class Thread(models.Model):
     def __str__(self) -> str:
         return str(self.subject)
 
+
 class Message(models.Model):
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -37,25 +40,24 @@ class Message(models.Model):
     
     class Meta:
         ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['thread', 'is_read'], name='msg_thread_read_idx'),
+        ]
     
     def __str__(self) -> str:
         return f"Message from {self.sender.get_display_name()} in {self.thread.subject}"
 
-# --- NEW MODEL ADDED BELOW ---
 
 class Notification(models.Model):
     """
-    Our new custom model to store in-app notifications, replacing django-notifications-hq.
-    This model is designed to work with your notifications.html template.
+    Custom model to store in-app notifications, replacing django-notifications-hq.
     """
-    # The user who receives the notification
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='notifications'
     )
     
-    # The user who sent the notification (optional, for system notifications like post approval)
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -64,17 +66,13 @@ class Notification(models.Model):
         related_name='sent_notifications'
     )
     
-    # Status (for your template's unread filter)
     unread = models.BooleanField(default=True, db_index=True)
     
-    # Notification content (for your template)
     verb = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     
-    # Timestamp (for your template)
     timestamp = models.DateTimeField(auto_now_add=True)
     
-    # Generic relation to point to any object (a post, a comment, a message thread)
     content_type = models.ForeignKey(
         ContentType, 
         on_delete=models.CASCADE, 
@@ -86,6 +84,9 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ('-timestamp',)
+        indexes = [
+            models.Index(fields=['recipient', 'unread', '-timestamp'], name='notif_user_unread_idx'),
+        ]
 
     def __str__(self):
         return f'{self.recipient.username} - {self.verb}'
@@ -94,4 +95,4 @@ class Notification(models.Model):
         """Helper method to mark as read, used by views."""
         if self.unread:
             self.unread = False
-            self.save()
+            self.save(update_fields=['unread'])
