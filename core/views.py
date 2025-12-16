@@ -8,22 +8,39 @@ from django.core.cache import cache
 from archives.models import Archive
 
 
-def get_random_featured_archives(count=10):
-    """Memory-efficient random archive selection with caching"""
-    cache_key = 'featured_archive_ids'
+def get_all_approved_archive_ids():
+    """Cache all approved archive IDs. For datasets under 100k, this is memory-efficient.
+    
+    Memory estimate: 100,000 IDs * 8 bytes = ~800KB, well within 1GB constraint.
+    """
+    cache_key = 'all_approved_archive_ids'
     archive_ids = cache.get(cache_key)
     
     if archive_ids is None:
-        archive_ids = list(
+        archive_ids = tuple(
             Archive.objects.filter(is_approved=True)
-            .values_list('id', flat=True)[:500]
+            .values_list('id', flat=True)
+            .iterator(chunk_size=1000)
         )
         cache.set(cache_key, archive_ids, 300)
+    
+    return archive_ids
+
+
+def get_random_featured_archives(count=10):
+    """Memory-efficient random archive selection with caching.
+    
+    Caches all approved archive IDs and samples randomly from them.
+    Single query to fetch selected archives.
+    """
+    archive_ids = get_all_approved_archive_ids()
     
     if not archive_ids:
         return Archive.objects.none()
     
-    random_ids = random.sample(archive_ids, min(count, len(archive_ids)))
+    sample_size = min(count, len(archive_ids))
+    random_ids = random.sample(archive_ids, sample_size)
+    
     return Archive.objects.filter(pk__in=random_ids).select_related('category', 'uploaded_by')
 
 

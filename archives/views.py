@@ -16,24 +16,42 @@ def get_cached_categories():
     return categories
 
 
-def get_random_recommendations(exclude_pk, category=None, tag_names=None, count=9):
-    """Memory-efficient random archive selection"""
-    cache_key = 'archive_ids_pool'
+def get_all_approved_archive_ids():
+    """Cache all approved archive IDs using chunked iteration.
+    
+    Memory estimate: 100,000 IDs * 8 bytes = ~800KB, well within 1GB constraint.
+    Uses iterator() for memory-efficient fetching.
+    """
+    cache_key = 'all_approved_archive_ids'
     archive_ids = cache.get(cache_key)
     
     if archive_ids is None:
-        archive_ids = list(
+        archive_ids = tuple(
             Archive.objects.filter(is_approved=True)
-            .values_list('id', flat=True)[:500]
+            .values_list('id', flat=True)
+            .iterator(chunk_size=1000)
         )
         cache.set(cache_key, archive_ids, 300)
+    
+    return archive_ids
+
+
+def get_random_recommendations(exclude_pk, count=9):
+    """Memory-efficient random archive selection.
+    
+    Caches all approved archive IDs, excludes current, samples randomly.
+    Single query to fetch selected archives.
+    """
+    archive_ids = get_all_approved_archive_ids()
     
     available_ids = [aid for aid in archive_ids if aid != exclude_pk]
     
     if not available_ids:
         return Archive.objects.none()
     
-    random_ids = random.sample(available_ids, min(count, len(available_ids)))
+    sample_size = min(count, len(available_ids))
+    random_ids = random.sample(available_ids, sample_size)
+    
     return Archive.objects.filter(pk__in=random_ids).select_related('uploaded_by', 'category')
 
 
@@ -42,7 +60,7 @@ def archive_list(request):
         'uploaded_by', 'category'
     ).prefetch_related('tags').only(
         'id', 'title', 'archive_type', 'image', 'featured_image',
-        'alt_text', 'created_at', 'uploaded_by_id', 'category_id',
+        'alt_text', 'description', 'created_at', 'uploaded_by_id', 'category_id',
         'uploaded_by__full_name', 'uploaded_by__username',
         'category__name', 'category__slug'
     )
@@ -87,13 +105,7 @@ def archive_detail(request, pk):
         is_approved=True, pk__gt=archive.pk
     ).order_by('pk').only('id', 'title').first()
     
-    tag_names = list(archive.tags.values_list('name', flat=True))
-    recommended = get_random_recommendations(
-        archive.pk, 
-        category=archive.category,
-        tag_names=tag_names,
-        count=9
-    )
+    recommended = get_random_recommendations(archive.pk, count=9)
     
     context = {
         'archive': archive,
@@ -118,16 +130,12 @@ def archive_create(request):
         location = request.POST.get('location', '')
         date_created = request.POST.get('date_created') or None
         circa_date = request.POST.get('circa_date', '')
-        
-        if not title or not description or not archive_type or not caption:
-            messages.error(request, 'Please fill in all required fields.')
-            return render(request, 'archives/create.html', {'categories': get_cached_categories()})
+        tags_str = request.POST.get('tags', '')
         
         archive = Archive(
             title=title,
             description=description,
             archive_type=archive_type,
-            category_id=category_id if category_id else None,
             caption=caption,
             alt_text=alt_text,
             original_author=original_author,
@@ -138,39 +146,36 @@ def archive_create(request):
             is_approved=False
         )
         
-        if archive_type == 'image' and request.FILES.get('image'):
-            archive.image = request.FILES['image']
-        elif archive_type == 'video' and request.FILES.get('video'):
-            archive.video = request.FILES['video']
-            if request.FILES.get('featured_image'):
-                archive.featured_image = request.FILES['featured_image']
-        elif archive_type == 'document' and request.FILES.get('document'):
-            archive.document = request.FILES['document']
-        elif archive_type == 'audio' and request.FILES.get('audio'):
-            archive.audio = request.FILES['audio']
-            if request.FILES.get('featured_image'):
-                archive.featured_image = request.FILES['featured_image']
-        else:
-            messages.error(request, f'Please upload a file for {archive_type} type.')
-            return redirect('archives:create')
+        if category_id:
+            archive.category_id = category_id
         
-        try:
-            archive.save()
-            
-            tags = [t.strip() for t in request.POST.get('tags', '').split(',') if t.strip()]
-            if tags:
-                archive.tags.add(*tags)
-            
-            cache.delete('archive_ids_pool')
-            cache.delete('featured_archive_ids')
-            
-            messages.success(request, 'Archive uploaded successfully!')
-            return redirect('archives:detail', pk=archive.pk)
-        except Exception as e:
-            messages.error(request, f'Error uploading archive: {str(e)}')
-            return redirect('archives:create')
+        if archive_type == 'image' and 'image' in request.FILES:
+            archive.image = request.FILES['image']
+        elif archive_type == 'video' and 'video' in request.FILES:
+            archive.video = request.FILES['video']
+        elif archive_type == 'audio' and 'audio' in request.FILES:
+            archive.audio = request.FILES['audio']
+        elif archive_type == 'document' and 'document' in request.FILES:
+            archive.document = request.FILES['document']
+        
+        if 'featured_image' in request.FILES:
+            archive.featured_image = request.FILES['featured_image']
+        
+        archive.save()
+        
+        if tags_str:
+            tag_list = [t.strip() for t in tags_str.split(',') if t.strip()]
+            archive.tags.add(*tag_list)
+        
+        cache.delete('all_approved_archive_ids')
+        
+        messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
+        return redirect('archives:list')
     
-    return render(request, 'archives/create.html', {'categories': get_cached_categories()})
+    context = {
+        'categories': get_cached_categories(),
+    }
+    return render(request, 'archives/create.html', context)
 
 
 @login_required
@@ -180,8 +185,6 @@ def archive_edit(request, pk):
     if request.method == 'POST':
         archive.title = request.POST.get('title')
         archive.description = request.POST.get('description')
-        archive.archive_type = request.POST.get('archive_type')
-        archive.category_id = request.POST.get('category') if request.POST.get('category') else None
         archive.caption = request.POST.get('caption')
         archive.alt_text = request.POST.get('alt_text', '')
         archive.original_author = request.POST.get('original_author', '')
@@ -189,28 +192,36 @@ def archive_edit(request, pk):
         archive.date_created = request.POST.get('date_created') or None
         archive.circa_date = request.POST.get('circa_date', '')
         
-        if request.FILES.get('image'):
-            archive.image = request.FILES['image']
-        if request.FILES.get('video'):
-            archive.video = request.FILES['video']
-        if request.FILES.get('document'):
-            archive.document = request.FILES['document']
-        if request.FILES.get('audio'):
-            archive.audio = request.FILES['audio']
-        if request.FILES.get('featured_image'):
-            archive.featured_image = request.FILES['featured_image']
+        category_id = request.POST.get('category')
+        if category_id:
+            archive.category_id = category_id
+        else:
+            archive.category = None
         
-        archive.tags.clear()
-        tags = [t.strip() for t in request.POST.get('tags', '').split(',') if t.strip()]
-        if tags:
-            archive.tags.add(*tags)
+        if 'image' in request.FILES:
+            archive.image = request.FILES['image']
+        if 'video' in request.FILES:
+            archive.video = request.FILES['video']
+        if 'audio' in request.FILES:
+            archive.audio = request.FILES['audio']
+        if 'document' in request.FILES:
+            archive.document = request.FILES['document']
+        if 'featured_image' in request.FILES:
+            archive.featured_image = request.FILES['featured_image']
         
         archive.save()
         
-        cache.delete('archive_ids_pool')
-        cache.delete('featured_archive_ids')
+        tags_str = request.POST.get('tags', '')
+        archive.tags.clear()
+        if tags_str:
+            tag_list = [t.strip() for t in tags_str.split(',') if t.strip()]
+            archive.tags.add(*tag_list)
         
         messages.success(request, 'Archive updated successfully!')
         return redirect('archives:detail', pk=archive.pk)
     
-    return render(request, 'archives/edit.html', {'archive': archive, 'categories': get_cached_categories()})
+    context = {
+        'archive': archive,
+        'categories': get_cached_categories(),
+    }
+    return render(request, 'archives/edit.html', context)
