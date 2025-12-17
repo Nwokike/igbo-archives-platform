@@ -22,6 +22,8 @@
     <link rel="stylesheet" href="{% static 'vendor/css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/tailwind.output.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+    <link rel="stylesheet" href="{% static 'css/modal.css' %}">
     
     {% block extra_css %}{% endblock %}
     
@@ -252,6 +254,10 @@
     
     <script src="{% static 'vendor/js/htmx.min.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/notifications.js' %}"></script>
+    <script src="{% static 'js/modals.js' %}"></script>
+    <script src="{% static 'js/tabs.js' %}"></script>
+    <script src="{% static 'js/view-toggle.js' %}"></script>
     <script src="{% static 'js/push-notifications.js' %}" id="push-notifications-script" data-subscribe-url="{% url 'api:push_subscribe' %}" data-unsubscribe-url="{% url 'api:push_unsubscribe' %}" defer></script>
     
     {% block extra_js %}{% endblock %}

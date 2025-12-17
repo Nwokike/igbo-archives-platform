@@ -5,17 +5,17 @@
            class="notification-dropdown-item {% if notification.unread %}unread{% endif %}">
             <div class="notification-icon">
                 {% if 'approved' in notification.verb %}
-                    <i class="fas fa-check-circle text-success"></i>
+                    <i class="fas fa-check-circle text-green-600"></i>
                 {% elif 'rejected' in notification.verb %}
-                    <i class="fas fa-times-circle text-danger"></i>
+                    <i class="fas fa-times-circle text-red-500"></i>
                 {% elif 'comment' in notification.verb %}
-                    <i class="fas fa-comment text-primary"></i>
+                    <i class="fas fa-comment"></i>
                 {% elif 'message' in notification.verb %}
-                    <i class="fas fa-envelope text-info"></i>
+                    <i class="fas fa-envelope"></i>
                 {% elif 'edit' in notification.verb or 'suggestion' in notification.verb %}
-                    <i class="fas fa-edit text-warning"></i>
+                    <i class="fas fa-edit text-vintage-bronze"></i>
                 {% else %}
-                    <i class="fas fa-bell text-secondary"></i>
+                    <i class="fas fa-bell"></i>
                 {% endif %}
             </div>
             <div class="notification-text">
@@ -37,119 +37,3 @@
         </div>
     {% endif %}
 </div>
-
-<style>
-.notification-dropdown-content {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.notification-dropdown-item {
-    display: flex;
-    align-items: flex-start;
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--border-color);
-    text-decoration: none;
-    color: inherit;
-    transition: background 0.2s;
-    gap: 12px;
-}
-
-.notification-dropdown-item:hover {
-    background: var(--background-hover, #f5f5f5);
-}
-
-.notification-dropdown-item.unread {
-    background: var(--primary-color-light, #e8f4f8);
-}
-
-.notification-dropdown-item .notification-icon {
-    font-size: 1.2rem;
-}
-
-.notification-dropdown-item .notification-text {
-    flex: 1;
-    min-width: 0;
-}
-
-.notification-dropdown-item .notification-message {
-    font-size: 0.875rem;
-    margin-bottom: 3px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.notification-dropdown-item .notification-time {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-}
-
-.mark-read-btn {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 5px;
-}
-
-.mark-read-btn:hover {
-    color: var(--primary-color);
-}
-
-.notification-dropdown-footer {
-    display: block;
-    text-align: center;
-    padding: 12px;
-    background: var(--background-secondary);
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 500;
-    border-top: 1px solid var(--border-color);
-}
-
-.notification-dropdown-footer:hover {
-    background: var(--background-hover);
-}
-
-.notification-dropdown-empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-secondary);
-}
-
-.notification-dropdown-empty i {
-    font-size: 2rem;
-    margin-bottom: 10px;
-    opacity: 0.5;
-}
-
-.notification-dropdown-empty p {
-    margin: 0;
-    font-size: 0.875rem;
-}
-</style>
-
-<script>
-function markNotificationRead(notificationId) {
-    fetch(`/profile/notifications/${notificationId}/mark-read/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // Update notification count
-            updateNotificationCount();
-        }
-    });
-}
-
-function updateNotificationCount() {
-    // Reload the dropdown to reflect changes
-    location.reload();
-}
-</script>

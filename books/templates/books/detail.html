@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load threadedcomments_tags %}
+{% load editorjs_renderer %}
 
 {% block title %}{{ review.review_title }} - Book Reviews{% endblock %}
 
@@ -73,7 +74,7 @@
         </div>
 
         <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
-            {{ review.content|safe }}
+            {{ review.content|render_editorjs }}
         </div>
 
         {% if review.tags.all %}

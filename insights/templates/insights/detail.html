@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load threadedcomments_tags %}
+{% load editorjs_renderer %}
 
 {% block title %}{{ insight.title }} - Insights{% endblock %}
 
@@ -33,7 +34,7 @@
         {% endif %}
 
         <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
-            {{ insight.content|safe }}
+            {{ insight.content|render_editorjs }}
         </div>
 
         {% if insight.tags.all %}
@@ -124,21 +125,4 @@
         </form>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<link rel="stylesheet" href="{% static 'css/modal.css' %}">
-<script>
-function openSuggestModal() {
-    document.getElementById('suggestEditModal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-function closeSuggestModal() {
-    document.getElementById('suggestEditModal').classList.remove('active');
-    document.body.style.overflow = '';
-}
-document.getElementById('suggestEditModal').addEventListener('click', function(e) {
-    if (e.target === this) closeSuggestModal();
-});
-</script>
 {% endblock %}
