@@ -171,36 +171,3 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-(function() {
-    var tabButtons = document.querySelectorAll('.tab-button');
-    var tabPanels = document.querySelectorAll('.tab-panel');
-    
-    tabButtons.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var tabId = this.dataset.tab;
-            
-            tabButtons.forEach(function(b) { b.classList.remove('active'); });
-            this.classList.add('active');
-            
-            tabPanels.forEach(function(p) { p.classList.add('hidden'); });
-            document.getElementById(tabId).classList.remove('hidden');
-        });
-    });
-})();
-
-function shareProfile() {
-    if (navigator.share) {
-        navigator.share({
-            title: '{{ profile_user.get_display_name }} - Igbo Archives',
-            url: window.location.href
-        });
-    } else {
-        navigator.clipboard.writeText(window.location.href).then(function() {
-            alert('Profile link copied to clipboard!');
-        });
-    }
-}
-</script>
-{% endblock %}

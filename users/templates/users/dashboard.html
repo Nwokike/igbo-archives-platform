@@ -216,23 +216,3 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-(function() {
-    var tabButtons = document.querySelectorAll('.tab-button');
-    var tabPanels = document.querySelectorAll('.tab-panel');
-    
-    tabButtons.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var tabId = this.dataset.tab;
-            
-            tabButtons.forEach(function(b) { b.classList.remove('active'); });
-            this.classList.add('active');
-            
-            tabPanels.forEach(function(p) { p.classList.add('hidden'); });
-            document.getElementById(tabId).classList.remove('hidden');
-        });
-    });
-})();
-</script>
-{% endblock %}
