@@ -3,31 +3,31 @@
 {% block title %}Suggest Edit - {{ post.title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Suggest an Edit</h2>
-    <p class="text-muted">Propose an improvement or correction to this post</p>
+<div class="max-w-2xl mx-auto">
+    <h1 class="font-serif text-display-lg text-dark-brown mb-2">Suggest an Edit</h1>
+    <p class="text-vintage-beaver mb-6">Propose an improvement or correction to this post</p>
 
-    <div class="post-info mb-4">
-        <h3>{{ post.title }}</h3>
-        <p class="text-muted">By {{ post.author.full_name|default:post.author.get_display_name }}</p>
+    <div class="card mb-6">
+        <div class="card-body">
+            <h3 class="font-serif text-lg font-semibold text-dark-brown mb-1">{{ post.title }}</h3>
+            <p class="text-vintage-beaver text-sm">By {{ post.author.full_name|default:post.author.get_display_name }}</p>
+        </div>
     </div>
 
-    <form method="post">
+    <form method="post" class="space-y-6">
         {% csrf_token %}
-        <div class="mb-3">
+        <div class="form-group">
             <label for="suggestion_text" class="form-label">Your Suggestion *</label>
-            <textarea name="suggestion_text" id="suggestion_text" class="form-control" rows="6" required
+            <textarea name="suggestion_text" id="suggestion_text" class="form-textarea" rows="6" required
                       placeholder="Describe what you'd like to change or add..."></textarea>
-            <div class="form-text">Be specific about what you want to improve. The author will review your suggestion.</div>
+            <p class="form-help">Be specific about what you want to improve. The author will review your suggestion.</p>
         </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
+        <div class="flex gap-3">
+            <button type="submit" class="btn-primary">
                 <i class="fas fa-paper-plane"></i> Submit Suggestion
             </button>
-            <a href="{% url 'insights:detail' post.slug %}" class="btn btn-outline-secondary">
-                Cancel
-            </a>
+            <a href="{% url 'insights:detail' post.slug %}" class="btn-secondary">Cancel</a>
         </div>
     </form>
 </div>
