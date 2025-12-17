@@ -3,19 +3,25 @@
 {% block title %}New Message{% endblock %}
 
 {% block content %}
-<h2>New Message to {{ recipient.get_display_name }}</h2>
+<div class="max-w-2xl mx-auto">
+    <h1 class="font-serif text-display-lg text-dark-brown mb-6">New Message to {{ recipient.get_display_name }}</h1>
 
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="subject" class="form-label">Subject</label>
-        <input type="text" class="form-control" id="subject" name="subject" required>
-    </div>
-    <div class="mb-3">
-        <label for="content" class="form-label">Message</label>
-        <textarea name="content" class="form-control" id="content" rows="5" required></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Send Message</button>
-    <a href="{% url 'users:inbox' %}" class="btn btn-secondary">Cancel</a>
-</form>
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="subject" class="form-label">Subject</label>
+            <input type="text" class="form-input" id="subject" name="subject" required>
+        </div>
+        <div class="form-group">
+            <label for="content" class="form-label">Message</label>
+            <textarea name="content" class="form-textarea" id="content" rows="6" required></textarea>
+        </div>
+        <div class="flex gap-3">
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+            <a href="{% url 'users:inbox' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
 {% endblock %}

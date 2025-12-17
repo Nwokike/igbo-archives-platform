@@ -3,173 +3,98 @@
 {% block title %}Notifications{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Notifications</h2>
-                <button class="btn btn-outline-primary" onclick="markAllRead()">
-                    <i class="fas fa-check-double"></i> Mark All as Read
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="font-serif text-display-lg text-dark-brown">Notifications</h1>
+        <button class="btn-secondary btn-sm" onclick="markAllRead()">
+            <i class="fas fa-check-double"></i> Mark All as Read
+        </button>
+    </div>
+
+    <div class="flex gap-2 mb-6 border-b border-sepia-pale/50 pb-3">
+        <a href="?filter=all" class="tab-button {% if filter_type == 'all' %}active{% endif %}">All</a>
+        <a href="?filter=unread" class="tab-button {% if filter_type == 'unread' %}active{% endif %}">Unread</a>
+        <a href="?filter=read" class="tab-button {% if filter_type == 'read' %}active{% endif %}">Read</a>
+    </div>
+
+    <div class="space-y-3">
+        {% for notification in notifications %}
+        <div class="card {% if notification.unread %}border-l-4 border-l-vintage-gold bg-heritage-cream/50{% endif %} transition-all hover:shadow-md" id="notification-{{ notification.id }}">
+            <div class="card-body flex items-start gap-4">
+                <div class="text-2xl flex-shrink-0">
+                    {% if 'approved' in notification.verb %}
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    {% elif 'rejected' in notification.verb %}
+                        <i class="fas fa-times-circle text-red-500"></i>
+                    {% elif 'comment' in notification.verb %}
+                        <i class="fas fa-comment text-vintage-gold"></i>
+                    {% elif 'message' in notification.verb %}
+                        <i class="fas fa-envelope text-vintage-gold"></i>
+                    {% elif 'edit' in notification.verb or 'suggestion' in notification.verb %}
+                        <i class="fas fa-edit text-vintage-bronze"></i>
+                    {% else %}
+                        <i class="fas fa-bell text-vintage-beaver"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <p class="text-dark-brown mb-1">{{ notification.description|default:notification.verb }}</p>
+                    <p class="text-sm text-vintage-beaver">
+                        <i class="fas fa-clock text-xs"></i> {{ notification.timestamp|timesince }} ago
+                    </p>
+                </div>
+                {% if notification.unread %}
+                <button class="btn-secondary btn-sm" onclick="markAsRead({{ notification.id }})">
+                    <i class="fas fa-check"></i>
                 </button>
+                {% endif %}
             </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12 text-vintage-beaver">
+            <i class="fas fa-bell-slash text-4xl mb-4 text-sepia-pale"></i>
+            <p>No notifications yet.</p>
+        </div>
+        {% endfor %}
+    </div>
 
-            <!-- Filter tabs -->
-            <ul class="nav nav-tabs mb-3">
-                <li class="nav-item">
-                    <a class="nav-link {% if filter_type == 'all' %}active{% endif %}" href="?filter=all">All</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if filter_type == 'unread' %}active{% endif %}" href="?filter=unread">Unread</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if filter_type == 'read' %}active{% endif %}" href="?filter=read">Read</a>
-                </li>
-            </ul>
-
-            <!-- Notifications list -->
-            <div class="notifications-list">
-                {% for notification in notifications %}
-                <div class="notification-item {% if notification.unread %}unread{% endif %}" id="notification-{{ notification.id }}">
-                    <div class="notification-content">
-                        <div class="notification-icon">
-                            {% if 'approved' in notification.verb %}
-                                <i class="fas fa-check-circle text-success"></i>
-                            {% elif 'rejected' in notification.verb %}
-                                <i class="fas fa-times-circle text-danger"></i>
-                            {% elif 'comment' in notification.verb %}
-                                <i class="fas fa-comment text-primary"></i>
-                            {% elif 'message' in notification.verb %}
-                                <i class="fas fa-envelope text-info"></i>
-                            {% elif 'edit' in notification.verb or 'suggestion' in notification.verb %}
-                                <i class="fas fa-edit text-warning"></i>
-                            {% else %}
-                                <i class="fas fa-bell text-secondary"></i>
-                            {% endif %}
-                        </div>
-                        <div class="notification-text">
-                            <div class="notification-message">
-                                {{ notification.description|default:notification.verb }}
-                            </div>
-                            <div class="notification-time">
-                                <i class="fas fa-clock"></i> {{ notification.timestamp|timesince }} ago
-                            </div>
-                        </div>
-                        {% if notification.unread %}
-                        <button class="notification-mark-read" onclick="markAsRead({{ notification.id }})">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        {% endif %}
-                    </div>
-                </div>
-                {% empty %}
-                <div class="text-center text-muted py-5">
-                    <i class="fas fa-bell-slash fa-3x mb-3"></i>
-                    <p>No notifications yet.</p>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Pagination -->
-            {% if notifications.has_other_pages %}
-            <nav aria-label="Notifications pagination" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if notifications.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?filter={{ filter_type }}&page={{ notifications.previous_page_number }}">Previous</a>
-                    </li>
-                    {% endif %}
-                    
-                    <li class="page-item disabled">
-                        <span class="page-link">Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}</span>
-                    </li>
-                    
-                    {% if notifications.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?filter={{ filter_type }}&page={{ notifications.next_page_number }}">Next</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+    {% if notifications.has_other_pages %}
+    <nav class="flex justify-center mt-8">
+        <div class="pagination">
+            {% if notifications.has_previous %}
+            <a class="page-link" href="?filter={{ filter_type }}&page={{ notifications.previous_page_number }}">
+                <i class="fas fa-chevron-left text-xs"></i>
+            </a>
+            {% endif %}
+            
+            <span class="page-link">Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}</span>
+            
+            {% if notifications.has_next %}
+            <a class="page-link" href="?filter={{ filter_type }}&page={{ notifications.next_page_number }}">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </a>
             {% endif %}
         </div>
-    </div>
+    </nav>
+    {% endif %}
 </div>
+{% endblock %}
 
-<style>
-.notification-item {
-    background: var(--background-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 10px;
-    transition: all 0.2s;
-}
-
-.notification-item.unread {
-    background: var(--primary-color-light, #e8f4f8);
-    border-left: 4px solid var(--primary-color);
-}
-
-.notification-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.notification-content {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-}
-
-.notification-icon {
-    font-size: 1.5rem;
-    margin-top: 2px;
-}
-
-.notification-text {
-    flex: 1;
-}
-
-.notification-message {
-    font-size: 0.95rem;
-    margin-bottom: 5px;
-}
-
-.notification-time {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.notification-mark-read {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.notification-mark-read:hover {
-    background: var(--primary-color);
-    color: white;
-}
-</style>
-
+{% block extra_js %}
 <script>
 function markAsRead(notificationId) {
-    fetch(`/profile/notifications/${notificationId}/mark-read/`, {
+    fetch('/profile/notifications/' + notificationId + '/mark-read/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',
             'Content-Type': 'application/json'
         }
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
         if (data.status === 'success') {
-            const item = document.getElementById(`notification-${notificationId}`);
-            item.classList.remove('unread');
-            const button = item.querySelector('.notification-mark-read');
+            var item = document.getElementById('notification-' + notificationId);
+            item.classList.remove('border-l-4', 'border-l-vintage-gold', 'bg-heritage-cream/50');
+            var button = item.querySelector('button');
             if (button) button.remove();
         }
     });
@@ -183,8 +108,8 @@ function markAllRead() {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
         if (data.status === 'success') {
             location.reload();
         }

@@ -4,74 +4,93 @@
 {% block title %}Login - Igbo Archives{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h1>Welcome Back</h1>
-            <p>Sign in to continue to Igbo Archives</p>
+<div class="min-h-[60vh] flex items-center justify-center py-12">
+    <div class="w-full max-w-md">
+        <div class="card">
+            <div class="card-body p-8">
+                <div class="text-center mb-8">
+                    <h1 class="font-serif text-display-md text-dark-brown mb-2">Welcome Back</h1>
+                    <p class="text-vintage-beaver">Sign in to continue to Igbo Archives</p>
+                </div>
+
+                <form method="post" class="space-y-5">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>{{ form.non_field_errors }}</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="{{ form.login.id_for_label }}" class="form-label">Email</label>
+                        <input type="email" 
+                               class="form-input {% if form.login.errors %}border-red-500{% endif %}" 
+                               id="{{ form.login.id_for_label }}" 
+                               name="login" 
+                               value="{{ form.login.value|default:'' }}"
+                               placeholder="Enter your email"
+                               required>
+                        {% if form.login.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.login.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                        <input type="password" 
+                               class="form-input {% if form.password.errors %}border-red-500{% endif %}" 
+                               id="{{ form.password.id_for_label }}" 
+                               name="password" 
+                               placeholder="Enter your password"
+                               required>
+                        {% if form.password.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.password.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="remember" class="form-checkbox">
+                            <span class="text-sm text-dark-brown">Remember me</span>
+                        </label>
+                    </div>
+
+                    {% if form.captcha %}
+                    <div class="form-group">
+                        {{ form.captcha }}
+                        {% if form.captcha.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.captcha.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn-primary btn-lg w-full">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+
+                    <div class="relative py-4">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-sepia-pale"></div>
+                        </div>
+                        <div class="relative flex justify-center">
+                            <span class="bg-white px-4 text-sm text-vintage-beaver">OR</span>
+                        </div>
+                    </div>
+
+                    <a href="{% provider_login_url 'google' %}" class="btn-secondary btn-lg w-full">
+                        <i class="fab fa-google"></i> Continue with Google
+                    </a>
+
+                    <div class="flex items-center justify-center gap-3 text-sm text-vintage-beaver pt-4">
+                        <a href="{% url 'account_reset_password' %}" class="hover:text-vintage-gold transition-colors">Forgot password?</a>
+                        <span class="text-sepia-pale">•</span>
+                        <a href="{% url 'account_signup' %}" class="hover:text-vintage-gold transition-colors">Create an account</a>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <form method="post" class="auth-form">
-            {% csrf_token %}
-            
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                {{ form.non_field_errors }}
-            </div>
-            {% endif %}
-
-            <div class="form-group">
-                <label for="{{ form.login.id_for_label }}">Email</label>
-                {{ form.login }}
-                {% if form.login.errors %}
-                <div class="form-error">{{ form.login.errors }}</div>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.password.id_for_label }}">Password</label>
-                {{ form.password }}
-                {% if form.password.errors %}
-                <div class="form-error">{{ form.password.errors }}</div>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label class="checkbox-label">
-                    {{ form.remember }}
-                    Remember me
-                </label>
-            </div>
-
-            {% if form.captcha %}
-            <div class="form-group captcha-group">
-                {{ form.captcha }}
-                {% if form.captcha.errors %}
-                <div class="form-error">{{ form.captcha.errors }}</div>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <button type="submit" class="btn btn-primary auth-submit">
-                <i class="fas fa-sign-in-alt"></i> Sign In
-            </button>
-
-            <div class="auth-divider">
-                <span>OR</span>
-            </div>
-
-            <a href="{% provider_login_url 'google' %}" class="btn btn-google">
-                <i class="fab fa-google"></i> Continue with Google
-            </a>
-
-            <div class="auth-links">
-                                <a href="{% url 'account_reset_password' %}">Forgot password?</a>
-                <span>·</span>
-                <a href="{% url 'account_signup' %}">Create an account</a>
-            </div>
-        </form>
     </div>
 </div>
-
 {% endblock %}
-

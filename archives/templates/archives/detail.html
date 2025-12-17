@@ -1,132 +1,150 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load threadedcomments_tags %}
 
 {% block title %}{{ archive.title }} - Archives{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-8">
-            <article class="archive-detail">
-                <h1 class="mb-3">{{ archive.title }}</h1>
-                
-                <div class="archive-meta mb-3">
-                    <span class="badge bg-secondary">{{ archive.get_archive_type_display }}</span>
-                    {% if archive.category %}
-                    <span class="badge bg-primary">{{ archive.category.name }}</span>
-                    {% endif %}
-                    <small class="text-muted ms-2">
-                        <i class="bi bi-calendar"></i> Uploaded {{ archive.created_at|date:"F d, Y" }}
-                    </small>
-                </div>
-
-                {% if archive.archive_type == 'image' and archive.image %}
-                <div class="archive-image mb-4">
-                    <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" class="img-fluid rounded" loading="lazy" decoding="async">
-                    {% if archive.caption %}
-                    <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
-                    {% endif %}
-                </div>
-                {% elif archive.archive_type == 'video' and archive.video %}
-                <div class="archive-video mb-4">
-                    <video controls class="w-100 rounded" preload="metadata">
-                        <source src="{{ archive.video.url }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    {% if archive.caption %}
-                    <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
-                    {% endif %}
-                </div>
-                {% elif archive.archive_type == 'audio' and archive.audio %}
-                <div class="archive-audio mb-4">
-                    <audio controls class="w-100" preload="metadata">
-                        <source src="{{ archive.audio.url }}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
-                    {% if archive.caption %}
-                    <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
-                    {% endif %}
-                </div>
-                {% elif archive.archive_type == 'document' and archive.document %}
-                <div class="archive-document mb-4">
-                    <a href="{{ archive.document.url }}" class="btn btn-primary" download>
-                        <i class="fas fa-download"></i> Download Document
-                    </a>
-                    {% if archive.caption %}
-                    <p class="text-muted mt-2"><small>{{ archive.caption }}</small></p>
-                    {% endif %}
-                </div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <article class="lg:col-span-8">
+        <header class="mb-6">
+            <h1 class="font-serif text-display-lg text-dark-brown mb-4">{{ archive.title }}</h1>
+            
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+                <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
+                {% if archive.category %}
+                <span class="badge badge-primary">{{ archive.category.name }}</span>
                 {% endif %}
+                <span class="text-sm text-vintage-beaver ml-2">
+                    <i class="far fa-calendar"></i> Uploaded {{ archive.created_at|date:"F d, Y" }}
+                </span>
+            </div>
+        </header>
 
-                <div class="archive-content mb-4">
-                    {{ archive.description|safe }}
-                </div>
+        {% if archive.archive_type == 'image' and archive.image %}
+        <figure class="mb-8">
+            <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" class="w-full rounded-xl" loading="lazy" decoding="async">
+            {% if archive.caption %}
+            <figcaption class="text-sm text-vintage-beaver mt-3">{{ archive.caption }}</figcaption>
+            {% endif %}
+        </figure>
+        {% elif archive.archive_type == 'video' and archive.video %}
+        <div class="mb-8">
+            <video controls class="w-full rounded-xl" preload="metadata">
+                <source src="{{ archive.video.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            {% if archive.caption %}
+            <p class="text-sm text-vintage-beaver mt-3">{{ archive.caption }}</p>
+            {% endif %}
+        </div>
+        {% elif archive.archive_type == 'audio' and archive.audio %}
+        <div class="mb-8">
+            <audio controls class="w-full" preload="metadata">
+                <source src="{{ archive.audio.url }}" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            {% if archive.caption %}
+            <p class="text-sm text-vintage-beaver mt-3">{{ archive.caption }}</p>
+            {% endif %}
+        </div>
+        {% elif archive.archive_type == 'document' and archive.document %}
+        <div class="mb-8">
+            <a href="{{ archive.document.url }}" class="btn-primary" download>
+                <i class="fas fa-download"></i> Download Document
+            </a>
+            {% if archive.caption %}
+            <p class="text-sm text-vintage-beaver mt-3">{{ archive.caption }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
 
-                <div class="archive-tags mb-4">
-                    <strong>Tags:</strong>
-                    {% for tag in archive.tags.all %}
-                    <a href="{% url 'archives:list' %}?tag={{ tag.name }}" class="badge bg-light text-dark">{{ tag.name }}</a>
-                    {% endfor %}
-                </div>
-
-                <div class="archive-actions mb-4">
-                    {% if user == archive.uploaded_by %}
-                    <a href="{% url 'archives:edit' archive.pk %}" class="btn btn-primary">
-                        <i class="bi bi-pencil"></i> Edit Archive
-                    </a>
-                    {% endif %}
-                    <a href="{% url 'insights:create' %}?archive_id={{ archive.id }}" class="btn btn-outline-primary">
-                        <i class="bi bi-lightbulb"></i> Write Post with This
-                    </a>
-                </div>
-
-                <hr>
-
-                {% include 'partials/prev_next_navigation.html' with previous=previous_archive next=next_archive %}
-
-                {% include 'partials/recommended_carousel.html' with recommended=recommended %}
-
-                <hr>
-
-                <div class="comments-section mt-5">
-                    <h3>Discussion</h3>
-                    {% render_comment_list for archive %}
-                    {% if user.is_authenticated %}
-                        {% render_comment_form for archive %}
-                    {% else %}
-                        {% render_comment_form for archive %}
-                    {% endif %}
-                </div>
-            </article>
+        <div class="prose prose-lg max-w-none mb-8">
+            {{ archive.description|safe }}
         </div>
 
-        <div class="col-lg-4">
-            <div class="sidebar">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">About This Archive</h5>
-                        {% if archive.date_created %}
-                        <p><strong>Date Created:</strong> {{ archive.date_created|date:"F d, Y" }}</p>
+        {% if archive.tags.all %}
+        <div class="flex flex-wrap items-center gap-2 mb-8">
+            <span class="text-sm font-medium text-dark-brown">Tags:</span>
+            {% for tag in archive.tags.all %}
+            <a href="{% url 'archives:list' %}?tag={{ tag.name }}" class="badge badge-secondary">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="flex flex-wrap gap-3 mb-8">
+            {% if user == archive.uploaded_by %}
+            <a href="{% url 'archives:edit' archive.pk %}" class="btn-primary">
+                <i class="fas fa-edit"></i> Edit Archive
+            </a>
+            {% endif %}
+            <a href="{% url 'insights:create' %}?archive_id={{ archive.id }}" class="btn-secondary">
+                <i class="fas fa-lightbulb"></i> Write Post with This
+            </a>
+        </div>
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        {% include 'partials/prev_next_navigation.html' with previous=previous_archive next=next_archive %}
+
+        {% include 'partials/recommended_carousel.html' with recommended=recommended %}
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        <section class="mt-8">
+            <h3 class="font-serif text-xl font-semibold text-dark-brown mb-6">Discussion</h3>
+            {% render_comment_list for archive %}
+            {% render_comment_form for archive %}
+        </section>
+    </article>
+
+    <aside class="lg:col-span-4">
+        <div class="sticky top-32 space-y-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold text-dark-brown mb-3">About the Uploader</h4>
+                    <div class="flex items-center gap-3 mb-3">
+                        {% if archive.uploaded_by.profile_picture %}
+                        <img src="{{ archive.uploaded_by.profile_picture.url }}" alt="{{ archive.uploaded_by.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
+                        {% else %}
+                        <div class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
+                            {{ archive.uploaded_by.get_display_name|slice:":1"|upper }}
+                        </div>
                         {% endif %}
-                        {% if archive.circa_date %}
-                        <p><strong>Approximate Date:</strong> {{ archive.circa_date }}</p>
-                        {% endif %}
-                        {% if archive.original_author %}
-                        <p><strong>Original Author:</strong> {{ archive.original_author }}</p>
-                        {% endif %}
-                        {% if archive.location %}
-                        <p><strong>Location:</strong> {{ archive.location }}</p>
-                        {% endif %}
-                        <p>
-                            <strong>Uploaded by:</strong> 
-                            <a href="{% url 'users:profile' archive.uploaded_by.username %}" class="text-decoration-none">
+                        <div>
+                            <a href="{% url 'users:profile' archive.uploaded_by.username %}" class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
                                 {{ archive.uploaded_by.get_display_name }}
                             </a>
-                        </p>
+                        </div>
                     </div>
+                    {% if archive.uploaded_by.bio %}
+                    <p class="text-sm text-vintage-beaver">{{ archive.uploaded_by.bio|truncatewords:30 }}</p>
+                    {% endif %}
                 </div>
             </div>
+
+            {% if archive.source or archive.date_taken %}
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold text-dark-brown mb-3">Archive Details</h4>
+                    <dl class="space-y-2 text-sm">
+                        {% if archive.source %}
+                        <div>
+                            <dt class="font-medium text-dark-brown">Source:</dt>
+                            <dd class="text-dark-umber">{{ archive.source }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if archive.date_taken %}
+                        <div>
+                            <dt class="font-medium text-dark-brown">Date:</dt>
+                            <dd class="text-dark-umber">{{ archive.date_taken }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+            {% endif %}
         </div>
-    </div>
+    </aside>
 </div>
 {% endblock %}

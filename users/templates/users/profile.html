@@ -3,286 +3,202 @@
 {% block title %}{{ profile_user.get_display_name }} - Profile{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <div class="row">
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    {% if profile_user.profile_picture %}
-                    <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.get_display_name }}" 
-                         class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-                    {% else %}
-                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mb-3 mx-auto" 
-                         style="width: 150px; height: 150px; font-size: 3rem;">
-                        {{ profile_user.get_display_name|first|upper }}
-                    </div>
-                    {% endif %}
-                    
-                    <h3>{{ profile_user.get_display_name }}</h3>
-                    <p class="text-muted">@{{ profile_user.username }}</p>
-                    
-                    {% if profile_user.bio %}
-                    <p class="mt-3">{{ profile_user.bio }}</p>
-                    {% endif %}
-                    
-                    <div class="d-grid gap-2 mt-3">
-                        {% if user.is_authenticated and user == profile_user %}
-                        <a href="{% url 'users:profile_edit' username=profile_user.username %}" class="btn btn-primary">
-                            <i class="fas fa-edit"></i> Edit Profile
-                        </a>
-                        {% elif user.is_authenticated %}
-                        <a href="{% url 'users:compose' profile_user.username %}" class="btn btn-primary">
-                            <i class="fas fa-envelope"></i> Send Message
-                        </a>
-                        {% endif %}
-                        
-                        <button onclick="shareProfile()" class="btn btn-secondary">
-                            <i class="fas fa-share-alt"></i> Share Profile
-                        </button>
-                    </div>
-                    
-                    {% if profile_user.social_links %}
-                    <hr class="my-4">
-                    <h5 class="mb-3">Connect</h5>
-                    <div class="row g-2">
-                        {% if profile_user.social_links.twitter %}
-                        <div class="col-6">
-                            <a href="{{ profile_user.social_links.twitter }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-primary w-100">
-                                <i class="fab fa-twitter"></i> Twitter
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% if profile_user.social_links.facebook %}
-                        <div class="col-6">
-                            <a href="{{ profile_user.social_links.facebook }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-primary w-100">
-                                <i class="fab fa-facebook"></i> Facebook
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% if profile_user.social_links.linkedin %}
-                        <div class="col-6">
-                            <a href="{{ profile_user.social_links.linkedin }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-primary w-100">
-                                <i class="fab fa-linkedin"></i> LinkedIn
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% if profile_user.social_links.instagram %}
-                        <div class="col-6">
-                            <a href="{{ profile_user.social_links.instagram }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-danger w-100">
-                                <i class="fab fa-instagram"></i> Instagram
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% if profile_user.social_links.youtube %}
-                        <div class="col-6">
-                            <a href="{{ profile_user.social_links.youtube }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-danger w-100">
-                                <i class="fab fa-youtube"></i> YouTube
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% if profile_user.social_links.academia %}
-                        <div class="col-6">
-                            <a href="{{ profile_user.social_links.academia }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-success w-100">
-                                <i class="fas fa-graduation-cap"></i> Academia
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% if profile_user.social_links.researchgate %}
-                        <div class="col-6">
-                            <a href="{{ profile_user.social_links.researchgate }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-success w-100">
-                                <i class="fas fa-flask"></i> ResearchGate
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% if profile_user.social_links.orcid %}
-                        <div class="col-6">
-                            <a href="{{ profile_user.social_links.orcid }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-success w-100">
-                                <i class="fas fa-id-card"></i> ORCID
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        {% if profile_user.social_links.website %}
-                        <div class="col-12">
-                            <a href="{{ profile_user.social_links.website }}" target="_blank" rel="noopener" 
-                               class="btn btn-sm btn-outline-secondary w-100">
-                                <i class="fas fa-globe"></i> Website
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <aside class="lg:col-span-4">
+        <div class="card sticky top-32">
+            <div class="card-body text-center">
+                {% if profile_user.profile_picture %}
+                <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.get_display_name }}" 
+                     class="w-36 h-36 rounded-full object-cover mx-auto mb-4 border-4 border-sepia-pale">
+                {% else %}
+                <div class="w-36 h-36 rounded-full bg-heritage-cream flex items-center justify-center mb-4 mx-auto text-4xl font-semibold text-dark-brown border-4 border-sepia-pale">
+                    {{ profile_user.get_display_name|first|upper }}
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-8">
-            <ul class="nav nav-tabs mb-4" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#insights-tab" type="button">
-                        <i class="fas fa-lightbulb"></i> Insights <span class="badge bg-primary">{{ insights.count }}</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#archives-tab" type="button">
-                        <i class="fas fa-archive"></i> Archives <span class="badge bg-primary">{{ archives.count }}</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews-tab" type="button">
-                        <i class="fas fa-book"></i> Book Reviews <span class="badge bg-primary">{{ book_reviews.count }}</span>
-                    </button>
-                </li>
-            </ul>
-            
-            <div class="tab-content">
-                <div class="tab-pane fade show active" id="insights-tab" role="tabpanel">
-                    {% if insights %}
-                    <div class="row">
-                        {% for insight in insights %}
-                        <div class="col-md-6 mb-4">
-                            <div class="card h-100 shadow-sm">
-                                {% if insight.featured_image %}
-                                <img src="{{ insight.featured_image.url }}" class="card-img-top" alt="{{ insight.title }}" 
-                                     style="height: 200px; object-fit: cover;">
-                                {% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a href="{% url 'insights:detail' insight.slug %}" class="text-decoration-none">
-                                            {{ insight.title }}
-                                        </a>
-                                    </h5>
-                                    <p class="card-text text-muted small">
-                                        <i class="far fa-calendar"></i> {{ insight.published_date|date:"M d, Y" }}
-                                    </p>
-                                    <p class="card-text">{{ insight.content|striptags|truncatewords:20 }}</p>
-                                    <a href="{% url 'insights:detail' insight.slug %}" class="btn btn-sm btn-outline-primary">
-                                        Read More
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-lightbulb fa-3x mb-3"></i>
-                        <p>No insights published yet.</p>
-                    </div>
+                {% endif %}
+                
+                <h2 class="font-serif text-xl font-semibold text-dark-brown mb-1">{{ profile_user.get_display_name }}</h2>
+                <p class="text-vintage-beaver mb-4">@{{ profile_user.username }}</p>
+                
+                {% if profile_user.bio %}
+                <p class="text-sm text-dark-umber mb-4">{{ profile_user.bio }}</p>
+                {% endif %}
+                
+                <div class="space-y-2">
+                    {% if user.is_authenticated and user == profile_user %}
+                    <a href="{% url 'users:profile_edit' username=profile_user.username %}" class="btn-primary w-full">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                    {% elif user.is_authenticated %}
+                    <a href="{% url 'users:compose' profile_user.username %}" class="btn-primary w-full">
+                        <i class="fas fa-envelope"></i> Send Message
+                    </a>
                     {% endif %}
+                    
+                    <button onclick="shareProfile()" class="btn-secondary w-full">
+                        <i class="fas fa-share-alt"></i> Share Profile
+                    </button>
                 </div>
                 
-                <div class="tab-pane fade" id="archives-tab" role="tabpanel">
-                    {% if archives %}
-                    <div class="row">
-                        {% for archive in archives %}
-                        <div class="col-md-6 mb-4">
-                            <div class="card h-100 shadow-sm">
-                                {% if archive.image %}
-                                <img src="{{ archive.image.url }}" class="card-img-top" alt="{{ archive.title }}" 
-                                     style="height: 200px; object-fit: cover;">
-                                {% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a href="{% url 'archives:detail' archive.id %}" class="text-decoration-none">
-                                            {{ archive.title }}
-                                        </a>
-                                    </h5>
-                                    <p class="card-text text-muted small">
-                                        <i class="far fa-calendar"></i> {{ archive.uploaded_at|date:"M d, Y" }}
-                                    </p>
-                                    <p class="card-text">{{ archive.description|truncatewords:20 }}</p>
-                                    <a href="{% url 'archives:detail' archive.id %}" class="btn btn-sm btn-outline-primary">
-                                        View Archive
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-archive fa-3x mb-3"></i>
-                        <p>No archives uploaded yet.</p>
-                    </div>
+                {% if profile_user.social_links %}
+                <hr class="my-6 border-sepia-pale/50">
+                <h5 class="font-semibold text-dark-brown mb-4">Connect</h5>
+                <div class="grid grid-cols-2 gap-2">
+                    {% if profile_user.social_links.twitter %}
+                    <a href="{{ profile_user.social_links.twitter }}" target="_blank" rel="noopener" class="btn-secondary btn-sm">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </a>
+                    {% endif %}
+                    {% if profile_user.social_links.facebook %}
+                    <a href="{{ profile_user.social_links.facebook }}" target="_blank" rel="noopener" class="btn-secondary btn-sm">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </a>
+                    {% endif %}
+                    {% if profile_user.social_links.linkedin %}
+                    <a href="{{ profile_user.social_links.linkedin }}" target="_blank" rel="noopener" class="btn-secondary btn-sm">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                    {% endif %}
+                    {% if profile_user.social_links.instagram %}
+                    <a href="{{ profile_user.social_links.instagram }}" target="_blank" rel="noopener" class="btn-secondary btn-sm">
+                        <i class="fab fa-instagram"></i> Instagram
+                    </a>
+                    {% endif %}
+                    {% if profile_user.social_links.website %}
+                    <a href="{{ profile_user.social_links.website }}" target="_blank" rel="noopener" class="btn-secondary btn-sm col-span-2">
+                        <i class="fas fa-globe"></i> Website
+                    </a>
                     {% endif %}
                 </div>
-                
-                <div class="tab-pane fade" id="reviews-tab" role="tabpanel">
-                    {% if book_reviews %}
-                    <div class="row">
-                        {% for review in book_reviews %}
-                        <div class="col-md-6 mb-4">
-                            <div class="card h-100 shadow-sm">
-                                {% if review.cover_image %}
-                                <img src="{{ review.cover_image.url }}" class="card-img-top" alt="{{ review.title }}" 
-                                     style="height: 200px; object-fit: cover;">
-                                {% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title">
-                                        <a href="{% url 'books:detail' review.id %}" class="text-decoration-none">
-                                            {{ review.title }}
-                                        </a>
-                                    </h5>
-                                    <p class="card-text text-muted small">
-                                        <i class="fas fa-user"></i> {{ review.author_name }}
-                                        {% if review.rating %}
-                                        <br><i class="fas fa-star text-warning"></i> {{ review.rating }}/5
-                                        {% endif %}
-                                    </p>
-                                    <p class="card-text">{{ review.review|striptags|truncatewords:20 }}</p>
-                                    <a href="{% url 'books:detail' review.id %}" class="btn btn-sm btn-outline-primary">
-                                        Read Review
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-book fa-3x mb-3"></i>
-                        <p>No book reviews yet.</p>
-                    </div>
-                    {% endif %}
-                </div>
+                {% endif %}
             </div>
         </div>
-    </div>
-</div>
+    </aside>
 
+    <main class="lg:col-span-8">
+        <div class="mb-6">
+            <div class="flex flex-wrap gap-2 border-b border-sepia-pale/50" role="tablist">
+                <button type="button" class="tab-button active" data-tab="insights">
+                    <i class="fas fa-lightbulb"></i> Insights
+                    <span class="badge badge-primary ml-2">{{ user_insights.count }}</span>
+                </button>
+                <button type="button" class="tab-button" data-tab="reviews">
+                    <i class="fas fa-book"></i> Book Reviews
+                    <span class="badge badge-primary ml-2">{{ user_book_reviews.count }}</span>
+                </button>
+                <button type="button" class="tab-button" data-tab="archives">
+                    <i class="fas fa-archive"></i> Archives
+                    <span class="badge badge-primary ml-2">{{ user_archives.count }}</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="tab-content">
+            <div id="insights" class="tab-panel active">
+                {% if user_insights %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for insight in user_insights %}
+                    <a href="{% url 'insights:detail' insight.slug %}" class="card card-hover block no-underline">
+                        {% if insight.featured_image %}
+                        <img src="{{ insight.featured_image.url }}" alt="{{ insight.title }}" class="w-full h-40 object-cover">
+                        {% endif %}
+                        <div class="card-body">
+                            <h4 class="font-serif font-semibold text-dark-brown mb-2 line-clamp-2">{{ insight.title }}</h4>
+                            <p class="text-sm text-vintage-beaver">{{ insight.created_at|date:"M d, Y" }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12 text-vintage-beaver">
+                    <i class="fas fa-lightbulb text-4xl mb-4 text-sepia-pale"></i>
+                    <p>No insights published yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="reviews" class="tab-panel hidden">
+                {% if user_book_reviews %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for review in user_book_reviews %}
+                    <a href="{% url 'books:detail' review.slug %}" class="card card-hover block no-underline">
+                        {% if review.cover_image %}
+                        <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" class="w-full h-40 object-cover">
+                        {% endif %}
+                        <div class="card-body">
+                            <h4 class="font-serif font-semibold text-dark-brown mb-1 line-clamp-2">{{ review.review_title }}</h4>
+                            <p class="text-sm text-vintage-beaver mb-2">{{ review.book_title }}</p>
+                            <p class="text-vintage-gold">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12 text-vintage-beaver">
+                    <i class="fas fa-book text-4xl mb-4 text-sepia-pale"></i>
+                    <p>No book reviews yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="archives" class="tab-panel hidden">
+                {% if user_archives %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for archive in user_archives %}
+                    <a href="{% url 'archives:detail' archive.pk %}" class="card card-hover block no-underline">
+                        {% if archive.image %}
+                        <img src="{{ archive.image.url }}" alt="{{ archive.title }}" class="w-full h-32 object-cover">
+                        {% endif %}
+                        <div class="card-body">
+                            <h4 class="font-serif font-semibold text-dark-brown mb-2 line-clamp-1">{{ archive.title }}</h4>
+                            <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12 text-vintage-beaver">
+                    <i class="fas fa-archive text-4xl mb-4 text-sepia-pale"></i>
+                    <p>No archives contributed yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-function shareProfile() {
-    const profileUrl = window.location.href;
-    const profileName = "{{ profile_user.get_display_name }}";
+(function() {
+    var tabButtons = document.querySelectorAll('.tab-button');
+    var tabPanels = document.querySelectorAll('.tab-panel');
     
+    tabButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var tabId = this.dataset.tab;
+            
+            tabButtons.forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            
+            tabPanels.forEach(function(p) { p.classList.add('hidden'); });
+            document.getElementById(tabId).classList.remove('hidden');
+        });
+    });
+})();
+
+function shareProfile() {
     if (navigator.share) {
         navigator.share({
-            title: `${profileName} - Igbo Archives`,
-            text: `Check out ${profileName}'s profile on Igbo Archives`,
-            url: profileUrl
-        }).catch((error) => console.log('Error sharing', error));
+            title: '{{ profile_user.get_display_name }} - Igbo Archives',
+            url: window.location.href
+        });
     } else {
-        navigator.clipboard.writeText(profileUrl).then(() => {
+        navigator.clipboard.writeText(window.location.href).then(function() {
             alert('Profile link copied to clipboard!');
-        }).catch((error) => {
-            console.error('Failed to copy:', error);
-            prompt('Copy this link:', profileUrl);
         });
     }
 }

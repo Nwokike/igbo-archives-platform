@@ -1,120 +1,144 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load threadedcomments_tags %}
 
 {% block title %}{{ insight.title }} - Insights{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/editor.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-8">
-            <article class="insight-detail">
-                <h1 class="mb-3">{{ insight.title }}</h1>
-                
-                <div class="insight-meta mb-3">
-                    <small class="text-muted">
-                        By <a href="{% url 'users:profile' insight.author.username %}" class="text-decoration-none">{{ insight.author.get_display_name }}</a>
-                        on {{ insight.created_at|date:"F d, Y" }}
-                        {% if insight.updated_at != insight.created_at %}
-                        (Updated {{ insight.updated_at|date:"F d, Y" }})
-                        {% endif %}
-                    </small>
-                </div>
-
-                {% if insight.featured_image %}
-                <div class="insight-image mb-4">
-                    <img src="{{ insight.featured_image.url }}" alt="{{ insight.alt_text }}" class="img-fluid rounded">
-                </div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <article class="lg:col-span-8">
+        <header class="mb-6">
+            <h1 class="font-serif text-display-lg text-dark-brown mb-4">{{ insight.title }}</h1>
+            
+            <div class="flex flex-wrap items-center gap-2 text-sm text-vintage-beaver mb-4">
+                <span>By</span>
+                <a href="{% url 'users:profile' insight.author.username %}" class="text-vintage-gold hover:underline font-medium">{{ insight.author.get_display_name }}</a>
+                <span class="text-sepia-pale">•</span>
+                <span>{{ insight.created_at|date:"F d, Y" }}</span>
+                {% if insight.updated_at != insight.created_at %}
+                <span class="text-sepia-pale">•</span>
+                <span>Updated {{ insight.updated_at|date:"F d, Y" }}</span>
                 {% endif %}
+            </div>
+        </header>
 
-                <div class="insight-content mb-4">
-                    {{ insight.content|safe }}
-                </div>
+        {% if insight.featured_image %}
+        <figure class="mb-8 rounded-xl overflow-hidden">
+            <img src="{{ insight.featured_image.url }}" alt="{{ insight.alt_text }}" class="w-full h-auto">
+        </figure>
+        {% endif %}
 
-                <div class="insight-tags mb-4">
-                    <strong>Tags:</strong>
-                    {% for tag in insight.tags.all %}
-                    <a href="{% url 'insights:list' %}?tag={{ tag.name }}" class="badge bg-light text-dark">{{ tag.name }}</a>
-                    {% endfor %}
-                </div>
-
-                <div class="insight-actions mb-4">
-                    {% if user == insight.author %}
-                    <a href="{% url 'insights:edit' insight.slug %}" class="btn btn-primary">
-                        <i class="bi bi-pencil"></i> Edit Post
-                    </a>
-                    {% else %}
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#suggestEditModal">
-                        <i class="bi bi-lightbulb"></i> Suggest Edit
-                    </button>
-                    {% endif %}
-                </div>
-
-                <hr>
-
-                <!-- Previous/Next Navigation -->
-                {% include 'partials/prev_next_navigation.html' with previous=previous_insight next=next_insight %}
-
-                <!-- Recommended Insights -->
-                {% include 'partials/recommended_carousel.html' with recommended=recommended %}
-
-                <hr>
-
-                <!-- Comments Section -->
-                <div class="comments-section mt-5">
-                    <h3>Discussion</h3>
-                    {% render_comment_list for insight %}
-                    {% if user.is_authenticated %}
-                        {% render_comment_form for insight %}
-                    {% else %}
-                        {% render_comment_form for insight %}
-                    {% endif %}
-                </div>
-            </article>
+        <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
+            {{ insight.content|safe }}
         </div>
 
-        <div class="col-lg-4">
-            <div class="sidebar">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">About the Author</h5>
-                        <p>
-                            <a href="{% url 'users:profile' insight.author.username %}" class="text-decoration-none">
+        {% if insight.tags.all %}
+        <div class="flex flex-wrap items-center gap-2 mb-8">
+            <span class="text-sm font-medium text-dark-brown">Tags:</span>
+            {% for tag in insight.tags.all %}
+            <a href="{% url 'insights:list' %}?tag={{ tag.name }}" class="badge badge-secondary">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="flex flex-wrap gap-3 mb-8">
+            {% if user == insight.author %}
+            <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary">
+                <i class="fas fa-edit"></i> Edit Post
+            </a>
+            {% else %}
+            <button type="button" class="btn-secondary" onclick="openSuggestModal()">
+                <i class="fas fa-lightbulb"></i> Suggest Edit
+            </button>
+            {% endif %}
+        </div>
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        {% include 'partials/prev_next_navigation.html' with previous=previous_insight next=next_insight %}
+
+        {% include 'partials/recommended_carousel.html' with recommended=recommended %}
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        <section class="mt-8">
+            <h3 class="font-serif text-xl font-semibold text-dark-brown mb-6">Discussion</h3>
+            {% render_comment_list for insight %}
+            {% render_comment_form for insight %}
+        </section>
+    </article>
+
+    <aside class="lg:col-span-4">
+        <div class="sticky top-32 space-y-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold text-dark-brown mb-3">About the Author</h4>
+                    <div class="flex items-center gap-3 mb-3">
+                        {% if insight.author.profile_picture %}
+                        <img src="{{ insight.author.profile_picture.url }}" alt="{{ insight.author.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
+                        {% else %}
+                        <div class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
+                            {{ insight.author.get_display_name|slice:":1"|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'users:profile' insight.author.username %}" class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
                                 {{ insight.author.get_display_name }}
                             </a>
-                        </p>
-                        {% if insight.author.bio %}
-                        <p class="text-muted">{{ insight.author.bio|truncatewords:30 }}</p>
-                        {% endif %}
+                        </div>
                     </div>
+                    {% if insight.author.bio %}
+                    <p class="text-sm text-vintage-beaver">{{ insight.author.bio|truncatewords:30 }}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </div>
+    </aside>
 </div>
 
-<!-- Suggest Edit Modal -->
-<div class="modal fade" id="suggestEditModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Suggest an Edit</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="post" action="{% url 'insights:suggest_edit' insight.slug %}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="suggestion" class="form-label">Your Suggestion</label>
-                        <textarea class="form-control" id="suggestion" name="suggestion" rows="5" required></textarea>
-                        <div class="form-text">Describe what should be changed or corrected.</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Submit Suggestion</button>
-                </div>
-            </form>
+<div id="suggestEditModal" class="modal-overlay">
+    <div class="modal-content max-w-lg">
+        <div class="modal-header">
+            <h3 class="modal-title">Suggest an Edit</h3>
+            <button type="button" class="modal-close" onclick="closeSuggestModal()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+        <form method="post" action="{% url 'insights:suggest_edit' insight.slug %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="suggestion" class="form-label">Your Suggestion</label>
+                    <textarea class="form-textarea" id="suggestion" name="suggestion" rows="5" required placeholder="Describe what should be changed or corrected..."></textarea>
+                    <p class="form-help">Describe what should be changed or corrected.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeSuggestModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Submit Suggestion</button>
+            </div>
+        </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="{% static 'css/modal.css' %}">
+<script>
+function openSuggestModal() {
+    document.getElementById('suggestEditModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeSuggestModal() {
+    document.getElementById('suggestEditModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.getElementById('suggestEditModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSuggestModal();
+});
+</script>
 {% endblock %}

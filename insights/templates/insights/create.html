@@ -4,540 +4,138 @@
 {% block title %}Create Insight - Igbo Archives{% endblock %}
 
 {% block extra_css %}
-<style>
-.quill-editor-container {
-    height: 400px;
-    background: white;
-    border-radius: 8px;
-}
-
-@media (max-width: 768px) {
-    .quill-editor-container {
-        height: 300px;
-    }
-    
-    .quill-editor-container .ql-toolbar {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        padding: 8px 4px !important;
-        gap: 4px;
-    }
-    
-    .quill-editor-container .ql-toolbar button {
-        width: 32px !important;
-        height: 32px !important;
-        padding: 4px !important;
-    }
-    
-    .quill-editor-container .ql-editor {
-        font-size: 16px !important;
-        padding: 12px !important;
-        min-height: 250px !important;
-    }
-}
-
-.image-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    z-index: 10000;
-    overflow-y: auto;
-}
-.image-modal-content {
-    position: relative;
-    background: white;
-    max-width: 800px;
-    margin: 50px auto;
-    padding: 30px;
-    border-radius: 8px;
-}
-
-@media (max-width: 768px) {
-    .image-modal-content {
-        margin: 20px auto;
-        padding: 20px 15px;
-        max-width: 95%;
-    }
-    
-    .archive-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
-        gap: 10px !important;
-    }
-    
-    .featured-image-grid {
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
-    }
-}
-.archive-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-.archive-item {
-    cursor: pointer;
-    border: 3px solid transparent;
-    border-radius: 6px;
-    padding: 8px;
-    transition: all 0.2s;
-}
-.archive-item:hover {
-    border-color: #007bff;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.3);
-}
-.archive-item.selected {
-    border-color: #28a745;
-    background: #f0f8f4;
-}
-.archive-item img {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-.archive-item-title {
-    font-size: 12px;
-    margin-top: 5px;
-    text-align: center;
-}
-.featured-image-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
-}
-.featured-option {
-    cursor: pointer;
-    border: 3px solid #ddd;
-    border-radius: 6px;
-    padding: 5px;
-    transition: all 0.2s;
-    position: relative;
-}
-.featured-option:hover {
-    border-color: #007bff;
-}
-.featured-option.selected {
-    border-color: #28a745;
-    background: #f0f8f4;
-}
-.featured-option img {
-    width: 100%;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-.featured-badge {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: #28a745;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 10px;
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/editor.css' %}">
+<link rel="stylesheet" href="{% static 'css/modal.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <h1 class="mb-4">Create New Insight Post</h1>
-            
-            <form method="post" enctype="multipart/form-data" id="insightForm">
-                {% csrf_token %}
-                
-                <div class="mb-3">
-                    <label for="title" class="form-label">Title *</label>
-                    <input type="text" class="form-control" id="title" name="title" required>
-                </div>
-
-                <div class="mb-3">
-                    <label for="excerpt" class="form-label">Excerpt</label>
-                    <textarea class="form-control" id="excerpt" name="excerpt" rows="2" maxlength="500"></textarea>
-                    <div class="form-text">Brief summary (max 500 characters)</div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Content *</label>
-                    <div id="editor" class="quill-editor-container"></div>
-                    <input type="hidden" id="content_json" name="content_json" required>
-                </div>
-
-                <div class="mb-3" id="featuredImageSection" style="display:none;">
-                    <label class="form-label">Choose Featured Image</label>
-                    <p class="text-muted small">Select an image from your post content to use as the featured image. If not selected, the first image will be used.</p>
-                    <div id="featuredImageGrid" class="featured-image-grid"></div>
-                    <input type="hidden" id="featured_image_url" name="featured_image_url">
-                </div>
-
-                <div class="mb-3">
-                    <label for="tags" class="form-label">Tags</label>
-                    <input type="text" class="form-control" id="tags" name="tags" placeholder="culture, history, tradition">
-                </div>
-
-                <div class="d-grid gap-2">
-                    <button type="submit" name="action" value="save" class="btn btn-secondary btn-lg">
-                        <i class="fas fa-save"></i> Save as Draft
-                    </button>
-                    <button type="submit" name="action" value="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-paper-plane"></i> Submit for Approval
-                    </button>
-                    <a href="{% url 'insights:list' %}" class="btn btn-outline-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="font-serif text-display-lg text-dark-brown mb-2">Create New Insight</h1>
+        <p class="text-vintage-beaver">Share your knowledge and perspective on Igbo culture and history.</p>
     </div>
+    
+    <form method="post" enctype="multipart/form-data" id="insightForm" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="title" class="form-label">Title <span class="text-red-500">*</span></label>
+            <input type="text" class="form-input" id="title" name="title" required placeholder="Enter a compelling title for your insight">
+        </div>
+
+        <div class="form-group">
+            <label for="excerpt" class="form-label">Excerpt</label>
+            <textarea class="form-textarea" id="excerpt" name="excerpt" rows="2" maxlength="500" placeholder="Brief summary of your insight (optional)"></textarea>
+            <p class="form-help">Brief summary shown in listings (max 500 characters)</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Content <span class="text-red-500">*</span></label>
+            <div id="editor" class="editor-container"></div>
+            <input type="hidden" id="content_json" name="content_json" required>
+            <p class="form-help">Use the toolbar to format text, add images, and structure your content.</p>
+        </div>
+
+        <div class="form-group hidden" id="featuredImageSection">
+            <label class="form-label">Choose Featured Image</label>
+            <p class="text-sm text-vintage-beaver mb-3">Select an image from your post content to use as the featured image. If not selected, the first image will be used.</p>
+            <div id="featuredImageGrid" class="featured-image-grid"></div>
+            <input type="hidden" id="featured_image_url" name="featured_image_url">
+        </div>
+
+        <div class="form-group">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-input" id="tags" name="tags" placeholder="culture, history, tradition">
+            <p class="form-help">Separate tags with commas</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+            <button type="submit" name="action" value="save" class="btn-secondary btn-lg flex-1">
+                <i class="fas fa-save"></i> Save as Draft
+            </button>
+            <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                <i class="fas fa-paper-plane"></i> Submit for Approval
+            </button>
+        </div>
+        
+        <div class="text-center">
+            <a href="{% url 'insights:list' %}" class="text-vintage-beaver hover:text-dark-brown transition-colors text-sm">
+                <i class="fas fa-arrow-left"></i> Cancel and go back
+            </a>
+        </div>
+    </form>
 </div>
 
-<!-- Image Upload/Select Modal -->
-<div id="imageModal" class="image-modal">
-    <div class="image-modal-content">
-        <h3>Add Image to Content</h3>
-        <p class="text-muted">Choose to upload a new image or select from existing archives</p>
+<div id="imageModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title">Add Image to Content</h3>
+                <p class="modal-subtitle">Choose to upload a new image or select from existing archives</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeImageModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
         
-        <!-- Tab Buttons -->
-        <ul class="nav nav-tabs mb-3" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button">Upload New Image</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="select-tab" data-bs-toggle="tab" data-bs-target="#select-panel" type="button">Select from Archives</button>
-            </li>
-        </ul>
-        
-        <div class="tab-content">
-            <!-- Upload Panel -->
-            <div class="tab-pane fade show active" id="upload-panel">
-                <div class="mb-3">
-                    <label class="form-label">Select Image File *</label>
-                    <input type="file" class="form-control" id="imageFileInput" accept="image/*">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Caption (with copyright/source info) *</label>
-                    <input type="text" class="form-control" id="imageCaption" placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain" required>
-                    <small class="form-text text-muted">Required: Include copyright or image source</small>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Description (Alt Text) *</label>
-                    <input type="text" class="form-control" id="imageDescription" placeholder="Describe the image for accessibility" required>
-                    <small class="form-text text-muted">Required: Describe what's in the image</small>
-                </div>
-                <div class="text-end">
-                    <button type="button" class="btn btn-secondary" onclick="closeImageModal()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="uploadAndInsertImage()">
-                        <i class="fas fa-upload"></i> Upload & Insert
-                    </button>
+        <div class="modal-body">
+            <div class="tabs-container">
+                <div class="tabs-list">
+                    <button type="button" class="tab-button active" data-tab="upload">Upload New Image</button>
+                    <button type="button" class="tab-button" data-tab="archive">Select from Archives</button>
                 </div>
             </div>
             
-            <!-- Select from Archives Panel -->
-            <div class="tab-pane fade" id="select-panel">
-                <div class="mb-3">
-                    <input type="text" class="form-control" id="archiveSearch" placeholder="Search archives...">
+            <div id="upload-panel" class="tab-panel active">
+                <div class="form-group">
+                    <label class="form-label form-label-required">Select Image File</label>
+                    <input type="file" class="form-input" id="imageFileInput" accept="image/*">
                 </div>
-                <div id="archiveGrid" class="archive-grid">
-                    <p class="text-center text-muted">Loading archives...</p>
+                <div class="form-group">
+                    <label class="form-label form-label-required">Caption (with copyright/source info)</label>
+                    <input type="text" class="form-input" id="imageCaption" placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
+                    <p class="form-help">Required: Include copyright or image source information</p>
                 </div>
-                <div class="text-end mt-3">
-                    <button type="button" class="btn btn-secondary" onclick="closeImageModal()">Cancel</button>
-                    <button type="button" class="btn btn-success" id="insertArchiveBtn" style="display:none;" onclick="insertSelectedArchive()">
-                        <i class="fas fa-check"></i> Insert Selected
-                    </button>
+                <div class="form-group">
+                    <label class="form-label form-label-required">Description (Alt Text)</label>
+                    <input type="text" class="form-input" id="imageDescription" placeholder="Describe the image for accessibility">
+                    <p class="form-help">Required: Describe what's in the image for screen readers</p>
                 </div>
             </div>
+            
+            <div id="archive-panel" class="tab-panel">
+                <div class="search-input-container">
+                    <i class="fas fa-search search-input-icon"></i>
+                    <input type="text" class="form-input" id="archiveSearch" placeholder="Search archives...">
+                </div>
+                <div id="archiveGrid" class="archive-grid">
+                    <p class="text-center text-vintage-beaver py-8">Loading archives...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
+            <button type="button" class="btn-primary" id="uploadBtn" onclick="uploadAndInsertImage()">
+                <i class="fas fa-upload"></i> Upload & Insert
+            </button>
+            <button type="button" class="btn-primary hidden" id="insertArchiveBtn" onclick="insertSelectedArchive()">
+                <i class="fas fa-check"></i> Insert Selected
+            </button>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<link href="{% static 'vendor/css/quill.snow.css' %}" rel="stylesheet">
-<script src="{% static 'vendor/js/quill.min.js' %}"></script>
-
-<script>
-let quill;
-let selectedArchive = null;
-let currentQuillRange = null;
-let selectedFeaturedImage = null;
-
-// Initialize Quill
-quill = new Quill('#editor', {
-    theme: 'snow',
-    placeholder: 'Start writing your insight... Click the image icon (📷) in the toolbar above to add images!',
-    modules: {
-        toolbar: [
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'indent': '-1'}, { 'indent': '+1' }],
-            [{ 'align': [] }],
-            ['blockquote', 'code-block'],
-            ['link', 'image'],
-            [{ 'color': [] }, { 'background': [] }],
-            ['clean']
-        ]
-    }
-});
-
-// Make the image button more obvious with a tooltip and highlight
-setTimeout(() => {
-    const imageButton = document.querySelector('.ql-image');
-    if (imageButton) {
-        imageButton.title = 'Click here to add images! 📷';
-        imageButton.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        imageButton.style.color = 'white';
-        imageButton.style.borderRadius = '4px';
-        imageButton.style.padding = '6px 8px';
-        imageButton.style.fontWeight = 'bold';
-        
-        // Add pulsing animation to draw attention
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse-image-button {
-                0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
-                50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(102, 126, 234, 0); }
-            }
-            .ql-image {
-                animation: pulse-image-button 2s ease-in-out 3;
-            }
-            .ql-image:hover {
-                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
-                transform: scale(1.1);
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}, 100);
-
-// Custom image handler
-quill.getModule('toolbar').addHandler('image', function() {
-    currentQuillRange = quill.getSelection();
-    if (!currentQuillRange) {
-        currentQuillRange = { index: quill.getLength() };
-    }
-    openImageModal();
-});
-
-// Update featured image options when content changes
-quill.on('text-change', function() {
-    updateFeaturedImageOptions();
-});
-
-function updateFeaturedImageOptions() {
-    const images = quill.root.querySelectorAll('img');
-    const section = document.getElementById('featuredImageSection');
-    const grid = document.getElementById('featuredImageGrid');
-    
-    if (images.length === 0) {
-        section.style.display = 'none';
-        return;
-    }
-    
-    section.style.display = 'block';
-    grid.innerHTML = '';
-    
-    images.forEach((img, index) => {
-        const option = document.createElement('div');
-        option.className = 'featured-option';
-        if (index === 0 && !selectedFeaturedImage) {
-            option.classList.add('selected');
-            selectedFeaturedImage = img.src;
-        } else if (img.src === selectedFeaturedImage) {
-            option.classList.add('selected');
-        }
-        
-        option.innerHTML = `
-            <img src="${img.src}" alt="Image ${index + 1}">
-            ${(index === 0 && !selectedFeaturedImage) || img.src === selectedFeaturedImage ? '<span class="featured-badge">Featured</span>' : ''}
-        `;
-        
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.featured-option').forEach(opt => {
-                opt.classList.remove('selected');
-                opt.querySelector('.featured-badge')?.remove();
-            });
-            option.classList.add('selected');
-            const badge = document.createElement('span');
-            badge.className = 'featured-badge';
-            badge.textContent = 'Featured';
-            option.appendChild(badge);
-            selectedFeaturedImage = img.src;
-            document.getElementById('featured_image_url').value = img.src;
-        });
-        
-        grid.appendChild(option);
-    });
-    
-    // Set the featured image URL
-    if (selectedFeaturedImage) {
-        document.getElementById('featured_image_url').value = selectedFeaturedImage;
-    } else if (images.length > 0) {
-        document.getElementById('featured_image_url').value = images[0].src;
-    }
-}
-
-function openImageModal() {
-    document.getElementById('imageModal').style.display = 'block';
-    loadArchives();
-}
-
-function closeImageModal() {
-    document.getElementById('imageModal').style.display = 'none';
-    document.getElementById('imageFileInput').value = '';
-    document.getElementById('imageCaption').value = '';
-    document.getElementById('imageDescription').value = '';
-    selectedArchive = null;
-    document.querySelectorAll('.archive-item').forEach(item => item.classList.remove('selected'));
-    document.getElementById('insertArchiveBtn').style.display = 'none';
-}
-
-async function uploadAndInsertImage() {
-    const file = document.getElementById('imageFileInput').files[0];
-    const caption = document.getElementById('imageCaption').value.trim();
-    const description = document.getElementById('imageDescription').value.trim();
-    
-    if (!file) {
-        alert('Please select an image file');
-        return;
-    }
-    if (!caption) {
-        alert('Caption with copyright/source info is required');
-        return;
-    }
-    if (!description) {
-        alert('Image description (alt text) is required');
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('caption', caption);
-    formData.append('description', description);
-    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-    
-    try {
-        const response = await fetch('/api/upload-image/', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await response.json();
-        
-        if (data.success === 1) {
-            quill.insertEmbed(currentQuillRange.index, 'image', data.file.url);
-            quill.setSelection(currentQuillRange.index + 1);
-            closeImageModal();
-            updateFeaturedImageOptions();
-        } else {
-            alert('Upload failed: ' + (data.error || 'Unknown error'));
-        }
-    } catch (error) {
-        alert('Upload failed: ' + error.message);
-    }
-}
-
-async function loadArchives() {
-    const search = document.getElementById('archiveSearch').value;
-    const url = `/api/archive-media-browser/?search=${search}&type=image`;
-    
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        const grid = document.getElementById('archiveGrid');
-        grid.innerHTML = '';
-        
-        if (data.archives && data.archives.length > 0) {
-            data.archives.forEach(archive => {
-                const item = document.createElement('div');
-                item.className = 'archive-item';
-                item.dataset.archiveId = archive.id;
-                item.innerHTML = `
-                    <img src="${archive.thumbnail}" alt="${archive.alt_text || archive.title}">
-                    <div class="archive-item-title">${archive.title}</div>
-                `;
-                item.addEventListener('click', () => selectArchive(archive, item));
-                grid.appendChild(item);
-            });
-        } else {
-            grid.innerHTML = '<p class="text-center text-muted">No image archives found</p>';
-        }
-    } catch (error) {
-        console.error('Error loading archives:', error);
-        document.getElementById('archiveGrid').innerHTML = '<p class="text-center text-danger">Error loading archives</p>';
-    }
-}
-
-function selectArchive(archive, element) {
-    document.querySelectorAll('.archive-item').forEach(item => item.classList.remove('selected'));
-    element.classList.add('selected');
-    selectedArchive = archive;
-    document.getElementById('insertArchiveBtn').style.display = 'inline-block';
-}
-
-function insertSelectedArchive() {
-    if (selectedArchive) {
-        // Insert the image
-        quill.insertEmbed(currentQuillRange.index, 'image', selectedArchive.url);
-        
-        // Move to next position
-        let position = currentQuillRange.index + 1;
-        
-        // Insert caption in italics if available
-        if (selectedArchive.caption) {
-            quill.insertText(position, '\n');
-            position++;
-            quill.insertText(position, selectedArchive.caption, { 'italic': true, 'color': '#666' });
-            position += selectedArchive.caption.length;
-        }
-        
-        // Insert description/alt text as a new line if different from caption
-        if (selectedArchive.alt_text && selectedArchive.alt_text !== selectedArchive.caption) {
-            quill.insertText(position, '\n');
-            position++;
-            quill.insertText(position, 'Description: ' + selectedArchive.alt_text, { 'italic': true, 'color': '#888', 'size': 'small' });
-            position += selectedArchive.alt_text.length + 13;
-        }
-        
-        quill.insertText(position, '\n\n');
-        quill.setSelection(position + 2);
-        
-        closeImageModal();
-        updateFeaturedImageOptions();
-    }
-}
-
-// Search archives
-document.getElementById('archiveSearch').addEventListener('input', function() {
-    loadArchives();
-});
-
-// Form submission
-document.getElementById('insightForm').addEventListener('submit', function(e) {
-    const content = quill.root.innerHTML;
-    document.getElementById('content_json').value = content;
-    
-    if (quill.getText().trim().length === 0) {
-        e.preventDefault();
-        alert('Please add some content before submitting.');
-        return false;
-    }
-    
-    // Auto-select first image as featured if none selected
-    const images = quill.root.querySelectorAll('img');
-    if (images.length > 0 && !document.getElementById('featured_image_url').value) {
-        document.getElementById('featured_image_url').value = images[0].src;
-    }
-});
-
-console.log('✓ Quill editor with custom image handler and featured image selector initialized!');
-</script>
+<script src="{% static 'vendor/js/editorjs/editorjs.umd.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/header.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/image.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/embed.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/link.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/code.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
+<script src="{% static 'js/editor.js' %}"></script>
+<script src="{% static 'js/insight-editor.js' %}"></script>
 {% endblock %}

@@ -4,240 +4,173 @@
 {% block title %}Upload Archive - Igbo Archives{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <h1 class="mb-4">Upload Cultural Archive</h1>
-            
-            <div id="uploadError" class="alert alert-danger d-none"></div>
-            
-            <form method="post" enctype="multipart/form-data" id="archiveForm">
-                {% csrf_token %}
-                
-                <div class="mb-3">
-                    <label for="title" class="form-label">Title *</label>
-                    <input type="text" class="form-control" id="title" name="title" required>
-                </div>
-
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description *</label>
-                    <textarea class="form-control" id="description" name="description" rows="6" required placeholder="Detailed description of the archive (plain text)"></textarea>
-                    <div class="form-text">Plain text description, no formatting</div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="archive_type" class="form-label">Archive Type *</label>
-                    <select class="form-select" id="archive_type" name="archive_type" required onchange="updateFileInput()">
-                        <option value="">Select type...</option>
-                        <option value="image">Image</option>
-                        <option value="video">Video</option>
-                        <option value="document">Document</option>
-                        <option value="audio">Audio</option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label for="category" class="form-label">Category</label>
-                    <select class="form-select" id="category" name="category">
-                        <option value="">Select category...</option>
-                        {% for cat in categories %}
-                        <option value="{{ cat.id }}">{{ cat.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="mb-3" id="imageUploadSection" style="display:none;">
-                    <label for="image" class="form-label">Image File *</label>
-                    <input type="file" class="form-control" id="image" name="image" accept=".jpg,.jpeg,.png,.webp" onchange="validateFileSize(this, 5)">
-                    <div class="form-text">Accepted formats: JPG, JPEG, PNG, WEBP (Max 5MB)</div>
-                </div>
-
-                <div class="mb-3" id="videoUploadSection" style="display:none;">
-                    <label for="video" class="form-label">Video File *</label>
-                    <input type="file" class="form-control" id="video" name="video" accept=".mp4,.webm,.ogg,.mov" onchange="validateFileSize(this, 50)">
-                    <div class="form-text">Accepted formats: MP4, WEBM, OGG, MOV (Max 50MB)</div>
-                </div>
-
-                <div class="mb-3" id="documentUploadSection" style="display:none;">
-                    <label for="document" class="form-label">Document File *</label>
-                    <input type="file" class="form-control" id="document" name="document" accept=".pdf,.doc,.docx,.txt" onchange="validateFileSize(this, 10)">
-                    <div class="form-text">Accepted formats: PDF, DOC, DOCX, TXT (Max 10MB)</div>
-                </div>
-
-                <div class="mb-3" id="audioUploadSection" style="display:none;">
-                    <label for="audio" class="form-label">Audio File *</label>
-                    <input type="file" class="form-control" id="audio" name="audio" accept=".mp3,.wav,.ogg,.m4a" onchange="validateFileSize(this, 10)">
-                    <div class="form-text">Accepted formats: MP3, WAV, OGG, M4A (Max 10MB)</div>
-                </div>
-
-                <div class="mb-3" id="featuredImageSection" style="display:none;">
-                    <label for="featured_image" class="form-label">Featured Image/Thumbnail (Optional)</label>
-                    <input type="file" class="form-control" id="featured_image" name="featured_image" accept=".jpg,.jpeg,.png,.webp" onchange="validateFileSize(this, 5)">
-                    <div class="form-text">Thumbnail for videos/audio (optional, Max 5MB)</div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="caption" class="form-label">Caption (with copyright/source info) *</label>
-                    <input type="text" class="form-control" id="caption" name="caption" required placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
-                    <div class="form-text">Must include copyright or image source information</div>
-                </div>
-
-                <div class="mb-3" id="altTextSection">
-                    <label for="alt_text" class="form-label">Alt Text *</label>
-                    <input type="text" class="form-control" id="alt_text" name="alt_text" required placeholder="Describe the image for accessibility">
-                    <div class="form-text">Describe the image for accessibility and SEO</div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="original_author" class="form-label">Original Author/Photographer (Optional)</label>
-                    <input type="text" class="form-control" id="original_author" name="original_author" placeholder="e.g., Northcote Thomas">
-                    <div class="form-text">Original creator/photographer if known</div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="location" class="form-label">Location (Optional)</label>
-                    <input type="text" class="form-control" id="location" name="location" placeholder="e.g., Onitsha, Anambra State">
-                    <div class="form-text">Where the photo/artifact was taken or found</div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Date Created (if known)</label>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <input type="date" class="form-control" id="date_created" name="date_created" placeholder="Exact date">
-                            <div class="form-text">Exact date if known</div>
-                        </div>
-                        <div class="col-md-6">
-                            <input type="text" class="form-control" id="circa_date" name="circa_date" placeholder="e.g., c1910, around 1910s">
-                            <div class="form-text">OR approximate date (e.g., "c1910", "around 1910s")</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="tags" class="form-label">Tags (Optional)</label>
-                    <input type="text" class="form-control" id="tags" name="tags" placeholder="Enter tags separated by commas">
-                    <div class="form-text">e.g., mask, ceremony, traditional</div>
-                </div>
-
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary" id="submitBtn">Upload Archive</button>
-                    <a href="{% url 'archives:list' %}" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
+<div class="max-w-2xl mx-auto">
+    <h1 class="font-serif text-display-lg text-dark-brown mb-6">Upload Cultural Archive</h1>
+    
+    <div id="uploadError" class="alert alert-danger hidden mb-6"></div>
+    
+    <form method="post" enctype="multipart/form-data" id="archiveForm" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="title" class="form-label">Title *</label>
+            <input type="text" class="form-input" id="title" name="title" required>
         </div>
-    </div>
+
+        <div class="form-group">
+            <label for="description" class="form-label">Description *</label>
+            <textarea class="form-textarea" id="description" name="description" rows="5" required placeholder="Detailed description of the archive (plain text)"></textarea>
+            <p class="form-help">Plain text description, no formatting</p>
+        </div>
+
+        <div class="form-group">
+            <label for="archive_type" class="form-label">Archive Type *</label>
+            <select class="form-select" id="archive_type" name="archive_type" required onchange="updateFileInput()">
+                <option value="">Select type...</option>
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="document">Document</option>
+                <option value="audio">Audio</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="category" class="form-label">Category</label>
+            <select class="form-select" id="category" name="category">
+                <option value="">Select category...</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="imageUploadSection" class="form-group hidden">
+            <label for="image" class="form-label">Image File *</label>
+            <input type="file" class="form-input" id="image" name="image" accept=".jpg,.jpeg,.png,.webp" onchange="validateFileSize(this, 5)">
+            <p class="form-help">Accepted: JPG, JPEG, PNG, WEBP (Max 5MB)</p>
+        </div>
+
+        <div id="videoUploadSection" class="form-group hidden">
+            <label for="video" class="form-label">Video File *</label>
+            <input type="file" class="form-input" id="video" name="video" accept=".mp4,.webm,.ogg,.mov" onchange="validateFileSize(this, 50)">
+            <p class="form-help">Accepted: MP4, WEBM, OGG, MOV (Max 50MB)</p>
+        </div>
+
+        <div id="documentUploadSection" class="form-group hidden">
+            <label for="document" class="form-label">Document File *</label>
+            <input type="file" class="form-input" id="document" name="document" accept=".pdf,.doc,.docx,.txt" onchange="validateFileSize(this, 10)">
+            <p class="form-help">Accepted: PDF, DOC, DOCX, TXT (Max 10MB)</p>
+        </div>
+
+        <div id="audioUploadSection" class="form-group hidden">
+            <label for="audio" class="form-label">Audio File *</label>
+            <input type="file" class="form-input" id="audio" name="audio" accept=".mp3,.wav,.ogg,.m4a" onchange="validateFileSize(this, 10)">
+            <p class="form-help">Accepted: MP3, WAV, OGG, M4A (Max 10MB)</p>
+        </div>
+
+        <div id="featuredImageSection" class="form-group hidden">
+            <label for="featured_image" class="form-label">Featured Image/Thumbnail (Optional)</label>
+            <input type="file" class="form-input" id="featured_image" name="featured_image" accept=".jpg,.jpeg,.png,.webp" onchange="validateFileSize(this, 5)">
+            <p class="form-help">Thumbnail for videos/audio (optional, Max 5MB)</p>
+        </div>
+
+        <div class="form-group">
+            <label for="caption" class="form-label">Caption (with copyright/source info) *</label>
+            <input type="text" class="form-input" id="caption" name="caption" required placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
+            <p class="form-help">Must include copyright or image source information</p>
+        </div>
+
+        <div id="altTextSection" class="form-group">
+            <label for="alt_text" class="form-label">Alt Text *</label>
+            <input type="text" class="form-input" id="alt_text" name="alt_text" required placeholder="Describe the image for accessibility">
+            <p class="form-help">Describe the image for accessibility and SEO</p>
+        </div>
+
+        <div class="form-group">
+            <label for="original_author" class="form-label">Original Author/Photographer (Optional)</label>
+            <input type="text" class="form-input" id="original_author" name="original_author" placeholder="e.g., Northcote Thomas">
+        </div>
+
+        <div class="form-group">
+            <label for="location" class="form-label">Location (Optional)</label>
+            <input type="text" class="form-input" id="location" name="location" placeholder="e.g., Onitsha, Anambra State">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Date Created (if known)</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label for="date_year" class="form-label text-sm">Year</label>
+                    <input type="number" class="form-input" id="date_year" name="date_year" min="1800" max="2100" placeholder="e.g., 1910">
+                </div>
+                <div>
+                    <label for="date_month" class="form-label text-sm">Month</label>
+                    <select class="form-select" id="date_month" name="date_month">
+                        <option value="">Unknown</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="date_day" class="form-label text-sm">Day</label>
+                    <input type="number" class="form-input" id="date_day" name="date_day" min="1" max="31" placeholder="Day">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-input" id="tags" name="tags" placeholder="mask, ceremony, traditional">
+            <p class="form-help">Comma-separated tags for discoverability</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+            <button type="submit" class="btn-primary flex-1">Upload Archive</button>
+            <a href="{% url 'archives:list' %}" class="btn-secondary text-center">Cancel</a>
+        </div>
+    </form>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-function validateFileSize(input, maxMB) {
-    const errorDiv = document.getElementById('uploadError');
-    
-    if (input.files && input.files[0]) {
-        const fileSize = input.files[0].size;
-        const maxSize = maxMB * 1024 * 1024;
-        
-        if (fileSize > maxSize) {
-            errorDiv.textContent = `File is too large. Maximum size is ${maxMB}MB. Your file is ${(fileSize / (1024 * 1024)).toFixed(2)}MB.`;
-            errorDiv.classList.remove('d-none');
-            input.value = '';
-            return false;
-        } else {
-            errorDiv.classList.add('d-none');
-            return true;
-        }
-    }
-    return true;
-}
-
 function updateFileInput() {
-    const archiveType = document.getElementById('archive_type').value;
-    const imageSection = document.getElementById('imageUploadSection');
-    const videoSection = document.getElementById('videoUploadSection');
-    const documentSection = document.getElementById('documentUploadSection');
-    const audioSection = document.getElementById('audioUploadSection');
-    const featuredSection = document.getElementById('featuredImageSection');
-    const altTextSection = document.getElementById('altTextSection');
-    const altTextField = document.getElementById('alt_text');
+    var type = document.getElementById('archive_type').value;
+    var sections = ['imageUploadSection', 'videoUploadSection', 'documentUploadSection', 'audioUploadSection', 'featuredImageSection'];
+    sections.forEach(function(s) { document.getElementById(s).classList.add('hidden'); });
     
-    imageSection.style.display = 'none';
-    videoSection.style.display = 'none';
-    documentSection.style.display = 'none';
-    audioSection.style.display = 'none';
-    featuredSection.style.display = 'none';
-    
-    document.getElementById('image').removeAttribute('required');
-    document.getElementById('video').removeAttribute('required');
-    document.getElementById('document').removeAttribute('required');
-    document.getElementById('audio').removeAttribute('required');
-    
-    if (archiveType === 'image') {
-        imageSection.style.display = 'block';
-        document.getElementById('image').setAttribute('required', 'required');
-        altTextField.setAttribute('required', 'required');
-        altTextSection.style.display = 'block';
-    } else if (archiveType === 'video') {
-        videoSection.style.display = 'block';
-        featuredSection.style.display = 'block';
-        document.getElementById('video').setAttribute('required', 'required');
-        altTextField.removeAttribute('required');
-        altTextSection.style.display = 'none';
-    } else if (archiveType === 'document') {
-        documentSection.style.display = 'block';
-        document.getElementById('document').setAttribute('required', 'required');
-        altTextField.removeAttribute('required');
-        altTextSection.style.display = 'none';
-    } else if (archiveType === 'audio') {
-        audioSection.style.display = 'block';
-        featuredSection.style.display = 'block';
-        document.getElementById('audio').setAttribute('required', 'required');
-        altTextField.removeAttribute('required');
-        altTextSection.style.display = 'none';
+    if (type === 'image') {
+        document.getElementById('imageUploadSection').classList.remove('hidden');
+    } else if (type === 'video') {
+        document.getElementById('videoUploadSection').classList.remove('hidden');
+        document.getElementById('featuredImageSection').classList.remove('hidden');
+    } else if (type === 'document') {
+        document.getElementById('documentUploadSection').classList.remove('hidden');
+    } else if (type === 'audio') {
+        document.getElementById('audioUploadSection').classList.remove('hidden');
+        document.getElementById('featuredImageSection').classList.remove('hidden');
     }
 }
 
-document.getElementById('archiveForm').addEventListener('submit', function(e) {
-    const archiveType = document.getElementById('archive_type').value;
-    const errorDiv = document.getElementById('uploadError');
-    
-    const fileLimits = {
-        'image': { field: 'image', maxMB: 5 },
-        'video': { field: 'video', maxMB: 50 },
-        'document': { field: 'document', maxMB: 10 },
-        'audio': { field: 'audio', maxMB: 10 }
-    };
-    
-    if (archiveType && fileLimits[archiveType]) {
-        const config = fileLimits[archiveType];
-        const input = document.getElementById(config.field);
-        
-        if (input.files && input.files[0]) {
-            const fileSize = input.files[0].size;
-            const maxSize = config.maxMB * 1024 * 1024;
-            
-            if (fileSize > maxSize) {
-                e.preventDefault();
-                errorDiv.textContent = `File is too large. Maximum size is ${config.maxMB}MB.`;
-                errorDiv.classList.remove('d-none');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                return false;
-            }
-        }
+function validateFileSize(input, maxMB) {
+    var errorDiv = document.getElementById('uploadError');
+    if (input.files[0] && input.files[0].size > maxMB * 1024 * 1024) {
+        errorDiv.textContent = 'File is too large. Maximum size is ' + maxMB + 'MB.';
+        errorDiv.classList.remove('hidden');
+        input.value = '';
+    } else {
+        errorDiv.classList.add('hidden');
     }
-    
-    const featuredInput = document.getElementById('featured_image');
-    if (featuredInput.files && featuredInput.files[0]) {
-        if (featuredInput.files[0].size > 5 * 1024 * 1024) {
-            e.preventDefault();
-            errorDiv.textContent = 'Featured image is too large. Maximum size is 5MB.';
-            errorDiv.classList.remove('d-none');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return false;
-        }
-    }
-    
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
-});
+}
 </script>
 {% endblock %}

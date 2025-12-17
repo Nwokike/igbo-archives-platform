@@ -3,108 +3,40 @@
 {% block title %}Messages{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4">Messages</h2>
+<div class="max-w-3xl mx-auto">
+    <h1 class="font-serif text-display-lg text-dark-brown mb-8">Messages</h1>
 
-            <!-- Messages list in boxes -->
-            <div class="messages-inbox">
-                {% for thread in threads %}
-                <a href="{% url 'users:thread' thread.id %}" class="message-box">
-                    <div class="message-box-content">
-                        <div class="message-box-header">
-                            <h5 class="message-title">{{ thread.subject }}</h5>
-                            <span class="message-time">{{ thread.updated_at|date:"n/j/Y g:i A" }}</span>
-                        </div>
-                        <div class="message-preview">
-                            {% with thread.messages.last as last_message %}
-                                {% if last_message %}
-                                    <strong>{{ last_message.sender.get_display_name }}:</strong>
-                                    {{ last_message.content|truncatewords:15 }}
-                                {% endif %}
-                            {% endwith %}
-                        </div>
-                        <div class="message-participants">
-                            {% for participant in thread.participants.all %}
-                                {% if participant != user %}
-                                    <span class="participant">{{ participant.get_display_name }}</span>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </a>
-                {% empty %}
-                <div class="no-messages">
-                    <i class="fas fa-inbox fa-3x mb-3"></i>
-                    <p>No messages yet.</p>
+    <div class="space-y-3">
+        {% for thread in threads %}
+        <a href="{% url 'users:thread' thread.id %}" class="card card-hover block no-underline">
+            <div class="card-body">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <h3 class="font-serif font-semibold text-dark-brown">{{ thread.subject }}</h3>
+                    <span class="text-sm text-vintage-beaver whitespace-nowrap">{{ thread.updated_at|date:"n/j/Y g:i A" }}</span>
                 </div>
-                {% endfor %}
+                <div class="text-sm text-dark-umber mb-2">
+                    {% with thread.messages.last as last_message %}
+                        {% if last_message %}
+                            <strong>{{ last_message.sender.get_display_name }}:</strong>
+                            {{ last_message.content|truncatewords:15 }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="text-sm text-vintage-beaver">
+                    {% for participant in thread.participants.all %}
+                        {% if participant != user %}
+                            <span class="font-medium">{{ participant.get_display_name }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
+        </a>
+        {% empty %}
+        <div class="text-center py-12 text-vintage-beaver">
+            <i class="fas fa-inbox text-4xl mb-4 text-sepia-pale"></i>
+            <p>No messages yet.</p>
         </div>
+        {% endfor %}
     </div>
 </div>
-
-<style>
-.messages-inbox {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.message-box {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 16px;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.2s;
-}
-
-.message-box:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border-color: var(--vintage-gold);
-}
-
-.message-box-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.message-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0;
-    color: var(--text-primary);
-}
-
-.message-time {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.message-preview {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-}
-
-.message-participants {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.participant {
-    font-weight: 500;
-}
-
-.no-messages {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-secondary);
-}
-</style>
 {% endblock %}

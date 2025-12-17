@@ -1,0 +1,33 @@
+{
+  "name": "igbo-archives",
+  "version": "1.0.0",
+  "description": "Igbo Archives - Preserving the Past, Inspiring the Future",
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./core/static/css/tailwind.input.css -o ./core/static/css/tailwind.output.css --minify",
+    "watch:css": "npx tailwindcss -i ./core/static/css/tailwind.input.css -o ./core/static/css/tailwind.output.css --watch",
+    "build": "npm run build:css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32"
+  },
+  "dependencies": {
+    "@editorjs/editorjs": "^2.28.2",
+    "@editorjs/header": "^2.8.1",
+    "@editorjs/list": "^1.9.0",
+    "@editorjs/quote": "^2.6.0",
+    "@editorjs/code": "^2.9.0",
+    "@editorjs/delimiter": "^1.4.0",
+    "@editorjs/inline-code": "^1.5.0",
+    "@editorjs/underline": "^1.1.0",
+    "@editorjs/marker": "^1.4.0",
+    "@editorjs/link": "^2.6.2",
+    "@editorjs/image": "^2.9.0",
+    "@editorjs/embed": "^2.7.0",
+    "@editorjs/table": "^2.3.0",
+    "@editorjs/warning": "^1.4.0",
+    "@editorjs/paragraph": "^2.11.3",
+    "@editorjs/nested-list": "^1.4.2"
+  }
+}
