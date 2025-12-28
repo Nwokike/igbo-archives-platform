@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load threadedcomments_tags %}
+{% load editorjs_renderer %}
+
+{% block title %}{{ insight.title }} - Insights{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/editor.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <article class="lg:col-span-8">
+        <header class="mb-6">
+            <h1 class="font-serif text-display-lg text-dark-brown mb-4">{{ insight.title }}</h1>
+            
+            <div class="flex flex-wrap items-center gap-2 text-sm text-vintage-beaver mb-4">
+                <span>By</span>
+                <a href="{% url 'users:profile' insight.author.username %}" class="text-vintage-gold hover:underline font-medium">{{ insight.author.get_display_name }}</a>
+                <span class="text-sepia-pale">•</span>
+                <span>{{ insight.created_at|date:"F d, Y" }}</span>
+                {% if insight.updated_at != insight.created_at %}
+                <span class="text-sepia-pale">•</span>
+                <span>Updated {{ insight.updated_at|date:"F d, Y" }}</span>
+                {% endif %}
+            </div>
+        </header>
+
+        {% if insight.featured_image %}
+        <figure class="mb-8 rounded-xl overflow-hidden">
+            <img src="{{ insight.featured_image.url }}" alt="{{ insight.alt_text }}" class="w-full h-auto">
+        </figure>
+        {% endif %}
+
+        <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
+            {{ insight.content|render_editorjs }}
+        </div>
+
+        {% if insight.tags.all %}
+        <div class="flex flex-wrap items-center gap-2 mb-8">
+            <span class="text-sm font-medium text-dark-brown">Tags:</span>
+            {% for tag in insight.tags.all %}
+            <a href="{% url 'insights:list' %}?tag={{ tag.name }}" class="badge badge-secondary">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="flex flex-wrap gap-3 mb-8">
+            {% if user == insight.author %}
+            <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary">
+                <i class="fas fa-edit"></i> Edit Post
+            </a>
+            {% else %}
+            <button type="button" class="btn-secondary" onclick="openSuggestModal()">
+                <i class="fas fa-lightbulb"></i> Suggest Edit
+            </button>
+            {% endif %}
+        </div>
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        {% include 'partials/prev_next_navigation.html' with previous=previous_insight next=next_insight %}
+
+        {% include 'partials/recommended_carousel.html' with recommended=recommended %}
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        <section class="mt-8">
+            <h3 class="font-serif text-xl font-semibold text-dark-brown mb-6">Discussion</h3>
+            {% render_comment_list for insight %}
+            {% render_comment_form for insight %}
+        </section>
+    </article>
+
+    <aside class="lg:col-span-4">
+        <div class="sticky top-32 space-y-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold text-dark-brown mb-3">About the Author</h4>
+                    <div class="flex items-center gap-3 mb-3">
+                        {% if insight.author.profile_picture %}
+                        <img src="{{ insight.author.profile_picture.url }}" alt="{{ insight.author.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
+                        {% else %}
+                        <div class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
+                            {{ insight.author.get_display_name|slice:":1"|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'users:profile' insight.author.username %}" class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
+                                {{ insight.author.get_display_name }}
+                            </a>
+                        </div>
+                    </div>
+                    {% if insight.author.bio %}
+                    <p class="text-sm text-vintage-beaver">{{ insight.author.bio|truncatewords:30 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<div id="suggestEditModal" class="modal-overlay">
+    <div class="modal-content max-w-lg">
+        <div class="modal-header">
+            <h3 class="modal-title">Suggest an Edit</h3>
+            <button type="button" class="modal-close" onclick="closeSuggestModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="post" action="{% url 'insights:suggest_edit' insight.slug %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="suggestion" class="form-label">Your Suggestion</label>
+                    <textarea class="form-textarea" id="suggestion" name="suggestion" rows="5" required placeholder="Describe what should be changed or corrected..."></textarea>
+                    <p class="form-help">Describe what should be changed or corrected.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeSuggestModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Submit Suggestion</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,360 @@
+{% load static %}
+{% load pwa %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Igbo Archives - Preserving the Past, Inspiring the Future{% endblock %}</title>
+
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-vintage-gold focus:text-white focus:px-4 focus:py-2 focus:rounded">Skip
+        to main content</a>
+
+    {% if ENABLE_ANALYTICS and GOOGLE_ANALYTICS_ID %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', '{{ GOOGLE_ANALYTICS_ID }}');
+    </script>
+    {% endif %}
+
+    {% progressive_web_app_meta %}
+
+    {% if VAPID_PUBLIC_KEY %}
+    <meta name="vapid-public-key" content="{{ VAPID_PUBLIC_KEY }}">
+    {% endif %}
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="{% static 'vendor/css/google-fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tailwind.output.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+    <link rel="stylesheet" href="{% static 'css/modal.css' %}">
+
+    {% block extra_css %}{% endblock %}
+
+    <meta name="description"
+        content="{% block meta_description %}Igbo Archives - A platform for Igbo cultural preservation and community engagement{% endblock %}">
+
+    {% if ENABLE_ADSENSE %}
+    <script async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ GOOGLE_ADSENSE_CLIENT_ID }}"
+        crossorigin="anonymous"></script>
+    {% endif %}
+</head>
+
+<body
+    class="font-sans antialiased bg-[#FDFCF8] text-dark-brown min-h-screen flex flex-col transition-colors duration-300">
+    <button
+        class="fixed bottom-24 right-4 z-40 w-12 h-12 bg-vintage-gold text-white rounded-full shadow-lg hover:bg-vintage-bronze hover:scale-110 transition-all duration-300 hidden items-center justify-center md:bottom-6"
+        id="pwaInstallBtn" aria-label="Install App">
+        <i class="fas fa-download text-lg"></i>
+    </button>
+
+    <div class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-soft transition-all duration-300"
+        id="stickyHeader">
+        <header class="border-b border-sepia-pale/50">
+            <div
+                class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3 lg:py-4 gap-4 transition-all duration-300">
+                <button
+                    class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-sepia-pale text-dark-brown hover:bg-heritage-cream hover:border-vintage-beaver hover:rotate-180 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-vintage-gold focus:ring-offset-2"
+                    aria-label="Toggle dark mode" id="darkModeToggle">
+                    <i class="fas fa-moon text-lg"></i>
+                </button>
+
+                <a class="flex-1 flex items-center justify-center" href="{% url 'core:home' %}">
+                    <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
+                        class="h-10 lg:h-12 w-auto transition-all duration-300 logo-dark">
+                    <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
+                        class="h-10 lg:h-12 w-auto transition-all duration-300 logo-light hidden">
+                </a>
+
+                <div class="flex items-center gap-2 sm:gap-3">
+                    {% if user.is_authenticated %}
+                    <div class="relative">
+                        <button
+                            class="flex items-center justify-center w-10 h-10 rounded-full text-dark-brown hover:bg-heritage-cream transition-colors relative focus:outline-none focus:ring-2 focus:ring-vintage-gold focus:ring-offset-2"
+                            id="notificationBell" aria-label="Notifications"
+                            data-url="{% url 'users:notification_dropdown' %}">
+                            <i class="fas fa-bell text-lg"></i>
+                            {% if unread_notification_count > 0 %}
+                            <span
+                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{
+                                unread_notification_count }}</span>
+                            {% endif %}
+                        </button>
+                        <div class="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-xl shadow-soft-lg border border-sepia-pale/50 opacity-0 invisible translate-y-2 transition-all duration-200 z-50"
+                            id="notificationDropdown">
+                            <div class="p-4 text-center text-vintage-beaver">
+                                <i class="fas fa-spinner fa-spin"></i> Loading...
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <button
+                            class="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-sepia-pale hover:bg-vintage-gold hover:border-vintage-gold hover:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-vintage-gold focus:ring-offset-2"
+                            id="profileButton">
+                            {% if user.profile_picture %}
+                            <div class="w-8 h-8 rounded-full overflow-hidden">
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}"
+                                    class="w-full h-full object-cover">
+                            </div>
+                            {% else %}
+                            <div
+                                class="w-8 h-8 rounded-full bg-heritage-cream flex items-center justify-center text-sm font-semibold text-dark-brown">
+                                {{ user.get_display_name|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <span class="hidden sm:inline text-sm font-medium">{{ user.get_display_name }}</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+
+                        <div class="absolute right-0 top-full mt-2 w-56 py-2 bg-white rounded-xl shadow-soft-lg border border-sepia-pale/50 opacity-0 invisible translate-y-2 transition-all duration-200 z-50"
+                            id="profileDropdown">
+                            <a href="{% url 'users:profile' user.username %}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                                <i class="fas fa-user w-4 text-center"></i> My Profile
+                            </a>
+                            <a href="{% url 'users:dashboard' %}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                                <i class="fas fa-th-large w-4 text-center"></i> Dashboard
+                            </a>
+                            <a href="{% url 'users:inbox' %}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                                <i class="fas fa-envelope w-4 text-center"></i> Messages
+                            </a>
+                            <a href="{% url 'users:notifications' %}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                                <i class="fas fa-bell w-4 text-center"></i> Notifications
+                            </a>
+                            <a href="{% url 'users:profile_edit' user.username %}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                                <i class="fas fa-edit w-4 text-center"></i> Edit Profile
+                            </a>
+                            <div class="my-2 border-t border-sepia-pale/50"></div>
+                            <a href="{% url 'account_logout' %}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                id="logoutLink">
+                                <i class="fas fa-sign-out-alt w-4 text-center"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'account_login' %}" class="btn-primary text-sm">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="hidden sm:inline">Login</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <nav class="hidden lg:block border-b border-sepia-pale/30 bg-heritage-cream/30" aria-label="Main navigation">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-center gap-1 py-2">
+                    <a href="{% url 'archives:list' %}"
+                        class="nav-link {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}active{% endif %}">
+                        <i class="fas fa-archive"></i> Archives
+                    </a>
+                    <a href="{% url 'insights:list' %}"
+                        class="nav-link {% if 'insights' in request.resolver_match.app_names %}active{% endif %}">
+                        <i class="fas fa-lightbulb"></i> Insights
+                    </a>
+                    <a href="{% url 'books:list' %}"
+                        class="nav-link {% if 'books' in request.resolver_match.app_names %}active{% endif %}">
+                        <i class="fas fa-book"></i> Recommended Books
+                    </a>
+                    <a href="{% url 'ai:home' %}"
+                        class="nav-link {% if 'ai' in request.resolver_match.app_names %}active{% endif %}">
+                        <i class="fas fa-robot"></i> Igbo Archives AI
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        {% block sub_navigation %}{% endblock %}
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-sepia-pale/50 lg:hidden safe-area-pb"
+        aria-label="Mobile navigation">
+        <div class="flex items-center justify-around py-2">
+            <a href="{% url 'archives:list' %}"
+                class="flex flex-col items-center gap-1 py-2 px-3 text-xs font-medium transition-colors {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}text-vintage-gold{% else %}text-vintage-beaver hover:text-dark-brown{% endif %}">
+                <i class="fas fa-archive text-lg"></i>
+                <span>Archives</span>
+            </a>
+            <a href="{% url 'insights:list' %}"
+                class="flex flex-col items-center gap-1 py-2 px-3 text-xs font-medium transition-colors {% if 'insights' in request.resolver_match.app_names %}text-vintage-gold{% else %}text-vintage-beaver hover:text-dark-brown{% endif %}">
+                <i class="fas fa-lightbulb text-lg"></i>
+                <span>Insights</span>
+            </a>
+            <a href="{% url 'books:list' %}"
+                class="flex flex-col items-center gap-1 py-2 px-3 text-xs font-medium transition-colors {% if 'books' in request.resolver_match.app_names %}text-vintage-gold{% else %}text-vintage-beaver hover:text-dark-brown{% endif %}">
+                <i class="fas fa-book text-lg"></i>
+                <span>Books</span>
+            </a>
+            <a href="{% url 'ai:home' %}"
+                class="flex flex-col items-center gap-1 py-2 px-3 text-xs font-medium transition-colors {% if 'ai' in request.resolver_match.app_names %}text-vintage-gold{% else %}text-vintage-beaver hover:text-dark-brown{% endif %}">
+                <i class="fas fa-robot text-lg"></i>
+                <span>AI</span>
+            </a>
+        </div>
+    </nav>
+
+    <main id="main-content" class="flex-1 pb-20 lg:pb-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+            {% if messages %}
+            <div class="space-y-3 mb-6" role="alert" aria-live="polite">
+                {% for message in messages %}
+                <div
+                    class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible animate-fade-in">
+                    <div class="flex-1">{{ message }}</div>
+                    <button type="button" class="alert-close" onclick="this.parentElement.remove()"
+                        aria-label="Dismiss message">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer class="bg-dark-brown text-vintage-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+                <div class="lg:col-span-1">
+                    <div class="mb-4">
+                        <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives" class="h-12 w-auto">
+                    </div>
+                    <p class="text-sepia-soft text-sm leading-relaxed">
+                        Igbo Archives is a dedicated platform for preserving and celebrating the history and culture of
+                        the Igbo people.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="font-serif text-lg font-semibold mb-4 text-vintage-gold">Quick Links</h3>
+                    <div class="space-y-2">
+                        <a href="{% url 'archives:list' %}"
+                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Cultural
+                            Archives</a>
+                        <a href="{% url 'insights:list' %}"
+                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Insights</a>
+                        <a href="{% url 'books:list' %}"
+                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Book Reviews</a>
+                        <a href="{% url 'ai:home' %}"
+                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Igbo Archives
+                            AI</a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-serif text-lg font-semibold mb-4 text-vintage-gold">Resources</h3>
+                    <div class="space-y-2">
+                        <a href="{% url 'core:about' %}"
+                            class="block text-sepia-soft hover:text-white transition-colors text-sm">About Us</a>
+                        <a href="{% url 'core:privacy' %}"
+                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Privacy Policy</a>
+                        <a href="{% url 'core:terms' %}"
+                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Terms of
+                            Service</a>
+                        <a href="{% url 'core:contact' %}"
+                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Contact Us</a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-serif text-lg font-semibold mb-4 text-vintage-gold">Community</h3>
+                    <div class="space-y-2 mb-6">
+                        <a href="{% url 'ai:home' %}"
+                            class="flex items-center gap-2 text-sepia-soft hover:text-white transition-colors text-sm">
+                            <i class="fas fa-robot w-4"></i> Igbo Archives AI
+                        </a>
+                        <a href="{% url 'core:donate' %}"
+                            class="flex items-center gap-2 text-sepia-soft hover:text-white transition-colors text-sm">
+                            <i class="fas fa-heart w-4"></i> Support Us
+                        </a>
+                        <a href="{% url 'core:copyright' %}"
+                            class="flex items-center gap-2 text-sepia-soft hover:text-white transition-colors text-sm">
+                            <i class="fas fa-copyright w-4"></i> Copyright Policy
+                        </a>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a href="https://www.facebook.com/IgboArchives/" target="_blank" rel="noopener noreferrer"
+                            class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-sepia-soft hover:bg-vintage-gold hover:text-white transition-all"
+                            aria-label="Facebook">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="https://www.instagram.com/IgboArchives.com.ng/" target="_blank"
+                            rel="noopener noreferrer"
+                            class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-sepia-soft hover:bg-vintage-gold hover:text-white transition-all"
+                            aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://mastodon.social/@Igbo_Archives" target="_blank" rel="noopener noreferrer"
+                            class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-sepia-soft hover:bg-vintage-gold hover:text-white transition-all"
+                            aria-label="Mastodon">
+                            <i class="fab fa-mastodon"></i>
+                        </a>
+                        <a href="https://x.com/IgboArchives" target="_blank" rel="noopener noreferrer"
+                            class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-sepia-soft hover:bg-vintage-gold hover:text-white transition-all"
+                            aria-label="X (Twitter)">
+                            <i class="fab fa-x-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 pt-8 border-t border-white/10 text-center">
+                <p class="text-sepia-soft text-sm">&copy; {% now "Y" %} Igbo Archives. All rights reserved. Preserving
+                    culture, inspiring the future.</p>
+                <p class="text-sepia text-xs mt-2">
+                    Developed by <a href="https://github.com/Nwokike" target="_blank" rel="noopener noreferrer"
+                        class="text-vintage-gold hover:text-white transition-colors">Nwokike</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'vendor/js/htmx.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/notifications.js' %}"></script>
+    <script src="{% static 'js/modals.js' %}"></script>
+    <script src="{% static 'js/tabs.js' %}"></script>
+    <script src="{% static 'js/view-toggle.js' %}"></script>
+    <script src="{% static 'js/share.js' %}"></script>
+    <script src="{% static 'js/push-notifications.js' %}" id="push-notifications-script"
+        data-subscribe-url="{% url 'api:push_subscribe' %}" data-unsubscribe-url="{% url 'api:push_unsubscribe' %}"
+        defer></script>
+
+    {% block extra_js %}{% endblock %}
+
+    <div id="push-notification-prompt"
+        class="fixed bottom-24 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 bg-white rounded-2xl shadow-soft-lg border border-sepia-pale/50 p-5 hidden animate-fade-in-up">
+        <div class="flex items-start gap-4 mb-4">
+            <div class="w-12 h-12 rounded-full bg-vintage-gold/10 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-bell text-xl text-vintage-gold"></i>
+            </div>
+            <div>
+                <h4 class="font-serif font-semibold text-dark-brown mb-1">Stay Connected in Real-Time</h4>
+                <p class="text-sm text-vintage-beaver">Receive instant notifications for messages and interactions with
+                    your posts. You're in control and can manage these settings anytime.</p>
+            </div>
+        </div>
+        <div class="flex items-center justify-end gap-3">
+            <button id="push-prompt-dismiss" class="btn-secondary btn-sm">Not Now</button>
+            <button id="push-prompt-accept" class="btn-primary btn-sm">I Understand</button>
+        </div>
+    </div>
+</body>
+
+</html>

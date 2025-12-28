@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Book Review - Igbo Archives{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/editor.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="font-serif text-display-lg text-dark-brown mb-2">Create Book Review</h1>
+        <p class="text-vintage-beaver">Share your review of a book related to Igbo culture and history.</p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" id="bookForm" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h2 class="font-serif text-lg font-semibold">Book Information</h2>
+            </div>
+            <div class="card-body space-y-4">
+                <div class="form-group">
+                    <label for="book_title" class="form-label">Book Title <span class="text-red-500">*</span></label>
+                    <input type="text" class="form-input" id="book_title" name="book_title" required placeholder="Enter the book title">
+                </div>
+
+                <div class="form-group">
+                    <label for="author" class="form-label">Author <span class="text-red-500">*</span></label>
+                    <input type="text" class="form-input" id="author" name="author" required placeholder="Book author name">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label for="publisher" class="form-label">Publisher</label>
+                        <input type="text" class="form-input" id="publisher" name="publisher" placeholder="Publisher name">
+                    </div>
+                    <div class="form-group">
+                        <label for="publication_year" class="form-label">Year</label>
+                        <input type="number" class="form-input" id="publication_year" name="publication_year" min="1000" max="2100" placeholder="Publication year">
+                    </div>
+                    <div class="form-group">
+                        <label for="isbn" class="form-label">ISBN</label>
+                        <input type="text" class="form-input" id="isbn" name="isbn" placeholder="ISBN number">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="font-serif text-lg font-semibold">Your Review</h2>
+            </div>
+            <div class="card-body space-y-4">
+                <div class="form-group">
+                    <label for="review_title" class="form-label">Review Title <span class="text-red-500">*</span></label>
+                    <input type="text" class="form-input" id="review_title" name="review_title" required placeholder="A catchy title for your review">
+                </div>
+
+                <div class="form-group">
+                    <label for="rating" class="form-label">Rating <span class="text-red-500">*</span></label>
+                    <select class="form-select" id="rating" name="rating" required>
+                        <option value="">Select rating...</option>
+                        <option value="5">★★★★★ - Excellent</option>
+                        <option value="4">★★★★☆ - Very Good</option>
+                        <option value="3">★★★☆☆ - Good</option>
+                        <option value="2">★★☆☆☆ - Fair</option>
+                        <option value="1">★☆☆☆☆ - Poor</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Review Content <span class="text-red-500">*</span></label>
+                    <div id="editor" class="editor-container"></div>
+                    <input type="hidden" id="content_json" name="content_json" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="font-serif text-lg font-semibold">Book Covers</h2>
+            </div>
+            <div class="card-body space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label for="cover_image" class="form-label">Front Cover</label>
+                        <input type="file" class="form-input" id="cover_image" name="cover_image" accept=".jpg,.jpeg,.png,.webp">
+                        <p class="form-help">Max 5MB, JPG/PNG/WebP</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cover_image_back" class="form-label">Back Cover</label>
+                        <input type="file" class="form-input" id="cover_image_back" name="cover_image_back" accept=".jpg,.jpeg,.png,.webp">
+                        <p class="form-help">Max 5MB</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="alternate_cover" class="form-label">Alternate Edition</label>
+                        <input type="file" class="form-input" id="alternate_cover" name="alternate_cover" accept=".jpg,.jpeg,.png,.webp">
+                        <p class="form-help">Max 5MB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-input" id="tags" name="tags" placeholder="history, culture, language">
+            <p class="form-help">Separate tags with commas</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+            <button type="submit" name="action" value="save" class="btn-secondary btn-lg flex-1">
+                <i class="fas fa-save"></i> Save as Draft
+            </button>
+            <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                <i class="fas fa-paper-plane"></i> Submit for Approval
+            </button>
+        </div>
+        
+        <div class="text-center">
+            <a href="{% url 'books:list' %}" class="text-vintage-beaver hover:text-dark-brown transition-colors text-sm">
+                <i class="fas fa-arrow-left"></i> Cancel and go back
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/js/editorjs/editorjs.umd.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/header.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/image.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/code.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
+<script src="{% static 'js/editor.js' %}"></script>
+<script>
+(function() {
+    'use strict';
+    
+    var editor = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        editor = IgboEditor.init('editor', {
+            placeholder: 'Start writing your book review... Share your thoughts about the book!',
+            autofocus: false
+        });
+        
+        document.getElementById('bookForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            editor.save().then(function(outputData) {
+                if (!outputData.blocks || outputData.blocks.length === 0) {
+                    showToast('Please add some content before submitting.', 'error');
+                    return;
+                }
+                
+                var hasContent = outputData.blocks.some(function(block) {
+                    if (block.type === 'paragraph') {
+                        return block.data.text && block.data.text.trim().length > 0;
+                    }
+                    return true;
+                });
+                
+                if (!hasContent) {
+                    showToast('Please add some content before submitting.', 'error');
+                    return;
+                }
+                
+                document.getElementById('content_json').value = JSON.stringify(outputData);
+                e.target.submit();
+            }).catch(function(error) {
+                console.error('Error saving editor content:', error);
+                showToast('Error saving content. Please try again.', 'error');
+            });
+        });
+    });
+    
+    function showToast(message, type) {
+        var existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        
+        var icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        else if (type === 'error') icon = 'exclamation-circle';
+        
+        toast.innerHTML = '<i class="fas fa-' + icon + '"></i><span>' + message + '</span>';
+        document.body.appendChild(toast);
+        
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 4000);
+    }
+})();
+</script>
+{% endblock %}

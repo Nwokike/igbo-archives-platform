@@ -1,0 +1,76 @@
+{% if archives %}
+    {% for archive in archives %}
+    <a href="{% url 'archives:detail' archive.pk %}" class="card card-hover group block no-underline">
+        {% if archive.image %}
+        <div class="relative overflow-hidden">
+            <img src="{{ archive.image.url }}" 
+                 alt="{{ archive.alt_text }}" 
+                 loading="lazy" 
+                 decoding="async"
+                 class="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105">
+        </div>
+        {% elif archive.featured_image %}
+        <div class="relative overflow-hidden">
+            <img src="{{ archive.featured_image.url }}" 
+                 alt="{{ archive.alt_text }}" 
+                 loading="lazy" 
+                 decoding="async"
+                 class="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105">
+        </div>
+        {% else %}
+        <div class="w-full h-48 bg-heritage-cream flex items-center justify-center text-vintage-beaver">
+            <i class="fas fa-archive text-4xl"></i>
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <h3 class="font-serif text-lg font-semibold text-dark-brown mb-2 group-hover:text-vintage-gold transition-colors line-clamp-2">{{ archive.title }}</h3>
+            <p class="text-sm text-vintage-beaver line-clamp-2 mb-3">{{ archive.description|truncatewords:15 }}</p>
+            <div class="flex flex-wrap gap-2">
+                <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
+                {% if archive.category %}
+                <span class="badge badge-primary">{{ archive.category.name }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="px-5 pb-4 flex items-center justify-between text-sm">
+            <span class="text-vintage-beaver">{{ archive.created_at|date:"M d, Y" }}</span>
+            <span class="text-vintage-gold font-medium group-hover:translate-x-1 transition-transform">
+                View <i class="fas fa-arrow-right text-xs ml-1"></i>
+            </span>
+        </div>
+    </a>
+    {% endfor %}
+
+    {% if archives.has_other_pages %}
+    <div class="col-span-full flex justify-center pt-8">
+        <nav class="pagination">
+            {% if archives.has_previous %}
+            <a class="page-link" href="?page={{ archives.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                <i class="fas fa-chevron-left text-xs"></i>
+            </a>
+            {% endif %}
+
+            {% for num in archives.paginator.page_range %}
+                {% if archives.number == num %}
+                <span class="page-link active">{{ num }}</span>
+                {% elif num > archives.number|add:'-3' and num < archives.number|add:'3' %}
+                <a class="page-link" href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if archives.has_next %}
+            <a class="page-link" href="?page={{ archives.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+{% else %}
+    <div class="col-span-full">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>No archives found matching your criteria. <a href="{% url 'archives:list' %}" class="text-vintage-gold hover:underline font-medium">View all archives</a></div>
+        </div>
+    </div>
+{% endif %}

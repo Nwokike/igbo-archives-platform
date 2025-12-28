@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Access Denied - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="text-center py-16 max-w-lg mx-auto">
+    <div class="text-8xl font-bold text-vintage-gold mb-4">403</div>
+    <h1 class="font-serif text-2xl font-semibold text-dark-brown mb-4">Access Denied</h1>
+    <p class="text-vintage-beaver mb-8">
+        You don't have permission to access this page.
+    </p>
+    <div class="flex gap-4 justify-center">
+        <a href="{% url 'core:home' %}" class="btn-primary">
+            <i class="fas fa-home"></i> Go Home
+        </a>
+        <a href="javascript:history.back()" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i> Go Back
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% if ENABLE_ADSENSE %}
+<!-- Google AdSense -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="{{ GOOGLE_ADSENSE_CLIENT_ID }}"
+     data-ad-slot="{{ slot_id|default:'auto' }}"
+     data-ad-format="{{ format|default:'auto' }}"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+{% endif %}

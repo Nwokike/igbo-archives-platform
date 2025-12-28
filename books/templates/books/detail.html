@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load threadedcomments_tags %}
+{% load editorjs_renderer %}
+
+{% block title %}{{ review.review_title }} - Book Reviews{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/editor.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <article class="lg:col-span-8">
+        <header class="mb-6">
+            <h1 class="font-serif text-display-lg text-dark-brown mb-2">{{ review.review_title }}</h1>
+            <h2 class="text-xl text-vintage-beaver mb-4">{{ review.book_title }}</h2>
+            
+            <div class="flex items-center gap-4 mb-4">
+                <div class="text-vintage-gold text-xl">
+                    {% for i in "12345"|make_list %}
+                        {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                    <span class="text-sm text-vintage-beaver ml-1">({{ review.rating }}/5)</span>
+                </div>
+            </div>
+            
+            <div class="text-sm text-vintage-beaver">
+                Reviewed by 
+                <a href="{% url 'users:profile' review.reviewer.username %}" class="text-vintage-gold hover:underline font-medium">{{ review.reviewer.get_display_name }}</a>
+                on {{ review.created_at|date:"F d, Y" }}
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {% if review.cover_image %}
+            <div class="md:col-span-1">
+                <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" class="w-full rounded-lg shadow-soft">
+            </div>
+            <div class="md:col-span-2">
+            {% else %}
+            <div class="md:col-span-3">
+            {% endif %}
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="font-serif font-semibold text-dark-brown mb-3">Book Details</h4>
+                        <dl class="space-y-2 text-sm">
+                            <div class="flex gap-2">
+                                <dt class="font-medium text-dark-brown w-24">Author:</dt>
+                                <dd class="text-dark-umber">{{ review.author }}</dd>
+                            </div>
+                            {% if review.publisher %}
+                            <div class="flex gap-2">
+                                <dt class="font-medium text-dark-brown w-24">Publisher:</dt>
+                                <dd class="text-dark-umber">{{ review.publisher }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if review.publication_year %}
+                            <div class="flex gap-2">
+                                <dt class="font-medium text-dark-brown w-24">Year:</dt>
+                                <dd class="text-dark-umber">{{ review.publication_year }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if review.isbn %}
+                            <div class="flex gap-2">
+                                <dt class="font-medium text-dark-brown w-24">ISBN:</dt>
+                                <dd class="text-dark-umber">{{ review.isbn }}</dd>
+                            </div>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
+            {{ review.content|render_editorjs }}
+        </div>
+
+        {% if review.tags.all %}
+        <div class="flex flex-wrap items-center gap-2 mb-8">
+            <span class="text-sm font-medium text-dark-brown">Tags:</span>
+            {% for tag in review.tags.all %}
+            <a href="{% url 'books:list' %}?tag={{ tag.name }}" class="badge badge-secondary">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if user == review.reviewer %}
+        <div class="mb-8">
+            <a href="{% url 'books:edit' review.slug %}" class="btn-primary">
+                <i class="fas fa-edit"></i> Edit Review
+            </a>
+        </div>
+        {% endif %}
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        {% include 'partials/prev_next_navigation.html' with previous=previous_review next=next_review %}
+
+        {% include 'partials/recommended_carousel.html' with recommended=recommended %}
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        <section class="mt-8">
+            <h3 class="font-serif text-xl font-semibold text-dark-brown mb-6">Discussion</h3>
+            {% render_comment_list for review %}
+            {% render_comment_form for review %}
+        </section>
+    </article>
+
+    <aside class="lg:col-span-4">
+        <div class="sticky top-32 space-y-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold text-dark-brown mb-3">About the Reviewer</h4>
+                    <div class="flex items-center gap-3 mb-3">
+                        {% if review.reviewer.profile_picture %}
+                        <img src="{{ review.reviewer.profile_picture.url }}" alt="{{ review.reviewer.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
+                        {% else %}
+                        <div class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
+                            {{ review.reviewer.get_display_name|slice:":1"|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'users:profile' review.reviewer.username %}" class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
+                                {{ review.reviewer.get_display_name }}
+                            </a>
+                        </div>
+                    </div>
+                    {% if review.reviewer.bio %}
+                    <p class="text-sm text-vintage-beaver">{{ review.reviewer.bio|truncatewords:30 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}

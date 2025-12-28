@@ -1,0 +1,57 @@
+# Igbo Archives Platform - Python Dependencies
+# Optimized for 1GB RAM deployment
+
+# Core Django
+Django>=5.2
+gunicorn>=21.0
+whitenoise>=6.6
+
+# Storage (Cloudflare R2)
+boto3>=1.34
+django-storages>=1.14
+
+# Database & Cache
+# Note: Using SQLite with WAL mode, no PostgreSQL needed
+
+# Image Processing
+Pillow>=10.0
+
+# Environment
+python-dotenv>=1.0
+
+# Authentication
+django-allauth>=0.61
+
+# Content & Features
+django-threadedcomments>=2.0
+django-pwa>=1.1
+django-meta>=2.4
+django-recaptcha>=4.0
+google-generativeai>=0.8.3
+django-dbbackup>=4.1
+django-taggit>=5.0
+django-htmx>=1.17
+django-editorjs-fields>=0.2
+django-webpush>=0.3
+
+# Background Tasks
+huey>=2.5
+
+# Security
+bleach>=6.1
+cryptography>=42.0
+PyJWT>=2.8
+
+# AI Integration
+google-generativeai>=0.4
+groq>=0.4
+
+# TTS (Text-to-Speech)
+gTTS>=2.5
+duckduckgo-search>=6.3
+
+# HTTP Requests
+requests>=2.31
+
+# Async Support (for Huey)
+gevent>=24.0

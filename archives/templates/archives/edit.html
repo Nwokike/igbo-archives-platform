@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit {{ archive.title }} - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="font-serif text-display-lg text-dark-brown mb-6">Edit Archive</h1>
+    
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="title" class="form-label">Title *</label>
+            <input type="text" class="form-input" id="title" name="title" value="{{ archive.title }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description" class="form-label">Description *</label>
+            <textarea class="form-textarea" id="description" name="description" rows="5" required>{{ archive.description }}</textarea>
+            <p class="form-help">Plain text description of the archive</p>
+        </div>
+
+        <div class="form-group">
+            <label for="archive_type" class="form-label">Archive Type *</label>
+            <select class="form-select" id="archive_type" name="archive_type" required>
+                <option value="image" {% if archive.archive_type == 'image' %}selected{% endif %}>Image</option>
+                <option value="video" {% if archive.archive_type == 'video' %}selected{% endif %}>Video</option>
+                <option value="document" {% if archive.archive_type == 'document' %}selected{% endif %}>Document</option>
+                <option value="audio" {% if archive.archive_type == 'audio' %}selected{% endif %}>Audio</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="category" class="form-label">Category</label>
+            <select class="form-select" id="category" name="category">
+                <option value="">Select category...</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if archive.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if archive.image %}
+        <div class="form-group">
+            <label class="form-label">Current Media</label>
+            <div class="mb-3">
+                <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" class="max-w-xs rounded-lg shadow-soft">
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="image" class="form-label">Media File</label>
+            <input type="file" class="form-input" id="image" name="image">
+            <p class="form-help">Leave empty to keep current file. Accepted: JPG, PNG, WEBP, MP4, PDF, etc.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="caption" class="form-label">Caption (with copyright/source info) *</label>
+            <input type="text" class="form-input" id="caption" name="caption" value="{{ archive.caption }}" required>
+            <p class="form-help">Must include copyright or source information</p>
+        </div>
+
+        <div class="form-group">
+            <label for="alt_text" class="form-label">Image Description (Alt Text) *</label>
+            <input type="text" class="form-input" id="alt_text" name="alt_text" value="{{ archive.alt_text }}" required>
+            <p class="form-help">Describe the content for accessibility</p>
+        </div>
+
+        <div class="form-group">
+            <label for="location" class="form-label">Location (Optional)</label>
+            <input type="text" class="form-input" id="location" name="location" value="{{ archive.location }}">
+        </div>
+
+        <div class="form-group">
+            <label for="date_created" class="form-label">Date Created (if known)</label>
+            <input type="date" class="form-input" id="date_created" name="date_created" value="{{ archive.date_created|date:'Y-m-d' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-input" id="tags" name="tags" value="{% for tag in archive.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}" placeholder="mask, ceremony, traditional">
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+            <button type="submit" class="btn-primary flex-1">Update Archive</button>
+            <a href="{% url 'archives:detail' archive.pk %}" class="btn-secondary text-center">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

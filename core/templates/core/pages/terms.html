@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms of Service - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <h1 class="font-serif text-display-xl text-dark-brown mb-4">Terms of Service</h1>
+    <p class="text-vintage-beaver mb-8">Last updated: {{ current_date|date:"F d, Y" }}</p>
+    
+    <div class="prose prose-lg max-w-none space-y-8">
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">1. Acceptance of Terms</h2>
+            <p class="text-dark-umber">By accessing and using Igbo Archives, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to these terms, please do not use this platform.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">2. User Responsibilities</h2>
+            <p class="text-dark-umber mb-2">When using Igbo Archives, you agree to:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li>Provide accurate and truthful information</li>
+                <li>Maintain the confidentiality of your account credentials</li>
+                <li>Respect the intellectual property rights of others</li>
+                <li>Not upload any harmful, offensive, or illegal content</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">3. Content and Copyright</h2>
+            <p class="text-dark-umber mb-2"><strong>User-Generated Content:</strong> You are solely responsible for any content you post, including images, text, and other materials. This includes:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li>Ensuring you have the right to share the content</li>
+                <li>Providing accurate copyright and attribution information for all images and materials</li>
+                <li>Properly licensing your content or respecting existing licenses</li>
+                <li>Not infringing on the intellectual property rights of others</li>
+            </ul>
+            
+            <p class="text-dark-umber mt-4 mb-2"><strong>Image Copyright Responsibility:</strong> When uploading images, you must:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li>Own the copyright to the image, or have permission to use it</li>
+                <li>Provide accurate copyright information and attribution</li>
+                <li>Comply with Creative Commons or other licensing requirements</li>
+                <li>Understand that misrepresenting copyright information may result in legal liability</li>
+            </ul>
+            
+            <p class="text-dark-umber mt-4">Igbo Archives is not responsible for copyright violations by users. Any legal disputes arising from copyright infringement are the sole responsibility of the user who posted the content.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">4. Content License</h2>
+            <p class="text-dark-umber">By posting content on Igbo Archives, you grant us a non-exclusive, worldwide, royalty-free license to use, display, reproduce, and distribute your content on the platform. You retain all ownership rights to your content.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">5. Prohibited Conduct</h2>
+            <p class="text-dark-umber mb-2">You may not:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li>Use the platform for any illegal purposes</li>
+                <li>Harass, abuse, or harm other users</li>
+                <li>Post false, misleading, or deceptive content</li>
+                <li>Attempt to gain unauthorized access to the platform or other users' accounts</li>
+                <li>Interfere with or disrupt the platform's operation</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">6. Account Termination</h2>
+            <p class="text-dark-umber">We reserve the right to suspend or terminate your account at any time for violation of these terms or for any other reason at our discretion.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">7. Disclaimer of Warranties</h2>
+            <p class="text-dark-umber">Igbo Archives is provided "as is" without any warranties, express or implied. We do not guarantee that the platform will be error-free or uninterrupted.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">8. Limitation of Liability</h2>
+            <p class="text-dark-umber">Igbo Archives and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the platform.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">9. Changes to Terms</h2>
+            <p class="text-dark-umber">We may update these terms from time to time. Continued use of the platform after changes constitutes acceptance of the new terms.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">10. Push Notifications and Communication</h2>
+            <p class="text-dark-umber">To enhance your experience, Igbo Archives may offer browser-based push notifications. These are used to provide you with real-time alerts about important activities. You will be asked for your permission before these notifications are enabled, and you can manage or disable them at any time through your browser's settings.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">11. Contact Information</h2>
+            <p class="text-dark-umber">If you have questions about these terms, please <a href="{% url 'core:contact' %}" class="text-vintage-gold hover:underline">contact us</a>.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}

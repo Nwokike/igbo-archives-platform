@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Insight - Igbo Archives{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/editor.css' %}">
+<link rel="stylesheet" href="{% static 'css/modal.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="font-serif text-display-lg text-dark-brown mb-2">Create New Insight</h1>
+        <p class="text-vintage-beaver">Share your knowledge and perspective on Igbo culture and history.</p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" id="insightForm" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="title" class="form-label">Title <span class="text-red-500">*</span></label>
+            <input type="text" class="form-input" id="title" name="title" required placeholder="Enter a compelling title for your insight">
+        </div>
+
+        <div class="form-group">
+            <label for="excerpt" class="form-label">Excerpt</label>
+            <textarea class="form-textarea" id="excerpt" name="excerpt" rows="2" maxlength="500" placeholder="Brief summary of your insight (optional)"></textarea>
+            <p class="form-help">Brief summary shown in listings (max 500 characters)</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Content <span class="text-red-500">*</span></label>
+            <div id="editor" class="editor-container"></div>
+            <input type="hidden" id="content_json" name="content_json" required>
+            <p class="form-help">Use the toolbar to format text, add images, and structure your content.</p>
+        </div>
+
+        <div class="form-group hidden" id="featuredImageSection">
+            <label class="form-label">Choose Featured Image</label>
+            <p class="text-sm text-vintage-beaver mb-3">Select an image from your post content to use as the featured image. If not selected, the first image will be used.</p>
+            <div id="featuredImageGrid" class="featured-image-grid"></div>
+            <input type="hidden" id="featured_image_url" name="featured_image_url">
+        </div>
+
+        <div class="form-group">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-input" id="tags" name="tags" placeholder="culture, history, tradition">
+            <p class="form-help">Separate tags with commas</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+            <button type="submit" name="action" value="save" class="btn-secondary btn-lg flex-1">
+                <i class="fas fa-save"></i> Save as Draft
+            </button>
+            <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                <i class="fas fa-paper-plane"></i> Submit for Approval
+            </button>
+        </div>
+        
+        <div class="text-center">
+            <a href="{% url 'insights:list' %}" class="text-vintage-beaver hover:text-dark-brown transition-colors text-sm">
+                <i class="fas fa-arrow-left"></i> Cancel and go back
+            </a>
+        </div>
+    </form>
+</div>
+
+<div id="imageModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title">Add Image to Content</h3>
+                <p class="modal-subtitle">Choose to upload a new image or select from existing archives</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeImageModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="tabs-container">
+                <div class="tabs-list">
+                    <button type="button" class="tab-button active" data-tab="upload">Upload New Image</button>
+                    <button type="button" class="tab-button" data-tab="archive">Select from Archives</button>
+                </div>
+            </div>
+            
+            <div id="upload-panel" class="tab-panel active">
+                <div class="form-group">
+                    <label class="form-label form-label-required">Select Image File</label>
+                    <input type="file" class="form-input" id="imageFileInput" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label class="form-label form-label-required">Caption (with copyright/source info)</label>
+                    <input type="text" class="form-input" id="imageCaption" placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
+                    <p class="form-help">Required: Include copyright or image source information</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label form-label-required">Description (Alt Text)</label>
+                    <input type="text" class="form-input" id="imageDescription" placeholder="Describe the image for accessibility">
+                    <p class="form-help">Required: Describe what's in the image for screen readers</p>
+                </div>
+            </div>
+            
+            <div id="archive-panel" class="tab-panel">
+                <div class="search-input-container">
+                    <i class="fas fa-search search-input-icon"></i>
+                    <input type="text" class="form-input" id="archiveSearch" placeholder="Search archives...">
+                </div>
+                <div id="archiveGrid" class="archive-grid">
+                    <p class="text-center text-vintage-beaver py-8">Loading archives...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
+            <button type="button" class="btn-primary" id="uploadBtn" onclick="uploadAndInsertImage()">
+                <i class="fas fa-upload"></i> Upload & Insert
+            </button>
+            <button type="button" class="btn-primary hidden" id="insertArchiveBtn" onclick="insertSelectedArchive()">
+                <i class="fas fa-check"></i> Insert Selected
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/js/editorjs/editorjs.umd.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/header.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/image.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/embed.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/link.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/code.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
+<script src="{% static 'js/editor.js' %}"></script>
+<script src="{% static 'js/insight-editor.js' %}"></script>
+{% endblock %}

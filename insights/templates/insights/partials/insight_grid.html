@@ -1,0 +1,58 @@
+{% if posts %}
+    {% for post in posts %}
+    <a href="{% url 'insights:detail' post.slug %}" class="card card-hover group block no-underline">
+        {% if post.featured_image %}
+        <div class="relative overflow-hidden">
+            <img src="{{ post.featured_image.url }}" 
+                 alt="{{ post.alt_text }}" 
+                 loading="lazy" 
+                 decoding="async"
+                 class="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105">
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <h3 class="font-serif text-lg font-semibold text-dark-brown mb-2 group-hover:text-vintage-gold transition-colors line-clamp-2">{{ post.title }}</h3>
+            <p class="text-sm text-vintage-beaver mb-3 flex items-center gap-2">
+                <i class="fas fa-user text-xs"></i>
+                <span>{{ post.author.full_name|default:post.author.username }}</span>
+                <span class="text-sepia-pale">•</span>
+                <span>{{ post.created_at|date:"M d, Y" }}</span>
+            </p>
+            <p class="text-sm text-dark-umber line-clamp-3">{{ post.excerpt|default:post.content|striptags|truncatewords:20 }}</p>
+        </div>
+    </a>
+    {% endfor %}
+
+    {% if posts.has_other_pages %}
+    <div class="col-span-full flex justify-center pt-8">
+        <nav class="pagination">
+            {% if posts.has_previous %}
+            <a class="page-link" href="?page={{ posts.previous_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                <i class="fas fa-chevron-left text-xs"></i>
+            </a>
+            {% endif %}
+
+            {% for num in posts.paginator.page_range %}
+                {% if posts.number == num %}
+                <span class="page-link active">{{ num }}</span>
+                {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
+                <a class="page-link" href="?page={{ num }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if posts.has_next %}
+            <a class="page-link" href="?page={{ posts.next_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+{% else %}
+    <div class="col-span-full">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>No insights found. <a href="{% url 'insights:create' %}" class="text-vintage-gold hover:underline font-medium">Be the first to share your thoughts!</a></div>
+        </div>
+    </div>
+{% endif %}

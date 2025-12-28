@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <h1 class="font-serif text-display-lg text-dark-brown mb-8">Messages</h1>
+
+    <div class="space-y-3">
+        {% for thread in threads %}
+        <a href="{% url 'users:thread' thread.id %}" class="card card-hover block no-underline">
+            <div class="card-body">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <h3 class="font-serif font-semibold text-dark-brown">{{ thread.subject }}</h3>
+                    <span class="text-sm text-vintage-beaver whitespace-nowrap">{{ thread.updated_at|date:"n/j/Y g:i A" }}</span>
+                </div>
+                <div class="text-sm text-dark-umber mb-2">
+                    {% with thread.messages.last as last_message %}
+                        {% if last_message %}
+                            <strong>{{ last_message.sender.get_display_name }}:</strong>
+                            {{ last_message.content|truncatewords:15 }}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="text-sm text-vintage-beaver">
+                    {% for participant in thread.participants.all %}
+                        {% if participant != user %}
+                            <span class="font-medium">{{ participant.get_display_name }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="text-center py-12 text-vintage-beaver">
+            <i class="fas fa-inbox text-4xl mb-4 text-sepia-pale"></i>
+            <p>No messages yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

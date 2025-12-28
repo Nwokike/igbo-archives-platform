@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /profile/*/edit/
+Disallow: /profile/delete-account/
+Disallow: /profile/messages/
+Disallow: /api/
+
+# Allow public profiles and content
+Allow: /profile/*/
+Allow: /archives/
+Allow: /insights/
+Allow: /books/
+Allow: /ai/

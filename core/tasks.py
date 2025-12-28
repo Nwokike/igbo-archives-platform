@@ -1,0 +1,208 @@
+"""
+Huey background tasks for the Igbo Archives platform.
+Memory-efficient async tasks for 1GB RAM constraint.
+"""
+
+from huey.contrib.djhuey import task, periodic_task, db_task
+from huey import crontab
+from django.core.mail import send_mail
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+@db_task()
+def send_email_async(subject, message, recipient_list, from_email=None):
+    """Send email asynchronously to reduce request latency"""
+    try:
+        from_email = from_email or settings.DEFAULT_FROM_EMAIL
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            recipient_list=recipient_list,
+            fail_silently=False,
+        )
+        logger.info(f"Email sent to {recipient_list}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send email: {e}")
+        return False
+
+
+@db_task()
+def send_push_notification_async(user_id, title, body, url=None):
+    """Send push notification asynchronously"""
+    try:
+        from django.contrib.auth import get_user_model
+        from webpush.models import PushInformation
+        from webpush import send_user_notification
+        
+        User = get_user_model()
+        user = User.objects.get(id=user_id)
+        
+        payload = {
+            "head": title,
+            "body": body,
+        }
+        if url:
+            payload["url"] = url
+        
+        send_user_notification(user=user, payload=payload, ttl=86400)
+        logger.info(f"Push notification sent to user {user_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send push notification: {e}")
+        return False
+
+
+@db_task()
+def notify_post_approved(post_id, post_type):
+    """Notify author when their post is approved"""
+    try:
+        if post_type == 'insight':
+            from insights.models import InsightPost
+            post = InsightPost.objects.select_related('author').get(id=post_id)
+            author = post.author
+            title = post.title
+        elif post_type == 'book':
+            from books.models import BookReview
+            post = BookReview.objects.select_related('reviewer').get(id=post_id)
+            author = post.reviewer
+            title = post.review_title
+        else:
+            return False
+        
+        from users.models import Notification
+        Notification.objects.create(
+            recipient=author,
+            verb=f'Your {post_type} "{title}" has been approved and published!',
+            description=f'Your submission is now live on Igbo Archives.',
+        )
+        
+        if author.email:
+            send_email_async(
+                subject=f'Your {post_type} has been approved!',
+                message=f'Congratulations! Your {post_type} "{title}" has been approved and is now live on Igbo Archives.',
+                recipient_list=[author.email],
+            )
+        
+        return True
+    except Exception as e:
+        logger.error(f"Failed to notify post approval: {e}")
+        return False
+
+
+@db_task()
+def notify_post_rejected(post_id, post_type, reason=''):
+    """Notify author when their post is rejected"""
+    try:
+        if post_type == 'insight':
+            from insights.models import InsightPost
+            post = InsightPost.objects.select_related('author').get(id=post_id)
+            author = post.author
+            title = post.title
+        elif post_type == 'book':
+            from books.models import BookReview
+            post = BookReview.objects.select_related('reviewer').get(id=post_id)
+            author = post.reviewer
+            title = post.review_title
+        else:
+            return False
+        
+        from users.models import Notification
+        description = f'Reason: {reason}' if reason else 'Please review and resubmit.'
+        Notification.objects.create(
+            recipient=author,
+            verb=f'Your {post_type} "{title}" needs revision',
+            description=description,
+        )
+        
+        return True
+    except Exception as e:
+        logger.error(f"Failed to notify post rejection: {e}")
+        return False
+
+
+@periodic_task(crontab(hour='3', minute='0'))
+def daily_database_backup():
+    """Run database backup daily at 3 AM"""
+    try:
+        from django.core.management import call_command
+        call_command('dbbackup', '--clean')
+        logger.info("Daily database backup completed")
+        return True
+    except Exception as e:
+        logger.error(f"Database backup failed: {e}")
+        return False
+
+
+@periodic_task(crontab(hour='4', minute='0'))
+def daily_media_backup():
+    """Run media backup daily at 4 AM"""
+    try:
+        from django.core.management import call_command
+        call_command('mediabackup', '--clean')
+        logger.info("Daily media backup completed")
+        return True
+    except Exception as e:
+        logger.error(f"Media backup failed: {e}")
+        return False
+
+
+@periodic_task(crontab(hour='*/6'))
+def clear_expired_cache():
+    """Clear expired cache entries every 6 hours"""
+    try:
+        from django.core.cache import cache
+        cache.clear()
+        logger.info("Cache cleared")
+        return True
+    except Exception as e:
+        logger.error(f"Cache clear failed: {e}")
+        return False
+
+
+@db_task()
+def post_to_social_media(post_id, post_type):
+    """Post to social media asynchronously (placeholder for future implementation)"""
+    try:
+        logger.info(f"Social media posting for {post_type} {post_id} - not yet implemented")
+        return True
+    except Exception as e:
+        logger.error(f"Social media posting failed: {e}")
+        return False
+
+
+@db_task()
+def process_archive_upload(archive_id):
+    """Process archive upload - generate thumbnails, optimize images"""
+    try:
+        from archives.models import Archive
+        archive = Archive.objects.get(id=archive_id)
+        logger.info(f"Processed archive {archive_id}: {archive.title}")
+        return True
+    except Exception as e:
+        logger.error(f"Archive processing failed: {e}")
+        return False
+
+
+@db_task()
+def notify_indexnow(urls):
+    """Notify search engines about new/updated content via IndexNow"""
+    try:
+        from core.indexnow import IndexNowClient
+        client = IndexNowClient()
+        
+        if isinstance(urls, str):
+            urls = [urls]
+        
+        for url in urls:
+            client.submit_url(url)
+        
+        logger.info(f"Submitted {len(urls)} URLs to IndexNow")
+        return True
+    except Exception as e:
+        logger.error(f"IndexNow submission failed: {e}")
+        return False

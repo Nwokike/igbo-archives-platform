@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="font-serif text-display-md text-dark-brown">
+                <i class="fas fa-user-edit text-vintage-gold"></i> Edit Profile
+            </h1>
+        </div>
+        <div class="card-body p-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                    <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% else %}check-circle{% endif %}"></i>
+                    <div>{{ message }}</div>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <div>
+                    <h3 class="font-semibold text-dark-brown mb-4">Basic Information</h3>
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name</label>
+                            <input type="text" class="form-input" id="{{ form.full_name.id_for_label }}" name="full_name" value="{{ form.full_name.value|default:'' }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.bio.id_for_label }}" class="form-label">Bio</label>
+                            <textarea class="form-textarea" id="{{ form.bio.id_for_label }}" name="bio" rows="4">{{ form.bio.value|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+                            <input type="file" class="form-input" id="{{ form.profile_picture.id_for_label }}" name="profile_picture" accept="image/*">
+                            {% if user.profile_picture %}
+                            <div class="mt-3">
+                                <img src="{{ user.profile_picture.url }}" alt="Current profile" class="w-24 h-24 rounded-full object-cover border-2 border-sepia-pale">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="border-sepia-pale/50">
+                
+                <div>
+                    <h3 class="font-semibold text-dark-brown mb-2">
+                        <i class="fas fa-share-alt text-vintage-gold"></i> Social Media Links
+                    </h3>
+                    <p class="text-sm text-vintage-beaver mb-4">Add your social media profiles so others can connect with you</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="{{ form.twitter.id_for_label }}" class="form-label">
+                                <i class="fab fa-twitter text-vintage-gold"></i> Twitter
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.twitter.id_for_label }}" name="twitter" value="{{ form.twitter.value|default:'' }}" placeholder="https://twitter.com/...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.facebook.id_for_label }}" class="form-label">
+                                <i class="fab fa-facebook text-vintage-gold"></i> Facebook
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.facebook.id_for_label }}" name="facebook" value="{{ form.facebook.value|default:'' }}" placeholder="https://facebook.com/...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.linkedin.id_for_label }}" class="form-label">
+                                <i class="fab fa-linkedin text-vintage-gold"></i> LinkedIn
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.linkedin.id_for_label }}" name="linkedin" value="{{ form.linkedin.value|default:'' }}" placeholder="https://linkedin.com/...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.instagram.id_for_label }}" class="form-label">
+                                <i class="fab fa-instagram text-vintage-gold"></i> Instagram
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.instagram.id_for_label }}" name="instagram" value="{{ form.instagram.value|default:'' }}" placeholder="https://instagram.com/...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.youtube.id_for_label }}" class="form-label">
+                                <i class="fab fa-youtube text-vintage-gold"></i> YouTube
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.youtube.id_for_label }}" name="youtube" value="{{ form.youtube.value|default:'' }}" placeholder="https://youtube.com/...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.website.id_for_label }}" class="form-label">
+                                <i class="fas fa-globe text-vintage-gold"></i> Website
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.website.id_for_label }}" name="website" value="{{ form.website.value|default:'' }}" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="border-sepia-pale/50">
+                
+                <div>
+                    <h3 class="font-semibold text-dark-brown mb-2">
+                        <i class="fas fa-university text-vintage-gold"></i> Academic & Research Profiles
+                    </h3>
+                    <p class="text-sm text-vintage-beaver mb-4">Connect your academic and research profiles</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="{{ form.academia.id_for_label }}" class="form-label">
+                                <i class="fas fa-graduation-cap text-vintage-gold"></i> Academia.edu
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.academia.id_for_label }}" name="academia" value="{{ form.academia.value|default:'' }}" placeholder="https://academia.edu/...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.researchgate.id_for_label }}" class="form-label">
+                                <i class="fas fa-flask text-vintage-gold"></i> ResearchGate
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.researchgate.id_for_label }}" name="researchgate" value="{{ form.researchgate.value|default:'' }}" placeholder="https://researchgate.net/...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.orcid.id_for_label }}" class="form-label">
+                                <i class="fas fa-id-card text-vintage-gold"></i> ORCID
+                            </label>
+                            <input type="url" class="form-input" id="{{ form.orcid.id_for_label }}" name="orcid" value="{{ form.orcid.value|default:'' }}" placeholder="https://orcid.org/...">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a href="{% url 'users:profile' user.username %}" class="btn-secondary text-center">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

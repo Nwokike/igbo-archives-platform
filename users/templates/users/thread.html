@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ thread.subject }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'users:inbox' %}" class="btn-secondary btn-sm mb-4 inline-flex">
+            <i class="fas fa-arrow-left"></i> Back to Messages
+        </a>
+        <h1 class="font-serif text-display-lg text-dark-brown">{{ thread.subject }}</h1>
+    </div>
+
+    <div class="space-y-4 mb-8">
+        {% for message in thread.messages.all %}
+        <div class="flex {% if message.sender == user %}justify-end{% else %}justify-start{% endif %}">
+            <div class="max-w-[75%] {% if message.sender == user %}bg-vintage-gold text-white{% else %}card{% endif %} rounded-xl px-4 py-3">
+                <div class="text-sm font-semibold mb-1">
+                    <a href="{% url 'users:profile' message.sender.username %}" 
+                       class="{% if message.sender == user %}text-white/90 hover:text-white{% else %}text-vintage-gold hover:underline{% endif %} no-underline">
+                        {{ message.sender.get_display_name }}
+                    </a>
+                </div>
+                <div class="leading-relaxed mb-2">
+                    {{ message.content|linebreaks }}
+                </div>
+                <div class="text-xs {% if message.sender == user %}text-white/70{% else %}text-vintage-beaver{% endif %} text-right">
+                    {{ message.created_at|date:"n/j/Y g:i A" }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea name="content" class="form-textarea" rows="3" placeholder="Type your message..." required></textarea>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

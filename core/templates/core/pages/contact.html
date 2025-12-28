@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="font-serif text-display-xl text-dark-brown mb-4">Contact Us</h1>
+    <p class="text-lg text-vintage-beaver mb-8">We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+    
+    <div class="card mb-8">
+        <div class="card-body p-6">
+            <form method="post" action="{% url 'core:contact' %}" class="space-y-5">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name" class="form-label">Your Name</label>
+                    <input type="text" class="form-input" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject" class="form-label">Subject</label>
+                    <input type="text" class="form-input" id="subject" name="subject" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea class="form-textarea" id="message" name="message" rows="6" required></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-lg">Send Message</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+            <h3 class="font-serif text-xl font-semibold text-dark-brown mb-4">Other Ways to Reach Us</h3>
+            <ul class="space-y-3 text-dark-umber">
+                <li><i class="fas fa-envelope text-vintage-gold mr-2"></i> igboarchives@gmail.com</li>
+                <li><i class="fab fa-twitter text-vintage-gold mr-2"></i> @IgboArchives</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h3 class="font-serif text-xl font-semibold text-dark-brown mb-4">Frequently Asked Questions</h3>
+            <p class="text-dark-umber mb-3">Before reaching out, you might find answers in our:</p>
+            <ul class="space-y-2">
+                <li><a href="{% url 'core:privacy' %}" class="text-vintage-gold hover:underline">Privacy Policy</a></li>
+                <li><a href="{% url 'core:terms' %}" class="text-vintage-gold hover:underline">Terms of Service</a></li>
+                <li><a href="{% url 'core:copyright' %}" class="text-vintage-gold hover:underline">Copyright Policy</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

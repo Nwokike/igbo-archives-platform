@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <h1 class="font-serif text-display-xl text-dark-brown mb-4">Privacy Policy</h1>
+    <p class="text-vintage-beaver mb-8">Last updated: {{ current_date|date:"F d, Y" }}</p>
+    
+    <div class="prose prose-lg max-w-none space-y-8">
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">1. Introduction</h2>
+            <p class="text-dark-umber">Igbo Archives ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our platform.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">2. Information We Collect</h2>
+            
+            <h3 class="font-semibold text-dark-brown mt-4 mb-2">Personal Information</h3>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li><strong>Account Information:</strong> Email address, full name, and password (encrypted)</li>
+                <li><strong>Profile Information:</strong> Bio, profile picture, and social links (optional)</li>
+                <li><strong>Content:</strong> Posts, comments, reviews, and other user-generated content</li>
+            </ul>
+            
+            <h3 class="font-semibold text-dark-brown mt-4 mb-2">Automatically Collected Information</h3>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li><strong>Usage Data:</strong> Pages visited, time spent, and interactions with the platform</li>
+                <li><strong>Device Information:</strong> Browser type, operating system, and IP address</li>
+                <li><strong>Cookies:</strong> Session cookies, preference cookies, and analytics cookies</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">3. How We Use Your Information</h2>
+            <p class="text-dark-umber mb-2">We use your information to:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li>Provide and maintain our platform</li>
+                <li>Personalize your experience</li>
+                <li>Send notifications about platform activity</li>
+                <li>Improve our services and user experience</li>
+                <li>Prevent fraud and abuse</li>
+                <li>Comply with legal obligations</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">4. Information Sharing</h2>
+            <p class="text-dark-umber mb-2">We do not sell your personal information. We may share your information only in these circumstances:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li><strong>Publicly:</strong> Information you choose to make public (posts, profile, comments)</li>
+                <li><strong>Service Providers:</strong> Third-party services that help us operate (hosting, analytics, email)</li>
+                <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
+                <li><strong>Business Transfers:</strong> In connection with any merger, sale, or transfer of our business</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">5. Third-Party Services</h2>
+            <p class="text-dark-umber mb-2">We use the following third-party services:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li><strong>Google OAuth:</strong> For Google sign-in authentication</li>
+                <li><strong>Google Analytics:</strong> For website analytics and insights</li>
+                <li><strong>Google reCAPTCHA:</strong> For spam protection</li>
+                <li><strong>Google Gemini AI:</strong> For AI-powered chat assistance</li>
+                <li><strong>Cloud Storage:</strong> For hosting images and media files</li>
+            </ul>
+            <p class="text-dark-umber mt-2">These services have their own privacy policies. We encourage you to review them.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">6. Cookies and Tracking</h2>
+            <p class="text-dark-umber mb-2">We use cookies to:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li>Keep you logged in</li>
+                <li>Remember your preferences (theme, language)</li>
+                <li>Analyze platform usage</li>
+                <li>Improve security</li>
+            </ul>
+            <p class="text-dark-umber mt-2">You can control cookies through your browser settings, but some features may not work properly if cookies are disabled.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">7. Data Security</h2>
+            <p class="text-dark-umber">We implement appropriate security measures to protect your personal data. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">8. Your Rights</h2>
+            <p class="text-dark-umber mb-2">Depending on your location, you may have the following rights:</p>
+            <ul class="list-disc list-inside space-y-1 text-dark-umber">
+                <li>Access your personal data</li>
+                <li>Request correction of inaccurate data</li>
+                <li>Request deletion of your data</li>
+                <li>Object to processing of your data</li>
+                <li>Request data portability</li>
+            </ul>
+            <p class="text-dark-umber mt-2">To exercise these rights, please <a href="{% url 'core:contact' %}" class="text-vintage-gold hover:underline">contact us</a>.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">9. Changes to This Policy</h2>
+            <p class="text-dark-umber">We may update this policy from time to time. We will notify you of any changes by posting the new privacy policy on this page.</p>
+        </section>
+        
+        <section>
+            <h2 class="font-serif text-xl font-semibold text-dark-brown mb-3">10. Contact Us</h2>
+            <p class="text-dark-umber">If you have questions about this privacy policy, please <a href="{% url 'core:contact' %}" class="text-vintage-gold hover:underline">contact us</a>.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}

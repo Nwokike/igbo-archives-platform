@@ -1,0 +1,39 @@
+<div class="notification-dropdown-content">
+    {% if notifications %}
+        {% for notification in notifications %}
+        <a href="{% if notification.action_object %}{{ notification.action_object.get_absolute_url }}{% else %}/profile/notifications/{% endif %}" 
+           class="notification-dropdown-item {% if notification.unread %}unread{% endif %}">
+            <div class="notification-icon">
+                {% if 'approved' in notification.verb %}
+                    <i class="fas fa-check-circle text-green-600"></i>
+                {% elif 'rejected' in notification.verb %}
+                    <i class="fas fa-times-circle text-red-500"></i>
+                {% elif 'comment' in notification.verb %}
+                    <i class="fas fa-comment"></i>
+                {% elif 'message' in notification.verb %}
+                    <i class="fas fa-envelope"></i>
+                {% elif 'edit' in notification.verb or 'suggestion' in notification.verb %}
+                    <i class="fas fa-edit text-vintage-bronze"></i>
+                {% else %}
+                    <i class="fas fa-bell"></i>
+                {% endif %}
+            </div>
+            <div class="notification-text">
+                <div class="notification-message">{{ notification.description|default:notification.verb|truncatewords:10 }}</div>
+                <div class="notification-time">{{ notification.timestamp|timesince }} ago</div>
+            </div>
+            <button class="mark-read-btn" onclick="event.preventDefault(); markNotificationRead({{ notification.id }});">
+                <i class="fas fa-check"></i>
+            </button>
+        </a>
+        {% endfor %}
+        <a href="/profile/notifications/" class="notification-dropdown-footer">
+            View all notifications
+        </a>
+    {% else %}
+        <div class="notification-dropdown-empty">
+            <i class="fas fa-bell-slash"></i>
+            <p>No new notifications</p>
+        </div>
+    {% endif %}
+</div>

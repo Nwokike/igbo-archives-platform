@@ -1,0 +1,95 @@
+.notification-dropdown-content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-dropdown-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color, #D4C4A8);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s;
+    gap: 12px;
+}
+
+.notification-dropdown-item:hover {
+    background: var(--background-hover, #F5F0E6);
+}
+
+.notification-dropdown-item.unread {
+    background: var(--heritage-cream, #F5F0E6);
+    border-left: 3px solid var(--vintage-gold, #B8974F);
+}
+
+.notification-dropdown-item .notification-icon {
+    font-size: 1.2rem;
+    color: var(--vintage-gold, #B8974F);
+}
+
+.notification-dropdown-item .notification-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-dropdown-item .notification-message {
+    font-size: 0.875rem;
+    margin-bottom: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--dark-brown, #3D2817);
+}
+
+.notification-dropdown-item .notification-time {
+    font-size: 0.75rem;
+    color: var(--vintage-beaver, #8B7355);
+}
+
+.mark-read-btn {
+    background: none;
+    border: none;
+    color: var(--vintage-beaver, #8B7355);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.mark-read-btn:hover {
+    color: var(--vintage-gold, #B8974F);
+    background: var(--heritage-cream, #F5F0E6);
+}
+
+.notification-dropdown-footer {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    background: var(--heritage-cream, #F5F0E6);
+    color: var(--vintage-gold, #B8974F);
+    text-decoration: none;
+    font-weight: 500;
+    border-top: 1px solid var(--border-color, #D4C4A8);
+}
+
+.notification-dropdown-footer:hover {
+    background: var(--sepia-pale, #D4C4A8);
+}
+
+.notification-dropdown-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--vintage-beaver, #8B7355);
+}
+
+.notification-dropdown-empty i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.notification-dropdown-empty p {
+    margin: 0;
+    font-size: 0.875rem;
+}

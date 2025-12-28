@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Account{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <h1 class="font-serif text-display-lg text-red-600 mb-6">Delete Account</h1>
+    
+    <div class="alert alert-error mb-6">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Warning!</strong> This action cannot be undone. All your data will be permanently deleted.
+        </div>
+    </div>
+    
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="password" class="form-label">Confirm your password to delete your account:</label>
+            <input type="password" class="form-input" id="password" name="password" required>
+        </div>
+        <div class="flex gap-3">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors">
+                Delete My Account
+            </button>
+            <a href="{% url 'users:dashboard' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

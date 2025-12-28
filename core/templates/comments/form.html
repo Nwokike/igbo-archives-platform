@@ -1,0 +1,61 @@
+{% load static %}
+
+<div class="modern-comment-section">
+    <h3 class="comment-section-title">Leave a Comment</h3>
+    <p class="guest-notice">Or <a href="{% url 'account_login' %}?next={{ request.path }}">log in</a> for faster commenting</p>
+    
+    <form method="post" action="{% url 'comments-post-comment' %}" class="modern-comment-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        {{ form.content_type }}
+        {{ form.object_pk }}
+        {{ form.timestamp }}
+        {{ form.security_hash }}
+        {{ form.parent }}
+        
+        <div class="guest-info-row">
+            <div class="form-field">
+                <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <div class="form-error">{{ form.name.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-field">
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <div class="form-error">{{ form.email.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="comment-input-wrapper">
+            <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
+            {{ form.comment }}
+            {% if form.comment.errors %}
+            <div class="form-error">{{ form.comment.errors }}</div>
+            {% endif %}
+        </div>
+        
+        {% if not user.is_authenticated and form.fields.captcha %}
+        <div class="form-group captcha-wrapper">
+            {{ form.captcha }}
+            {% if form.captcha.errors %}
+            <div class="form-error">{{ form.captcha.errors }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="comment-actions">
+            <button type="submit" class="comment-submit-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+                Post Comment
+            </button>
+        </div>
+    </form>
+</div>
+
+

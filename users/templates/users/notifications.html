@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="font-serif text-display-lg text-dark-brown">Notifications</h1>
+        <button class="btn-secondary btn-sm" onclick="markAllRead()">
+            <i class="fas fa-check-double"></i> Mark All as Read
+        </button>
+    </div>
+
+    <div class="flex gap-2 mb-6 border-b border-sepia-pale/50 pb-3">
+        <a href="?filter=all" class="tab-button {% if filter_type == 'all' %}active{% endif %}">All</a>
+        <a href="?filter=unread" class="tab-button {% if filter_type == 'unread' %}active{% endif %}">Unread</a>
+        <a href="?filter=read" class="tab-button {% if filter_type == 'read' %}active{% endif %}">Read</a>
+    </div>
+
+    <div class="space-y-3">
+        {% for notification in notifications %}
+        <div class="card {% if notification.unread %}border-l-4 border-l-vintage-gold bg-heritage-cream/50{% endif %} transition-all hover:shadow-md" id="notification-{{ notification.id }}">
+            <div class="card-body flex items-start gap-4">
+                <div class="text-2xl flex-shrink-0">
+                    {% if 'approved' in notification.verb %}
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    {% elif 'rejected' in notification.verb %}
+                        <i class="fas fa-times-circle text-red-500"></i>
+                    {% elif 'comment' in notification.verb %}
+                        <i class="fas fa-comment text-vintage-gold"></i>
+                    {% elif 'message' in notification.verb %}
+                        <i class="fas fa-envelope text-vintage-gold"></i>
+                    {% elif 'edit' in notification.verb or 'suggestion' in notification.verb %}
+                        <i class="fas fa-edit text-vintage-bronze"></i>
+                    {% else %}
+                        <i class="fas fa-bell text-vintage-beaver"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <p class="text-dark-brown mb-1">{{ notification.description|default:notification.verb }}</p>
+                    <p class="text-sm text-vintage-beaver">
+                        <i class="fas fa-clock text-xs"></i> {{ notification.timestamp|timesince }} ago
+                    </p>
+                </div>
+                {% if notification.unread %}
+                <button class="btn-secondary btn-sm" onclick="markAsRead({{ notification.id }})">
+                    <i class="fas fa-check"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12 text-vintage-beaver">
+            <i class="fas fa-bell-slash text-4xl mb-4 text-sepia-pale"></i>
+            <p>No notifications yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if notifications.has_other_pages %}
+    <nav class="flex justify-center mt-8">
+        <div class="pagination">
+            {% if notifications.has_previous %}
+            <a class="page-link" href="?filter={{ filter_type }}&page={{ notifications.previous_page_number }}">
+                <i class="fas fa-chevron-left text-xs"></i>
+            </a>
+            {% endif %}
+            
+            <span class="page-link">Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}</span>
+            
+            {% if notifications.has_next %}
+            <a class="page-link" href="?filter={{ filter_type }}&page={{ notifications.next_page_number }}">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+

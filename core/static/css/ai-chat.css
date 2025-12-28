@@ -1,0 +1,47 @@
+/* AI Chat Styles */
+.chat-container {
+    height: calc(100vh - 300px);
+    min-height: 400px;
+}
+
+.message-user {
+    background: linear-gradient(135deg, #B8974F 0%, #9D7A3E 100%);
+}
+
+.message-assistant {
+    background-color: #F0F0DA;
+}
+
+.typing-indicator span {
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-5px);
+    }
+}
+
+.recording {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

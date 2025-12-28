@@ -1,0 +1,68 @@
+{% if reviews %}
+    {% for review in reviews %}
+    <a href="{% url 'books:detail' review.slug %}" class="card card-hover group block no-underline">
+        {% if review.cover_image %}
+        <div class="relative overflow-hidden">
+            <img src="{{ review.cover_image.url }}" 
+                 alt="{{ review.book_title }}" 
+                 loading="lazy" 
+                 decoding="async"
+                 class="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-105">
+        </div>
+        {% else %}
+        <div class="w-full h-56 bg-heritage-cream flex items-center justify-center text-vintage-beaver">
+            <i class="fas fa-book text-4xl"></i>
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <h3 class="font-serif text-lg font-semibold text-dark-brown mb-1 group-hover:text-vintage-gold transition-colors line-clamp-2">{{ review.book_title }}</h3>
+            <p class="text-sm text-vintage-beaver mb-2">by {{ review.author }}</p>
+            <div class="text-vintage-gold mb-2">
+                {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                {% endfor %}
+            </div>
+            <h4 class="text-sm font-medium text-dark-umber mb-2 line-clamp-1">{{ review.review_title }}</h4>
+            <p class="text-xs text-vintage-beaver">
+                <i class="fas fa-user"></i> {{ review.reviewer.full_name|default:review.reviewer.username }}
+            </p>
+        </div>
+    </a>
+    {% endfor %}
+
+    {% if reviews.has_other_pages %}
+    <div class="col-span-full flex justify-center pt-8">
+        <nav class="pagination">
+            {% if reviews.has_previous %}
+            <a class="page-link" href="?page={{ reviews.previous_page_number }}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                <i class="fas fa-chevron-left text-xs"></i>
+            </a>
+            {% endif %}
+
+            {% for num in reviews.paginator.page_range %}
+                {% if reviews.number == num %}
+                <span class="page-link active">{{ num }}</span>
+                {% elif num > reviews.number|add:'-3' and num < reviews.number|add:'3' %}
+                <a class="page-link" href="?page={{ num }}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if reviews.has_next %}
+            <a class="page-link" href="?page={{ reviews.next_page_number }}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+{% else %}
+    <div class="col-span-full">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <h4 class="font-semibold mb-1">No book reviews found</h4>
+                <p>Be the first to review a book! <a href="{% url 'books:create' %}" class="text-vintage-gold hover:underline font-medium">Write a review</a></p>
+            </div>
+        </div>
+    </div>
+{% endif %}

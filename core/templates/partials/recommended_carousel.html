@@ -1,0 +1,51 @@
+<!-- Recommended Posts Carousel -->
+{% if recommended %}
+<div class="recommended-section">
+    <h3 class="section-title">You May Also Like</h3>
+    
+    <div class="recommended-carousel">
+        <button class="carousel-btn prev-btn">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <div class="carousel-track" id="recommendedTrack">
+            {% for item in recommended %}
+            <div class="recommended-card">
+                <a href="{{ item.get_absolute_url|default:'#' }}" class="card-link">
+                    {% if item.image or item.featured_image or item.cover_image %}
+                    <div class="card-image">
+                        <img src="{% if item.image %}{{ item.image.url }}{% elif item.featured_image %}{{ item.featured_image.url }}{% else %}{{ item.cover_image.url }}{% endif %}" 
+                             alt="{{ item.title|default:'' }}{{ item.review_title|default:'' }}{{ item.book_title|default:'' }}">
+                    </div>
+                    {% endif %}
+                    <div class="card-content">
+                        <h4 class="card-title">
+                            {% if item.title %}
+                                {{ item.title|truncatewords:10 }}
+                            {% elif item.review_title %}
+                                {{ item.review_title|truncatewords:10 }}
+                            {% elif item.book_title %}
+                                {{ item.book_title|truncatewords:10 }}
+                            {% endif %}
+                        </h4>
+                        <p class="card-meta">
+                            {% if item.uploaded_by %}
+                                By {{ item.uploaded_by.get_display_name }}
+                            {% elif item.author %}
+                                By {{ item.author.get_display_name }}
+                            {% elif item.reviewer %}
+                                By {{ item.reviewer.get_display_name }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <button class="carousel-btn next-btn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</div>
+{% endif %}

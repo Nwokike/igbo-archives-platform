@@ -1,0 +1,38 @@
+{% load threadedcomments_tags %}
+{% load i18n %}
+
+<div class="comments-list">
+    {% if comment_list %}
+        {% for comment in comment_list %}
+            <div class="comment-box {% if comment.parent %}comment-reply{% endif %}" id="comment-{{ comment.id }}">
+                <div class="comment-header">
+                    {% if comment.user %}
+                        <a href="{% url 'users:profile' comment.user.username %}" class="comment-author text-decoration-none">{{ comment.user.get_display_name }}</a>
+                    {% else %}
+                        <span class="comment-author">{{ comment.name }}</span>
+                    {% endif %}
+                    <span class="comment-time">{{ comment.submit_date|timesince }} ago</span>
+                </div>
+                <div class="comment-content">
+                    {{ comment.comment|linebreaks }}
+                </div>
+                <div class="comment-actions">
+                    <button class="comment-reply-btn" data-comment-id="{{ comment.id }}">
+                        <i class="fas fa-reply"></i> Reply
+                    </button>
+                    {% if user.is_authenticated and comment.user == user %}
+                        <a href="{% url 'comments-delete' comment.id %}" class="comment-delete-btn">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    {% endif %}
+                </div>
+                
+                
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="no-comments">No comments yet. Be the first to share your thoughts!</p>
+    {% endif %}
+</div>
+
+

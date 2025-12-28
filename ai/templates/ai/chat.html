@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ session.title }} - Igbo Archives AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ai-chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'ai:home' %}" class="text-vintage-beaver hover:text-dark-brown transition-colors">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="font-serif text-2xl font-semibold text-dark-brown" id="sessionTitle">{{ session.title }}</h1>
+                <p class="text-sm text-vintage-beaver">Igbo Archives AI</p>
+            </div>
+        </div>
+        <button id="deleteBtn" class="text-vintage-beaver hover:text-red-500 transition-colors"
+            title="Delete conversation">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="chat-container overflow-y-auto p-6 space-y-4" id="chatMessages">
+            {% if not messages %}
+            <div class="text-center py-12 text-vintage-beaver" id="emptyState">
+                <div class="w-16 h-16 bg-vintage-gold/10 rounded-full mx-auto flex items-center justify-center mb-4">
+                    <i class="fas fa-brain text-3xl text-vintage-gold"></i>
+                </div>
+                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-2">Ndewo! Welcome!</h3>
+                <p class="mb-4">I'm your Igbo Archives AI assistant.</p>
+                <p class="text-sm max-w-md mx-auto">Ask me about Igbo history, traditions, language, proverbs,
+                    festivals, or anything about our heritage. I'll search our archives and the web to give you accurate
+                    answers with sources.</p>
+            </div>
+            {% endif %}
+
+            {% for message in messages %}
+            <div class="flex {% if message.role == 'user' %}justify-end{% else %}justify-start{% endif %}">
+                <div
+                    class="max-w-[80%] rounded-2xl px-4 py-3 {% if message.role == 'user' %}message-user text-white{% else %}message-assistant text-dark-brown{% endif %}">
+                    <div class="prose prose-sm {% if message.role == 'user' %}prose-invert{% endif %}">
+                        {{ message.content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="hidden justify-start" id="typingIndicator">
+                <div class="message-assistant rounded-2xl px-4 py-3">
+                    <div class="typing-indicator flex gap-1">
+                        <span class="w-2 h-2 bg-vintage-gold rounded-full"></span>
+                        <span class="w-2 h-2 bg-vintage-gold rounded-full"></span>
+                        <span class="w-2 h-2 bg-vintage-gold rounded-full"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-sepia-pale/50 p-4 bg-heritage-cream/30">
+            <form id="chatForm" class="flex gap-3">
+                <button type="button" id="voiceBtn"
+                    class="w-12 h-12 rounded-xl border border-sepia-pale bg-white flex items-center justify-center text-vintage-beaver hover:text-vintage-gold hover:border-vintage-gold transition-all"
+                    title="Voice input">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <input type="text" id="messageInput" placeholder="Ask about Igbo culture, history, or traditions..."
+                    class="flex-1 px-4 py-3 rounded-xl border border-sepia-pale focus:border-vintage-gold focus:ring-2 focus:ring-vintage-gold/20 transition-all"
+                    maxlength="3000" autocomplete="off">
+                <button type="submit" id="sendBtn" class="btn-primary px-6">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+            <p class="text-xs text-vintage-beaver mt-2 text-center">
+                Responses include sources from our archives and the web
+            </p>
+        </div>
+    </div>
+</div>
+
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/ai-chat.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const chat = new AIChat({{ session.id }}, {
+        send: '{% url "ai:chat_send" %}',
+        transcribe: '{% url "ai:transcribe_audio" %}',
+        delete: '/ai/chat/{{ session.id }}/delete/',
+        home: '{% url "ai:home" %}'
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', () => chat.deleteSession());
+});
+</script>
+{% endblock %}

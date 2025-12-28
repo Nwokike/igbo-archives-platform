@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Reject Edit Suggestion{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="font-serif text-display-lg text-dark-brown mb-6">Reject Edit Suggestion</h1>
+
+    <div class="alert alert-info mb-6">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <p><strong>Suggestion from:</strong> {{ suggestion.suggested_by.full_name }}</p>
+            <p><strong>On post:</strong> {{ suggestion.post.title }}</p>
+            <p class="mt-2"><strong>Suggestion:</strong> {{ suggestion.suggestion_text }}</p>
+        </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="rejection_reason" class="form-label">Reason for Rejection (Optional)</label>
+            <textarea name="rejection_reason" id="rejection_reason" class="form-textarea" rows="4"
+                      placeholder="Optionally explain why you're declining this suggestion..."></textarea>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors inline-flex items-center gap-2">
+                <i class="fas fa-times"></i> Confirm Rejection
+            </button>
+            <a href="{% url 'users:dashboard' %}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
