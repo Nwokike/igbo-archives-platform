@@ -1,8 +1,4 @@
-# Igbo Archives
-
-![Igbo Archives Logo](core/static/images/logos/logo-light.png)
-
-**Preserving the Past, Inspiring the Future**
+![Igbo Archives Logo](static/images/logos/logo-light.png)
 
 Igbo Archives is a community-driven cultural preservation platform dedicated to documenting, preserving, and celebrating the rich history and heritage of the Igbo people of Nigeria. Built with modern web technologies and optimized for a 1GB RAM constraint.
 
