@@ -2,41 +2,15 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from taggit.managers import TaggableManager
 from django.core.validators import FileExtensionValidator
-from django.core.exceptions import ValidationError
+
+from core.validators import (
+    validate_image_size,
+    validate_video_size,
+    validate_document_size,
+    validate_audio_size,
+)
 
 User = get_user_model()
-
-
-def validate_image_size(file):
-    """Validate image file size - Max 5MB"""
-    file_size = file.size
-    max_mb = 5
-    if file_size > max_mb * 1024 * 1024:
-        raise ValidationError(f'Maximum file size is {max_mb}MB')
-
-
-def validate_video_size(file):
-    """Validate video file size - max 50MB"""
-    file_size = file.size
-    limit_mb = 50
-    if file_size > limit_mb * 1024 * 1024:
-        raise ValidationError(f'Maximum video file size is {limit_mb}MB')
-
-
-def validate_document_size(file):
-    """Validate document file size - Max 10MB"""
-    file_size = file.size
-    max_mb = 10
-    if file_size > max_mb * 1024 * 1024:
-        raise ValidationError(f'Maximum document file size is {max_mb}MB')
-
-
-def validate_audio_size(file):
-    """Validate audio file size - Max 10MB"""
-    file_size = file.size
-    max_mb = 10
-    if file_size > max_mb * 1024 * 1024:
-        raise ValidationError(f'Maximum audio file size is {max_mb}MB')
 
 
 class Category(models.Model):

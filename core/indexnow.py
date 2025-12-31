@@ -3,7 +3,6 @@ IndexNow API Integration
 Instantly notify search engines (Bing, Yandex, etc.) when content is published or updated
 """
 import requests
-import hashlib
 import uuid
 from django.conf import settings
 from django.urls import reverse

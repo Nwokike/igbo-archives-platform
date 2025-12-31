@@ -2,17 +2,10 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from taggit.managers import TaggableManager
 from django.core.validators import FileExtensionValidator
-from django.core.exceptions import ValidationError
+
+from core.validators import validate_image_size as validate_file_size
 
 User = get_user_model()
-
-
-def validate_file_size(file):
-    """Validate file size - images should be Max 5MB"""
-    file_size = file.size
-    max_mb = 5
-    if file_size > max_mb * 1024 * 1024:
-        raise ValidationError(f'Maximum file size is {max_mb}MB')
 
 
 class BookReview(models.Model):

@@ -27,25 +27,29 @@ def get_all_approved_archive_ids():
     return archive_ids
 
 
-def get_random_featured_archives(count=10):
-    """Memory-efficient random archive selection with caching.
+def get_random_featured_archives():
+    """Memory-efficient random archive selection for homepage carousel.
     
-    Caches all approved archive IDs and samples randomly from them.
-    Single query to fetch selected archives.
+    Returns ALL approved image archives in random order for infinite scrolling carousel.
+    Uses cached IDs shuffled on each page load for true randomness.
     """
-    archive_ids = get_all_approved_archive_ids()
+    archive_ids = list(get_all_approved_archive_ids())
     
     if not archive_ids:
         return Archive.objects.none()
     
-    sample_size = min(count, len(archive_ids))
-    random_ids = random.sample(archive_ids, sample_size)
+    # Shuffle the IDs for random order
+    random.shuffle(archive_ids)
     
-    return Archive.objects.filter(pk__in=random_ids).select_related('category', 'uploaded_by')
+    # Return all shuffled archives with optimized query
+    return Archive.objects.filter(
+        pk__in=archive_ids,
+        archive_type='image'  # Only images for carousel
+    ).select_related('category', 'uploaded_by').order_by('?')
 
 
 def home(request):
-    featured_archives = get_random_featured_archives(10)
+    featured_archives = get_random_featured_archives()
     context = {
         'featured_archives': featured_archives
     }
@@ -104,8 +108,9 @@ Message:
 
 
 def donate(request):
-    """Donation page"""
+    """Donation page - Paystack-only"""
     context = {
-        'paypal_url': getattr(settings, 'PAYPAL_DONATION_URL', None)
+        'paystack_public_key': getattr(settings, 'PAYSTACK_PUBLIC_KEY', ''),
+        'enable_donations': getattr(settings, 'ENABLE_DONATIONS', False),
     }
     return render(request, 'core/donate.html', context)

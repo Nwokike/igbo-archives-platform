@@ -22,17 +22,87 @@
                 Your contribution helps us preserve Igbo culture, digitize historical artifacts, create educational content, and build a thriving community. Every donation, big or small, makes a lasting impact on our mission to pass Igbo heritage to future generations.
             </p>
             
-            {% if ENABLE_DONATIONS and paypal_url %}
-            <a href="{{ paypal_url }}" 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               class="btn-primary btn-lg mb-4">
-                <i class="fas fa-heart"></i> Donate Now
-            </a>
+            {% if enable_donations and paystack_public_key %}
+            <div class="space-y-4">
+                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto">
+                    <button type="button" class="donation-amount-btn py-3 px-4 rounded-lg border-2 border-sepia-pale hover:border-vintage-gold hover:bg-vintage-gold/10 transition-all text-dark-brown font-semibold" data-amount="1000">
+                        ₦1,000
+                    </button>
+                    <button type="button" class="donation-amount-btn py-3 px-4 rounded-lg border-2 border-sepia-pale hover:border-vintage-gold hover:bg-vintage-gold/10 transition-all text-dark-brown font-semibold" data-amount="5000">
+                        ₦5,000
+                    </button>
+                    <button type="button" class="donation-amount-btn py-3 px-4 rounded-lg border-2 border-sepia-pale hover:border-vintage-gold hover:bg-vintage-gold/10 transition-all text-dark-brown font-semibold" data-amount="10000">
+                        ₦10,000
+                    </button>
+                </div>
+                
+                <div class="max-w-md mx-auto">
+                    <label class="block text-sm text-vintage-beaver mb-2">Or enter custom amount (₦)</label>
+                    <input type="number" id="customAmount" min="100" placeholder="Enter amount" 
+                        class="w-full px-4 py-3 rounded-lg border border-sepia-pale focus:border-vintage-gold focus:ring-2 focus:ring-vintage-gold/20 transition-all text-center text-lg font-semibold">
+                </div>
+                
+                <button id="donateBtn" class="btn-primary btn-lg">
+                    <i class="fas fa-heart"></i> Donate Now
+                </button>
+                
+                <p class="text-sm text-vintage-beaver">
+                    <i class="fas fa-shield-alt"></i> Secure payment powered by Paystack
+                </p>
+            </div>
             
-            <p class="text-sm text-vintage-beaver">
-                <i class="fas fa-shield-alt"></i> Secure donation processing
-            </p>
+            <script src="https://js.paystack.co/v1/inline.js"></script>
+            <script>
+                (function() {
+                    const amountBtns = document.querySelectorAll('.donation-amount-btn');
+                    const customInput = document.getElementById('customAmount');
+                    const donateBtn = document.getElementById('donateBtn');
+                    let selectedAmount = 0;
+                    
+                    amountBtns.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            amountBtns.forEach(b => b.classList.remove('border-vintage-gold', 'bg-vintage-gold/10'));
+                            this.classList.add('border-vintage-gold', 'bg-vintage-gold/10');
+                            selectedAmount = parseInt(this.dataset.amount);
+                            customInput.value = '';
+                        });
+                    });
+                    
+                    customInput.addEventListener('input', function() {
+                        amountBtns.forEach(b => b.classList.remove('border-vintage-gold', 'bg-vintage-gold/10'));
+                        selectedAmount = parseInt(this.value) || 0;
+                    });
+                    
+                    donateBtn.addEventListener('click', function() {
+                        const amount = selectedAmount || parseInt(customInput.value) || 0;
+                        if (amount < 100) {
+                            alert('Minimum donation amount is ₦100');
+                            return;
+                        }
+                        
+                        const handler = PaystackPop.setup({
+                            key: '{{ paystack_public_key }}',
+                            email: '{% if user.is_authenticated %}{{ user.email }}{% else %}donor@igboarchives.com.ng{% endif %}',
+                            amount: amount * 100, // Paystack uses kobo
+                            currency: 'NGN',
+                            ref: 'IA-' + Math.floor(Math.random() * 1000000000 + 1),
+                            metadata: {
+                                custom_fields: [
+                                    { display_name: "Donation Type", variable_name: "donation_type", value: "One-time" }
+                                ]
+                            },
+                            callback: function(response) {
+                                alert('Thank you for your generous donation! Reference: ' + response.reference);
+                                window.location.reload();
+                            },
+                            onClose: function() {
+                                // User closed payment modal
+                            }
+                        });
+                        handler.openIframe();
+                    });
+                })();
+            </script>
             {% else %}
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
