@@ -233,7 +233,7 @@ Copyright © 2025 Igbo Archives. All Rights Reserved.
 
 ## 👨‍💻 Author
 
-**Nwokike** - [GitHub](https://github.com/Nwokike)
+[**Nwokike**](https://github.com/Nwokike)
 
 ---
 
