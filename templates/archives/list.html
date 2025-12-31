@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cultural Archives - Igbo Archives{% endblock %}
+
+{% block sub_navigation %}
+<nav class="border-b border-sepia-pale/20 bg-heritage-cream/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div class="flex flex-wrap items-center gap-2">
+            <div class="flex-1 min-w-[140px] sm:flex-none sm:w-32">
+                <select class="form-select text-xs" id="categoryFilter" name="category"
+                    hx-get="{% url 'archives:list' %}" hx-target="#archiveGrid"
+                    hx-include="#typeFilter,#sortFilter,#searchInput" hx-push-url="true">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.slug }}" {% if request.GET.category==cat.slug %}selected{% endif %}>{{
+                        cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex-1 min-w-[120px] sm:flex-none sm:w-28">
+                <select class="form-select text-xs" id="typeFilter" name="type" hx-get="{% url 'archives:list' %}"
+                    hx-target="#archiveGrid" hx-include="#categoryFilter,#sortFilter,#searchInput" hx-push-url="true">
+                    <option value="">All Types</option>
+                    <option value="image" {% if request.GET.type=='image' %}selected{% endif %}>Images</option>
+                    <option value="video" {% if request.GET.type=='video' %}selected{% endif %}>Videos</option>
+                    <option value="document" {% if request.GET.type=='document' %}selected{% endif %}>Documents</option>
+                    <option value="artifact" {% if request.GET.type=='artifact' %}selected{% endif %}>Artifacts</option>
+                </select>
+            </div>
+
+            <div class="flex-1 min-w-[120px] sm:flex-none sm:w-28">
+                <select class="form-select text-xs" id="sortFilter" name="sort" hx-get="{% url 'archives:list' %}"
+                    hx-target="#archiveGrid" hx-include="#categoryFilter,#typeFilter,#searchInput" hx-push-url="true">
+                    <option value="-created_at" {% if request.GET.sort=='-created_at' or not request.GET.sort
+                        %}selected{% endif %}>Newest</option>
+                    <option value="created_at" {% if request.GET.sort=='created_at' %}selected{% endif %}>Oldest
+                    </option>
+                    <option value="title" {% if request.GET.sort=='title' %}selected{% endif %}>A-Z</option>
+                    <option value="-title" {% if request.GET.sort=='-title' %}selected{% endif %}>Z-A</option>
+                </select>
+            </div>
+
+            <div class="flex-1 min-w-[180px] relative">
+                <input type="text" class="form-input text-xs pl-8" placeholder="Search archives..." id="searchInput"
+                    name="search" value="{{ request.GET.search }}" hx-get="{% url 'archives:list' %}"
+                    hx-trigger="keyup changed delay:500ms" hx-target="#archiveGrid"
+                    hx-include="#categoryFilter,#typeFilter,#sortFilter" hx-push-url="true">
+                <i class="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-vintage-beaver text-xs"></i>
+            </div>
+
+            <div class="flex items-center gap-0.5 bg-heritage-cream/50 rounded-lg p-0.5">
+                <button type="button"
+                    class="w-7 h-7 flex items-center justify-center rounded text-vintage-beaver hover:text-dark-brown hover:bg-white transition-colors view-btn active text-xs"
+                    id="gridViewBtn" title="Grid View">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button type="button"
+                    class="w-7 h-7 flex items-center justify-center rounded text-vintage-beaver hover:text-dark-brown hover:bg-white transition-colors view-btn text-xs"
+                    id="listViewBtn" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div id="archiveGrid" class="archive-grid">
+    {% include "archives/partials/archive_grid.html" %}
+</div>
+{% endblock %}

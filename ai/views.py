@@ -306,7 +306,5 @@ def delete_session(request, session_id):
 
 
 def coming_soon(request):
-    """Fallback - redirect if AI is available."""
-    if chat_service.is_available:
-        return redirect('ai:home')
-    return render(request, 'ai/coming_soon.html')
+    """Legacy redirect to AI home."""
+    return redirect('ai:home')

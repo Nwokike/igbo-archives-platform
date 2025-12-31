@@ -11,21 +11,26 @@
   html {
     @apply scroll-smooth;
   }
-  
+
   body {
     @apply font-sans text-base leading-relaxed antialiased;
     @apply bg-[#FDFCF8] text-dark-brown;
     @apply transition-colors duration-300;
   }
-  
+
   body.dark-mode {
     @apply bg-[#1A1410] text-vintage-white;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-serif font-semibold leading-tight text-dark-brown;
   }
-  
+
   body.dark-mode h1,
   body.dark-mode h2,
   body.dark-mode h3,
@@ -37,157 +42,161 @@
 }
 
 @layer components {
+
   /* ============================================
      BUTTONS
      ============================================ */
+  /* Buttons - Refined proportions for professional 2026 look */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5;
-    @apply font-medium text-sm rounded-full;
-    @apply transition-all duration-300 ease-smooth;
-    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-1.5 px-4 py-2;
+    @apply font-medium text-[13px] rounded-lg;
+    @apply transition-all duration-200 ease-smooth;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-1;
     @apply disabled:opacity-50 disabled:cursor-not-allowed;
   }
-  
+
   .btn-primary {
-    @apply btn bg-vintage-gold text-white border-2 border-vintage-gold;
-    @apply hover:bg-vintage-bronze hover:border-vintage-bronze hover:-translate-y-0.5;
-    @apply focus:ring-vintage-gold;
+    @apply btn bg-vintage-gold text-white;
+    @apply shadow-sm hover:shadow-md;
+    @apply hover:bg-vintage-bronze hover:-translate-y-px;
+    @apply focus:ring-vintage-gold/50;
   }
-  
+
   .btn-secondary {
-    @apply btn bg-transparent text-dark-brown border-2 border-sepia-pale;
-    @apply hover:bg-heritage-cream hover:border-vintage-beaver hover:-translate-y-0.5;
-    @apply focus:ring-sepia;
+    @apply btn bg-white/80 text-dark-brown border border-sepia-pale/60;
+    @apply hover:bg-heritage-cream hover:border-vintage-beaver/50 hover:-translate-y-px;
+    @apply focus:ring-sepia/50;
   }
-  
+
   body.dark-mode .btn-secondary {
-    @apply text-vintage-white border-dark-umber hover:bg-dark-brown;
+    @apply bg-dark-brown/80 text-vintage-white border-dark-umber hover:bg-dark-umber;
   }
-  
+
   .btn-outline {
-    @apply btn bg-transparent border-2 border-current;
-    @apply hover:bg-current hover:text-white hover:-translate-y-0.5;
+    @apply btn bg-transparent border border-current;
+    @apply hover:bg-current hover:text-white hover:-translate-y-px;
   }
-  
+
   .btn-ghost {
-    @apply btn bg-transparent border-none text-dark-brown;
-    @apply hover:bg-sepia-pale hover:-translate-y-0.5;
+    @apply btn bg-transparent text-dark-brown;
+    @apply hover:bg-sepia-pale/50 hover:-translate-y-px;
   }
-  
+
   body.dark-mode .btn-ghost {
-    @apply text-vintage-white hover:bg-dark-brown;
+    @apply text-vintage-white hover:bg-dark-umber/50;
   }
-  
+
   .btn-sm {
-    @apply px-3.5 py-1.5 text-xs;
+    @apply px-3 py-1.5 text-xs gap-1;
   }
-  
+
   .btn-lg {
-    @apply px-7 py-3.5 text-base;
+    @apply px-5 py-2.5 text-sm;
   }
-  
+
   .btn-icon {
-    @apply p-2.5 rounded-full;
+    @apply p-2 rounded-lg;
   }
-  
+
   /* ============================================
      CARDS
      ============================================ */
+  /* Cards - Tighter, more refined for 2026 */
   .card {
-    @apply bg-white rounded-xl shadow-card overflow-hidden;
-    @apply transition-all duration-300 ease-smooth;
-    @apply border border-sepia-pale/50;
+    @apply bg-white rounded-lg shadow-sm overflow-hidden;
+    @apply transition-all duration-200 ease-smooth;
+    @apply border border-sepia-pale/40;
   }
-  
+
   body.dark-mode .card {
-    @apply bg-dark-brown border-dark-umber;
+    @apply bg-dark-brown border-dark-umber/60;
   }
-  
+
   .card-hover {
-    @apply card hover:shadow-card-hover hover:-translate-y-1;
+    @apply card hover:shadow-md hover:-translate-y-0.5;
   }
-  
+
   .card-body {
-    @apply p-5;
+    @apply p-4;
   }
-  
+
   .card-header {
-    @apply px-5 py-4 border-b border-sepia-pale/50;
+    @apply px-4 py-3 border-b border-sepia-pale/40;
   }
-  
+
   body.dark-mode .card-header {
-    @apply border-dark-umber;
+    @apply border-dark-umber/60;
   }
-  
+
   .card-footer {
-    @apply px-5 py-4 border-t border-sepia-pale/50 bg-heritage-cream/30;
+    @apply px-4 py-3 border-t border-sepia-pale/40 bg-heritage-cream/20;
   }
-  
+
   body.dark-mode .card-footer {
-    @apply border-dark-umber bg-dark-brown/50;
+    @apply border-dark-umber/60 bg-dark-brown/30;
   }
-  
+
   .card-image {
-    @apply w-full aspect-[4/3] object-cover;
+    @apply w-full aspect-[16/10] object-cover;
   }
-  
+
   /* ============================================
      FORMS
      ============================================ */
   .form-group {
     @apply mb-4;
   }
-  
+
   .form-label {
     @apply block mb-2 text-sm font-medium text-dark-brown;
   }
-  
+
   body.dark-mode .form-label {
     @apply text-sepia-soft;
   }
-  
+
   .form-input {
-    @apply w-full px-4 py-3 text-base;
-    @apply bg-white border border-sepia-pale rounded-lg;
-    @apply text-dark-brown placeholder-vintage-beaver;
-    @apply transition-all duration-200;
-    @apply focus:outline-none focus:ring-2 focus:ring-vintage-gold/50 focus:border-vintage-gold;
+    @apply w-full px-3 py-2 text-sm;
+    @apply bg-white border border-sepia-pale/60 rounded-lg;
+    @apply text-dark-brown placeholder-vintage-beaver/70;
+    @apply transition-all duration-150;
+    @apply focus:outline-none focus:ring-2 focus:ring-vintage-gold/40 focus:border-vintage-gold;
   }
-  
+
   body.dark-mode .form-input {
-    @apply bg-dark-brown border-dark-umber text-vintage-white placeholder-vintage-beaver;
+    @apply bg-dark-brown border-dark-umber/60 text-vintage-white placeholder-vintage-beaver;
     @apply focus:ring-vintage-gold/30 focus:border-vintage-gold;
   }
-  
+
   .form-textarea {
-    @apply form-input min-h-[120px] resize-y;
+    @apply form-input min-h-[100px] resize-y;
   }
-  
+
   .form-select {
-    @apply form-input appearance-none bg-no-repeat bg-right pr-10;
+    @apply form-input appearance-none bg-no-repeat bg-right pr-9;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239D896E'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-size: 1.5rem;
-    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+    background-position: right 0.5rem center;
   }
-  
+
   .form-checkbox {
     @apply w-5 h-5 rounded border-sepia-pale text-vintage-gold;
     @apply focus:ring-2 focus:ring-vintage-gold/50;
   }
-  
+
   .form-radio {
     @apply w-5 h-5 border-sepia-pale text-vintage-gold;
     @apply focus:ring-2 focus:ring-vintage-gold/50;
   }
-  
+
   .form-help {
     @apply mt-1.5 text-sm text-vintage-beaver;
   }
-  
+
   .form-error {
     @apply mt-1.5 text-sm text-red-600;
   }
-  
+
   /* ============================================
      NAVIGATION
      ============================================ */
@@ -197,19 +206,19 @@
     @apply rounded-lg transition-all duration-200;
     @apply hover:bg-heritage-cream hover:text-vintage-bronze;
   }
-  
+
   body.dark-mode .nav-link {
     @apply text-sepia-soft hover:bg-dark-brown hover:text-vintage-gold;
   }
-  
+
   .nav-link.active {
     @apply bg-vintage-gold/10 text-vintage-gold;
   }
-  
+
   body.dark-mode .nav-link.active {
     @apply bg-vintage-gold/20 text-vintage-gold;
   }
-  
+
   /* ============================================
      ALERTS / MESSAGES
      ============================================ */
@@ -217,48 +226,48 @@
     @apply flex items-start gap-3 p-4 rounded-xl;
     @apply text-sm border;
   }
-  
+
   .alert-success {
     @apply alert bg-green-50 border-green-200 text-green-800;
   }
-  
+
   .alert-error {
     @apply alert bg-red-50 border-red-200 text-red-800;
   }
-  
+
   .alert-warning {
     @apply alert bg-yellow-50 border-yellow-200 text-yellow-800;
   }
-  
+
   .alert-info {
     @apply alert bg-blue-50 border-blue-200 text-blue-800;
   }
-  
+
   body.dark-mode .alert-success {
     @apply bg-green-900/30 border-green-800 text-green-300;
   }
-  
+
   body.dark-mode .alert-error {
     @apply bg-red-900/30 border-red-800 text-red-300;
   }
-  
+
   body.dark-mode .alert-warning {
     @apply bg-yellow-900/30 border-yellow-800 text-yellow-300;
   }
-  
+
   body.dark-mode .alert-info {
     @apply bg-blue-900/30 border-blue-800 text-blue-300;
   }
-  
+
   .alert-dismissible {
     @apply pr-12 relative;
   }
-  
+
   .alert-close {
     @apply absolute top-4 right-4 p-1 rounded-full;
     @apply opacity-60 hover:opacity-100 transition-opacity;
   }
-  
+
   /* ============================================
      MODALS
      ============================================ */
@@ -267,169 +276,169 @@
     @apply flex items-center justify-center p-4;
     @apply opacity-0 invisible transition-all duration-300;
   }
-  
+
   .modal-overlay.active {
     @apply opacity-100 visible;
   }
-  
+
   .modal {
     @apply bg-white rounded-2xl shadow-soft-lg max-w-lg w-full;
     @apply transform scale-95 transition-transform duration-300;
     @apply max-h-[90vh] overflow-hidden flex flex-col;
   }
-  
+
   body.dark-mode .modal {
     @apply bg-dark-brown;
   }
-  
+
   .modal-overlay.active .modal {
     @apply scale-100;
   }
-  
+
   .modal-header {
     @apply flex items-center justify-between px-6 py-4 border-b border-sepia-pale/50;
   }
-  
+
   body.dark-mode .modal-header {
     @apply border-dark-umber;
   }
-  
+
   .modal-title {
     @apply text-lg font-serif font-semibold;
   }
-  
+
   .modal-close {
     @apply p-2 rounded-full hover:bg-sepia-pale/50 transition-colors;
   }
-  
+
   body.dark-mode .modal-close {
     @apply hover:bg-dark-umber;
   }
-  
+
   .modal-body {
     @apply p-6 overflow-y-auto;
   }
-  
+
   .modal-footer {
     @apply flex items-center justify-end gap-3 px-6 py-4 border-t border-sepia-pale/50;
   }
-  
+
   body.dark-mode .modal-footer {
     @apply border-dark-umber;
   }
-  
+
   /* ============================================
      TABS
      ============================================ */
   .tabs {
     @apply flex gap-1 p-1 bg-heritage-cream/50 rounded-xl;
   }
-  
+
   body.dark-mode .tabs {
     @apply bg-dark-brown;
   }
-  
+
   .tab {
     @apply flex-1 px-4 py-2.5 text-sm font-medium text-center rounded-lg;
     @apply text-vintage-beaver transition-all duration-200;
     @apply hover:text-dark-brown;
   }
-  
+
   body.dark-mode .tab {
     @apply hover:text-vintage-white;
   }
-  
+
   .tab.active {
     @apply bg-white text-dark-brown shadow-soft;
   }
-  
+
   body.dark-mode .tab.active {
     @apply bg-dark-umber text-vintage-white;
   }
-  
+
   .tab-panel {
     @apply hidden py-4;
   }
-  
+
   .tab-panel.active {
     @apply block animate-fade-in;
   }
-  
+
   /* ============================================
      DROPDOWN
      ============================================ */
   .dropdown {
     @apply relative inline-block;
   }
-  
+
   .dropdown-menu {
     @apply absolute right-0 mt-2 w-56 py-2;
     @apply bg-white rounded-xl shadow-soft-lg border border-sepia-pale/50;
     @apply opacity-0 invisible translate-y-2;
     @apply transition-all duration-200 z-50;
   }
-  
+
   body.dark-mode .dropdown-menu {
     @apply bg-dark-brown border-dark-umber;
   }
-  
+
   .dropdown.active .dropdown-menu {
     @apply opacity-100 visible translate-y-0;
   }
-  
+
   .dropdown-item {
     @apply flex items-center gap-3 px-4 py-2.5;
     @apply text-sm text-dark-brown;
     @apply hover:bg-heritage-cream transition-colors;
   }
-  
+
   body.dark-mode .dropdown-item {
     @apply text-sepia-soft hover:bg-dark-umber;
   }
-  
+
   .dropdown-divider {
     @apply my-2 border-t border-sepia-pale/50;
   }
-  
+
   body.dark-mode .dropdown-divider {
     @apply border-dark-umber;
   }
-  
+
   /* ============================================
      BADGES / TAGS
      ============================================ */
   .badge {
     @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full;
   }
-  
+
   .badge-primary {
     @apply badge bg-vintage-gold/20 text-vintage-bronze;
   }
-  
+
   .badge-secondary {
     @apply badge bg-sepia-pale text-vintage-beaver;
   }
-  
+
   .badge-success {
     @apply badge bg-green-100 text-green-800;
   }
-  
+
   .badge-warning {
     @apply badge bg-yellow-100 text-yellow-800;
   }
-  
+
   .badge-error {
     @apply badge bg-red-100 text-red-800;
   }
-  
+
   body.dark-mode .badge-primary {
     @apply bg-vintage-gold/30 text-vintage-gold;
   }
-  
+
   body.dark-mode .badge-secondary {
     @apply bg-dark-umber text-sepia-soft;
   }
-  
+
   /* ============================================
      AVATAR
      ============================================ */
@@ -438,42 +447,42 @@
     @apply bg-heritage-cream text-dark-brown font-semibold;
     @apply overflow-hidden;
   }
-  
+
   body.dark-mode .avatar {
     @apply bg-dark-umber text-vintage-white;
   }
-  
+
   .avatar-sm {
     @apply avatar w-8 h-8 text-xs;
   }
-  
+
   .avatar-md {
     @apply avatar w-10 h-10 text-sm;
   }
-  
+
   .avatar-lg {
     @apply avatar w-12 h-12 text-base;
   }
-  
+
   .avatar-xl {
     @apply avatar w-16 h-16 text-lg;
   }
-  
+
   .avatar img {
     @apply w-full h-full object-cover;
   }
-  
+
   /* ============================================
      SKELETON LOADING
      ============================================ */
   .skeleton {
     @apply bg-sepia-pale/50 rounded animate-pulse;
   }
-  
+
   body.dark-mode .skeleton {
     @apply bg-dark-umber;
   }
-  
+
   /* ============================================
      TOAST NOTIFICATIONS
      ============================================ */
@@ -483,120 +492,121 @@
     @apply bg-white border border-sepia-pale/50;
     @apply animate-slide-in-right;
   }
-  
+
   body.dark-mode .toast {
     @apply bg-dark-brown border-dark-umber;
   }
-  
+
   .toast-success {
     @apply toast border-l-4 border-l-green-500;
   }
-  
+
   .toast-error {
     @apply toast border-l-4 border-l-red-500;
   }
-  
+
   .toast-warning {
     @apply toast border-l-4 border-l-yellow-500;
   }
-  
+
   .toast-info {
     @apply toast border-l-4 border-l-blue-500;
   }
-  
+
   /* ============================================
      PAGINATION
      ============================================ */
   .pagination {
     @apply flex items-center gap-1;
   }
-  
+
   .page-link {
     @apply inline-flex items-center justify-center w-10 h-10;
     @apply text-sm font-medium rounded-lg;
     @apply text-dark-brown hover:bg-heritage-cream;
     @apply transition-colors duration-200;
   }
-  
+
   body.dark-mode .page-link {
     @apply text-sepia-soft hover:bg-dark-brown;
   }
-  
+
   .page-link.active {
     @apply bg-vintage-gold text-white hover:bg-vintage-bronze;
   }
-  
+
   .page-link.disabled {
     @apply opacity-50 cursor-not-allowed hover:bg-transparent;
   }
-  
+
   /* ============================================
      GRID LAYOUTS
      ============================================ */
   .archive-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
   }
-  
+
   .archive-list {
     @apply flex flex-col gap-4;
   }
-  
+
   /* ============================================
      CONTAINER
      ============================================ */
   .container-main {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
   }
-  
+
   .container-narrow {
     @apply max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
   }
-  
+
   /* ============================================
      DIVIDERS
      ============================================ */
   .divider {
     @apply border-t border-sepia-pale/50 my-6;
   }
-  
+
   body.dark-mode .divider {
     @apply border-dark-umber;
   }
-  
+
   .divider-vertical {
     @apply border-l border-sepia-pale/50 mx-4 h-6;
   }
-  
+
   body.dark-mode .divider-vertical {
     @apply border-dark-umber;
   }
 }
 
 @layer utilities {
+
   /* Text utilities */
   .text-muted {
     @apply text-vintage-beaver;
   }
-  
+
   body.dark-mode .text-muted {
     @apply text-sepia;
   }
-  
+
   /* Focus visible for accessibility */
   .focus-ring {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vintage-gold focus-visible:ring-offset-2;
   }
-  
+
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  
+
   /* Line clamp utilities */
   .line-clamp-1 {
     display: -webkit-box;
@@ -604,14 +614,14 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;

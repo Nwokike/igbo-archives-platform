@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Igbo Archives - Preserving the Past, Inspiring the Future",
   "scripts": {
-    "build:css": "npx tailwindcss -i ./core/static/css/tailwind.input.css -o ./core/static/css/tailwind.output.css --minify",
-    "watch:css": "npx tailwindcss -i ./core/static/css/tailwind.input.css -o ./core/static/css/tailwind.output.css --watch",
+    "build:css": "npx tailwindcss -i ./static/css/tailwind.input.css -o ./static/css/tailwind.output.css --minify",
+    "watch:css": "npx tailwindcss -i ./static/css/tailwind.input.css -o ./static/css/tailwind.output.css --watch",
     "build": "npm run build:css"
   },
   "devDependencies": {

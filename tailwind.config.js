@@ -1,14 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './core/templates/**/*.html',
-    './archives/templates/**/*.html',
-    './books/templates/**/*.html',
-    './insights/templates/**/*.html',
-    './users/templates/**/*.html',
-
-    './ai/templates/**/*.html',
-    './core/static/js/**/*.js',
+    './templates/**/*.html',
+    './static/js/**/*.js',
   ],
   darkMode: 'class',
   theme: {
@@ -64,10 +58,16 @@ module.exports = {
         display: ['Playfair Display', 'Georgia', 'serif'],
       },
       fontSize: {
-        'display-xl': ['3rem', { lineHeight: '1.2', fontWeight: '600' }],
-        'display-lg': ['2.25rem', { lineHeight: '1.25', fontWeight: '600' }],
-        'display-md': ['1.75rem', { lineHeight: '1.3', fontWeight: '600' }],
-        'display-sm': ['1.5rem', { lineHeight: '1.35', fontWeight: '600' }],
+        // Refined display sizes - smaller for professional look
+        'display-xl': ['2.5rem', { lineHeight: '1.15', fontWeight: '600', letterSpacing: '-0.02em' }],
+        'display-lg': ['1.875rem', { lineHeight: '1.2', fontWeight: '600', letterSpacing: '-0.01em' }],
+        'display-md': ['1.5rem', { lineHeight: '1.25', fontWeight: '600' }],
+        'display-sm': ['1.25rem', { lineHeight: '1.3', fontWeight: '600' }],
+        // Tighter body text
+        'body-lg': ['1rem', { lineHeight: '1.6' }],
+        'body': ['0.9375rem', { lineHeight: '1.6' }],
+        'body-sm': ['0.875rem', { lineHeight: '1.5' }],
+        'caption': ['0.8125rem', { lineHeight: '1.4' }],
       },
       spacing: {
         '18': '4.5rem',
