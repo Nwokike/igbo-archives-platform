@@ -27,17 +27,21 @@ jobs:
           # 2. Pull latest code
           git pull origin main
 
-          # 3. Update Python Dependencies
-          # We use the full path to python just to be safe
-          /home/igboarchives/igbo-archives-platform/venv/bin/pip install -r requirements.txt
+          # 3. Activate Environment & Install Deps
+          source venv/bin/activate
+          pip install -r requirements.txt
 
-          # 4. Database Migrations
-          /home/igboarchives/igbo-archives-platform/venv/bin/python manage.py migrate
+          # 4. Run Database Migrations
+          python manage.py migrate
+          
+          # 4b. Ensure cache table exists (Idempotent - safe to run every time)
+          python manage.py createcachetable
 
-          # 5. Collect Static Files
-          /home/igboarchives/igbo-archives-platform/venv/bin/python manage.py collectstatic --noinput
+          # 5. Update Static Files
+          python manage.py collectstatic --noinput
 
-          # 6. Restart Services (Graceful Reload)
+          # 6. Restart Services (Using Sudo Password Secret)
+          # We use sudo -S to pass the password automatically since your user has one
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives-huey
 
