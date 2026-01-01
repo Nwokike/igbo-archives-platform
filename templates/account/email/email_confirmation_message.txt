@@ -1,0 +1,13 @@
+Hello{% if user.first_name %} {{ user.first_name }}{% endif %},
+
+Welcome to Igbo Archives! Please confirm your email address by clicking the link below:
+
+{{ activate_url }}
+
+This link will expire in {{ expiration_days }} days.
+
+If you didn't create an account with us, please ignore this email.
+
+---
+Igbo Archives - Preserving the Past, Inspiring the Future
+https://igboarchives.com.ng

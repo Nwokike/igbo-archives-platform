@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Email - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center py-12">
+    <div class="w-full max-w-md">
+        <div class="card">
+            <div class="card-body p-8 text-center">
+                <div class="w-16 h-16 bg-vintage-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-envelope-circle-check text-2xl text-vintage-gold"></i>
+                </div>
+                <h1 class="font-serif text-display-md text-dark-brown mb-2">Confirm Your Email</h1>
+
+                {% if confirmation %}
+                <p class="text-vintage-beaver mb-6">
+                    Please confirm that <strong class="text-dark-brown">{{ confirmation.email_address.email }}</strong>
+                    is your email address.
+                </p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary btn-lg w-full">
+                        <i class="fas fa-check mr-2"></i> Confirm Email
+                    </button>
+                </form>
+                {% else %}
+                <div class="alert alert-error mb-6">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <p class="font-medium">Invalid Link</p>
+                        <p class="text-sm">This confirmation link is invalid or has expired.</p>
+                    </div>
+                </div>
+                <a href="{% url 'account_login' %}" class="btn-primary btn-lg w-full">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Go to Login
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

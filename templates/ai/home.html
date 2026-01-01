@@ -3,31 +3,22 @@
 
 {% block title %}AI Assistant - Igbo Archives{% endblock %}
 
-{% block content %}
-<div class="max-w-5xl mx-auto">
-    <!-- Hero Section - Refined -->
-    <div class="text-center mb-8">
-        <div class="w-14 h-14 bg-vintage-gold/10 rounded-xl mx-auto flex items-center justify-center mb-4">
-            <i class="fas fa-brain text-2xl text-vintage-gold"></i>
-        </div>
-        <h1 class="font-serif text-display-lg text-dark-brown mb-3">Igbo Archives AI</h1>
-        <p class="text-body text-vintage-beaver max-w-xl mx-auto">
-            Your intelligent companion for exploring Igbo culture, history, and heritage.
-        </p>
-    </div>
-
-    <!-- Feature Grid - Refined -->
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <div class="card card-hover p-4 text-center">
-            <div class="w-10 h-10 bg-heritage-cream rounded-lg mx-auto flex items-center justify-center mb-3">
-                <i class="fas fa-comments text-lg text-vintage-gold"></i>
+{% block sub_navigation %}
+<nav class="border-b border-sepia-pale/20 bg-heritage-cream/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-vintage-gold/10 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-brain text-sm text-vintage-gold"></i>
+                </div>
+                <div>
+                    <h1 class="font-serif text-sm font-semibold text-dark-brown">Igbo Archives AI</h1>
+                    <p class="text-xs text-vintage-beaver hidden sm:block">Cultural assistant powered by AI</p>
+                </div>
             </div>
-            <h3 class="font-serif text-base font-semibold text-dark-brown mb-1.5">Cultural Chat</h3>
-            <p class="text-xs text-vintage-beaver mb-3">Ask about Igbo history, traditions, language, proverbs, and
-                customs.</p>
             {% if user.is_authenticated %}
             <a href="{% url 'ai:new_chat' %}" class="btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Start Chat
+                <i class="fas fa-plus mr-1"></i> New Chat
             </a>
             {% else %}
             <a href="{% url 'account_login' %}?next={% url 'ai:new_chat' %}" class="btn-secondary btn-sm">
@@ -35,90 +26,99 @@
             </a>
             {% endif %}
         </div>
-
-        <div class="card card-hover p-4 text-center">
-            <div class="w-10 h-10 bg-heritage-cream rounded-lg mx-auto flex items-center justify-center mb-3">
-                <i class="fas fa-image text-lg text-vintage-gold"></i>
-            </div>
-            <h3 class="font-serif text-base font-semibold text-dark-brown mb-1.5">Artifact Analysis</h3>
-            <p class="text-xs text-vintage-beaver mb-3">Get detailed analysis of cultural artifacts and historical
-                photos.</p>
-            <span class="inline-flex items-center text-green-600 text-xs">
-                <i class="fas fa-check-circle mr-1"></i> Available
-            </span>
-        </div>
-
-        <div class="card card-hover p-4 text-center">
-            <div class="w-10 h-10 bg-heritage-cream rounded-lg mx-auto flex items-center justify-center mb-3">
-                <i class="fas fa-microphone text-lg text-vintage-gold"></i>
-            </div>
-            <h3 class="font-serif text-base font-semibold text-dark-brown mb-1.5">Voice Input</h3>
-            <p class="text-xs text-vintage-beaver mb-3">Speak your questions naturally with speech recognition.</p>
-            <span class="inline-flex items-center text-green-600 text-xs">
-                <i class="fas fa-check-circle mr-1"></i> Available
-            </span>
-        </div>
-
-        <div class="card card-hover p-4 text-center">
-            <div class="w-10 h-10 bg-heritage-cream rounded-lg mx-auto flex items-center justify-center mb-3">
-                <i class="fas fa-volume-up text-lg text-vintage-gold"></i>
-            </div>
-            <h3 class="font-serif text-base font-semibold text-dark-brown mb-1.5">Listen Aloud</h3>
-            <p class="text-xs text-vintage-beaver mb-3">Have any text read aloud for accessibility.</p>
-            <span class="inline-flex items-center text-green-600 text-xs">
-                <i class="fas fa-check-circle mr-1"></i> Available
-            </span>
-        </div>
-
-        <div class="card card-hover p-4 text-center">
-            <div class="w-10 h-10 bg-heritage-cream rounded-lg mx-auto flex items-center justify-center mb-3">
-                <i class="fas fa-language text-lg text-vintage-gold"></i>
-            </div>
-            <h3 class="font-serif text-base font-semibold text-dark-brown mb-1.5">Translation</h3>
-            <p class="text-xs text-vintage-beaver mb-3">Translate between Igbo and English with cultural context.</p>
-            <span class="inline-flex items-center text-green-600 text-xs">
-                <i class="fas fa-check-circle mr-1"></i> Available
-            </span>
-        </div>
-
-        <div class="card card-hover p-4 text-center">
-            <div class="w-10 h-10 bg-heritage-cream rounded-lg mx-auto flex items-center justify-center mb-3">
-                <i class="fas fa-globe text-lg text-vintage-gold"></i>
-            </div>
-            <h3 class="font-serif text-base font-semibold text-dark-brown mb-1.5">Web Search</h3>
-            <p class="text-xs text-vintage-beaver mb-3">Access current information with source citations.</p>
-            <span class="inline-flex items-center text-green-600 text-xs">
-                <i class="fas fa-check-circle mr-1"></i> Available
-            </span>
-        </div>
     </div>
+</nav>
+{% endblock %}
 
-    <!-- Conversations Section -->
+{% block content %}
+<div class="max-w-4xl mx-auto">
     {% if user.is_authenticated and sessions %}
-    <div class="card p-4 mb-8">
-        <h2 class="font-serif text-base font-semibold text-dark-brown mb-4 flex items-center gap-2">
+    <!-- Recent Conversations -->
+    <div class="mb-6">
+        <h2 class="font-serif text-lg font-semibold text-dark-brown mb-4 flex items-center gap-2">
             <i class="fas fa-history text-vintage-gold"></i>
             Your Conversations
         </h2>
-        <div class="space-y-2">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {% for session in sessions %}
-            <a href="{% url 'ai:chat_session' session.id %}"
-                class="flex items-center justify-between p-3 rounded-lg border border-sepia-pale/40 hover:bg-heritage-cream/50 transition-colors group">
-                <div>
-                    <h3 class="text-sm font-medium text-dark-brown group-hover:text-vintage-gold transition-colors">{{
-                        session.title }}</h3>
-                    <p class="text-xs text-vintage-beaver">{{ session.updated_at|timesince }} ago</p>
+            <a href="{% url 'ai:chat_session' session.id %}" class="card card-hover p-4 flex items-start gap-3 group">
+                <div class="w-10 h-10 bg-vintage-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-comments text-vintage-gold"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3
+                        class="text-sm font-medium text-dark-brown truncate group-hover:text-vintage-gold transition-colors">
+                        {{ session.title }}
+                    </h3>
+                    <p class="text-xs text-vintage-beaver mt-0.5">{{ session.updated_at|timesince }} ago</p>
                 </div>
                 <i
-                    class="fas fa-chevron-right text-xs text-vintage-beaver group-hover:text-vintage-gold transition-colors"></i>
+                    class="fas fa-chevron-right text-xs text-vintage-beaver group-hover:text-vintage-gold transition-colors mt-3"></i>
             </a>
             {% endfor %}
         </div>
     </div>
     {% endif %}
 
+    <!-- Capabilities Section -->
+    <div class="card p-6">
+        <h2 class="font-serif text-lg font-semibold text-dark-brown mb-4 text-center">What I Can Help With</h2>
+        <div class="grid sm:grid-cols-2 gap-4 text-sm">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-heritage-cream rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-book text-vintage-gold"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-dark-brown">Igbo History & Culture</h3>
+                    <p class="text-xs text-vintage-beaver">Learn about traditions, customs, and heritage</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-heritage-cream rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-language text-vintage-gold"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-dark-brown">Language Translation</h3>
+                    <p class="text-xs text-vintage-beaver">English ↔ Igbo with cultural context</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-heritage-cream rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-quote-left text-vintage-gold"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-dark-brown">Proverbs & Sayings</h3>
+                    <p class="text-xs text-vintage-beaver">Explore wisdom of Igbo proverbs</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-heritage-cream rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-microphone text-vintage-gold"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-dark-brown">Voice Input</h3>
+                    <p class="text-xs text-vintage-beaver">Speak your questions naturally</p>
+                </div>
+            </div>
+        </div>
+
+        {% if not user.is_authenticated %}
+        <div class="text-center mt-6 pt-4 border-t border-sepia-pale/20">
+            <a href="{% url 'account_login' %}?next={% url 'ai:new_chat' %}" class="btn-primary">
+                <i class="fas fa-sign-in-alt mr-2"></i> Login to Start Chatting
+            </a>
+        </div>
+        {% else %}
+        <div class="text-center mt-6 pt-4 border-t border-sepia-pale/20">
+            <a href="{% url 'ai:new_chat' %}" class="btn-primary">
+                <i class="fas fa-plus mr-2"></i> Start New Conversation
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
     <!-- Trust Badges -->
-    <div class="text-center">
+    <div class="text-center mt-6">
         <div class="inline-flex flex-wrap items-center justify-center gap-4 text-xs text-vintage-beaver">
             <span class="flex items-center gap-1.5">
                 <i class="fas fa-shield-alt text-vintage-gold text-sm"></i>

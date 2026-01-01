@@ -1,6 +1,6 @@
 /**
  * AI Chat JavaScript
- * Handles chat messaging, voice input, and session management
+ * Handles chat messaging, voice input (STT), text-to-speech (TTS), and session management
  */
 
 class AIChat {
@@ -10,6 +10,8 @@ class AIChat {
         this.isRecording = false;
         this.mediaRecorder = null;
         this.audioChunks = [];
+        this.isSpeaking = false;
+        this.speechSynthesis = window.speechSynthesis;
 
         this.elements = {
             chatMessages: document.getElementById('chatMessages'),
@@ -30,6 +32,14 @@ class AIChat {
         this.elements.voiceBtn.addEventListener('click', () => this.toggleRecording());
         this.scrollToBottom();
         this.elements.messageInput.focus();
+
+        // Add TTS button event delegation
+        this.elements.chatMessages.addEventListener('click', (e) => {
+            const ttsBtn = e.target.closest('.tts-btn');
+            if (ttsBtn) {
+                this.speakText(ttsBtn);
+            }
+        });
     }
 
     scrollToBottom() {
@@ -41,20 +51,29 @@ class AIChat {
             this.elements.emptyState.remove();
         }
 
+        const messageId = Date.now();
         const div = document.createElement('div');
         div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+        const ttsButton = role === 'assistant' && this.speechSynthesis ?
+            `<button class="tts-btn mt-2 text-xs text-vintage-beaver hover:text-vintage-gold transition-colors" data-msg-id="${messageId}" title="Listen">
+                <i class="fas fa-volume-up"></i> Listen
+            </button>` : '';
+
         div.innerHTML = `
-            <div class="max-w-[80%] rounded-2xl px-4 py-3 ${role === 'user' ? 'message-user text-white' : 'message-assistant text-dark-brown'}">
-                <div class="prose prose-sm ${role === 'user' ? 'prose-invert' : ''}">${this.formatContent(content)}</div>
+            <div class="max-w-[85%] rounded-xl px-3.5 py-2.5 ${role === 'user' ? 'message-user text-white' : 'message-assistant text-dark-brown'}">
+                <div class="prose prose-sm ${role === 'user' ? 'prose-invert' : ''} text-sm message-content">${this.formatContent(content)}</div>
+                ${ttsButton}
             </div>
         `;
+        div.dataset.rawContent = content;
         this.elements.chatMessages.insertBefore(div, this.elements.typingIndicator);
         this.scrollToBottom();
     }
 
     formatContent(content) {
         // Convert markdown links to HTML
-        content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="underline hover:text-vintage-gold">$1</a>');
+        content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="underline hover:text-vintage-gold">$1</a>');
         // Convert newlines to breaks
         content = content.replace(/\n/g, '<br>');
         return content;
@@ -74,6 +93,44 @@ class AIChat {
     hideTyping() {
         this.elements.typingIndicator.classList.add('hidden');
         this.elements.typingIndicator.classList.remove('flex');
+    }
+
+    // Text-to-Speech using Web Speech API (client-side, no storage)
+    speakText(button) {
+        if (this.isSpeaking) {
+            this.speechSynthesis.cancel();
+            this.isSpeaking = false;
+            button.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+            return;
+        }
+
+        const messageDiv = button.closest('.flex');
+        const rawContent = messageDiv?.dataset.rawContent ||
+            button.parentElement.querySelector('.message-content')?.textContent || '';
+
+        if (!rawContent) return;
+
+        const utterance = new SpeechSynthesisUtterance(rawContent);
+        utterance.lang = 'en-NG'; // Nigerian English (closest to Igbo region)
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+
+        utterance.onstart = () => {
+            this.isSpeaking = true;
+            button.innerHTML = '<i class="fas fa-stop"></i> Stop';
+        };
+
+        utterance.onend = () => {
+            this.isSpeaking = false;
+            button.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+        };
+
+        utterance.onerror = () => {
+            this.isSpeaking = false;
+            button.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+        };
+
+        this.speechSynthesis.speak(utterance);
     }
 
     async handleSubmit(e) {
@@ -203,5 +260,27 @@ class AIChat {
     }
 }
 
-// Export for use
+// Auto-initialize from data attributes
+document.addEventListener('DOMContentLoaded', () => {
+    const config = document.getElementById('aiChatConfig');
+    if (!config) return;
+
+    const sessionId = parseInt(config.dataset.sessionId, 10);
+    const endpoints = {
+        send: config.dataset.sendUrl,
+        transcribe: config.dataset.transcribeUrl,
+        delete: config.dataset.deleteUrl,
+        home: config.dataset.homeUrl
+    };
+
+    const chat = new AIChat(sessionId, endpoints);
+
+    const deleteBtn = document.getElementById('deleteBtn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => chat.deleteSession());
+    }
+});
+
+// Export for backward compatibility
 window.AIChat = AIChat;
+

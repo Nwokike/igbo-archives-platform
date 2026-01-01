@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body style="margin: 0; padding: 0; background-color: #F5F1E8; font-family: Georgia, 'Times New Roman', serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #F5F1E8;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                    style="max-width: 480px; background-color: #FFFFFF; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <!-- Logo -->
+                    <tr>
+                        <td align="center" style="padding: 32px 32px 24px;">
+                            <img src="https://igboarchives.com.ng/static/images/logos/logo-light.png"
+                                alt="Igbo Archives" width="160" style="max-width: 160px; height: auto;">
+                        </td>
+                    </tr>
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 0 32px 32px;">
+                            <h2 style="margin: 0 0 16px; color: #3D2817; font-size: 18px; text-align: center;">Verify
+                                Your Email</h2>
+                            <p
+                                style="margin: 0 0 24px; color: #5C4A3D; font-size: 15px; line-height: 1.6; text-align: center;">
+                                Hello{% if user.first_name %} {{ user.first_name }}{% endif %}, welcome! Please verify
+                                your email to activate your account.
+                            </p>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{ activate_url }}"
+                                            style="display: inline-block; padding: 14px 32px; background-color: #C4A052; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                                            Verify Email
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="margin: 24px 0 0; color: #8B7355; font-size: 13px; text-align: center;">
+                                This link expires in {{ expiration_days }} days.
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; border-top: 1px solid #E8E0D4; text-align: center;">
+                            <p style="margin: 0; color: #A89880; font-size: 11px;">
+                                If you didn't create this account, ignore this email.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

@@ -138,6 +138,46 @@ def daily_database_backup():
         return False
 
 
+@periodic_task(crontab(hour='2', minute='30'))
+def cleanup_old_chat_sessions():
+    """Remove chat sessions older than 30 days to keep DB light."""
+    try:
+        from ai.models import ChatSession
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        cutoff = timezone.now() - timedelta(days=30)
+        deleted_count, _ = ChatSession.objects.filter(
+            updated_at__lt=cutoff,
+            is_active=True
+        ).update(is_active=False)
+        
+        # Also hard delete very old inactive sessions (90+ days)
+        very_old = timezone.now() - timedelta(days=90)
+        hard_deleted, _ = ChatSession.objects.filter(
+            updated_at__lt=very_old,
+            is_active=False
+        ).delete()
+        
+        logger.info(f"Chat cleanup: {deleted_count} deactivated, {hard_deleted} deleted")
+        return True
+    except Exception as e:
+        logger.error(f"Chat cleanup failed: {e}")
+        return False
+
+
+@periodic_task(crontab(hour='5', minute='0'))
+def cleanup_tts_files():
+    """Clean up old TTS audio files."""
+    try:
+        from ai.services.tts_service import tts_service
+        tts_service.cleanup_old_files(max_age_hours=24)
+        logger.info("TTS file cleanup completed")
+        return True
+    except Exception as e:
+        logger.error(f"TTS cleanup failed: {e}")
+        return False
+
 
 @periodic_task(crontab(hour='*/6'))
 def clear_expired_cache():

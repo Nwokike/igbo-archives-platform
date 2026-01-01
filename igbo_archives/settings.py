@@ -178,7 +178,7 @@ ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_LOGOUT_ON_GET = False
+ACCOUNT_LOGOUT_ON_GET = True  # Instant logout (no confirmation page)
 ACCOUNT_FORMS = {
     'signup': 'users.forms.CustomSignupForm',
     'login': 'users.forms.CustomLoginForm',
@@ -196,7 +196,9 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Auto-signup, no form
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Social emails already verified
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Instant social login
 SOCIALACCOUNT_EMAIL_REQUIRED = False
 SOCIALACCOUNT_QUERY_EMAIL = False
 
