@@ -22,10 +22,11 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 - **Cover Images**: Front and back cover display
 - **Publication Details**: ISBN, publisher, year
 
-### 🤖 AI Assistant (Coming Soon)
+### 🤖 AI Assistant
 - **Igbo Archives AI**: Powered by Groq (LLaMA 3.1) and Google Gemini
 - **Archive Analysis**: AI-powered image and content analysis
-- **Text-to-Speech**: Listen to content being read aloud
+- **Text-to-Speech**: Listen to AI responses with Web Speech API
+- **Voice Input**: Speak your questions naturally
 - **Cultural Q&A**: Ask questions about Igbo culture and history
 
 ### 👥 Community Features
@@ -107,7 +108,7 @@ igbo-archives-platform/
 ├── insights/               # Community articles
 ├── books/                  # Book reviews
 ├── api/                    # API endpoints
-├── ai/                     # AI features (coming soon)
+├── ai/                     # AI assistant features
 ├── static/                 # Global static files
 ├── media/                  # User uploads
 └── backups/                # Database backups
@@ -229,7 +230,7 @@ This platform is optimized for deployment on a 1GB RAM VM:
 
 ## 📄 License
 
-Copyright © 2025 Igbo Archives. All Rights Reserved.
+Copyright © 2026 Igbo Archives. All Rights Reserved.
 
 ## 👨‍💻 Author
 
