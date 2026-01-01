@@ -138,18 +138,6 @@ def daily_database_backup():
         return False
 
 
-@periodic_task(crontab(hour='4', minute='0'))
-def daily_media_backup():
-    """Run media backup daily at 4 AM"""
-    try:
-        from django.core.management import call_command
-        call_command('mediabackup', '--clean')
-        logger.info("Daily media backup completed")
-        return True
-    except Exception as e:
-        logger.error(f"Media backup failed: {e}")
-        return False
-
 
 @periodic_task(crontab(hour='*/6'))
 def clear_expired_cache():

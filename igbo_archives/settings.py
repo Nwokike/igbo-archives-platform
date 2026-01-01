@@ -143,30 +143,20 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cloudflare R2 Storage (optional - falls back to local if not configured)
+# Cloudflare R2 Storage configuration (env vars used in STORAGES dict)
 R2_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID', '')
 R2_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY', '')
 R2_BUCKET_NAME = os.getenv('R2_BUCKET_NAME', '')
 R2_ENDPOINT_URL = os.getenv('R2_ENDPOINT_URL', '')
 R2_CUSTOM_DOMAIN = os.getenv('R2_CUSTOM_DOMAIN', '')
 
-if R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY and R2_BUCKET_NAME:
-    # Use R2 for media storage
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_ACCESS_KEY_ID = R2_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY = R2_SECRET_ACCESS_KEY
-    AWS_STORAGE_BUCKET_NAME = R2_BUCKET_NAME
-    AWS_S3_ENDPOINT_URL = R2_ENDPOINT_URL
-    AWS_S3_CUSTOM_DOMAIN = R2_CUSTOM_DOMAIN if R2_CUSTOM_DOMAIN else None
-    AWS_DEFAULT_ACL = 'public-read'
-    AWS_QUERYSTRING_AUTH = False
-    AWS_S3_FILE_OVERWRITE = False
-    MEDIA_URL = f'https://{R2_CUSTOM_DOMAIN}/' if R2_CUSTOM_DOMAIN else f'{R2_ENDPOINT_URL}/{R2_BUCKET_NAME}/'
+# Update MEDIA_URL for R2 if configured
+if R2_CUSTOM_DOMAIN:
+    MEDIA_URL = f'https://{R2_CUSTOM_DOMAIN}/'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -277,14 +267,40 @@ META_IMAGE_URL = '/static/images/logos/og-image.png'
 META_USE_SITES = True
 META_OG_NAMESPACES = ['og', 'fb']
 
-# Database Backup
-DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR / 'backups'}
-DBBACKUP_CLEANUP_KEEP = 10
-DBBACKUP_CLEANUP_KEEP_MEDIA = 10
+# Database Backup - Stored in R2 igboarchives-backup bucket
+# Uses Django 4.2+ STORAGES configuration
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'OPTIONS': {
+            'access_key': os.getenv('R2_ACCESS_KEY_ID', ''),
+            'secret_key': os.getenv('R2_SECRET_ACCESS_KEY', ''),
+            'bucket_name': os.getenv('R2_BUCKET_NAME', ''),
+            'endpoint_url': os.getenv('R2_ENDPOINT_URL', ''),
+            'custom_domain': os.getenv('R2_CUSTOM_DOMAIN', ''),
+            'default_acl': 'public-read',
+            'querystring_auth': False,
+            'file_overwrite': False,
+        },
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+    'dbbackup': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'OPTIONS': {
+            'access_key': os.getenv('R2_ACCESS_KEY_ID', ''),
+            'secret_key': os.getenv('R2_SECRET_ACCESS_KEY', ''),
+            'bucket_name': 'igboarchives-backup',
+            'endpoint_url': os.getenv('R2_ENDPOINT_URL', ''),
+            'default_acl': 'private',
+        },
+    },
+}
+DBBACKUP_STORAGE_ALIAS = 'dbbackup'
+DBBACKUP_CLEANUP_KEEP = 3  # Keep only 3 latest backups
 DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
 DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
-DBBACKUP_MEDIA_FILENAME_TEMPLATE = 'igbo-archives-media-{datetime}.{extension}'
 
 # Monetization
 GOOGLE_ADSENSE_CLIENT_ID = os.getenv('GOOGLE_ADSENSE_CLIENT_ID', '')

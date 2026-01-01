@@ -11,9 +11,9 @@
                 <select class="form-select text-xs" id="ratingFilter" name="rating" hx-get="{% url 'books:list' %}"
                     hx-target="#reviewsGrid" hx-include="#tagFilter,#sortFilter,#searchInput" hx-push-url="true">
                     <option value="">All Ratings</option>
-                    <option value="5" {% if request.GET.rating=='5' %}selected{% endif %}>5 Stars</option>
-                    <option value="4" {% if request.GET.rating=='4' %}selected{% endif %}>4+ Stars</option>
-                    <option value="3" {% if request.GET.rating=='3' %}selected{% endif %}>3+ Stars</option>
+                    <option value="5" {% if request.GET.rating == '5' %}selected{% endif %}>5 Stars</option>
+                    <option value="4" {% if request.GET.rating == '4' %}selected{% endif %}>4+ Stars</option>
+                    <option value="3" {% if request.GET.rating == '3' %}selected{% endif %}>3+ Stars</option>
                 </select>
             </div>
 
@@ -22,8 +22,7 @@
                     hx-target="#reviewsGrid" hx-include="#ratingFilter,#sortFilter,#searchInput" hx-push-url="true">
                     <option value="">All Tags</option>
                     {% for tag in tags %}
-                    <option value="{{ tag.name }}" {% if request.GET.tag==tag.name %}selected{% endif %}>{{ tag.name }}
-                    </option>
+                    <option value="{{ tag.name }}" {% if request.GET.tag == tag.name %}selected{% endif %}>{{ tag.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -31,11 +30,9 @@
             <div class="flex-1 min-w-[120px] sm:flex-none sm:w-28">
                 <select class="form-select text-xs" id="sortFilter" name="sort" hx-get="{% url 'books:list' %}"
                     hx-target="#reviewsGrid" hx-include="#ratingFilter,#tagFilter,#searchInput" hx-push-url="true">
-                    <option value="-created_at" {% if request.GET.sort=='-created_at' or not request.GET.sort
-                        %}selected{% endif %}>Newest</option>
-                    <option value="created_at" {% if request.GET.sort=='created_at' %}selected{% endif %}>Oldest
-                    </option>
-                    <option value="-rating" {% if request.GET.sort=='-rating' %}selected{% endif %}>Top Rated</option>
+                    <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Newest</option>
+                    <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest</option>
+                    <option value="-rating" {% if request.GET.sort == '-rating' %}selected{% endif %}>Top Rated</option>
                 </select>
             </div>
 
