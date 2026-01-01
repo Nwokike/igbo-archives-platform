@@ -41,7 +41,6 @@ jobs:
           python manage.py collectstatic --noinput
 
           # 6. Restart Services (Using Sudo Password Secret)
-          # We use sudo -S to pass the password automatically since your user has one
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives-huey
 
