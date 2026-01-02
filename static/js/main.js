@@ -65,12 +65,28 @@
         const notificationBell = document.getElementById('notificationBell');
         const notificationDropdown = document.getElementById('notificationDropdown');
 
+        const showDropdown = (dropdown) => {
+            dropdown.classList.remove('opacity-0', 'invisible', 'translate-y-2');
+            dropdown.classList.add('opacity-100', 'visible', 'translate-y-0');
+        };
+
+        const hideDropdown = (dropdown) => {
+            dropdown.classList.add('opacity-0', 'invisible', 'translate-y-2');
+            dropdown.classList.remove('opacity-100', 'visible', 'translate-y-0');
+        };
+
+        const isDropdownVisible = (dropdown) => {
+            return dropdown.classList.contains('opacity-100');
+        };
+
         if (profileButton && profileDropdown) {
             profileButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                profileDropdown.classList.toggle('show');
-                if (notificationDropdown) {
-                    notificationDropdown.style.display = 'none'; // Close other dropdown
+                if (isDropdownVisible(profileDropdown)) {
+                    hideDropdown(profileDropdown);
+                } else {
+                    showDropdown(profileDropdown);
+                    if (notificationDropdown) hideDropdown(notificationDropdown);
                 }
             });
         }
@@ -79,41 +95,36 @@
             notificationBell.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const bell = e.currentTarget;
-                const isVisible = notificationDropdown.style.display === 'block';
 
-                if (profileDropdown) {
-                    profileDropdown.classList.remove('show'); // Close other dropdown
-                }
+                if (profileDropdown) hideDropdown(profileDropdown);
 
-                if (!isVisible) {
-                    notificationDropdown.innerHTML = '<div class="notification-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
-                    notificationDropdown.style.display = 'block';
+                if (!isDropdownVisible(notificationDropdown)) {
+                    notificationDropdown.innerHTML = '<div class="p-4 text-center text-vintage-beaver"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+                    showDropdown(notificationDropdown);
                     try {
                         const response = await fetch(bell.dataset.url);
                         if (response.ok) {
                             notificationDropdown.innerHTML = await response.text();
                         } else {
-                            notificationDropdown.innerHTML = '<div class="notification-empty"><i class="fas fa-bell-slash"></i><p>Failed to load</p></div>';
+                            notificationDropdown.innerHTML = '<div class="p-4 text-center text-vintage-beaver"><i class="fas fa-bell-slash"></i><p>Failed to load</p></div>';
                         }
                     } catch (error) {
                         console.error('Error loading notifications:', error);
-                        notificationDropdown.innerHTML = '<div class="notification-empty"><i class="fas fa-exclamation-triangle"></i><p>Error</p></div>';
+                        notificationDropdown.innerHTML = '<div class="p-4 text-center text-vintage-beaver"><i class="fas fa-exclamation-triangle"></i><p>Error</p></div>';
                     }
                 } else {
-                    notificationDropdown.style.display = 'none';
+                    hideDropdown(notificationDropdown);
                 }
             });
         }
         
         // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
-            if (profileDropdown && profileDropdown.classList.contains('show')) {
-                profileDropdown.classList.remove('show');
+            if (profileDropdown && isDropdownVisible(profileDropdown) && !profileButton.contains(e.target)) {
+                hideDropdown(profileDropdown);
             }
-            if (notificationDropdown && notificationDropdown.style.display === 'block') {
-                if (!notificationBell.contains(e.target)) {
-                    notificationDropdown.style.display = 'none';
-                }
+            if (notificationDropdown && isDropdownVisible(notificationDropdown) && !notificationBell.contains(e.target)) {
+                hideDropdown(notificationDropdown);
             }
         });
 
