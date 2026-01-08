@@ -12,9 +12,9 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ['recipient', 'notification_type', 'is_read', 'created_at']
-    list_filter = ['notification_type', 'is_read', 'created_at']
-    search_fields = ['recipient__username', 'message']
+    list_display = ['recipient', 'verb', 'unread', 'timestamp']
+    list_filter = ['unread', 'timestamp']
+    search_fields = ['recipient__username', 'verb', 'description']
 
 
 @admin.register(Thread)

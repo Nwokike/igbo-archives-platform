@@ -162,7 +162,7 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-ACCOUNT_EMAIL_REQUIRED = True  # Deprecated but still needed by allauth
+# ACCOUNT_EMAIL_REQUIRED is deprecated, email* in SIGNUP_FIELDS handles this
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
