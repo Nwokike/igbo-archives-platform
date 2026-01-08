@@ -230,7 +230,11 @@ This platform is optimized for deployment on a 1GB RAM VM:
 
 ## 📄 License
 
-Copyright © 2026 Kiri Research Labs. All Rights Reserved.
+## 📄 License
+
+Copyright © 2025–2026 Kiri Research Labs. All Rights Reserved.
+
+Proprietary Software. Unauthorized use, reproduction, or distribution is strictly prohibited.
 
 ## 🏢 Legal & Attribution
 
