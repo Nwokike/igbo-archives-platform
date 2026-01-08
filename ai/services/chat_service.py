@@ -53,33 +53,36 @@ def get_database_context(query: str, max_results: int = 5) -> str:
                 context_parts.append(f"- [{a.title}]({url}): {a.description[:200]}..." if len(a.description) > 200 else f"- [{a.title}]({url}): {a.description}")
         
         # Search insights
-        from insights.models import Insight
-        insights = Insight.objects.filter(
+        from insights.models import InsightPost
+        insights = InsightPost.objects.filter(
             Q(title__icontains=query) |
-            Q(summary__icontains=query),
-            is_approved=True
+            Q(excerpt__icontains=query),
+            is_approved=True,
+            is_published=True
         )[:max_results]
         
         if insights:
             context_parts.append("\n**Relevant Insights:**")
             for i in insights:
                 url = f"/insights/{i.slug}/"
-                context_parts.append(f"- [{i.title}]({url}): {i.summary[:200]}..." if len(i.summary) > 200 else f"- [{i.title}]({url}): {i.summary}")
+                excerpt_text = i.excerpt[:200] if i.excerpt else ''
+                context_parts.append(f"- [{i.title}]({url}): {excerpt_text}..." if len(excerpt_text) > 200 else f"- [{i.title}]({url}): {excerpt_text}")
         
         # Search books
-        from books.models import Book
-        books = Book.objects.filter(
-            Q(title__icontains=query) |
+        from books.models import BookReview
+        books = BookReview.objects.filter(
+            Q(book_title__icontains=query) |
             Q(author__icontains=query) |
-            Q(summary__icontains=query),
-            is_approved=True
+            Q(review_title__icontains=query),
+            is_approved=True,
+            is_published=True
         )[:max_results]
         
         if books:
-            context_parts.append("\n**Relevant Books:**")
+            context_parts.append("\n**Relevant Book Reviews:**")
             for b in books:
                 url = f"/books/{b.slug}/"
-                context_parts.append(f"- [{b.title}]({url}) by {b.author}: {b.summary[:150]}...")
+                context_parts.append(f"- [{b.book_title}]({url}) by {b.author}")
     
     except Exception as e:
         logger.error(f"Database context error: {e}")
@@ -274,7 +277,10 @@ class ChatService:
                     prompt_parts.append(f"\n{role}: {msg['content']}")
                 prompt_parts.append("\nAssistant:")
                 
-                response = model.generate_content('\n'.join(prompt_parts))
+                response = model['client'].models.generate_content(
+                    model=model['model'],
+                    contents='\n'.join(prompt_parts)
+                )
                 
                 return {
                     'success': True,

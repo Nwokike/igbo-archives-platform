@@ -214,7 +214,11 @@ def delete_account(request):
         password = request.POST.get('password', '')
         
         if request.user.check_password(password):
+            import logging
+            logger = logging.getLogger(__name__)
             username = request.user.username
+            email = request.user.email
+            logger.warning(f"User {username} ({email}) deleted their account")
             request.user.delete()
             cache.delete(rate_key)
             django_messages.success(request, 'Your account has been deleted.')

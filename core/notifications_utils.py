@@ -3,8 +3,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.contrib.contenttypes.models import ContentType
-from users.models import Notification  # <-- IMPORT YOUR NEW MODEL
-from webpush import send_user_notification  # <-- IMPORT WEBPUSH
+from users.models import Notification
+from webpush import send_user_notification
 import logging
 
 logger = logging.getLogger(__name__)

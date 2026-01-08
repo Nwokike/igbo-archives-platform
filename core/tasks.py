@@ -197,30 +197,6 @@ def clear_expired_cache():
 
 
 @db_task()
-def post_to_social_media(post_id, post_type):
-    """Post to social media asynchronously (placeholder for future implementation)"""
-    try:
-        logger.info(f"Social media posting for {post_type} {post_id} - not yet implemented")
-        return True
-    except Exception as e:
-        logger.error(f"Social media posting failed: {e}")
-        return False
-
-
-@db_task()
-def process_archive_upload(archive_id):
-    """Process archive upload - generate thumbnails, optimize images"""
-    try:
-        from archives.models import Archive
-        archive = Archive.objects.get(id=archive_id)
-        logger.info(f"Processed archive {archive_id}: {archive.title}")
-        return True
-    except Exception as e:
-        logger.error(f"Archive processing failed: {e}")
-        return False
-
-
-@db_task()
 def notify_indexnow(urls):
     """Notify search engines about new/updated content via IndexNow"""
     try:

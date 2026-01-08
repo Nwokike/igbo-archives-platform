@@ -3,6 +3,9 @@
 import os
 import sys
 
+if sys.version_info < (3, 11):
+    raise SystemExit("Python 3.11+ is required to run Igbo Archives")
+
 
 def main():
     """Run administrative tasks."""

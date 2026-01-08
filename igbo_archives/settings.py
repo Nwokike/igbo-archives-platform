@@ -17,7 +17,12 @@ if not SECRET_KEY:
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
+
+# Production safety check
+if not DEBUG and ('localhost' in ALLOWED_HOSTS or '127.0.0.1' in ALLOWED_HOSTS):
+    import warnings
+    warnings.warn("Production ALLOWED_HOSTS should not include localhost/127.0.0.1")
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng').split(',')
 
@@ -49,6 +54,7 @@ INSTALLED_APPS = [
     'dbbackup',
     'webpush',
     'huey.contrib.djhuey',
+    'csp',
     
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
@@ -67,6 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
 ]
@@ -327,11 +334,16 @@ HUEY = SqliteHuey(
     results=False,
     store_none=True,
     utc=True,
+    default_delay=60,  # Default delay for retries
 )
 
 # Security Settings for Production
+# Session Configuration
+SESSION_COOKIE_AGE = 86400 * 7  # 7 days
+SESSION_SAVE_EVERY_REQUEST = False  # Don't update session on every request
+
+# Security Settings for Production
 if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
     SECURE_HSTS_SECONDS = 31536000
@@ -341,6 +353,15 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # Content Security Policy
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
+    CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
+    CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
+    CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", "https://api.indexnow.org")
+    CSP_FRAME_SRC = ("'self'", "https://www.google.com")
 
 # Logging
 LOGGING = {

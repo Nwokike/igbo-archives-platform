@@ -41,6 +41,23 @@
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ GOOGLE_ADSENSE_CLIENT_ID }}"
         crossorigin="anonymous"></script>
     {% endif %}
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Igbo Archives",
+      "url": "https://igboarchives.com.ng",
+      "logo": "https://igboarchives.com.ng{% static 'images/logos/logo-light.png' %}",
+      "sameAs": [
+        "https://www.facebook.com/IgboArchives/",
+        "https://www.instagram.com/IgboArchives.com.ng/",
+        "https://x.com/IgboArchives",
+        "https://mastodon.social/@Igbo_Archives"
+      ],
+      "description": "Preserving and celebrating the rich history and culture of the Igbo people."
+    }
+    </script>
 </head>
 
 <body
@@ -313,13 +330,13 @@
         </div>
     </footer>
 
-    <script src="{% static 'vendor/js/htmx.min.js' %}"></script>
-    <script src="{% static 'js/main.js' %}"></script>
-    <script src="{% static 'js/notifications.js' %}"></script>
-    <script src="{% static 'js/modals.js' %}"></script>
-    <script src="{% static 'js/tabs.js' %}"></script>
-    <script src="{% static 'js/view-toggle.js' %}"></script>
-    <script src="{% static 'js/share.js' %}"></script>
+    <script src="{% static 'vendor/js/htmx.min.js' %}" defer></script>
+    <script src="{% static 'js/main.js' %}" defer></script>
+    <script src="{% static 'js/notifications.js' %}" defer></script>
+    <script src="{% static 'js/modals.js' %}" defer></script>
+    <script src="{% static 'js/tabs.js' %}" defer></script>
+    <script src="{% static 'js/view-toggle.js' %}" defer></script>
+    <script src="{% static 'js/share.js' %}" defer></script>
     <script src="{% static 'js/push-notifications.js' %}" id="push-notifications-script"
         data-subscribe-url="{% url 'api:push_subscribe' %}" data-unsubscribe-url="{% url 'api:push_unsubscribe' %}"
         defer></script>

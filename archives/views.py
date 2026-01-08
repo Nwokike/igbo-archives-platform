@@ -9,6 +9,7 @@ from django.core.cache import cache
 from django.core.paginator import Paginator
 from .models import Archive, Category
 from core.validators import ALLOWED_ARCHIVE_SORTS, get_safe_sort
+from core.views import get_all_approved_archive_ids
 
 
 def get_cached_categories():
@@ -18,22 +19,6 @@ def get_cached_categories():
         categories = list(Category.objects.all())
         cache.set('archive_categories', categories, 3600)
     return categories
-
-
-def get_all_approved_archive_ids():
-    """Cache all approved archive IDs using chunked iteration."""
-    cache_key = 'all_approved_archive_ids'
-    archive_ids = cache.get(cache_key)
-    
-    if archive_ids is None:
-        archive_ids = tuple(
-            Archive.objects.filter(is_approved=True)
-            .values_list('id', flat=True)
-            .iterator(chunk_size=1000)
-        )
-        cache.set(cache_key, archive_ids, 300)
-    
-    return archive_ids
 
 
 def get_random_recommendations(exclude_pk, count=9):
@@ -196,8 +181,9 @@ def archive_edit(request, pk):
     archive = get_object_or_404(Archive, pk=pk, uploaded_by=request.user)
     
     if request.method == 'POST':
+        import bleach
         archive.title = request.POST.get('title', '').strip()
-        archive.description = request.POST.get('description', '').strip()
+        archive.description = bleach.clean(request.POST.get('description', '').strip(), strip=True)
         archive.caption = request.POST.get('caption', '').strip()
         archive.alt_text = request.POST.get('alt_text', '').strip()
         archive.original_author = request.POST.get('original_author', '').strip()
@@ -230,7 +216,8 @@ def archive_edit(request, pk):
             tag_list = [t.strip()[:50] for t in tags_str.split(',') if t.strip()][:20]
             archive.tags.add(*tag_list)
         
-        cache.delete('all_approved_archive_ids')
+        if archive.is_approved:
+            cache.delete('all_approved_archive_ids')
         
         messages.success(request, 'Archive updated successfully!')
         return redirect('archives:detail', pk=archive.pk)

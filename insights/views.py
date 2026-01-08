@@ -238,8 +238,8 @@ def insight_edit(request, slug):
     insight = get_object_or_404(InsightPost, slug=slug, author=request.user)
     
     if request.method == 'POST':
-        insight.title = request.POST.get('title', '').strip()
-        insight.excerpt = request.POST.get('excerpt', '').strip()
+        insight.title = request.POST.get('title', '').strip()[:255]
+        insight.excerpt = request.POST.get('excerpt', '').strip()[:500]
         content_json = request.POST.get('content_json')
         
         if content_json:

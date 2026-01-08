@@ -318,13 +318,10 @@
  */
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        if (window.showToast) {
-            window.showToast('Link copied to clipboard!', 'success');
-        } else {
-            alert('Link copied to clipboard!');
-        }
+        showToast('Link copied to clipboard!', 'success');
     }).catch(err => {
         console.error('Could not copy text: ', err);
+        showToast('Failed to copy link', 'error');
     });
 }
 

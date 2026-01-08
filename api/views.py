@@ -124,7 +124,6 @@ def upload_image(request):
         is_approved=False
     )
     
-    cache.delete('all_approved_archive_ids')
     cache.set(rate_key, upload_count + 1, 3600)
     
     file_url = request.build_absolute_uri(archive.image.url)

@@ -42,6 +42,7 @@ class Message(models.Model):
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['thread', 'is_read'], name='msg_thread_read_idx'),
+            models.Index(fields=['sender', '-created_at'], name='msg_sender_date_idx'),
         ]
     
     def __str__(self) -> str:
