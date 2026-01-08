@@ -1,6 +1,8 @@
 """
 Vision Service for Igbo Archives.
 Advanced image analysis for cultural artifacts and documents.
+
+Migrated to google-genai SDK (2026).
 """
 import logging
 from pathlib import Path
@@ -73,22 +75,21 @@ This analysis is for archival documentation."""
     }
     
     def __init__(self):
-        self._models = {}
+        self._clients = {}
     
-    def _get_model(self, api_key):
-        """Get or create vision model."""
-        if api_key not in self._models:
+    def _get_client(self, api_key):
+        """Get or create vision client."""
+        if api_key not in self._clients:
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=api_key)
-                self._models[api_key] = genai.GenerativeModel(self.MODEL)
+                from google import genai
+                self._clients[api_key] = genai.Client(api_key=api_key)
             except ImportError:
-                logger.error("google-generativeai not installed")
+                logger.error("google-genai not installed. Run: pip install google-genai")
                 return None
             except Exception as e:
-                logger.error(f"Vision model error: {e}")
+                logger.error(f"Vision client error: {e}")
                 return None
-        return self._models[api_key]
+        return self._clients[api_key]
     
     @property
     def is_available(self):
@@ -119,11 +120,13 @@ This analysis is for archival documentation."""
             if not api_key:
                 break
             
-            model = self._get_model(api_key)
-            if not model:
+            client = self._get_client(api_key)
+            if not client:
                 continue
             
             try:
+                from google.genai import types
+                
                 path = Path(image_path)
                 if not path.exists():
                     return {'success': False, 'content': 'Image not found.'}
@@ -140,8 +143,13 @@ This analysis is for archival documentation."""
                 }
                 mime_type = mime_types.get(suffix, 'image/jpeg')
                 
-                image_part = {'mime_type': mime_type, 'data': image_data}
-                response = model.generate_content([prompt, image_part])
+                response = client.models.generate_content(
+                    model=self.MODEL,
+                    contents=[
+                        types.Part.from_bytes(data=image_data, mime_type=mime_type),
+                        prompt
+                    ]
+                )
                 
                 return {
                     'success': True,
@@ -173,22 +181,26 @@ This analysis is for archival documentation."""
             if not api_key:
                 break
             
-            model = self._get_model(api_key)
-            if not model:
+            client = self._get_client(api_key)
+            if not client:
                 continue
             
             try:
                 import requests
+                from google.genai import types
+                
                 response = requests.get(image_url, timeout=15)
                 response.raise_for_status()
                 
                 content_type = response.headers.get('content-type', 'image/jpeg')
-                image_part = {
-                    'mime_type': content_type.split(';')[0],
-                    'data': response.content
-                }
                 
-                result = model.generate_content([prompt, image_part])
+                result = client.models.generate_content(
+                    model=self.MODEL,
+                    contents=[
+                        types.Part.from_bytes(data=response.content, mime_type=content_type.split(';')[0]),
+                        prompt
+                    ]
+                )
                 return {'success': True, 'content': result.text}
                 
             except Exception as e:
@@ -203,3 +215,4 @@ This analysis is for archival documentation."""
 
 # Singleton
 vision_service = VisionService()
+

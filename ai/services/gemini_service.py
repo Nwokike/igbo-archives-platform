@@ -2,6 +2,8 @@
 Gemini AI Service for Igbo Archives.
 Handles image analysis, chat, and multimodal tasks with multi-key rotation.
 Uses Gemini 2.0 Flash (best free model).
+
+Migrated to google-genai SDK (2026).
 """
 import logging
 from django.conf import settings
@@ -21,25 +23,21 @@ class GeminiService:
     PRO_MODEL = 'gemini-1.5-pro'       # Best quality (higher limits)
     
     def __init__(self):
-        self._models = {}  # Cache models per key
+        self._clients = {}  # Cache clients per key
     
-    def _get_model(self, api_key, model_name=None):
-        """Get or create Gemini model for a key."""
-        model_name = model_name or self.FLASH_MODEL
-        cache_key = f"{api_key}:{model_name}"
-        
-        if cache_key not in self._models:
+    def _get_client(self, api_key):
+        """Get or create Gemini client for a key."""
+        if api_key not in self._clients:
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=api_key)
-                self._models[cache_key] = genai.GenerativeModel(model_name)
+                from google import genai
+                self._clients[api_key] = genai.Client(api_key=api_key)
             except ImportError:
-                logger.error("google-generativeai package not installed")
+                logger.error("google-genai package not installed. Run: pip install google-genai")
                 return None
             except Exception as e:
-                logger.error(f"Failed to initialize Gemini model: {e}")
+                logger.error(f"Failed to initialize Gemini client: {e}")
                 return None
-        return self._models[cache_key]
+        return self._clients[api_key]
     
     @property
     def is_available(self):
@@ -76,12 +74,15 @@ class GeminiService:
             if not api_key:
                 break
             
-            model = self._get_model(api_key)
-            if not model:
+            client = self._get_client(api_key)
+            if not client:
                 continue
             
             try:
-                response = model.generate_content(prompt)
+                response = client.models.generate_content(
+                    model=self.FLASH_MODEL,
+                    contents=prompt
+                )
                 
                 return {
                     'success': True,
@@ -162,13 +163,13 @@ Focus on details that would help preserve and understand this piece of Igbo heri
             if not api_key:
                 break
             
-            model = self._get_model(api_key)
-            if not model:
+            client = self._get_client(api_key)
+            if not client:
                 continue
             
             try:
                 from pathlib import Path
-                import google.generativeai as genai
+                from google.genai import types
                 
                 path = Path(image_path)
                 if not path.exists():
@@ -191,8 +192,13 @@ Focus on details that would help preserve and understand this piece of Igbo heri
                 }
                 mime_type = mime_types.get(suffix, 'image/jpeg')
                 
-                image_part = {'mime_type': mime_type, 'data': image_data}
-                response = model.generate_content([prompt, image_part])
+                response = client.models.generate_content(
+                    model=self.FLASH_MODEL,
+                    contents=[
+                        types.Part.from_bytes(data=image_data, mime_type=mime_type),
+                        prompt
+                    ]
+                )
                 
                 return {
                     'success': True,
@@ -231,23 +237,26 @@ Focus on details that would help preserve and understand this piece of Igbo heri
             if not api_key:
                 break
             
-            model = self._get_model(api_key)
-            if not model:
+            client = self._get_client(api_key)
+            if not client:
                 continue
             
             try:
                 import requests
+                from google.genai import types
                 
                 response = requests.get(image_url, timeout=10)
                 response.raise_for_status()
                 
                 content_type = response.headers.get('content-type', 'image/jpeg')
-                image_part = {
-                    'mime_type': content_type.split(';')[0],
-                    'data': response.content
-                }
                 
-                result = model.generate_content([prompt, image_part])
+                result = client.models.generate_content(
+                    model=self.FLASH_MODEL,
+                    contents=[
+                        types.Part.from_bytes(data=response.content, mime_type=content_type.split(';')[0]),
+                        prompt
+                    ]
+                )
                 
                 return {
                     'success': True,
@@ -269,3 +278,4 @@ Focus on details that would help preserve and understand this piece of Igbo heri
 
 # Singleton instance
 gemini_service = GeminiService()
+

@@ -147,11 +147,14 @@ class ChatService:
         cache_key = f"{api_key}:{model_name}"
         if cache_key not in self._gemini_models:
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=api_key)
-                self._gemini_models[cache_key] = genai.GenerativeModel(model_name)
+                from google import genai
+                # Store the client with model name for later use
+                self._gemini_models[cache_key] = {
+                    'client': genai.Client(api_key=api_key),
+                    'model': model_name
+                }
             except Exception as e:
-                logger.error(f"Gemini model error: {e}")
+                logger.error(f"Gemini client error: {e}")
                 return None
         return self._gemini_models[cache_key]
     
