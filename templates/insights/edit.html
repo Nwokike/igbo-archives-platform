@@ -14,10 +14,10 @@
         <h1 class="font-serif text-display-lg text-dark-brown mb-2">Edit Insight Post</h1>
         <p class="text-vintage-beaver">Make changes to your insight post.</p>
     </div>
-    
+
     <form method="post" enctype="multipart/form-data" id="insightForm" class="space-y-6">
         {% csrf_token %}
-        
+
         <div class="form-group">
             <label for="title" class="form-label">Title <span class="text-red-500">*</span></label>
             <input type="text" class="form-input" id="title" name="title" value="{{ insight.title }}" required>
@@ -25,7 +25,8 @@
 
         <div class="form-group">
             <label for="excerpt" class="form-label">Excerpt</label>
-            <textarea class="form-textarea" id="excerpt" name="excerpt" rows="2" maxlength="500">{{ insight.excerpt }}</textarea>
+            <textarea class="form-textarea" id="excerpt" name="excerpt" rows="2"
+                maxlength="500">{{ insight.excerpt }}</textarea>
             <p class="form-help">Brief summary shown in listings (max 500 characters)</p>
         </div>
 
@@ -38,9 +39,11 @@
 
         <div class="form-group hidden" id="featuredImageSection">
             <label class="form-label">Choose Featured Image</label>
-            <p class="text-sm text-vintage-beaver mb-3">Select an image from your post content to use as the featured image.</p>
+            <p class="text-sm text-vintage-beaver mb-3">Select an image from your post content to use as the featured
+                image.</p>
             <div id="featuredImageGrid" class="featured-image-grid"></div>
-            <input type="hidden" id="featured_image_url" name="featured_image_url" value="{% if insight.featured_image %}{{ insight.featured_image.url }}{% endif %}">
+            <input type="hidden" id="featured_image_url" name="featured_image_url"
+                value="{% if insight.featured_image %}{{ insight.featured_image.url }}{% endif %}">
         </div>
 
         <div class="form-group">
@@ -50,12 +53,15 @@
 
         <div class="form-group">
             <label for="tags" class="form-label">Tags</label>
-            <input type="text" class="form-input" id="tags" name="tags" value="{% for tag in insight.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}" placeholder="Enter tags separated by commas">
+            <input type="text" class="form-input" id="tags" name="tags"
+                value="{% for tag in insight.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+                placeholder="Enter tags separated by commas">
         </div>
 
         <div class="form-group">
             <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" class="form-checkbox" id="is_published" name="is_published" {% if insight.is_published %}checked{% endif %}>
+                <input type="checkbox" class="form-checkbox" id="is_published" name="is_published" {% if
+                    insight.is_published %}checked{% endif %}>
                 <span class="text-sm font-medium text-dark-brown">Published</span>
             </label>
             <p class="form-help ml-8">Check to make this post publicly visible</p>
@@ -83,7 +89,7 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
+
         <div class="modal-body">
             <div class="tabs-container">
                 <div class="tabs-list">
@@ -91,7 +97,7 @@
                     <button type="button" class="tab-button" data-tab="archive">Select from Archives</button>
                 </div>
             </div>
-            
+
             <div id="upload-panel" class="tab-panel active">
                 <div class="form-group">
                     <label class="form-label form-label-required">Select Image File</label>
@@ -99,14 +105,16 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label form-label-required">Caption (with copyright/source info)</label>
-                    <input type="text" class="form-input" id="imageCaption" placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
+                    <input type="text" class="form-input" id="imageCaption"
+                        placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
                 </div>
                 <div class="form-group">
                     <label class="form-label form-label-required">Description (Alt Text)</label>
-                    <input type="text" class="form-input" id="imageDescription" placeholder="Describe the image for accessibility">
+                    <input type="text" class="form-input" id="imageDescription"
+                        placeholder="Describe the image for accessibility">
                 </div>
             </div>
-            
+
             <div id="archive-panel" class="tab-panel">
                 <div class="search-input-container">
                     <i class="fas fa-search search-input-icon"></i>
@@ -117,7 +125,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="modal-footer">
             <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
             <button type="button" class="btn-primary" id="uploadBtn" onclick="uploadAndInsertImage()">
@@ -143,39 +151,39 @@
 <script src="{% static 'js/editor.js' %}"></script>
 <script src="{% static 'js/insight-editor.js' %}"></script>
 <script>
-(function() {
-    document.addEventListener('DOMContentLoaded', function() {
-        var existingContent = document.getElementById('existing_content');
-        if (existingContent && existingContent.value) {
-            try {
-                var data = JSON.parse(existingContent.value);
-                if (data && data.blocks) {
-                    setTimeout(function() {
-                        if (window.IgboEditor && window.IgboEditor.instance) {
-                            window.IgboEditor.instance.render(data).then(function() {
-                                console.log('Existing content loaded');
-                                window.IgboEditor.updateFeaturedImageOptions();
-                            });
-                        }
-                    }, 500);
-                }
-            } catch (e) {
-                console.log('Could not parse existing content as JSON, converting from HTML');
-                var htmlContent = existingContent.value;
-                if (htmlContent && window.IgboEditor) {
-                    var converted = window.IgboEditor.convertQuillToEditorJS(htmlContent);
-                    setTimeout(function() {
-                        if (window.IgboEditor.instance) {
-                            window.IgboEditor.instance.render(converted).then(function() {
-                                console.log('Content converted from HTML');
-                                window.IgboEditor.updateFeaturedImageOptions();
-                            });
-                        }
-                    }, 500);
+    (function () {
+        document.addEventListener('DOMContentLoaded', function () {
+            var existingContent = document.getElementById('existing_content');
+            if (existingContent && existingContent.value) {
+                try {
+                    var data = JSON.parse(existingContent.value);
+                    if (data && data.blocks) {
+                        setTimeout(function () {
+                            if (window.IgboEditor && window.IgboEditor.instance) {
+                                window.IgboEditor.instance.render(data).then(function () {
+                                    console.log('Existing content loaded');
+                                    window.IgboEditor.updateFeaturedImageOptions();
+                                });
+                            }
+                        }, 500);
+                    }
+                } catch (e) {
+                    console.log('Could not parse existing content as JSON, converting from HTML');
+                    var htmlContent = existingContent.value;
+                    if (htmlContent && window.IgboEditor) {
+                        var converted = window.IgboEditor.convertHtmlToEditorJS(htmlContent);
+                        setTimeout(function () {
+                            if (window.IgboEditor.instance) {
+                                window.IgboEditor.instance.render(converted).then(function () {
+                                    console.log('Content converted from HTML');
+                                    window.IgboEditor.updateFeaturedImageOptions();
+                                });
+                            }
+                        }, 500);
+                    }
                 }
             }
-        }
-    });
-})();
+        });
+    })();
 </script>
 {% endblock %}

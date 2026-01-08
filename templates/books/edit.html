@@ -13,10 +13,10 @@
         <h1 class="font-serif text-display-lg text-dark-brown mb-2">Edit Book Review</h1>
         <p class="text-vintage-beaver">Update your review for "{{ review.book_title }}"</p>
     </div>
-    
+
     <form method="post" enctype="multipart/form-data" id="bookForm" class="space-y-6">
         {% csrf_token %}
-        
+
         <div class="card">
             <div class="card-header">
                 <h2 class="font-serif text-lg font-semibold">Book Information</h2>
@@ -24,22 +24,26 @@
             <div class="card-body space-y-4">
                 <div class="form-group">
                     <label for="book_title" class="form-label">Book Title <span class="text-red-500">*</span></label>
-                    <input type="text" class="form-input" id="book_title" name="book_title" value="{{ review.book_title }}" required>
+                    <input type="text" class="form-input" id="book_title" name="book_title"
+                        value="{{ review.book_title }}" required>
                 </div>
 
                 <div class="form-group">
                     <label for="author" class="form-label">Author <span class="text-red-500">*</span></label>
-                    <input type="text" class="form-input" id="author" name="author" value="{{ review.author }}" required>
+                    <input type="text" class="form-input" id="author" name="author" value="{{ review.author }}"
+                        required>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="form-group">
                         <label for="publisher" class="form-label">Publisher</label>
-                        <input type="text" class="form-input" id="publisher" name="publisher" value="{{ review.publisher }}">
+                        <input type="text" class="form-input" id="publisher" name="publisher"
+                            value="{{ review.publisher }}">
                     </div>
                     <div class="form-group">
                         <label for="publication_year" class="form-label">Year</label>
-                        <input type="number" class="form-input" id="publication_year" name="publication_year" min="1000" max="2100" value="{{ review.publication_year }}">
+                        <input type="number" class="form-input" id="publication_year" name="publication_year" min="1000"
+                            max="2100" value="{{ review.publication_year }}">
                     </div>
                     <div class="form-group">
                         <label for="isbn" class="form-label">ISBN</label>
@@ -55,18 +59,20 @@
             </div>
             <div class="card-body space-y-4">
                 <div class="form-group">
-                    <label for="review_title" class="form-label">Review Title <span class="text-red-500">*</span></label>
-                    <input type="text" class="form-input" id="review_title" name="review_title" value="{{ review.review_title }}" required>
+                    <label for="review_title" class="form-label">Review Title <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" class="form-input" id="review_title" name="review_title"
+                        value="{{ review.review_title }}" required>
                 </div>
 
                 <div class="form-group">
                     <label for="rating" class="form-label">Rating <span class="text-red-500">*</span></label>
                     <select class="form-select" id="rating" name="rating" required>
-                        <option value="5" {% if review.rating == 5 %}selected{% endif %}>★★★★★ - Excellent</option>
-                        <option value="4" {% if review.rating == 4 %}selected{% endif %}>★★★★☆ - Very Good</option>
-                        <option value="3" {% if review.rating == 3 %}selected{% endif %}>★★★☆☆ - Good</option>
-                        <option value="2" {% if review.rating == 2 %}selected{% endif %}>★★☆☆☆ - Fair</option>
-                        <option value="1" {% if review.rating == 1 %}selected{% endif %}>★☆☆☆☆ - Poor</option>
+                        <option value="5" {% if review.rating==5 %}selected{% endif %}>★★★★★ - Excellent</option>
+                        <option value="4" {% if review.rating==4 %}selected{% endif %}>★★★★☆ - Very Good</option>
+                        <option value="3" {% if review.rating==3 %}selected{% endif %}>★★★☆☆ - Good</option>
+                        <option value="2" {% if review.rating==2 %}selected{% endif %}>★★☆☆☆ - Fair</option>
+                        <option value="1" {% if review.rating==1 %}selected{% endif %}>★☆☆☆☆ - Poor</option>
                     </select>
                 </div>
 
@@ -88,7 +94,8 @@
                 <div class="form-group">
                     <label class="form-label">Current Cover</label>
                     <div class="inline-block border-2 border-sepia-pale rounded-lg p-2">
-                        <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" class="max-w-[150px] h-auto rounded">
+                        <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}"
+                            class="max-w-[150px] h-auto rounded">
                     </div>
                 </div>
                 {% endif %}
@@ -103,12 +110,15 @@
 
         <div class="form-group">
             <label for="tags" class="form-label">Tags</label>
-            <input type="text" class="form-input" id="tags" name="tags" value="{% for tag in review.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}" placeholder="Enter tags separated by commas">
+            <input type="text" class="form-input" id="tags" name="tags"
+                value="{% for tag in review.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+                placeholder="Enter tags separated by commas">
         </div>
 
         <div class="form-group">
             <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" class="form-checkbox" id="is_published" name="is_published" {% if review.is_published %}checked{% endif %}>
+                <input type="checkbox" class="form-checkbox" id="is_published" name="is_published" {% if
+                    review.is_published %}checked{% endif %}>
                 <span class="text-sm font-medium text-dark-brown">Published</span>
             </label>
             <p class="form-help ml-8">Check to make this review publicly visible</p>
@@ -135,76 +145,76 @@
 <script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
 <script src="{% static 'js/editor.js' %}"></script>
 <script>
-(function() {
-    'use strict';
-    
-    var editor = null;
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        editor = IgboEditor.init('editor', {
-            placeholder: 'Edit your book review...',
-            autofocus: false
-        });
-        
-        var existingContent = document.getElementById('existing_content');
-        if (existingContent && existingContent.value) {
-            try {
-                var data = JSON.parse(existingContent.value);
-                if (data && data.blocks) {
-                    setTimeout(function() {
-                        if (editor) {
-                            editor.render(data).then(function() {
-                                console.log('Existing content loaded');
-                            });
-                        }
-                    }, 500);
-                }
-            } catch (e) {
-                console.log('Converting HTML content');
-                var htmlContent = existingContent.value;
-                if (htmlContent && window.IgboEditor) {
-                    var converted = window.IgboEditor.convertQuillToEditorJS(htmlContent);
-                    setTimeout(function() {
-                        if (editor) {
-                            editor.render(converted);
-                        }
-                    }, 500);
+    (function () {
+        'use strict';
+
+        var editor = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            editor = IgboEditor.init('editor', {
+                placeholder: 'Edit your book review...',
+                autofocus: false
+            });
+
+            var existingContent = document.getElementById('existing_content');
+            if (existingContent && existingContent.value) {
+                try {
+                    var data = JSON.parse(existingContent.value);
+                    if (data && data.blocks) {
+                        setTimeout(function () {
+                            if (editor) {
+                                editor.render(data).then(function () {
+                                    console.log('Existing content loaded');
+                                });
+                            }
+                        }, 500);
+                    }
+                } catch (e) {
+                    console.log('Converting HTML content');
+                    var htmlContent = existingContent.value;
+                    if (htmlContent && window.IgboEditor) {
+                        var converted = window.IgboEditor.convertHtmlToEditorJS(htmlContent);
+                        setTimeout(function () {
+                            if (editor) {
+                                editor.render(converted);
+                            }
+                        }, 500);
+                    }
                 }
             }
-        }
-        
-        document.getElementById('bookForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            editor.save().then(function(outputData) {
-                if (!outputData.blocks || outputData.blocks.length === 0) {
-                    showToast('Please add some content before submitting.', 'error');
-                    return;
-                }
-                
-                document.getElementById('content_json').value = JSON.stringify(outputData);
-                e.target.submit();
-            }).catch(function(error) {
-                console.error('Error saving editor content:', error);
-                showToast('Error saving content. Please try again.', 'error');
+
+            document.getElementById('bookForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                editor.save().then(function (outputData) {
+                    if (!outputData.blocks || outputData.blocks.length === 0) {
+                        showToast('Please add some content before submitting.', 'error');
+                        return;
+                    }
+
+                    document.getElementById('content_json').value = JSON.stringify(outputData);
+                    e.target.submit();
+                }).catch(function (error) {
+                    console.error('Error saving editor content:', error);
+                    showToast('Error saving content. Please try again.', 'error');
+                });
             });
         });
-    });
-    
-    function showToast(message, type) {
-        var existing = document.querySelector('.toast');
-        if (existing) existing.remove();
-        
-        var toast = document.createElement('div');
-        toast.className = 'toast toast-' + type;
-        toast.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>' + message + '</span>';
-        document.body.appendChild(toast);
-        
-        setTimeout(function() {
-            toast.style.opacity = '0';
-            setTimeout(function() { toast.remove(); }, 300);
-        }, 4000);
-    }
-})();
+
+        function showToast(message, type) {
+            var existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            var toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>' + message + '</span>';
+            document.body.appendChild(toast);
+
+            setTimeout(function () {
+                toast.style.opacity = '0';
+                setTimeout(function () { toast.remove(); }, 300);
+            }, 4000);
+        }
+    })();
 </script>
 {% endblock %}
