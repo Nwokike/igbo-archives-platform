@@ -96,21 +96,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'igbo_archives.wsgi.application'
 
 # Database - SQLite with WAL mode for 1GB RAM constraint
+# Note: WAL pragmas are set via sqlite_wal.py which is called in wsgi.py/asgi.py
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'init_command': (
-                'PRAGMA journal_mode=WAL;'
-                'PRAGMA synchronous=NORMAL;'
-                'PRAGMA cache_size=-32000;'
-                'PRAGMA temp_store=MEMORY;'
-                'PRAGMA mmap_size=67108864;'
-                'PRAGMA busy_timeout=5000;'
-                'PRAGMA foreign_keys=ON;'
-            ),
-        },
         'ATOMIC_REQUESTS': True,
     }
 }
@@ -237,10 +227,6 @@ GEMINI_API_KEYS = os.getenv('GEMINI_API_KEYS', '')  # Comma-separated keys
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')  # Single key fallback
 GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')  # Comma-separated keys
 
-# Payments (Paystack)
-PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
-PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
-
 # Email Configuration
 if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_API_KEY'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -286,7 +272,7 @@ STORAGES = {
         },
     },
     'staticfiles': {
-        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
     'dbbackup': {
         'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',

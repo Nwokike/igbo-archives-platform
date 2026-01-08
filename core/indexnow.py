@@ -113,3 +113,22 @@ def submit_urls_bulk(urls, host=None):
                 
         except Exception as e:
             logger.error(f"Error submitting bulk URLs to IndexNow: {str(e)}")
+
+
+class IndexNowClient:
+    """Class wrapper for IndexNow API functions.
+    
+    Provides a class-based interface for IndexNow URL submission.
+    Used by core/tasks.py for async URL submission.
+    """
+    
+    def __init__(self):
+        self.api_key = get_indexnow_key()
+    
+    def submit_url(self, url, host=None):
+        """Submit a single URL to IndexNow."""
+        return submit_url_to_indexnow(url, host)
+    
+    def submit_urls(self, urls, host=None):
+        """Submit multiple URLs to IndexNow."""
+        return submit_urls_bulk(urls, host)

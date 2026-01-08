@@ -117,9 +117,12 @@ def archive_detail(request, pk):
 @login_required
 def archive_create(request):
     """Create a new archive."""
+    import bleach
+    from django.core.exceptions import ValidationError
+    
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
-        description = request.POST.get('description', '').strip()
+        description = bleach.clean(request.POST.get('description', '').strip(), strip=True)
         archive_type = request.POST.get('archive_type')
         category_id = request.POST.get('category')
         caption = request.POST.get('caption', '').strip()
@@ -163,13 +166,22 @@ def archive_create(request):
         if 'featured_image' in request.FILES:
             archive.featured_image = request.FILES['featured_image']
         
+        # Validate file uploads through model validators
+        try:
+            archive.full_clean()
+        except ValidationError as e:
+            for field, errors in e.message_dict.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+            return render(request, 'archives/create.html', {'categories': get_cached_categories()})
+        
         archive.save()
         
         if tags_str:
             tag_list = [t.strip()[:50] for t in tags_str.split(',') if t.strip()][:20]
             archive.tags.add(*tag_list)
         
-        cache.delete('all_approved_archive_ids')
+        # Note: Cache is only invalidated when admin approves, not on create
         
         messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
         return redirect('archives:list')

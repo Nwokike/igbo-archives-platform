@@ -289,6 +289,8 @@ def insight_edit(request, slug):
 @login_required
 def suggest_edit(request, slug):
     """Submit an edit suggestion for an insight."""
+    from core.notifications_utils import send_edit_suggestion_notification
+    
     insight = get_object_or_404(InsightPost, slug=slug)
     
     rate_key = f'suggestion_rate_{request.user.id}'
@@ -304,11 +306,14 @@ def suggest_edit(request, slug):
             messages.error(request, 'Please provide a suggestion.')
             return render(request, 'insights/suggest_edit.html', {'insight': insight})
         
-        EditSuggestion.objects.create(
+        suggestion = EditSuggestion.objects.create(
             post=insight,
             suggested_by=request.user,
             suggestion_text=suggestion_text[:5000]
         )
+        
+        # Send notification to post author
+        send_edit_suggestion_notification(suggestion)
         
         cache.set(rate_key, suggestion_count + 1, 86400)
         messages.success(request, 'Thank you! Your edit suggestion has been sent to the author.')

@@ -126,19 +126,32 @@ def message_inbox(request):
 @login_required
 def message_thread(request, thread_id):
     """View and reply to a message thread."""
+    import bleach
+    from django.core.cache import cache
+    
     thread = get_object_or_404(
         Thread.objects.prefetch_related('messages', 'participants'),
         id=thread_id, participants=request.user
     )
     
     if request.method == 'POST':
+        # Rate limiting: 20 messages per hour
+        rate_key = f'msg_rate_{request.user.id}'
+        msg_count = cache.get(rate_key, 0)
+        if msg_count >= 20:
+            django_messages.error(request, 'Message limit reached. Please wait before sending more.')
+            return redirect('users:thread', thread_id=thread_id)
+        
         content = request.POST.get('content', '').strip()
         if content and len(content) <= 10000:
+            # Sanitize content with bleach to prevent XSS
+            clean_content = bleach.clean(content, strip=True)
             Message.objects.create(
                 thread=thread,
                 sender=request.user,
-                content=content[:10000]
+                content=clean_content[:10000]
             )
+            cache.set(rate_key, msg_count + 1, 3600)
             return redirect('users:thread', thread_id=thread_id)
     
     thread.messages.exclude(sender=request.user).filter(is_read=False).update(is_read=True)
@@ -148,6 +161,9 @@ def message_thread(request, thread_id):
 @login_required
 def compose_message(request, username):
     """Compose a new message to a user."""
+    import bleach
+    from django.core.cache import cache
+    
     recipient = get_object_or_404(User, username=username)
     
     if recipient == request.user:
@@ -155,17 +171,27 @@ def compose_message(request, username):
         return redirect('users:profile', username=username)
     
     if request.method == 'POST':
+        # Rate limiting: 20 messages per hour
+        rate_key = f'msg_rate_{request.user.id}'
+        msg_count = cache.get(rate_key, 0)
+        if msg_count >= 20:
+            django_messages.error(request, 'Message limit reached. Please wait before sending more.')
+            return redirect('users:profile', username=username)
+        
         subject = request.POST.get('subject', '').strip()
         content = request.POST.get('content', '').strip()
         
         if subject and content:
-            thread = Thread.objects.create(subject=subject[:255])
+            # Sanitize content with bleach to prevent XSS
+            clean_content = bleach.clean(content, strip=True)
+            thread = Thread.objects.create(subject=bleach.clean(subject[:255], strip=True))
             thread.participants.add(request.user, recipient)
             Message.objects.create(
                 thread=thread,
                 sender=request.user,
-                content=content[:10000]
+                content=clean_content[:10000]
             )
+            cache.set(rate_key, msg_count + 1, 3600)
             django_messages.success(request, 'Message sent successfully!')
             return redirect('users:thread', thread_id=thread.id)
         else:

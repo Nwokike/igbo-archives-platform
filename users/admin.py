@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, Notification, Thread, Message
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
@@ -8,3 +8,24 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ('Additional Info', {'fields': ('full_name', 'bio', 'profile_picture', 'social_links')}),
     )
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['recipient', 'notification_type', 'is_read', 'created_at']
+    list_filter = ['notification_type', 'is_read', 'created_at']
+    search_fields = ['recipient__username', 'message']
+
+
+@admin.register(Thread)
+class ThreadAdmin(admin.ModelAdmin):
+    list_display = ['subject', 'created_at']
+    search_fields = ['subject']
+    filter_horizontal = ['participants']
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ['thread', 'sender', 'is_read', 'created_at']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['sender__username', 'content']

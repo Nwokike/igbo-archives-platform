@@ -194,6 +194,17 @@ def book_create(request):
         if request.FILES.get('cover_image_back'):
             review.cover_image_back = request.FILES['cover_image_back']
         
+        # Validate file uploads through model validators
+        from django.core.exceptions import ValidationError
+        try:
+            review.full_clean()
+        except ValidationError as e:
+            review.delete()  # Remove the created review
+            for field, errors in e.message_dict.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+            return render(request, 'books/create.html')
+        
         tags = [t.strip()[:50] for t in request.POST.get('tags', '').split(',') if t.strip()][:20]
         if tags:
             review.tags.add(*tags)

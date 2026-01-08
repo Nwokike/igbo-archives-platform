@@ -10,6 +10,7 @@ User = get_user_model()
 
 class StaticPagesSitemap(Sitemap):
     """Sitemap for static/informational pages"""
+    protocol = 'https'
     priority = 0.8
     changefreq = 'monthly'
 
@@ -29,6 +30,7 @@ class StaticPagesSitemap(Sitemap):
 
 
 class ArchiveSitemap(Sitemap):
+    protocol = 'https'
     changefreq = "weekly"
     priority = 0.8
     
@@ -43,6 +45,7 @@ class ArchiveSitemap(Sitemap):
 
 
 class InsightSitemap(Sitemap):
+    protocol = 'https'
     changefreq = "daily"
     priority = 0.9
     
@@ -59,6 +62,7 @@ class InsightSitemap(Sitemap):
 
 
 class BookSitemap(Sitemap):
+    protocol = 'https'
     changefreq = "weekly"
     priority = 0.7
     
@@ -75,6 +79,7 @@ class BookSitemap(Sitemap):
 
 
 class UserProfileSitemap(Sitemap):
+    protocol = 'https'
     changefreq = "monthly"
     priority = 0.5
     

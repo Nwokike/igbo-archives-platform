@@ -181,14 +181,18 @@ def cleanup_tts_files():
 
 @periodic_task(crontab(hour='*/6'))
 def clear_expired_cache():
-    """Clear expired cache entries every 6 hours"""
+    """Clear expired cache entries every 6 hours.
+    
+    Note: Django's DatabaseCache automatically handles expiration.
+    This task is kept as a placeholder for any future manual cleanup.
+    We no longer call cache.clear() as that destroys ALL cache entries.
+    """
     try:
-        from django.core.cache import cache
-        cache.clear()
-        logger.info("Cache cleared")
+        # DatabaseCache auto-expires entries, no action needed
+        logger.info("Cache expiration check completed (auto-managed by DatabaseCache)")
         return True
     except Exception as e:
-        logger.error(f"Cache clear failed: {e}")
+        logger.error(f"Cache check failed: {e}")
         return False
 
 

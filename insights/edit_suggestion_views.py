@@ -4,33 +4,9 @@ from django.contrib import messages
 from .models import InsightPost, EditSuggestion
 from core.notifications_utils import send_edit_suggestion_notification, send_edit_suggestion_approved_notification, send_edit_suggestion_rejected_notification
 
+# Note: suggest_edit view is now in views.py with rate limiting
 
-@login_required
-def suggest_edit(request, slug):
-    """Allow users to suggest edits to posts"""
-    post = get_object_or_404(InsightPost, slug=slug, is_published=True)
-    
-    if request.method == 'POST':
-        suggestion_text = request.POST.get('suggestion_text', '').strip()
-        
-        if not suggestion_text:
-            messages.error(request, 'Please provide a suggestion.')
-            return redirect('insights:detail', slug=slug)
-        
-        # Create edit suggestion
-        suggestion = EditSuggestion.objects.create(
-            post=post,
-            suggested_by=request.user,
-            suggestion_text=suggestion_text
-        )
-        
-        # Send notification to post author
-        send_edit_suggestion_notification(suggestion)
-        
-        messages.success(request, 'Your edit suggestion has been sent to the author.')
-        return redirect('insights:detail', slug=slug)
-    
-    return render(request, 'insights/suggest_edit.html', {'post': post})
+
 
 
 @login_required

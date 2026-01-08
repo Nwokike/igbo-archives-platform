@@ -45,3 +45,59 @@ class CaptchaThreadedCommentForm(ThreadedCommentForm):
             raise ValidationError('Please complete the CAPTCHA verification.')
         
         return captcha_value
+
+
+class ContactForm(forms.Form):
+    """Contact form with proper validation and honeypot protection."""
+    
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Your name'
+        })
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Your email address'
+        })
+    )
+    subject = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Subject'
+        })
+    )
+    message = forms.CharField(
+        max_length=5000,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 5,
+            'placeholder': 'Your message'
+        })
+    )
+    # Honeypot field - should remain empty
+    website = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'hidden',
+            'autocomplete': 'off',
+            'tabindex': '-1'
+        })
+    )
+    
+    def clean_website(self):
+        """Honeypot validation - reject if filled"""
+        website = self.cleaned_data.get('website', '')
+        if website:
+            raise ValidationError('Spam detected.')
+        return website
+    
+    def clean_message(self):
+        """Basic content validation"""
+        message = self.cleaned_data.get('message', '')
+        if len(message) < 10:
+            raise ValidationError('Message is too short.')
+        return message
