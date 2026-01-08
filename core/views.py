@@ -121,6 +121,7 @@ Message:
     return render(request, 'core/pages/contact.html', {'form': form})
 
 
+
 def donate(request):
     """Donation page - Paystack-only"""
     context = {
@@ -128,3 +129,8 @@ def donate(request):
         'enable_donations': getattr(settings, 'ENABLE_DONATIONS', False),
     }
     return render(request, 'core/donate.html', context)
+
+
+def offline(request):
+    """Offline fallback page for PWA"""
+    return render(request, 'offline.html')

@@ -3,13 +3,14 @@
  * Handles caching, offline support, and push notifications
  */
 
-const CACHE_VERSION = 'v1.2.0';
+const CACHE_VERSION = 'v1.2.1';
 const STATIC_CACHE_NAME = 'static-cache-' + CACHE_VERSION;
 const DYNAMIC_CACHE_NAME = 'dynamic-cache-' + CACHE_VERSION;
 const MAX_DYNAMIC_CACHE_ITEMS = 50;
 
 const staticAssets = [
     '/',
+    '/offline/',
     '/static/css/tailwind.output.css',
     '/static/css/style.css',
     '/static/js/main.js',
@@ -100,9 +101,10 @@ self.addEventListener('fetch', event => {
                 })
                 .catch(err => {
                     console.error('[Service Worker] Fetch failed:', err);
-                    return new Response('<h1>Offline</h1><p>You are currently offline.</p>', {
-                        headers: { 'Content-Type': 'text/html' }
-                    });
+                    if (event.request.mode === 'navigate') {
+                        return caches.match('/offline/');
+                    }
+                    return null;
                 });
         })
     );
