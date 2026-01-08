@@ -68,11 +68,11 @@
                 <div class="form-group">
                     <label for="rating" class="form-label">Rating <span class="text-red-500">*</span></label>
                     <select class="form-select" id="rating" name="rating" required>
-                        <option value="5" {% if review.rating==5 %}selected{% endif %}>★★★★★ - Excellent</option>
-                        <option value="4" {% if review.rating==4 %}selected{% endif %}>★★★★☆ - Very Good</option>
-                        <option value="3" {% if review.rating==3 %}selected{% endif %}>★★★☆☆ - Good</option>
-                        <option value="2" {% if review.rating==2 %}selected{% endif %}>★★☆☆☆ - Fair</option>
-                        <option value="1" {% if review.rating==1 %}selected{% endif %}>★☆☆☆☆ - Poor</option>
+                        <option value="5" {% if review.rating==5 %}selected{% endif %}> - Excellent</option>
+                        <option value="4" {% if review.rating==4 %}selected{% endif %}> - Very Good</option>
+                        <option value="3" {% if review.rating==3 %}selected{% endif %}> - Good</option>
+                        <option value="2" {% if review.rating==2 %}selected{% endif %}> - Fair</option>
+                        <option value="1" {% if review.rating==1 %}selected{% endif %}> - Poor</option>
                     </select>
                 </div>
 
@@ -144,77 +144,5 @@
 <script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
 <script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
 <script src="{% static 'js/editor.js' %}"></script>
-<script>
-    (function () {
-        'use strict';
-
-        var editor = null;
-
-        document.addEventListener('DOMContentLoaded', function () {
-            editor = IgboEditor.init('editor', {
-                placeholder: 'Edit your book review...',
-                autofocus: false
-            });
-
-            var existingContent = document.getElementById('existing_content');
-            if (existingContent && existingContent.value) {
-                try {
-                    var data = JSON.parse(existingContent.value);
-                    if (data && data.blocks) {
-                        setTimeout(function () {
-                            if (editor) {
-                                editor.render(data).then(function () {
-                                    console.log('Existing content loaded');
-                                });
-                            }
-                        }, 500);
-                    }
-                } catch (e) {
-                    console.log('Converting HTML content');
-                    var htmlContent = existingContent.value;
-                    if (htmlContent && window.IgboEditor) {
-                        var converted = window.IgboEditor.convertHtmlToEditorJS(htmlContent);
-                        setTimeout(function () {
-                            if (editor) {
-                                editor.render(converted);
-                            }
-                        }, 500);
-                    }
-                }
-            }
-
-            document.getElementById('bookForm').addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                editor.save().then(function (outputData) {
-                    if (!outputData.blocks || outputData.blocks.length === 0) {
-                        showToast('Please add some content before submitting.', 'error');
-                        return;
-                    }
-
-                    document.getElementById('content_json').value = JSON.stringify(outputData);
-                    e.target.submit();
-                }).catch(function (error) {
-                    console.error('Error saving editor content:', error);
-                    showToast('Error saving content. Please try again.', 'error');
-                });
-            });
-        });
-
-        function showToast(message, type) {
-            var existing = document.querySelector('.toast');
-            if (existing) existing.remove();
-
-            var toast = document.createElement('div');
-            toast.className = 'toast toast-' + type;
-            toast.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>' + message + '</span>';
-            document.body.appendChild(toast);
-
-            setTimeout(function () {
-                toast.style.opacity = '0';
-                setTimeout(function () { toast.remove(); }, 300);
-            }, 4000);
-        }
-    })();
-</script>
+<script src="{% static 'js/books_edit.js' %}"></script>
 {% endblock %}

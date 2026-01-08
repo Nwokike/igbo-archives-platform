@@ -4,77 +4,112 @@
    ============================================ */
 
 :root {
-    /* Vintage Photo Color Palette */
-    --sepia-tone: #B8A88A;
-    --light-sepia: #CDA882;
-    --mid-sepia: #D4B595;
-    --soft-sepia: #DCC1A7;
-    --pale-sepia: #E3CEB9;
-    --cream-sepia: #EADBCB;
+    /* =========================
+       PRIMITIVE COLORS
+       (Immutable values matching Tailwind config)
+       ========================= */
 
-    /* Heritage Tones */
-    --antique-cream: #F0F0DA;
-    --warm-cream: #EAE8BA;
-    --aged-parchment: #D6CE9B;
-    --desert-sand: #C5B78D;
-    --golden-tan: #B4A77E;
+    /* Sepia */
+    --color-sepia: #B8A88A;
+    --color-sepia-light: #CDA882;
+    --color-sepia-mid: #D4B595;
+    --color-sepia-soft: #DCC1A7;
+    --color-sepia-pale: #E3CEB9;
+    --color-sepia-cream: #EADBCB;
 
-    /* Base Colors */
-    --bone: #E4DDD0;
-    --antique-white: #EFE5D7;
-    --dun: #EED6B9;
-    --tan: #D1AF89;
-    --beaver: #9D896E;
+    /* Heritage */
+    --color-heritage-cream: #F0F0DA;
+    --color-heritage-warm: #EAE8BA;
+    --color-heritage-parchment: #D6CE9B;
+    --color-heritage-sand: #C5B78D;
+    --color-heritage-tan: #B4A77E;
 
-    /* Dark Accents */
-    --bronze: #8C6433;
-    --burnt-umber: #6A2D01;
-    --deep-brown: #3D2817;
+    /* Vintage */
+    --color-vintage-bone: #E4DDD0;
+    --color-vintage-white: #EFE5D7;
+    --color-vintage-dun: #EED6B9;
+    --color-vintage-tan: #D1AF89;
+    --color-vintage-beaver: #9D896E;
+    --color-vintage-gold: #B8974F;
+    --color-vintage-bronze: #9D7A3E;
+    --color-vintage-brass: #8C7040;
+    --color-vintage-olive: #8A8051;
 
-    /* Accent Colors - Vintage Heritage Palette */
-    --vintage-gold: #B8974F;
-    --aged-bronze: #9D7A3E;
-    --antique-brass: #8C7040;
-    --olive-patina: #8A8051;
+    /* Dark */
+    --color-dark-bronze: #8C6433;
+    --color-dark-umber: #6A2D01;
+    --color-dark-brown: #3D2817;
 
-    /* Light Mode */
+    /* Primary Scale */
+    --color-primary-50: #FDF8F3;
+    --color-primary-100: #FAEEE3;
+    --color-primary-200: #F5DCC8;
+    --color-primary-300: #EFC9AD;
+    --color-primary-400: #E0A877;
+    --color-primary-500: #D18741;
+    --color-primary-600: #B8974F;
+    --color-primary-700: #9D7A3E;
+    --color-primary-800: #8C7040;
+    --color-primary-900: #6A2D01;
+
+    /* =========================
+       SEMANTIC VARIABLES
+       (Theme-dependent)
+       ========================= */
+
+    /* Light Mode Defaults */
     --bg-primary: #FDFCF8;
-    --bg-secondary: #F0F0DA;
+    /* Close to primary-50 */
+    --bg-secondary: var(--color-heritage-cream);
     --bg-card: #FFFFFF;
-    --text-primary: #3D2817;
-    --text-secondary: #6A2D01;
-    --text-muted: #9D896E;
-    --border-color: #E3CEB9;
+    --bg-header: rgba(255, 255, 255, 0.9);
+    --bg-footer: var(--color-heritage-cream);
+
+    --text-primary: var(--color-dark-brown);
+    --text-secondary: var(--color-dark-umber);
+    --text-muted: var(--color-vintage-beaver);
+    --text-accent: var(--color-vintage-gold);
+
+    --border-color: var(--color-sepia-pale);
+    --border-strong: var(--color-sepia-mid);
+
     --shadow: rgba(61, 40, 23, 0.08);
     --shadow-hover: rgba(61, 40, 23, 0.15);
+
+    /* Mappings for legacy/specificvars */
+    --sepia-tone: var(--color-sepia);
+    --vintage-gold: var(--color-vintage-gold);
+    --vintage-beaver: var(--color-vintage-beaver);
+    --deep-brown: var(--color-dark-brown);
+    --bronze: var(--color-dark-bronze);
+    --antique-cream: var(--color-heritage-cream);
+    --terracotta: var(--color-primary-500);
+    /* Assumed mapping */
 }
 
 body.dark-mode {
+    /* Semantic Overrides for Dark Mode */
     --bg-primary: #1A1410;
+    /* Very dark brown/black */
     --bg-secondary: #2A201A;
-    --bg-card: #3D2817;
-    --text-primary: #EFE5D7;
-    --text-secondary: #DCC1A7;
-    --text-muted: #B8A88A;
-    --border-color: #6A2D01;
+    /* Dark brown */
+    --bg-card: #2A201A;
+    --bg-header: rgba(61, 40, 23, 0.95);
+    --bg-footer: var(--color-dark-brown);
+
+    --text-primary: var(--color-vintage-white);
+    --text-secondary: var(--color-sepia-soft);
+    --text-muted: var(--color-sepia);
+
+    --border-color: var(--color-primary-900);
+    --border-strong: var(--color-primary-800);
+
     --shadow: rgba(0, 0, 0, 0.3);
     --shadow-hover: rgba(0, 0, 0, 0.5);
 }
 
-/* Dark mode header - brown background */
-body.dark-mode #stickyHeader {
-    background: rgba(61, 40, 23, 0.95) !important;
-    border-color: #6A2D01;
-}
-
-body.dark-mode #stickyHeader button,
-body.dark-mode #stickyHeader a {
-    color: #EFE5D7;
-}
-
-body.dark-mode #stickyHeader .border-sepia-pale\/60 {
-    border-color: #6A2D01;
-}
+/* Dark mode header - handled by semantic variables */
+/* body.dark-mode #stickyHeader... removed */
 
 body.dark-mode nav.border-b {
     background: rgba(42, 32, 26, 0.9) !important;
@@ -85,78 +120,51 @@ body.dark-mode .nav-link {
     color: #DCC1A7;
 }
 
-/* Dark mode footer - cream/light background */
-body.dark-mode footer {
-    background: #F0F0DA !important;
-    color: #3D2817;
+/* Light mode footer - cream/light background */
+/* Light mode footer - variable based */
+footer {
+    background: var(--bg-footer) !important;
+    color: var(--text-primary) !important;
 }
 
-body.dark-mode footer h3 {
-    color: #B8974F;
+footer h3,
+footer .footer-heading {
+    color: var(--color-vintage-gold) !important;
 }
 
-body.dark-mode footer a,
-body.dark-mode footer p {
-    color: #5C4A3D;
+footer a,
+footer p,
+footer .footer-text {
+    color: var(--text-secondary) !important;
 }
 
-body.dark-mode footer a:hover {
-    color: #3D2817;
+footer a:hover,
+footer .footer-link:hover {
+    color: var(--text-primary) !important;
 }
 
-body.dark-mode footer .border-white\/10 {
-    border-color: rgba(61, 40, 23, 0.2);
+footer .border-white\/10,
+footer .footer-border {
+    border-color: var(--border-color) !important;
 }
 
-/* Dark mode mobile nav */
-body.dark-mode nav[aria-label="Mobile navigation"] {
-    background: rgba(61, 40, 23, 0.95) !important;
-    border-color: #6A2D01;
+/* Dark mode footer - handled by semantic variables */
+/* body.dark-mode footer... removed */
+
+/* content handled by semantic variables */
+
+footer .footer-social:hover,
+footer .bg-white\/10:hover {
+    background: var(--vintage-gold) !important;
+    color: #fff !important;
 }
 
-body.dark-mode nav[aria-label="Mobile navigation"] a {
-    color: #B8A88A;
-}
-
-body.dark-mode nav[aria-label="Mobile navigation"] a.text-vintage-gold {
-    color: #C4A052;
-}
+/* Dark mode mobile nav - handled by semantic variables */
+/* body.dark-mode nav[aria-label="Mobile navigation"]... removed */
 
 /* Dark mode main content - simpler colors */
-body.dark-mode main {
-    background: #1A1410;
-}
-
-body.dark-mode .card {
-    background: #2A201A;
-    border-color: #3D2817;
-}
-
-body.dark-mode .card h3,
-body.dark-mode .card h4 {
-    color: #EFE5D7;
-}
-
-body.dark-mode .card p {
-    color: #B8A88A;
-}
-
-body.dark-mode .text-dark-brown {
-    color: #EFE5D7 !important;
-}
-
-body.dark-mode .text-vintage-beaver {
-    color: #B8A88A !important;
-}
-
-body.dark-mode .bg-heritage-cream\/50,
-body.dark-mode .bg-heritage-cream\/10 {
-    background: rgba(42, 32, 26, 0.5) !important;
-}
-
-body.dark-mode section.bg-gradient-to-b {
-    background: linear-gradient(to bottom, #2A201A, transparent) !important;
-}
+/* Dark mode main content - handled by semantic variables */
+/* body.dark-mode .card... removed */
 
 /* Search input padding fix - more space for icon */
 .form-input.pl-8 {
@@ -1261,9 +1269,7 @@ textarea:focus {
     transition: all 0.3s ease;
 }
 
-body.dark-mode .icon-box {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
+/* handled by --shadow variable */
 
 .card:hover .icon-box {
     transform: scale(1.1) rotate(5deg);
@@ -1307,9 +1313,7 @@ body.dark-mode .icon-box {
     box-shadow: 0 6px 15px rgba(61, 40, 23, 0.1);
 }
 
-body.dark-mode .benefit-icon-box {
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-}
+/* handled by --shadow variable */
 
 /* Header Logo Centering Fix */
 .header-container {
@@ -3217,4 +3221,11 @@ body.dark-mode .carousel-nav {
     .carousel-btn {
         display: none;
     }
+}
+
+/* Editor JS Styles */
+.editor-image-bordered {
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    background: var(--bg-card);
 }

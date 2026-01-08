@@ -14,23 +14,32 @@
         <h1 class="font-serif text-display-lg text-dark-brown mb-2">Create New Insight</h1>
         <p class="text-vintage-beaver">Share your knowledge and perspective on Igbo culture and history.</p>
     </div>
-    
+
     <form method="post" enctype="multipart/form-data" id="insightForm" class="space-y-6">
         {% csrf_token %}
-        
+
         <div class="form-group">
             <label for="title" class="form-label">Title <span class="text-red-500">*</span></label>
-            <input type="text" class="form-input" id="title" name="title" required placeholder="Enter a compelling title for your insight">
+            <input type="text" class="form-input" id="title" name="title" required
+                placeholder="Enter a compelling title for your insight">
         </div>
 
         <div class="form-group">
             <label for="excerpt" class="form-label">Excerpt</label>
-            <textarea class="form-textarea" id="excerpt" name="excerpt" rows="2" maxlength="500" placeholder="Brief summary of your insight (optional)"></textarea>
+            <textarea class="form-textarea" id="excerpt" name="excerpt" rows="2" maxlength="500"
+                placeholder="Brief summary of your insight (optional)"></textarea>
             <p class="form-help">Brief summary shown in listings (max 500 characters)</p>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Content <span class="text-red-500">*</span></label>
+            <div class="flex items-center justify-between mb-2">
+                <label class="form-label mb-0">Content <span class="text-red-500">*</span></label>
+                <button type="button"
+                    class="text-sm text-vintage-gold hover:text-dark-brown font-medium transition-colors"
+                    onclick="openAiModal()">
+                    <i class="fas fa-magic mr-1"></i> AI Writing Assistant
+                </button>
+            </div>
             <div id="editor" class="editor-container"></div>
             <input type="hidden" id="content_json" name="content_json" required>
             <p class="form-help">Use the toolbar to format text, add images, and structure your content.</p>
@@ -38,7 +47,8 @@
 
         <div class="form-group hidden" id="featuredImageSection">
             <label class="form-label">Choose Featured Image</label>
-            <p class="text-sm text-vintage-beaver mb-3">Select an image from your post content to use as the featured image. If not selected, the first image will be used.</p>
+            <p class="text-sm text-vintage-beaver mb-3">Select an image from your post content to use as the featured
+                image. If not selected, the first image will be used.</p>
             <div id="featuredImageGrid" class="featured-image-grid"></div>
             <input type="hidden" id="featured_image_url" name="featured_image_url">
         </div>
@@ -57,9 +67,10 @@
                 <i class="fas fa-paper-plane"></i> Submit for Approval
             </button>
         </div>
-        
+
         <div class="text-center">
-            <a href="{% url 'insights:list' %}" class="text-vintage-beaver hover:text-dark-brown transition-colors text-sm">
+            <a href="{% url 'insights:list' %}"
+                class="text-vintage-beaver hover:text-dark-brown transition-colors text-sm">
                 <i class="fas fa-arrow-left"></i> Cancel and go back
             </a>
         </div>
@@ -77,7 +88,7 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
+
         <div class="modal-body">
             <div class="tabs-container">
                 <div class="tabs-list">
@@ -85,7 +96,7 @@
                     <button type="button" class="tab-button" data-tab="archive">Select from Archives</button>
                 </div>
             </div>
-            
+
             <div id="upload-panel" class="tab-panel active">
                 <div class="form-group">
                     <label class="form-label form-label-required">Select Image File</label>
@@ -93,16 +104,18 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label form-label-required">Caption (with copyright/source info)</label>
-                    <input type="text" class="form-input" id="imageCaption" placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
+                    <input type="text" class="form-input" id="imageCaption"
+                        placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
                     <p class="form-help">Required: Include copyright or image source information</p>
                 </div>
                 <div class="form-group">
                     <label class="form-label form-label-required">Description (Alt Text)</label>
-                    <input type="text" class="form-input" id="imageDescription" placeholder="Describe the image for accessibility">
+                    <input type="text" class="form-input" id="imageDescription"
+                        placeholder="Describe the image for accessibility">
                     <p class="form-help">Required: Describe what's in the image for screen readers</p>
                 </div>
             </div>
-            
+
             <div id="archive-panel" class="tab-panel">
                 <div class="search-input-container">
                     <i class="fas fa-search search-input-icon"></i>
@@ -113,7 +126,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="modal-footer">
             <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
             <button type="button" class="btn-primary" id="uploadBtn" onclick="uploadAndInsertImage()">
@@ -121,6 +134,53 @@
             </button>
             <button type="button" class="btn-primary hidden" id="insertArchiveBtn" onclick="insertSelectedArchive()">
                 <i class="fas fa-check"></i> Insert Selected
+            </button>
+        </div>
+    </div>
+</div>
+<div id="aiAssistModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title"><i class="fas fa-magic text-vintage-gold mr-2"></i>AI Writing Assistant</h3>
+                <p class="modal-subtitle">Draft, refine, or expand your post with AI</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeAiModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body space-y-4">
+            <div class="form-group">
+                <label class="form-label">I want to...</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" class="ai-mode-btn active" data-mode="draft" onclick="setAiMode('draft')">
+                        <i class="fas fa-pen-nib mb-1"></i> Draft New Section
+                    </button>
+                    <button type="button" class="ai-mode-btn" data-mode="refine" onclick="setAiMode('refine')">
+                        <i class="fas fa-edit mb-1"></i> Refine Selection
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Topic / Instructions</label>
+                <textarea id="aiPrompt" class="form-textarea" rows="3"
+                    placeholder="e.g., Describe the significance of the New Yam Festival..."></textarea>
+            </div>
+            <div id="aiContextSection" class="form-group hidden">
+                <label class="form-label">Selected Text to Refine</label>
+                <div id="aiSelectedText"
+                    class="p-3 bg-heritage-cream/30 rounded-lg text-sm text-vintage-beaver italic border border-sepia-pale/30 max-h-32 overflow-y-auto">
+                </div>
+            </div>
+            <div id="aiLoading" class="hidden text-center py-4">
+                <i class="fas fa-spinner fa-spin text-vintage-gold text-xl"></i>
+                <p class="text-sm text-vintage-beaver mt-2">AI is thinking...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeAiModal()">Cancel</button>
+            <button type="button" class="btn-primary" onclick="generateAiContent()">
+                <i class="fas fa-magic"></i> Generate
             </button>
         </div>
     </div>
@@ -136,6 +196,8 @@
 <script src="{% static 'vendor/js/editorjs/code.js' %}"></script>
 <script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
 <script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
+<script src="{% static 'js/archive_tool.js' %}"></script>
 <script src="{% static 'js/editor.js' %}"></script>
 <script src="{% static 'js/insight-editor.js' %}"></script>
+<script src="{% static 'js/ai_assist.js' %}"></script>
 {% endblock %}

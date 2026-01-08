@@ -7,7 +7,7 @@
     background: white;
     border-radius: 12px;
     border: 1px solid #E3CEB9;
-    overflow: hidden;
+    /* overflow: hidden; Removed to allow toolbar to show */
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -31,18 +31,17 @@ body.dark-mode .editor-container:focus-within {
 }
 
 .codex-editor__redactor {
-    padding: 20px !important;
+    padding: 20px 40px !important;
+    /* Added side padding for toolbar space */
     min-height: 350px !important;
 }
 
-.ce-block__content {
-    max-width: 100% !important;
-    margin: 0 !important;
-}
-
+/* Removed forced 100% width/margin overrides to let Editor.js handle layout */
+.ce-block__content,
 .ce-toolbar__content {
-    max-width: 100% !important;
-    margin: 0 !important;
+    max-width: 800px;
+    /* Reasonable reading width */
+    margin: 0 auto;
 }
 
 .ce-paragraph {
@@ -499,24 +498,24 @@ body.dark-mode .archive-item-title {
     .editor-container {
         min-height: 300px;
     }
-    
+
     .codex-editor__redactor {
         padding: 16px !important;
         min-height: 250px !important;
     }
-    
+
     .ce-paragraph {
         font-size: 16px;
     }
-    
+
     .image-tool__image-picture {
         max-width: 100%;
     }
-    
+
     .archive-item img {
         height: 80px;
     }
-    
+
     .featured-option img {
         height: 70px;
     }

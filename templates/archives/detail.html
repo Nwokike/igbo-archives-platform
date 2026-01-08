@@ -80,7 +80,7 @@
             </a>
             {% endif %}
             <a href="{% url 'insights:create' %}?archive_id={{ archive.id }}" class="btn-secondary">
-                <i class="fas fa-lightbulb"></i> Write Post with This
+                <i class="fas fa-lightbulb"></i> Got an Insight? Create Post
             </a>
             {% if user.is_authenticated and archive.archive_type == 'image' %}
             <button type="button" id="aiAnalyzeBtn" class="btn-secondary" title="Get AI analysis of this image">

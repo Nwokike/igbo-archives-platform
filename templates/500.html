@@ -1,85 +1,52 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Error - Igbo Archives</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: #F0F0DA;
-            color: #3D2817;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            text-align: center;
-            padding: 2rem;
-            max-width: 32rem;
-        }
-        .error-code {
-            font-size: 6rem;
-            font-weight: bold;
-            color: #B8974F;
-            margin-bottom: 1rem;
-        }
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        p {
-            color: #8B7355;
-            margin-bottom: 2rem;
-        }
-        .buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .btn-primary {
-            background-color: #B8974F;
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: #9D7A3E;
-        }
-        .btn-secondary {
-            background-color: transparent;
-            color: #3D2817;
-            border: 2px solid #B8974F;
-        }
-        .btn-secondary:hover {
-            background-color: #B8974F;
-            color: white;
-        }
-    </style>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link href="{% static 'css/tailwind.output.css' %}" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="{% static 'js/main.js' %}"></script>
 </head>
-<body>
-    <div class="container">
-        <div class="error-code">500</div>
-        <h1>Internal Server Error</h1>
-        <p>Something went wrong on our end. We're working to fix it.</p>
-        <div class="buttons">
-            <a href="/" class="btn btn-primary">
-                Go Home
-            </a>
-            <a href="javascript:history.back()" class="btn btn-secondary">
-                Go Back
-            </a>
+
+<body class="bg-heritage-cream text-dark-brown min-h-screen flex items-center justify-center p-4">
+    <div
+        class="max-w-xl w-full text-center p-8 md:p-12 bg-white rounded-2xl shadow-soft-lg border border-sepia-pale relative overflow-hidden">
+        <!-- Decorative background elements -->
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-vintage"></div>
+        <div class="absolute -bottom-16 -right-16 text-heritage-cream/20 text-9xl">
+            <i class="fas fa-cogs"></i>
+        </div>
+
+        <div class="relative z-10">
+            <div
+                class="w-20 h-20 bg-vintage-gold/10 rounded-full flex items-center justify-center mx-auto mb-6 text-vintage-gold text-4xl animate-pulse-soft">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+
+            <h1 class="font-serif text-3xl md:text-4xl font-bold mb-4 text-dark-brown">500 - Server Error</h1>
+
+            <p class="text-vintage-beaver mb-8 text-lg">
+                Oops! Something went wrong on our end. We are working to fix it.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/" class="btn-primary inline-flex items-center justify-center gap-2">
+                    <i class="fas fa-home"></i> Return Home
+                </a>
+                <button onclick="window.history.back()"
+                    class="btn-secondary inline-flex items-center justify-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Go Back
+                </button>
+            </div>
         </div>
     </div>
 </body>
+
 </html>

@@ -15,4 +15,5 @@ urlpatterns = [
     path('analyze/', views.analyze_archive, name='analyze_archive'),
     path('tts/', views.generate_tts, name='generate_tts'),
     path('transcribe/', views.transcribe_audio, name='transcribe_audio'),
+    path('generate-insight/', views.generate_insight_content, name='generate_insight'),
 ]

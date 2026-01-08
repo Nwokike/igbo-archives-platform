@@ -162,13 +162,13 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-# ACCOUNT_EMAIL_REQUIRED is deprecated, email* in SIGNUP_FIELDS handles this
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_LOGOUT_ON_GET = True  # Instant logout (no confirmation page)
+ACCOUNT_LOGOUT_ON_GET = True 
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_FORMS = {
     'signup': 'users.forms.CustomSignupForm',
     'login': 'users.forms.CustomLoginForm',
@@ -228,13 +228,13 @@ GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')  # Single key fallback
 GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')  # Comma-separated keys
 
 # Email Configuration
-if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_API_KEY'):
+if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_SMTP_KEY'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = 'smtp-relay.brevo.com'
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
     EMAIL_HOST_USER = os.getenv('BREVO_EMAIL_USER')
-    EMAIL_HOST_PASSWORD = os.getenv('BREVO_API_KEY')
+    EMAIL_HOST_PASSWORD = os.getenv('BREVO_SMTP_KEY')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

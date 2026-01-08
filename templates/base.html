@@ -14,12 +14,7 @@
 
     {% if ENABLE_ANALYTICS and GOOGLE_ANALYTICS_ID %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', '{{ GOOGLE_ANALYTICS_ID }}');
-    </script>
+    <script src="{% static 'js/analytics.js' %}" data-ga-id="{{ GOOGLE_ANALYTICS_ID }}"></script>
     {% endif %}
 
     {% progressive_web_app_meta %}
@@ -88,23 +83,16 @@
                 <div class="flex items-center gap-2 sm:gap-3">
                     {% if user.is_authenticated %}
                     <div class="relative">
-                        <button
+                        <a href="{% url 'users:notifications' %}"
                             class="flex items-center justify-center w-10 h-10 rounded-full text-dark-brown hover:bg-heritage-cream transition-colors relative focus:outline-none focus:ring-2 focus:ring-vintage-gold focus:ring-offset-2"
-                            id="notificationBell" aria-label="Notifications"
-                            data-url="{% url 'users:notification_dropdown' %}">
+                            id="notificationBell" aria-label="Notifications">
                             <i class="fas fa-bell text-lg"></i>
                             {% if unread_notification_count > 0 %}
-                            <span
+                            <span id="notificationBadge"
                                 class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{
                                 unread_notification_count }}</span>
                             {% endif %}
-                        </button>
-                        <div class="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-xl shadow-soft-lg border border-sepia-pale/50 opacity-0 invisible translate-y-2 transition-all duration-200 z-50"
-                            id="notificationDropdown">
-                            <div class="p-4 text-center text-vintage-beaver">
-                                <i class="fas fa-spinner fa-spin"></i> Loading...
-                            </div>
-                        </div>
+                        </a>
                     </div>
 
                     <div class="relative">
@@ -127,10 +115,6 @@
 
                         <div class="absolute right-0 top-full mt-2 w-56 py-2 bg-white rounded-xl shadow-soft-lg border border-sepia-pale/50 opacity-0 invisible translate-y-2 transition-all duration-200 z-50"
                             id="profileDropdown">
-                            <a href="{% url 'users:profile' user.username %}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
-                                <i class="fas fa-user w-4 text-center"></i> My Profile
-                            </a>
                             <a href="{% url 'users:dashboard' %}"
                                 class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
                                 <i class="fas fa-th-large w-4 text-center"></i> Dashboard
@@ -225,8 +209,7 @@
                 <div
                     class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible animate-fade-in">
                     <div class="flex-1">{{ message }}</div>
-                    <button type="button" class="alert-close" onclick="this.parentElement.remove()"
-                        aria-label="Dismiss message">
+                    <button type="button" class="alert-close" aria-label="Dismiss message">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -323,9 +306,9 @@
 
             <div
                 class="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-sepia">
-                <p>&copy; {% now "Y" %} Igbo Archives. Preserving culture, inspiring the future.</p>
-                <p>Built by <a href="https://github.com/Nwokike" target="_blank" rel="noopener noreferrer"
-                        class="text-vintage-gold hover:text-white transition-colors">Nwokike</a></p>
+                <p>&copy; {% now "Y" %} Kiri Research Labs. All Rights Reserved.</p>
+                <p>A project by <a href="https://kiriresearch.com" target="_blank" rel="noopener noreferrer"
+                        class="text-vintage-gold hover:text-white transition-colors">Kiri Research Labs</a></p>
             </div>
         </div>
     </footer>

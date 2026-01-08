@@ -1,6 +1,6 @@
 ![Igbo Archives Logo](static/images/logos/logo-light.png)
 
-Igbo Archives is a community-driven cultural preservation platform dedicated to documenting, preserving, and celebrating the rich history and heritage of the Igbo people of Nigeria. Built with modern web technologies and optimized for a 1GB RAM constraint.
+Igbo Archives is a community-driven cultural preservation platform dedicated to documenting, preserving, and celebrating the rich history and heritage of the Igbo people of Nigeria. A project by **Kiri Research Labs**, built with modern web technologies and optimized for a 1GB RAM constraint.
 
 ## 🚀 Features
 
@@ -230,11 +230,14 @@ This platform is optimized for deployment on a 1GB RAM VM:
 
 ## 📄 License
 
-Copyright © 2026 Igbo Archives. All Rights Reserved.
+Copyright © 2026 Kiri Research Labs. All Rights Reserved.
 
-## 👨‍💻 Author
+## 🏢 Legal & Attribution
 
-[**Nwokike**](https://github.com/Nwokike)
+**Igbo Archives Platform** is a project of **Kiri Research Labs** (SMEDAN SUID Registered).
+
+Operated by Kiri Research Labs.
+[Contact Us](mailto:hello@kiriresearch.com) for inquiries.
 
 ---
 

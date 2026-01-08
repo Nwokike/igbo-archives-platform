@@ -60,8 +60,13 @@
                             endpoint: '/api/fetch-url-meta/'
                         }
                     },
-                    code: {
-                        class: window.CodeTool
+                    archive: {
+                        class: window.ArchiveTool,
+                        config: {
+                            callback: function (archive) {
+                                // This will be handled by the modal callback
+                            }
+                        }
                     },
                     delimiter: {
                         class: window.Delimiter
@@ -69,6 +74,9 @@
                     marker: {
                         class: window.Marker,
                         shortcut: 'CMD+SHIFT+M'
+                    },
+                    code: {
+                        class: window.CodeTool
                     }
                 },
                 data: options.data || {},
@@ -455,8 +463,10 @@
                         const imgUrl = block.data.file ? block.data.file.url : block.data.url;
                         html += '<figure class="editor-image">';
                         html += '<img src="' + imgUrl + '" alt="' + (block.data.caption || '') + '"';
-                        if (block.data.stretched) html += ' class="stretched"';
-                        if (block.data.withBorder) html += ' style="border: 1px solid #ddd; padding: 10px;"';
+                        let imgClasses = [];
+                        if (block.data.stretched) imgClasses.push('stretched');
+                        if (block.data.withBorder) imgClasses.push('editor-image-bordered');
+                        if (imgClasses.length > 0) html += ' class="' + imgClasses.join(' ') + '"';
                         html += '>';
                         if (block.data.caption) {
                             html += '<figcaption>' + block.data.caption + '</figcaption>';

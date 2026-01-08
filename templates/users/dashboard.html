@@ -4,8 +4,15 @@
 
 {% block content %}
 <div class="mb-8">
-    <h1 class="font-serif text-display-lg text-dark-brown mb-2">Welcome, {{ user.get_display_name }}!</h1>
-    <p class="text-vintage-beaver">Manage your content and interactions on Igbo Archives.</p>
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+            <h1 class="font-serif text-display-lg text-dark-brown mb-2">Welcome, {{ user.get_display_name }}!</h1>
+            <p class="text-vintage-beaver">Manage your content and interactions on Igbo Archives.</p>
+        </div>
+        <a href="{% url 'users:profile' user.username %}" class="btn-secondary btn-sm">
+            <i class="fas fa-user-circle"></i> View Public Profile
+        </a>
+    </div>
 </div>
 
 <div class="mb-6">
@@ -46,17 +53,19 @@
                 <div class="card-body">
                     <div class="flex items-start justify-between gap-4">
                         <h4 class="font-serif font-semibold text-dark-brown">{{ thread.subject }}</h4>
-                        <span class="text-sm text-vintage-beaver whitespace-nowrap">{{ thread.updated_at|date:"M d, Y g:i A" }}</span>
+                        <span class="text-sm text-vintage-beaver whitespace-nowrap">{{ thread.updated_at|date:"M d, Y
+                            g:i A" }}</span>
                     </div>
                     <p class="text-sm text-vintage-beaver mt-1">
                         <strong>With:</strong>
                         {% for participant in thread.participants.all %}
-                            {% if participant != user %}
-                                {{ participant.get_display_name }}{% if not forloop.last %}, {% endif %}
-                            {% endif %}
+                        {% if participant != user %}
+                        {{ participant.get_display_name }}{% if not forloop.last %}, {% endif %}
+                        {% endif %}
                         {% endfor %}
                     </p>
-                    <p class="text-sm text-dark-umber mt-2 line-clamp-1">{{ thread.messages.last.content|truncatewords:15 }}</p>
+                    <p class="text-sm text-dark-umber mt-2 line-clamp-1">{{
+                        thread.messages.last.content|truncatewords:15 }}</p>
                 </div>
             </a>
             {% endfor %}
@@ -79,7 +88,8 @@
                 {% endif %}
                 <div class="card-body">
                     <h4 class="font-serif font-semibold text-dark-brown mb-2">
-                        <a href="{% url 'insights:detail' insight.slug %}" class="hover:text-vintage-gold transition-colors">
+                        <a href="{% url 'insights:detail' insight.slug %}"
+                            class="hover:text-vintage-gold transition-colors">
                             {{ insight.title }}
                         </a>
                     </h4>
@@ -140,17 +150,16 @@
                 {% endif %}
                 <div class="card-body">
                     <h4 class="font-serif font-semibold text-dark-brown mb-2">
-                        <a href="{% url 'books:detail' review.slug %}" class="hover:text-vintage-gold transition-colors">
+                        <a href="{% url 'books:detail' review.slug %}"
+                            class="hover:text-vintage-gold transition-colors">
                             {{ review.review_title }}
                         </a>
                     </h4>
                     <p class="text-sm text-vintage-beaver mb-2">{{ review.book_title }} by {{ review.author }}</p>
                     <p class="text-vintage-gold mb-3">
                         {% for i in "12345"|make_list %}
-                            {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
-                        {% endfor %}
-                    </p>
-                    <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm">View Review</a>
+                        {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %} {% endfor %} </p>
+                            <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm">View Review</a>
                 </div>
             </div>
             {% endfor %}
@@ -196,7 +205,8 @@
                 <div class="card-body">
                     <div class="flex items-start justify-between gap-4 mb-2">
                         <h4 class="font-serif font-semibold text-dark-brown">{{ suggestion.insight.title }}</h4>
-                        <span class="badge {% if suggestion.status == 'pending' %}badge-warning{% elif suggestion.status == 'approved' %}badge-success{% else %}badge-secondary{% endif %}">
+                        <span
+                            class="badge {% if suggestion.status == 'pending' %}badge-warning{% elif suggestion.status == 'approved' %}badge-success{% else %}badge-secondary{% endif %}">
                             {{ suggestion.get_status_display }}
                         </span>
                     </div>
@@ -215,4 +225,3 @@
     </div>
 </div>
 {% endblock %}
-

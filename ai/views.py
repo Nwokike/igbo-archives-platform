@@ -174,15 +174,34 @@ def analyze_archive(request):
         })
     
     # Get image path
+    # Get image
     if archive.image:
-        image_path = archive.image.path
+        image_file = archive.image
     elif archive.featured_image:
-        image_path = archive.featured_image.path
+        image_file = archive.featured_image
     else:
         return JsonResponse({'error': 'No image to analyze'}, status=400)
+
+    # Use a temporary file to handle both local and cloud storage
+    import tempfile
+    import os
+    import shutil
     
-    # Analyze
-    result = vision_service.analyze(image_path, analysis_type)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp:
+        try:
+            image_file.open('rb')
+            shutil.copyfileobj(image_file, tmp)
+            image_file.close()
+            tmp_path = tmp.name
+        except Exception as e:
+            return JsonResponse({'error': f'Error processing image: {str(e)}'}, status=500)
+    
+    try:
+        # Analyze
+        result = vision_service.analyze(tmp_path, analysis_type)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
     
     if result['success']:
         ArchiveAnalysis.objects.create(
@@ -303,6 +322,59 @@ def delete_session(request, session_id):
     session.is_active = False
     session.save()
     return JsonResponse({'success': True})
+
+
+@login_required
+@require_POST
+def generate_insight_content(request):
+    """Generate or refine insight content using AI."""
+    import json
+    from .services.chat_service import chat_service
+    
+    try:
+        data = json.loads(request.body)
+        topic = data.get('topic', '')
+        current_content = data.get('current_content', '')
+        instruction = data.get('instruction', '')
+        archive_context = data.get('archive_context', '')
+        
+        if not topic and not current_content and not instruction:
+            return JsonResponse({'success': False, 'error': 'No input provided'}, status=400)
+        
+        # Construct message
+        messages = []
+        
+        prompt = "Help me write or refine a post for the Igbo Archives."
+        if topic:
+            prompt += f"\n\nTopic: {topic}"
+        if instruction:
+            prompt += f"\n\nInstruction: {instruction}"
+        if archive_context:
+            prompt += f"\n\nArchive Context (Source Material):\n{archive_context}"
+        if current_content:
+            prompt += f"\n\nCurrent Content to Refine:\n{current_content}"
+            
+        messages.append({'role': 'user', 'content': prompt})
+        
+        # Call AI
+        # We prefer using web search if topic is provided to get facts
+        response = chat_service.chat(messages, use_web_search=bool(topic))
+        
+        if response['success']:
+            return JsonResponse({
+                'success': True,
+                'content': response['content']
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': response.get('content', 'AI generation failed')
+            })
+            
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 def coming_soon(request):

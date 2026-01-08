@@ -1,4 +1,4 @@
-(function() {
+(function () {
     'use strict';
 
     /**
@@ -21,21 +21,21 @@
         return cookieValue;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        
+    document.addEventListener('DOMContentLoaded', function () {
+
         // --- Dark Mode Handler ---
         const darkModeToggle = document.getElementById('darkModeToggle');
         if (darkModeToggle) {
             const body = document.body;
             const icon = darkModeToggle.querySelector('i');
-            
+
             // Apply saved theme on page load
             if (localStorage.getItem('darkMode') === 'enabled') {
                 body.classList.add('dark-mode');
                 icon.classList.remove('fa-moon');
                 icon.classList.add('fa-sun');
             }
-            
+
             darkModeToggle.addEventListener('click', () => {
                 body.classList.toggle('dark-mode');
                 const isDarkMode = body.classList.contains('dark-mode');
@@ -44,6 +44,14 @@
                 icon.classList.toggle('fa-sun', isDarkMode);
             });
         }
+
+        // --- Alert Close Handler ---
+        document.querySelectorAll('.alert-close').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const alert = this.closest('.alert, .alert-success, .alert-error, .alert-warning, .alert-info');
+                if (alert) alert.remove();
+            });
+        });
 
         // --- Sticky Header Handler ---
         const stickyHeaderWrapper = document.querySelector('.sticky-header-wrapper');
@@ -117,7 +125,7 @@
                 }
             });
         }
-        
+
         // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
             if (profileDropdown && isDropdownVisible(profileDropdown) && !profileButton.contains(e.target)) {
@@ -131,27 +139,27 @@
         // --- Instant Logout Handler ---
         const logoutLink = document.getElementById('logoutLink');
         if (logoutLink) {
-            logoutLink.addEventListener('click', function(e) {
+            logoutLink.addEventListener('click', function (e) {
                 e.preventDefault();
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = this.href; // Use the URL from the link
-                
+
                 const csrfInput = document.createElement('input');
                 csrfInput.type = 'hidden';
                 csrfInput.name = 'csrfmiddlewaretoken';
                 csrfInput.value = getCookie('csrftoken');
                 form.appendChild(csrfInput);
-                
+
                 document.body.appendChild(form);
                 form.submit();
             });
         }
-        
+
         // --- PWA Installation Prompt ---
         let deferredPrompt;
         const installButton = document.getElementById('pwaInstallBtn');
-        
+
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -182,25 +190,25 @@
             toast.className = 'custom-toast success';
             toast.innerHTML = '<i class="fas fa-check-circle"></i> Comment posted successfully!';
             document.body.appendChild(toast);
-            
+
             setTimeout(() => toast.remove(), 3500);
-            
+
             // Clean the URL hash
             setTimeout(() => {
                 history.replaceState(null, null, window.location.pathname + window.location.search);
             }, 100);
         }
-        
+
         // --- Grid/List View Toggle ---
         const gridViewBtn = document.getElementById('gridViewBtn');
         const listViewBtn = document.getElementById('listViewBtn');
-        const contentContainer = document.getElementById('archiveGrid') || 
-                                 document.getElementById('insightsGrid') || 
-                                 document.getElementById('reviewsGrid');
+        const contentContainer = document.getElementById('archiveGrid') ||
+            document.getElementById('insightsGrid') ||
+            document.getElementById('reviewsGrid');
 
         if (contentContainer && gridViewBtn && listViewBtn) {
             const pageType = contentContainer.id.replace('Grid', '');
-            
+
             const toggleView = (view) => {
                 const isGrid = view === 'grid';
                 contentContainer.className = isGrid ? 'archive-view-grid' : 'archive-view-list';
@@ -263,7 +271,7 @@
                 });
             });
 
-                        if (slides.length > 1) {
+            if (slides.length > 1) {
                 resetAutoPlay();
             }
         }
@@ -279,7 +287,7 @@
                 if (!track) return;
                 const card = track.querySelector('.recommended-card');
                 if (!card) return;
-                
+
                 const cardWidth = card.offsetWidth;
                 const gap = 20;
                 const scrollAmount = (cardWidth + gap) * 2; // Scroll 2 cards
@@ -310,9 +318,42 @@
  */
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        // You can implement a more elegant notification here if needed
-        alert('Link copied to clipboard!');
+        if (window.showToast) {
+            window.showToast('Link copied to clipboard!', 'success');
+        } else {
+            alert('Link copied to clipboard!');
+        }
     }).catch(err => {
         console.error('Could not copy text: ', err);
     });
 }
+
+/**
+ * Display a custom toast notification.
+ * @param {string} message - The message to display.
+ * @param {string} type - 'success', 'error', 'info', 'warning'.
+ */
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `custom-toast ${type}`;
+
+    let icon = 'check-circle';
+    if (type === 'error') icon = 'times-circle';
+    if (type === 'warning') icon = 'exclamation-triangle';
+    if (type === 'info') icon = 'info-circle';
+
+    toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+    document.body.appendChild(toast);
+
+    // Trigger reflow to enable transition
+    toast.offsetHeight;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+// Export for global usage
+window.showToast = showToast;
