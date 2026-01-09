@@ -23,8 +23,8 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 - **Publication Details**: ISBN, publisher, year
 
 ### 🤖 AI Assistant
-- **Igbo Archives AI**: Powered by Groq (LLaMA 3.1) and Google Gemini
-- **Archive Analysis**: AI-powered image and content analysis
+- **Igbo Archives AI**: Powered by Groq (LLaMA 3.3/3.1) and Google Gemini 2.0
+- **Archive Analysis**: AI-powered image and content analysis using `google-genai`
 - **Text-to-Speech**: Listen to AI responses with Web Speech API
 - **Voice Input**: Speak your questions naturally
 - **Cultural Q&A**: Ask questions about Igbo culture and history
@@ -57,7 +57,7 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 │                   SERVER SIDE (Django)                  │
 ├─────────────────────────────────────────────────────────┤
 │ 🎮 Application Layer                                    │
-│ └─ Django 5.2 + Gunicorn                                │
+│ └─ Django 5.1 + Gunicorn                                │
 │    └─ REST endpoints, Auth, Templates                   │
 │                                                         │
 │ 💾 Storage Strategy                                     │
@@ -78,7 +78,7 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 
 | Category | Technology |
 |----------|------------|
-| **Backend** | Django 5.2, Python 3.11 |
+| **Backend** | Django 5.1, Python 3.12 (uv) |
 | **Database** | SQLite with WAL mode |
 | **Task Queue** | Huey (SQLite backend) |
 | **Frontend** | Tailwind CSS, HTMX, Editor.js |
@@ -117,7 +117,8 @@ igbo-archives-platform/
 ## 🔧 Installation & Setup
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.12+
+- `uv` (Fast Python package manager)
 - Node.js 18+ (for Tailwind CSS)
 - Git
 
@@ -129,15 +130,14 @@ igbo-archives-platform/
    cd igbo-archives-platform
    ```
 
-2. **Create virtual environment**
+2. **Install dependencies and setup environment**
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   uv sync
    ```
 
-3. **Install Python dependencies**
+3. **Install Node dependencies (for Tailwind)**
    ```bash
-   pip install -r requirements.txt
+   npm install
    ```
 
 4. **Install Node dependencies (for Tailwind)**
@@ -153,17 +153,17 @@ igbo-archives-platform/
 
 6. **Create cache table**
    ```bash
-   python manage.py createcachetable
+   uv run python manage.py createcachetable
    ```
 
 7. **Run migrations**
    ```bash
-   python manage.py migrate
+   uv run python manage.py migrate
    ```
 
 8. **Create superuser**
    ```bash
-   python manage.py createsuperuser
+   uv run python manage.py createsuperuser
    ```
 
 9. **Build Tailwind CSS**
@@ -173,13 +173,22 @@ igbo-archives-platform/
 
 10. **Start development server**
     ```bash
-    python manage.py runserver
+    uv run python manage.py runserver
     ```
 
 11. **Start Huey worker (in another terminal)**
     ```bash
-    python manage.py run_huey
+    uv run python manage.py run_huey
     ```
+
+## 🌍 Technical Maintenance
+
+The production environment is configured for long-term stability on a 1GB RAM constraints:
+
+- **Log Rotation**: System logs are capped at 100MB via `journald.conf` (`SystemMaxUse=100M`).
+- **Memory Safety**: A 2GB swap file is enabled to handle memory spikes.
+- **Auto-Cleanup**: The GitHub Action deployment workflow includes `uv cache clean` to prevent disk bloat.
+- **SQLite Performance**: WAL mode is enabled with optimized cache settings for low-memory overhead.
 
 ## 🌍 Environment Variables
 
@@ -191,11 +200,13 @@ cp .env.example .env
 
 ## 🚀 Deployment
 
-This project includes configuration for standard Django deployment:
-- **WSGI**: Gunicorn
-- **Static Files**: Whitenoise
-- **Database**: SQLite (optimized) for low-memory environments
-- **Background Tasks**: Huey
+This project is optimized for deployment on low-memory VMs (1GB RAM) using a `uv`-based workflow:
+- **Dependency Management**: `uv` for fast, deterministic builds.
+- **WSGI**: Gunicorn (2 workers max).
+- **Static Files**: Whitenoise for efficient serving.
+- **Database**: SQLite with WAL mode (optimized concurrency).
+- **Background Tasks**: Huey (single worker).
+- **Automated Cleanup**: GitHub Actions automatically prunes `uv` cache and vacuums system logs.
 
 For detailed deployment instructions, please refer to the internal documentation.
 
@@ -227,8 +238,6 @@ This platform is optimized for deployment on a 1GB RAM VM:
 3. Commit your changes (`git commit -am 'Add new feature'`)
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Open a Pull Request
-
-## 📄 License
 
 ## 📄 License
 
