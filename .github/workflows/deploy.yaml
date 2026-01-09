@@ -25,6 +25,7 @@ jobs:
           cd /home/igboarchives/igbo-archives-platform
 
           # 2. Pull latest code
+          git config pull.rebase false
           git pull origin main
 
           # 3. Sync Dependencies using uv
