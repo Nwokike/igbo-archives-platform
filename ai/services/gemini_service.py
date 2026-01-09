@@ -69,7 +69,7 @@ class GeminiService:
         prompt = "\n\n".join(prompt_parts) + "\n\nAssistant:"
         
         # Try each available key
-        for _ in range(key_manager.gemini_key_count):
+        for _ in range(len(key_manager.gemini_keys)):
             api_key = key_manager.get_gemini_key()
             if not api_key:
                 break
@@ -95,7 +95,7 @@ class GeminiService:
             except Exception as e:
                 error_str = str(e).lower()
                 if 'quota' in error_str or 'rate' in error_str or 'limit' in error_str:
-                    key_manager.mark_key_rate_limited('gemini', api_key, 3600)
+                    key_manager.mark_rate_limited('gemini', api_key, 3600)
                     logger.warning(f"Gemini key rate limited, trying next...")
                     continue
                 else:
@@ -158,7 +158,7 @@ Focus on details that would help preserve and understand this piece of Igbo heri
         prompt = prompts.get(analysis_type, prompts['description'])
         
         # Try each available key
-        for _ in range(key_manager.gemini_key_count):
+        for _ in range(len(key_manager.gemini_keys)):
             api_key = key_manager.get_gemini_key()
             if not api_key:
                 break
@@ -209,7 +209,7 @@ Focus on details that would help preserve and understand this piece of Igbo heri
             except Exception as e:
                 error_str = str(e).lower()
                 if 'quota' in error_str or 'rate' in error_str or 'limit' in error_str:
-                    key_manager.mark_key_rate_limited('gemini', api_key, 3600)
+                    key_manager.mark_rate_limited('gemini', api_key, 3600)
                     continue
                 else:
                     logger.error(f"Gemini image analysis error: {e}")
@@ -232,7 +232,7 @@ Focus on details that would help preserve and understand this piece of Igbo heri
         
         prompt = f"Analyze this image for {analysis_type} focusing on Igbo cultural heritage."
         
-        for _ in range(key_manager.gemini_key_count):
+        for _ in range(len(key_manager.gemini_keys)):
             api_key = key_manager.get_gemini_key()
             if not api_key:
                 break
@@ -267,7 +267,7 @@ Focus on details that would help preserve and understand this piece of Igbo heri
             except Exception as e:
                 error_str = str(e).lower()
                 if 'quota' in error_str or 'rate' in error_str:
-                    key_manager.mark_key_rate_limited('gemini', api_key, 3600)
+                    key_manager.mark_rate_limited('gemini', api_key, 3600)
                     continue
                 else:
                     logger.error(f"Gemini URL analysis error: {e}")
