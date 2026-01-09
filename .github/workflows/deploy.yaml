@@ -43,7 +43,7 @@ jobs:
 
           # 6. Maintenance: Clean uv cache (force avoid lock issues)
           source $HOME/.local/bin/env
-          uv cache clean
+          uv cache clean --force
 
           # 6. Restart Services (Using Sudo Password Secret)
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives

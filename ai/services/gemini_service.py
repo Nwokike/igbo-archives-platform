@@ -20,7 +20,7 @@ class GeminiService:
     
     # Best free Gemini models
     FLASH_MODEL = 'gemini-2.5-flash'  # Best speed/quality ratio
-    PRO_MODEL = 'gemini-1.5-pro'       # Best quality (higher limits)
+    PRO_MODEL = 'gemini-2.5-pro'       # Best quality (higher limits)
     
     def __init__(self):
         self._clients = {}  # Cache clients per key

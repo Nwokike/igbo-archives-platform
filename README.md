@@ -23,11 +23,11 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 - **Publication Details**: ISBN, publisher, year
 
 ### 🤖 AI Assistant
-- **Igbo Archives AI**: Powered by Groq (LLaMA 3.3/3.1) and Google Gemini 2.0
-- **Archive Analysis**: AI-powered image and content analysis using `google-genai`
-- **Text-to-Speech**: Listen to AI responses with Web Speech API
-- **Voice Input**: Speak your questions naturally
-- **Cultural Q&A**: Ask questions about Igbo culture and history
+- **Igbo Archives AI**: Powered by Groq (LLaMA 3.3) and Google Gemini 2.5 Flash
+- **Archive Analysis**: AI-powered image and content analysis using the latest Gemini Vision models
+- **Text-to-Speech**: High-quality cultural narration and response listening
+- **Voice Interaction**: Natural language processing for voice-driven inquiries
+- **Cultural Q&A**: Intelligent grounded responses on Igbo heritage and history
 
 ### 👥 Community Features
 - **User Profiles**: Customizable profiles with social links
@@ -111,7 +111,7 @@ igbo-archives-platform/
 ├── ai/                     # AI assistant features
 ├── static/                 # Global static files
 ├── media/                  # User uploads
-└── backups/                # Database backups
+└── LICENSE                 # Copyright & Licensing terms
 ```
 
 ## 🔧 Installation & Setup
@@ -176,19 +176,10 @@ igbo-archives-platform/
     uv run python manage.py runserver
     ```
 
-11. **Start Huey worker (in another terminal)**
+11. **Start Huey worker**
     ```bash
     uv run python manage.py run_huey
     ```
-
-## 🌍 Technical Maintenance
-
-The production environment is configured for long-term stability on a 1GB RAM constraints:
-
-- **Log Rotation**: System logs are capped at 100MB via `journald.conf` (`SystemMaxUse=100M`).
-- **Memory Safety**: A 2GB swap file is enabled to handle memory spikes.
-- **Auto-Cleanup**: The GitHub Action deployment workflow includes `uv cache clean` to prevent disk bloat.
-- **SQLite Performance**: WAL mode is enabled with optimized cache settings for low-memory overhead.
 
 ## 🌍 Environment Variables
 
@@ -239,11 +230,11 @@ This platform is optimized for deployment on a 1GB RAM VM:
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## 📄 License & Legal
 
-Copyright © 2025–2026 Kiri Research Labs. All Rights Reserved.
+Copyright © 2025–2026 **Kiri Research Labs**. All Rights Reserved.
 
-Proprietary Software. Unauthorized use, reproduction, or distribution is strictly prohibited.
+This platform, including its source code, design, and content, is the proprietary property of Kiri Research Labs. Unauthorized use, reproduction, modification, or distribution of any part of this platform is strictly prohibited.
 
 ## 🏢 Legal & Attribution
 
