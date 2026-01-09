@@ -29,20 +29,21 @@ jobs:
 
           # 3. Sync Dependencies using uv
           source $HOME/.local/bin/env
-          uv sync --python 3.12
+          export UV_PYTHON=python3.12
+          uv sync
 
           # 4. Run Database Migrations
           uv run python manage.py migrate
           
-          # 4b. Ensure cache table exists (Idempotent - safe to run every time)
+          # 4b. Ensure cache table exists
           uv run python manage.py createcachetable
 
           # 5. Update Static Files
           uv run python manage.py collectstatic --noinput
 
-          # 6. Maintenance: Prune uv cache
+          # 6. Maintenance: Clean uv cache (force avoid lock issues)
           source $HOME/.local/bin/env
-          uv cache prune --ci
+          uv cache clean
 
           # 6. Restart Services (Using Sudo Password Secret)
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives
