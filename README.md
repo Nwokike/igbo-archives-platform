@@ -23,9 +23,9 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 - **Publication Details**: ISBN, publisher, year
 
 ### 🤖 AI Assistant
-- **Igbo Archives AI**: Powered by Groq (LLaMA 3.3) and Google Gemini 2.5 Flash
-- **Archive Analysis**: AI-powered image and content analysis using the latest Gemini Vision models
-- **Text-to-Speech**: High-quality cultural narration and response listening
+- **Igbo Archives AI**: Powered by Groq (LLaMA 3.3) and Google Gemini 3.0 Flash
+- **Archive Analysis**: Advanced multimodal analysis using latest Gemini Flash agents
+- **Text-to-Speech**: High-fidelity cultural narration and response listening
 - **Voice Interaction**: Natural language processing for voice-driven inquiries
 - **Cultural Q&A**: Intelligent grounded responses on Igbo heritage and history
 
@@ -230,15 +230,11 @@ This platform is optimized for deployment on a 1GB RAM VM:
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Open a Pull Request
 
-## 📄 License & Legal
+## 📄 Licensing & Attribution
 
 Copyright © 2025–2026 **Kiri Research Labs**. All Rights Reserved.
 
-This platform, including its source code, design, and content, is the proprietary property of Kiri Research Labs. Unauthorized use, reproduction, modification, or distribution of any part of this platform is strictly prohibited.
-
-## 🏢 Legal & Attribution
-
-**Igbo Archives Platform** is a project of **Kiri Research Labs** (SMEDAN SUID Registered).
+**Igbo Archives Platform** is a proprietary cultural preservation initiative. For the full licensing terms, please see the [LICENSE](file:///c:/Users/nwoki/Desktop/igbo-archives-platform/LICENSE) file.
 
 Operated by Kiri Research Labs.
 [Contact Us](mailto:hello@kiriresearch.com) for inquiries.

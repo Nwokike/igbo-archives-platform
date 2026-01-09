@@ -123,7 +123,7 @@ class ChatService:
     
     MODELS = {
         'groq': 'llama-3.3-70b-versatile',
-        'gemini': 'gemini-2.5-flash',
+        'gemini': 'gemini-3.0-flash',
     }
     
     STT_MODEL = 'whisper-large-v3'
