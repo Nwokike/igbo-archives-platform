@@ -335,7 +335,6 @@ HUEY = SqliteHuey(
     results=False,
     store_none=True,
     utc=True,
-    default_delay=60,  # Default delay for retries
 )
 
 # Security Settings for Production
