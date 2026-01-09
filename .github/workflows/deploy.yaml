@@ -40,6 +40,10 @@ jobs:
           # 5. Update Static Files
           uv run python manage.py collectstatic --noinput
 
+          # 6. Maintenance: Prune uv cache
+          source $HOME/.local/bin/env
+          uv cache prune --ci
+
           # 6. Restart Services (Using Sudo Password Secret)
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives-huey
