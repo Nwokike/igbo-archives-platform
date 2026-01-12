@@ -1,38 +1,40 @@
 <div class="grid grid-cols-2 gap-4 my-8">
     {% if previous %}
-    <a href="{{ previous.get_absolute_url|default:'#' }}" class="group card card-hover p-4 no-underline">
-        <span class="text-sm text-vintage-beaver mb-2 block">
+    <a href="{{ previous.get_absolute_url|default:'#' }}" class="group card card-hover p-4">
+        <span class="text-sm text-text-muted mb-2 block">
             <i class="fas fa-arrow-left mr-1"></i> Previous
         </span>
         <div class="flex items-center gap-3">
             {% if previous.image or previous.featured_image or previous.cover_image %}
             <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                <img src="{% if previous.image %}{{ previous.image.url }}{% elif previous.featured_image %}{{ previous.featured_image.url }}{% else %}{{ previous.cover_image.url }}{% endif %}" 
-                     alt="" class="w-full h-full object-cover">
+                <img src="{% if previous.image %}{{ previous.image.url }}{% elif previous.featured_image %}{{ previous.featured_image.url }}{% else %}{{ previous.cover_image.url }}{% endif %}"
+                    alt="" class="w-full h-full object-cover">
             </div>
             {% endif %}
-            <span class="font-serif text-sm font-medium text-dark-brown group-hover:text-vintage-gold transition-colors line-clamp-2">
-                {% if previous.title %}{{ previous.title|truncatewords:8 }}{% elif previous.review_title %}{{ previous.review_title|truncatewords:8 }}{% endif %}
+            <span class="font-serif text-sm font-medium group-hover:text-accent transition-colors line-clamp-2">
+                {% if previous.title %}{{ previous.title|truncatewords:8 }}{% elif previous.review_title %}{{
+                previous.review_title|truncatewords:8 }}{% endif %}
             </span>
         </div>
     </a>
     {% else %}
     <div></div>
     {% endif %}
-    
+
     {% if next %}
-    <a href="{{ next.get_absolute_url|default:'#' }}" class="group card card-hover p-4 no-underline text-right">
-        <span class="text-sm text-vintage-beaver mb-2 block">
+    <a href="{{ next.get_absolute_url|default:'#' }}" class="group card card-hover p-4 text-right">
+        <span class="text-sm text-text-muted mb-2 block">
             Next <i class="fas fa-arrow-right ml-1"></i>
         </span>
         <div class="flex items-center gap-3 justify-end">
-            <span class="font-serif text-sm font-medium text-dark-brown group-hover:text-vintage-gold transition-colors line-clamp-2">
-                {% if next.title %}{{ next.title|truncatewords:8 }}{% elif next.review_title %}{{ next.review_title|truncatewords:8 }}{% endif %}
+            <span class="font-serif text-sm font-medium group-hover:text-accent transition-colors line-clamp-2">
+                {% if next.title %}{{ next.title|truncatewords:8 }}{% elif next.review_title %}{{
+                next.review_title|truncatewords:8 }}{% endif %}
             </span>
             {% if next.image or next.featured_image or next.cover_image %}
             <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                <img src="{% if next.image %}{{ next.image.url }}{% elif next.featured_image %}{{ next.featured_image.url }}{% else %}{{ next.cover_image.url }}{% endif %}" 
-                     alt="" class="w-full h-full object-cover">
+                <img src="{% if next.image %}{{ next.image.url }}{% elif next.featured_image %}{{ next.featured_image.url }}{% else %}{{ next.cover_image.url }}{% endif %}"
+                    alt="" class="w-full h-full object-cover">
             </div>
             {% endif %}
         </div>

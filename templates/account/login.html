@@ -9,13 +9,13 @@
         <div class="card">
             <div class="card-body p-8">
                 <div class="text-center mb-8">
-                    <h1 class="font-serif text-display-md text-dark-brown mb-2">Welcome Back</h1>
-                    <p class="text-vintage-beaver">Sign in to continue to Igbo Archives</p>
+                    <h1 class="font-serif text-2xl font-bold mb-2">Welcome Back</h1>
+                    <p class="text-text-muted">Sign in to continue to Igbo Archives</p>
                 </div>
 
                 <form method="post" class="space-y-5">
                     {% csrf_token %}
-                    
+
                     {% if form.non_field_errors %}
                     <div class="alert alert-error">
                         <i class="fas fa-exclamation-circle"></i>
@@ -23,42 +23,36 @@
                     </div>
                     {% endif %}
 
-                    <div class="form-group">
+                    <div>
                         <label for="{{ form.login.id_for_label }}" class="form-label">Email</label>
-                        <input type="email" 
-                               class="form-input {% if form.login.errors %}border-red-500{% endif %}" 
-                               id="{{ form.login.id_for_label }}" 
-                               name="login" 
-                               value="{{ form.login.value|default:'' }}"
-                               placeholder="Enter your email"
-                               required>
+                        <input type="email" class="form-input {% if form.login.errors %}border-red-500{% endif %}"
+                            id="{{ form.login.id_for_label }}" name="login" value="{{ form.login.value|default:'' }}"
+                            placeholder="Enter your email" required>
                         {% if form.login.errors %}
                         <p class="text-red-500 text-sm mt-1">{{ form.login.errors|join:", " }}</p>
                         {% endif %}
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                        <input type="password" 
-                               class="form-input {% if form.password.errors %}border-red-500{% endif %}" 
-                               id="{{ form.password.id_for_label }}" 
-                               name="password" 
-                               placeholder="Enter your password"
-                               required>
+                        <input type="password" class="form-input {% if form.password.errors %}border-red-500{% endif %}"
+                            id="{{ form.password.id_for_label }}" name="password" placeholder="Enter your password"
+                            required>
                         {% if form.password.errors %}
                         <p class="text-red-500 text-sm mt-1">{{ form.password.errors|join:", " }}</p>
                         {% endif %}
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="remember" class="form-checkbox">
-                            <span class="text-sm text-dark-brown">Remember me</span>
+                            <input type="checkbox" name="remember"
+                                class="w-4 h-4 rounded border-border text-accent focus:ring-accent">
+                            <span class="text-sm">Remember me</span>
                         </label>
                     </div>
 
                     {% if form.captcha %}
-                    <div class="form-group">
+                    <div>
                         {{ form.captcha }}
                         {% if form.captcha.errors %}
                         <p class="text-red-500 text-sm mt-1">{{ form.captcha.errors|join:", " }}</p>
@@ -72,21 +66,23 @@
 
                     <div class="relative py-4">
                         <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-sepia-pale"></div>
+                            <div class="w-full border-t border-border"></div>
                         </div>
                         <div class="relative flex justify-center">
-                            <span class="bg-white px-4 text-sm text-vintage-beaver">OR</span>
+                            <span class="bg-white px-4 text-sm text-text-muted">OR</span>
                         </div>
                     </div>
 
                     <a href="{% provider_login_url 'google' %}" class="btn-secondary btn-lg w-full">
-                        <i class="fab fa-google"></i> Continue with Google
+                        <i class="fa-brands fa-google"></i> Continue with Google
                     </a>
 
-                    <div class="flex items-center justify-center gap-3 text-sm text-vintage-beaver pt-4">
-                        <a href="{% url 'account_reset_password' %}" class="hover:text-vintage-gold transition-colors">Forgot password?</a>
-                        <span class="text-sepia-pale">•</span>
-                        <a href="{% url 'account_signup' %}" class="hover:text-vintage-gold transition-colors">Create an account</a>
+                    <div class="flex items-center justify-center gap-3 text-sm text-text-muted pt-4">
+                        <a href="{% url 'account_reset_password' %}" class="hover:text-accent transition-colors">Forgot
+                            password?</a>
+                        <span class="text-border">•</span>
+                        <a href="{% url 'account_signup' %}" class="hover:text-accent transition-colors">Create an
+                            account</a>
                     </div>
                 </form>
             </div>

@@ -1,49 +1,53 @@
 <!-- Recommended Posts Carousel -->
 {% if recommended %}
-<div class="recommended-section">
-    <h3 class="section-title">You May Also Like</h3>
-    
-    <div class="recommended-carousel">
-        <button class="carousel-btn prev-btn">
+<div class="my-8">
+    <h3 class="font-serif text-xl font-semibold mb-4">You May Also Like</h3>
+
+    <div class="relative group">
+        <button
+            class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-text-muted hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
+            onclick="document.getElementById('recommendedTrack').scrollBy({left: -300, behavior: 'smooth'})">
             <i class="fas fa-chevron-left"></i>
         </button>
-        
-        <div class="carousel-track" id="recommendedTrack">
+
+        <div class="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth pb-2"
+            id="recommendedTrack">
             {% for item in recommended %}
-            <div class="recommended-card">
-                <a href="{{ item.get_absolute_url|default:'#' }}" class="card-link">
-                    {% if item.image or item.featured_image or item.cover_image %}
-                    <div class="card-image">
-                        <img src="{% if item.image %}{{ item.image.url }}{% elif item.featured_image %}{{ item.featured_image.url }}{% else %}{{ item.cover_image.url }}{% endif %}" 
-                             alt="{{ item.title|default:'' }}{{ item.review_title|default:'' }}{{ item.book_title|default:'' }}">
-                    </div>
-                    {% endif %}
-                    <div class="card-content">
-                        <h4 class="card-title">
-                            {% if item.title %}
-                                {{ item.title|truncatewords:10 }}
-                            {% elif item.review_title %}
-                                {{ item.review_title|truncatewords:10 }}
-                            {% elif item.book_title %}
-                                {{ item.book_title|truncatewords:10 }}
-                            {% endif %}
-                        </h4>
-                        <p class="card-meta">
-                            {% if item.uploaded_by %}
-                                By {{ item.uploaded_by.get_display_name }}
-                            {% elif item.author %}
-                                By {{ item.author.get_display_name }}
-                            {% elif item.reviewer %}
-                                By {{ item.reviewer.get_display_name }}
-                            {% endif %}
-                        </p>
-                    </div>
-                </a>
-            </div>
+            <a href="{{ item.get_absolute_url|default:'#' }}"
+                class="card card-hover flex-shrink-0 w-64 snap-start block">
+                {% if item.image or item.featured_image or item.cover_image %}
+                <div class="h-32 overflow-hidden">
+                    <img src="{% if item.image %}{{ item.image.url }}{% elif item.featured_image %}{{ item.featured_image.url }}{% else %}{{ item.cover_image.url }}{% endif %}"
+                        alt="" class="w-full h-full object-cover">
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h4 class="font-serif text-sm font-medium line-clamp-2 mb-1">
+                        {% if item.title %}
+                        {{ item.title|truncatewords:10 }}
+                        {% elif item.review_title %}
+                        {{ item.review_title|truncatewords:10 }}
+                        {% elif item.book_title %}
+                        {{ item.book_title|truncatewords:10 }}
+                        {% endif %}
+                    </h4>
+                    <p class="text-xs text-text-muted">
+                        {% if item.uploaded_by %}
+                        By {{ item.uploaded_by.get_display_name }}
+                        {% elif item.author %}
+                        By {{ item.author.get_display_name }}
+                        {% elif item.reviewer %}
+                        By {{ item.reviewer.get_display_name }}
+                        {% endif %}
+                    </p>
+                </div>
+            </a>
             {% endfor %}
         </div>
-        
-        <button class="carousel-btn next-btn">
+
+        <button
+            class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-text-muted hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
+            onclick="document.getElementById('recommendedTrack').scrollBy({left: 300, behavior: 'smooth'})">
             <i class="fas fa-chevron-right"></i>
         </button>
     </div>

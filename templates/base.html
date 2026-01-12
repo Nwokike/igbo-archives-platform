@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="{% static 'images/logos/logo-light.png' %}">
 
     <a href="#main-content"
-        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-vintage-gold focus:text-white focus:px-4 focus:py-2 focus:rounded">Skip
+        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded">Skip
         to main content</a>
 
     {% if ENABLE_ANALYTICS and GOOGLE_ANALYTICS_ID %}
@@ -24,9 +24,6 @@
     <meta name="vapid-public-key" content="{{ VAPID_PUBLIC_KEY }}">
     {% endif %}
 
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="{% static 'vendor/css/google-fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'vendor/css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/tailwind.output.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
@@ -61,36 +58,33 @@
     </script>
 </head>
 
-<body
-    class="font-sans antialiased bg-[#FDFCF8] text-dark-brown min-h-screen flex flex-col transition-colors duration-300">
+<body class="font-sans antialiased bg-surface text-text min-h-screen flex flex-col">
+    <!-- PWA Install Button -->
     <button
-        class="fixed bottom-24 right-4 z-40 w-12 h-12 bg-vintage-gold text-white rounded-full shadow-lg hover:bg-vintage-bronze hover:scale-110 transition-all duration-300 hidden items-center justify-center md:bottom-6"
+        class="fixed bottom-24 right-4 z-40 w-12 h-12 bg-accent text-white rounded-full shadow-lg hover:bg-accent-hover hover:scale-110 transition-all duration-300 hidden items-center justify-center md:bottom-6"
         id="pwaInstallBtn" aria-label="Install App">
         <i class="fas fa-download text-lg"></i>
     </button>
 
-    <div class="sticky top-0 z-50 bg-white/90 backdrop-blur-lg shadow-sm border-b border-sepia-pale/30 transition-all duration-200"
-        id="stickyHeader">
+    <!-- Header -->
+    <div class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-border" id="stickyHeader">
         <header>
-            <div
-                class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2 lg:py-2.5 gap-3 transition-all duration-200 relative">
+            <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2.5 gap-3 relative">
                 <!-- Left: Dark mode toggle -->
                 <div class="w-20 flex justify-start">
-                    <button
-                        class="flex items-center justify-center w-8 h-8 rounded-lg border border-sepia-pale/60 text-dark-brown hover:bg-heritage-cream hover:border-vintage-beaver/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-vintage-gold/50"
-                        aria-label="Toggle dark mode" id="darkModeToggle">
+                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg" aria-label="Toggle dark mode" id="darkModeToggle">
                         <i class="fas fa-moon text-sm"></i>
                     </button>
                 </div>
 
-                <!-- Center: Logo (absolutely positioned on desktop, flex on mobile) -->
-                <a class="absolute left-1/2 -translate-x-1/2 sm:block hidden" href="{% url 'core:home' %}">
+                <!-- Center: Logo -->
+                <a class="absolute left-1/2 -translate-x-1/2 hidden sm:block" href="{% url 'core:home' %}">
                     <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
-                        class="h-8 lg:h-9 w-auto transition-all duration-200 logo-dark">
+                        class="h-8 lg:h-9 w-auto logo-dark">
                     <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
-                        class="h-8 lg:h-9 w-auto transition-all duration-200 logo-light hidden">
+                        class="h-8 lg:h-9 w-auto logo-light hidden">
                 </a>
-                <!-- Mobile logo (in flow) -->
+                <!-- Mobile logo -->
                 <a class="flex-1 flex items-center justify-center sm:hidden" href="{% url 'core:home' %}">
                     <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
                         class="h-8 w-auto logo-dark">
@@ -98,67 +92,58 @@
                         class="h-8 w-auto logo-light hidden">
                 </a>
 
+                <!-- Right: User Menu -->
                 <div class="flex items-center gap-2 sm:gap-3">
                     {% if user.is_authenticated %}
-                    <div class="relative">
-                        <a href="{% url 'users:notifications' %}"
-                            class="flex items-center justify-center w-10 h-10 rounded-full text-dark-brown hover:bg-heritage-cream transition-colors relative focus:outline-none focus:ring-2 focus:ring-vintage-gold focus:ring-offset-2"
-                            id="notificationBell" aria-label="Notifications">
-                            <i class="fas fa-bell text-lg"></i>
-                            {% if unread_notification_count > 0 %}
-                            <span id="notificationBadge"
-                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{
-                                unread_notification_count }}</span>
-                            {% endif %}
-                        </a>
-                    </div>
+                    <a href="{% url 'users:notifications' %}" class="btn-ghost w-10 h-10 p-0 rounded-full relative"
+                        id="notificationBell" aria-label="Notifications">
+                        <i class="fas fa-bell text-lg"></i>
+                        {% if unread_notification_count > 0 %}
+                        <span id="notificationBadge"
+                            class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{
+                            unread_notification_count }}</span>
+                        {% endif %}
+                    </a>
 
-                    <div class="relative">
+                    <div class="relative dropdown" id="profileDropdownContainer">
                         <button
-                            class="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-sepia-pale hover:bg-vintage-gold hover:border-vintage-gold hover:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-vintage-gold focus:ring-offset-2"
+                            class="flex items-center gap-2 px-3 py-2 rounded-full border-2 border-border hover:bg-accent hover:border-accent hover:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
                             id="profileButton">
                             {% if user.profile_picture %}
-                            <div class="w-8 h-8 rounded-full overflow-hidden">
-                                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}"
-                                    class="w-full h-full object-cover">
+                            <div class="avatar avatar-sm">
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}">
                             </div>
                             {% else %}
-                            <div
-                                class="w-8 h-8 rounded-full bg-heritage-cream flex items-center justify-center text-sm font-semibold text-dark-brown">
-                                {{ user.get_display_name|slice:":1"|upper }}</div>
+                            <div class="avatar avatar-sm">
+                                {{ user.get_display_name|slice:":1"|upper }}
+                            </div>
                             {% endif %}
                             <span class="hidden sm:inline text-sm font-medium">{{ user.get_display_name }}</span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
 
-                        <div class="absolute right-0 top-full mt-2 w-56 py-2 bg-white rounded-xl shadow-soft-lg border border-sepia-pale/50 opacity-0 invisible translate-y-2 transition-all duration-200 z-50"
-                            id="profileDropdown">
-                            <a href="{% url 'users:dashboard' %}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                        <div class="dropdown-menu" id="profileDropdown">
+                            <a href="{% url 'users:dashboard' %}" class="dropdown-item">
                                 <i class="fas fa-th-large w-4 text-center"></i> Dashboard
                             </a>
-                            <a href="{% url 'users:inbox' %}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                            <a href="{% url 'users:inbox' %}" class="dropdown-item">
                                 <i class="fas fa-envelope w-4 text-center"></i> Messages
                             </a>
-                            <a href="{% url 'users:notifications' %}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                            <a href="{% url 'users:notifications' %}" class="dropdown-item">
                                 <i class="fas fa-bell w-4 text-center"></i> Notifications
                             </a>
-                            <a href="{% url 'users:profile_edit' user.username %}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-dark-brown hover:bg-heritage-cream transition-colors">
+                            <a href="{% url 'users:profile_edit' user.username %}" class="dropdown-item">
                                 <i class="fas fa-edit w-4 text-center"></i> Edit Profile
                             </a>
-                            <div class="my-2 border-t border-sepia-pale/50"></div>
-                            <a href="{% url 'account_logout' %}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            <div class="my-2 border-t border-border"></div>
+                            <a href="{% url 'account_logout' %}" class="dropdown-item text-red-600 hover:bg-red-50"
                                 id="logoutLink">
                                 <i class="fas fa-sign-out-alt w-4 text-center"></i> Logout
                             </a>
                         </div>
                     </div>
                     {% else %}
-                    <a href="{% url 'account_login' %}" class="btn-primary text-sm">
+                    <a href="{% url 'account_login' %}" class="btn-primary btn-sm">
                         <i class="fas fa-sign-in-alt"></i>
                         <span class="hidden sm:inline">Login</span>
                     </a>
@@ -167,7 +152,8 @@
             </div>
         </header>
 
-        <nav class="hidden lg:block border-b border-sepia-pale/30 bg-heritage-cream/30" aria-label="Main navigation">
+        <!-- Desktop Navigation -->
+        <nav class="hidden lg:block border-t border-border bg-surface-alt/50" aria-label="Main navigation">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-center gap-1 py-2">
                     <a href="{% url 'archives:list' %}"
@@ -193,41 +179,44 @@
         {% block sub_navigation %}{% endblock %}
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-sepia-pale/30 lg:hidden safe-area-pb"
+    <!-- Mobile Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-border lg:hidden safe-area-pb"
         aria-label="Mobile navigation">
-        <div class="flex items-center justify-around py-1.5">
+        <div class="flex items-center justify-around py-2">
             <a href="{% url 'archives:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}text-vintage-gold bg-vintage-gold/10{% else %}text-vintage-beaver hover:text-dark-brown{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text{% endif %}">
                 <i class="fas fa-archive text-base"></i>
                 <span class="text-[10px] font-medium">Archives</span>
             </a>
             <a href="{% url 'insights:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'insights' in request.resolver_match.app_names %}text-vintage-gold bg-vintage-gold/10{% else %}text-vintage-beaver hover:text-dark-brown{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'insights' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text{% endif %}">
                 <i class="fas fa-lightbulb text-base"></i>
                 <span class="text-[10px] font-medium">Insights</span>
             </a>
             <a href="{% url 'books:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'books' in request.resolver_match.app_names %}text-vintage-gold bg-vintage-gold/10{% else %}text-vintage-beaver hover:text-dark-brown{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'books' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text{% endif %}">
                 <i class="fas fa-book text-base"></i>
                 <span class="text-[10px] font-medium">Books</span>
             </a>
             <a href="{% url 'ai:home' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'ai' in request.resolver_match.app_names %}text-vintage-gold bg-vintage-gold/10{% else %}text-vintage-beaver hover:text-dark-brown{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'ai' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text{% endif %}">
                 <i class="fas fa-robot text-base"></i>
                 <span class="text-[10px] font-medium">AI</span>
             </a>
         </div>
     </nav>
 
+    <!-- Main Content -->
     <main id="main-content" class="flex-1 pb-20 lg:pb-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
             {% if messages %}
             <div class="space-y-3 mb-6" role="alert" aria-live="polite">
                 {% for message in messages %}
                 <div
-                    class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible animate-fade-in">
+                    class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
                     <div class="flex-1">{{ message }}</div>
-                    <button type="button" class="alert-close" aria-label="Dismiss message">
+                    <button type="button" class="ml-auto opacity-60 hover:opacity-100 transition-opacity"
+                        onclick="this.parentElement.remove()" aria-label="Dismiss">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -240,93 +229,95 @@
         </div>
     </main>
 
-    <footer class="bg-dark-brown text-vintage-white mt-auto">
+    <!-- Footer -->
+    <footer class="bg-surface-dark text-text-dark mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10">
                 <!-- Brand Column -->
                 <div class="col-span-2 md:col-span-1">
                     <div class="mb-3">
-                        <!-- Both logos for flexibility -->
                         <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
                             class="h-9 w-auto logo-light">
                         <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
                             class="h-9 w-auto logo-dark hidden">
                     </div>
-                    <p class="text-sepia-soft text-xs leading-relaxed mb-4">
+                    <p class="text-text-dark-muted text-xs leading-relaxed mb-4">
                         Preserving and celebrating the rich history and culture of the Igbo people.
                     </p>
                     <div class="flex items-center gap-2">
                         <a href="https://www.facebook.com/IgboArchives/" target="_blank" rel="noopener noreferrer"
-                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sepia-soft hover:bg-vintage-gold hover:text-white transition-all text-sm"
+                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
                             aria-label="Facebook">
-                            <i class="fab fa-facebook"></i>
+                            <i class="fa-brands fa-facebook-f"></i>
                         </a>
                         <a href="https://www.instagram.com/IgboArchives.com.ng/" target="_blank"
                             rel="noopener noreferrer"
-                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sepia-soft hover:bg-vintage-gold hover:text-white transition-all text-sm"
+                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
                             aria-label="Instagram">
-                            <i class="fab fa-instagram"></i>
+                            <i class="fa-brands fa-instagram"></i>
                         </a>
                         <a href="https://x.com/IgboArchives" target="_blank" rel="noopener noreferrer"
-                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sepia-soft hover:bg-vintage-gold hover:text-white transition-all text-sm"
+                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
                             aria-label="X (Twitter)">
-                            <i class="fab fa-x-twitter"></i>
+                            <i class="fa-brands fa-x-twitter"></i>
                         </a>
                         <a href="https://mastodon.social/@Igbo_Archives" target="_blank" rel="noopener noreferrer"
-                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sepia-soft hover:bg-vintage-gold hover:text-white transition-all text-sm"
+                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
                             aria-label="Mastodon">
-                            <i class="fab fa-mastodon"></i>
+                            <i class="fa-brands fa-mastodon"></i>
                         </a>
                     </div>
                 </div>
 
                 <!-- Explore Column -->
                 <div>
-                    <h3 class="font-medium text-xs uppercase tracking-wider text-vintage-gold mb-3">Explore</h3>
+                    <h3 class="font-medium text-xs uppercase tracking-wider text-accent mb-3">Explore</h3>
                     <div class="space-y-1.5">
                         <a href="{% url 'archives:list' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Archives</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Archives</a>
                         <a href="{% url 'insights:list' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Insights</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Insights</a>
                         <a href="{% url 'books:list' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Books</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Books</a>
                         <a href="{% url 'ai:home' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">AI Assistant</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">AI
+                            Assistant</a>
                     </div>
                 </div>
 
                 <!-- Resources Column -->
                 <div>
-                    <h3 class="font-medium text-xs uppercase tracking-wider text-vintage-gold mb-3">Resources</h3>
+                    <h3 class="font-medium text-xs uppercase tracking-wider text-accent mb-3">Resources</h3>
                     <div class="space-y-1.5">
                         <a href="{% url 'core:about' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">About</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">About</a>
                         <a href="{% url 'core:contact' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Contact</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Contact</a>
                         <a href="{% url 'core:donate' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Support Us</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Support
+                            Us</a>
                         <a href="{% url 'core:copyright' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Copyright</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Copyright</a>
                     </div>
                 </div>
 
                 <!-- Legal Column -->
                 <div>
-                    <h3 class="font-medium text-xs uppercase tracking-wider text-vintage-gold mb-3">Legal</h3>
+                    <h3 class="font-medium text-xs uppercase tracking-wider text-accent mb-3">Legal</h3>
                     <div class="space-y-1.5">
                         <a href="{% url 'core:privacy' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Privacy</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Privacy</a>
                         <a href="{% url 'core:terms' %}"
-                            class="block text-sepia-soft hover:text-white transition-colors text-sm">Terms</a>
+                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Terms</a>
                     </div>
                 </div>
             </div>
 
             <div
-                class="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-sepia">
+                class="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-dark-muted">
                 <p>&copy; 2025 - {% now "Y" %} Kiri Research Labs. All Rights Reserved.</p>
                 <p>A project by <a href="https://kiriresearch.com" target="_blank" rel="noopener noreferrer"
-                        class="text-vintage-gold hover:text-white transition-colors">Kiri Research Labs</a></p>
+                        class="text-accent hover:text-text-dark transition-colors">Kiri Research Labs</a></p>
             </div>
         </div>
     </footer>
@@ -344,15 +335,16 @@
 
     {% block extra_js %}{% endblock %}
 
+    <!-- Push Notification Prompt -->
     <div id="push-notification-prompt"
-        class="fixed bottom-24 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 bg-white rounded-2xl shadow-soft-lg border border-sepia-pale/50 p-5 hidden animate-fade-in-up">
+        class="fixed bottom-24 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 card p-5 hidden animate-fade-in">
         <div class="flex items-start gap-4 mb-4">
-            <div class="w-12 h-12 rounded-full bg-vintage-gold/10 flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-bell text-xl text-vintage-gold"></i>
+            <div class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-bell text-xl text-accent"></i>
             </div>
             <div>
-                <h4 class="font-serif font-semibold text-dark-brown mb-1">Stay Connected in Real-Time</h4>
-                <p class="text-sm text-vintage-beaver">Receive instant notifications for messages and interactions with
+                <h4 class="font-serif font-semibold mb-1">Stay Connected in Real-Time</h4>
+                <p class="text-sm text-text-muted">Receive instant notifications for messages and interactions with
                     your posts. You're in control and can manage these settings anytime.</p>
             </div>
         </div>

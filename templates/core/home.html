@@ -5,16 +5,16 @@
 
 {% block content %}
 <section
-    class="text-center py-12 lg:py-20 -mt-6 lg:-mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-heritage-cream/50 to-transparent">
+    class="text-center py-12 lg:py-20 -mt-6 lg:-mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-surface-alt/50 to-transparent">
     <div class="max-w-3xl mx-auto">
-        <h1 class="font-serif text-display-xl text-dark-brown mb-6 animate-fade-in">
+        <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 animate-fade-in">
             Preserving the Past,<br class="hidden sm:inline"> Inspiring the Future
         </h1>
-        <p class="text-lg text-vintage-beaver mb-8 max-w-2xl mx-auto animate-fade-in-up">
+        <p class="text-lg text-text-muted mb-8 max-w-2xl mx-auto">
             Explore the rich cultural heritage of the Igbo people through our comprehensive digital archives, community
             insights, and educational resources.
         </p>
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up">
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="{% url 'archives:list' %}" class="btn-primary btn-lg w-full sm:w-auto">
                 <i class="fas fa-archive"></i> Explore Archives
             </a>
@@ -29,16 +29,15 @@
 
 {% if featured_archives %}
 <section
-    class="py-8 lg:py-12 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-dark-brown to-dark-brown/95">
+    class="py-8 lg:py-12 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-surface-dark to-surface-dark/95">
     <div class="max-w-6xl mx-auto">
         <div class="flex items-center justify-between mb-4">
             <h2 class="font-serif text-lg text-white/90">Featured Archive</h2>
-            <a href="{% url 'archives:list' %}" class="text-sm text-vintage-gold hover:text-white transition-colors">
+            <a href="{% url 'archives:list' %}" class="text-sm text-accent hover:text-white transition-colors">
                 View All <i class="fas fa-arrow-right ml-1 text-xs"></i>
             </a>
         </div>
 
-        <!-- Modern CSS Scroll-Snap Carousel -->
         <div class="relative group" id="heroCarousel">
             <div class="carousel-container overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
                 id="carouselTrack">
@@ -53,7 +52,7 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
                         <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 left-0 right-0 p-5 lg:p-7">
-                            <span class="inline-flex items-center gap-1.5 text-xs text-vintage-gold mb-2">
+                            <span class="inline-flex items-center gap-1.5 text-xs text-accent mb-2">
                                 <i class="fas fa-archive"></i> Cultural Archive
                             </span>
                             <h3 class="font-serif text-xl lg:text-2xl font-semibold text-white mb-2 line-clamp-1">{{
@@ -70,23 +69,21 @@
                 {% endfor %}
             </div>
 
-            <!-- Navigation Arrows -->
             <button
-                class="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-vintage-gold/50"
+                class="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
                 id="carouselPrev" aria-label="Previous slide">
                 <i class="fas fa-chevron-left text-sm"></i>
             </button>
             <button
-                class="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-vintage-gold/50"
+                class="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
                 id="carouselNext" aria-label="Next slide">
                 <i class="fas fa-chevron-right text-sm"></i>
             </button>
 
-            <!-- Progress Indicators -->
             <div class="flex items-center justify-center gap-1.5 mt-4" id="carouselDots">
                 {% for archive in featured_archives %}
                 <button
-                    class="carousel-dot w-1.5 h-1.5 rounded-full transition-all duration-300 {% if forloop.first %}bg-vintage-gold w-4{% else %}bg-white/30 hover:bg-white/50{% endif %}"
+                    class="carousel-dot w-1.5 h-1.5 rounded-full transition-all duration-300 {% if forloop.first %}bg-accent w-4{% else %}bg-white/30 hover:bg-white/50{% endif %}"
                     data-index="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
                 {% endfor %}
             </div>
@@ -99,8 +96,8 @@
 
 <section class="py-12 lg:py-16">
     <div class="text-center mb-12">
-        <h2 class="font-serif text-display-md text-dark-brown mb-4">Discover Our Platform</h2>
-        <p class="text-vintage-beaver max-w-2xl mx-auto">A comprehensive digital platform dedicated to preserving and
+        <h2 class="font-serif text-2xl lg:text-3xl font-bold mb-4">Discover Our Platform</h2>
+        <p class="text-text-muted max-w-2xl mx-auto">A comprehensive digital platform dedicated to preserving and
             celebrating Igbo culture, history, and heritage for future generations.</p>
     </div>
 
@@ -108,11 +105,11 @@
         <div class="card card-hover text-center">
             <div class="card-body p-6 lg:p-8">
                 <div
-                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-vintage-gold/10 flex items-center justify-center text-vintage-gold">
+                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                     <i class="fas fa-archive text-2xl"></i>
                 </div>
-                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-3">Cultural Archives</h3>
-                <p class="text-vintage-beaver text-sm mb-6">Explore our extensive collection of photographs, documents,
+                <h3 class="font-serif text-xl font-semibold mb-3">Cultural Archives</h3>
+                <p class="text-text-muted text-sm mb-6">Explore our extensive collection of photographs, documents,
                     artifacts, and historical records that tell the story of Igbo people.</p>
                 <a href="{% url 'archives:list' %}" class="btn-primary">Browse Archives</a>
             </div>
@@ -121,11 +118,11 @@
         <div class="card card-hover text-center">
             <div class="card-body p-6 lg:p-8">
                 <div
-                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-vintage-gold/10 flex items-center justify-center text-vintage-gold">
+                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                     <i class="fas fa-lightbulb text-2xl"></i>
                 </div>
-                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-3">Community Insights</h3>
-                <p class="text-vintage-beaver text-sm mb-6">Read and share perspectives on Igbo culture, traditions, and
+                <h3 class="font-serif text-xl font-semibold mb-3">Community Insights</h3>
+                <p class="text-text-muted text-sm mb-6">Read and share perspectives on Igbo culture, traditions, and
                     contemporary issues. Connect with writers preserving our heritage.</p>
                 <a href="{% url 'insights:list' %}" class="btn-primary">Read Insights</a>
             </div>
@@ -134,12 +131,12 @@
         <div class="card card-hover text-center">
             <div class="card-body p-6 lg:p-8">
                 <div
-                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-vintage-gold/10 flex items-center justify-center text-vintage-gold">
+                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                     <i class="fas fa-book text-2xl"></i>
                 </div>
-                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-3">Book Reviews</h3>
-                <p class="text-vintage-beaver text-sm mb-6">Discover and review books about Igbo culture, history,
-                    language, and literature. Build your knowledge through curated recommendations.</p>
+                <h3 class="font-serif text-xl font-semibold mb-3">Book Reviews</h3>
+                <p class="text-text-muted text-sm mb-6">Discover and review books about Igbo culture, history, language,
+                    and literature. Build your knowledge through curated recommendations.</p>
                 <a href="{% url 'books:list' %}" class="btn-primary">Browse Books</a>
             </div>
         </div>
@@ -147,26 +144,25 @@
         <div class="card card-hover text-center">
             <div class="card-body p-6 lg:p-8">
                 <div
-                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-vintage-gold/10 flex items-center justify-center text-vintage-gold">
+                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                     <i class="fas fa-robot text-2xl"></i>
                 </div>
-                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-3">Igbo Archives AI</h3>
-                <p class="text-vintage-beaver text-sm mb-6">Chat with our AI assistant to learn about Igbo culture, get
+                <h3 class="font-serif text-xl font-semibold mb-3">Igbo Archives AI</h3>
+                <p class="text-text-muted text-sm mb-6">Chat with our AI assistant to learn about Igbo culture, get
                     translations, analyze images, and receive personalized cultural insights.</p>
                 <a href="{% url 'ai:home' %}" class="btn-primary">Try AI Assistant</a>
             </div>
         </div>
 
-
         <div class="card card-hover text-center">
             <div class="card-body p-6 lg:p-8">
                 <div
-                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-vintage-gold/10 flex items-center justify-center text-vintage-gold">
+                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                     <i class="fas fa-users text-2xl"></i>
                 </div>
-                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-3">Community</h3>
-                <p class="text-vintage-beaver text-sm mb-6">Join a vibrant community of culture enthusiasts, historians,
-                    and learners. Share knowledge and preserve our heritage together.</p>
+                <h3 class="font-serif text-xl font-semibold mb-3">Community</h3>
+                <p class="text-text-muted text-sm mb-6">Join a vibrant community of culture enthusiasts, historians, and
+                    learners. Share knowledge and preserve our heritage together.</p>
                 {% if user.is_authenticated %}
                 <a href="{% url 'users:dashboard' %}" class="btn-primary">Your Dashboard</a>
                 {% else %}
@@ -178,60 +174,59 @@
         <div class="card card-hover text-center">
             <div class="card-body p-6 lg:p-8">
                 <div
-                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-vintage-gold/10 flex items-center justify-center text-vintage-gold">
+                    class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                     <i class="fas fa-heart text-2xl"></i>
                 </div>
-                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-3">Support Us</h3>
-                <p class="text-vintage-beaver text-sm mb-6">Help us preserve Igbo heritage for future generations.
-                    Your contribution keeps this platform running and growing.</p>
+                <h3 class="font-serif text-xl font-semibold mb-3">Support Us</h3>
+                <p class="text-text-muted text-sm mb-6">Help us preserve Igbo heritage for future generations. Your
+                    contribution keeps this platform running and growing.</p>
                 <a href="{% url 'core:donate' %}" class="btn-primary">Donate</a>
             </div>
         </div>
     </div>
 </section>
 
-<section class="py-12 lg:py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-heritage-cream/50">
+<section class="py-12 lg:py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt/50">
     <div class="max-w-6xl mx-auto">
         <div class="text-center mb-12">
-            <h2 class="font-serif text-display-md text-dark-brown mb-4">Why Igbo Archives?</h2>
+            <h2 class="font-serif text-2xl lg:text-3xl font-bold mb-4">Why Igbo Archives?</h2>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             <div class="text-center">
                 <div
-                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-soft flex items-center justify-center text-vintage-gold">
+                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-sm flex items-center justify-center text-accent">
                     <i class="fas fa-cubes text-xl"></i>
                 </div>
-                <h4 class="font-serif font-semibold text-dark-brown mb-2">Preserve Heritage</h4>
-                <p class="text-sm text-vintage-beaver">Digitally preserve Igbo cultural artifacts for future generations
-                </p>
+                <h4 class="font-serif font-semibold mb-2">Preserve Heritage</h4>
+                <p class="text-sm text-text-muted">Digitally preserve Igbo cultural artifacts for future generations</p>
             </div>
 
             <div class="text-center">
                 <div
-                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-soft flex items-center justify-center text-vintage-gold">
+                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-sm flex items-center justify-center text-accent">
                     <i class="fas fa-globe text-xl"></i>
                 </div>
-                <h4 class="font-serif font-semibold text-dark-brown mb-2">Global Access</h4>
-                <p class="text-sm text-vintage-beaver">Connect Igbo people worldwide with their roots and heritage</p>
+                <h4 class="font-serif font-semibold mb-2">Global Access</h4>
+                <p class="text-sm text-text-muted">Connect Igbo people worldwide with their roots and heritage</p>
             </div>
 
             <div class="text-center">
                 <div
-                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-soft flex items-center justify-center text-vintage-gold">
+                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-sm flex items-center justify-center text-accent">
                     <i class="fas fa-book-open text-xl"></i>
                 </div>
-                <h4 class="font-serif font-semibold text-dark-brown mb-2">Educational</h4>
-                <p class="text-sm text-vintage-beaver">Comprehensive resources for learning and research</p>
+                <h4 class="font-serif font-semibold mb-2">Educational</h4>
+                <p class="text-sm text-text-muted">Comprehensive resources for learning and research</p>
             </div>
 
             <div class="text-center">
                 <div
-                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-soft flex items-center justify-center text-vintage-gold">
+                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-sm flex items-center justify-center text-accent">
                     <i class="fas fa-users text-xl"></i>
                 </div>
-                <h4 class="font-serif font-semibold text-dark-brown mb-2">Community-Driven</h4>
-                <p class="text-sm text-vintage-beaver">Built by the community, for the community</p>
+                <h4 class="font-serif font-semibold mb-2">Community-Driven</h4>
+                <p class="text-sm text-text-muted">Built by the community, for the community</p>
             </div>
         </div>
     </div>

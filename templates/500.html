@@ -6,42 +6,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Error - Igbo Archives</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
-        rel="stylesheet">
     <link href="{% static 'css/tailwind.output.css' %}" rel="stylesheet">
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="{% static 'js/main.js' %}"></script>
 </head>
 
-<body class="bg-heritage-cream text-dark-brown min-h-screen flex items-center justify-center p-4">
-    <div
-        class="max-w-xl w-full text-center p-8 md:p-12 bg-white rounded-2xl shadow-soft-lg border border-sepia-pale relative overflow-hidden">
+<body class="bg-surface text-text min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-xl w-full text-center p-8 md:p-12 card relative overflow-hidden">
         <!-- Decorative background elements -->
-        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-vintage"></div>
-        <div class="absolute -bottom-16 -right-16 text-heritage-cream/20 text-9xl">
+        <div class="absolute top-0 left-0 w-full h-1 bg-accent"></div>
+        <div class="absolute -bottom-16 -right-16 text-surface-alt/20 text-9xl">
             <i class="fas fa-cogs"></i>
         </div>
 
         <div class="relative z-10">
             <div
-                class="w-20 h-20 bg-vintage-gold/10 rounded-full flex items-center justify-center mx-auto mb-6 text-vintage-gold text-4xl animate-pulse-soft">
+                class="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6 text-accent text-4xl">
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
 
-            <h1 class="font-serif text-3xl md:text-4xl font-bold mb-4 text-dark-brown">500 - Server Error</h1>
+            <h1 class="font-serif text-3xl md:text-4xl font-bold mb-4">500 - Server Error</h1>
 
-            <p class="text-vintage-beaver mb-8 text-lg">
+            <p class="text-text-muted mb-8 text-lg">
                 Oops! Something went wrong on our end. We are working to fix it.
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/" class="btn-primary inline-flex items-center justify-center gap-2">
+                <a href="/" class="btn-primary">
                     <i class="fas fa-home"></i> Return Home
                 </a>
-                <button onclick="window.history.back()"
-                    class="btn-secondary inline-flex items-center justify-center gap-2">
+                <button onclick="window.history.back()" class="btn-secondary">
                     <i class="fas fa-arrow-left"></i> Go Back
                 </button>
             </div>

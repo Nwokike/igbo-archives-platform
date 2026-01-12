@@ -8,14 +8,14 @@
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <article class="lg:col-span-8">
         <header class="mb-6">
-            <h1 class="font-serif text-display-lg text-dark-brown mb-4">{{ archive.title }}</h1>
+            <h1 class="font-serif text-2xl lg:text-3xl font-bold mb-4">{{ archive.title }}</h1>
 
             <div class="flex flex-wrap items-center gap-2 mb-4">
                 <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
                 {% if archive.category %}
                 <span class="badge badge-primary">{{ archive.category.name }}</span>
                 {% endif %}
-                <span class="text-sm text-vintage-beaver ml-2">
+                <span class="text-sm text-text-muted ml-2">
                     <i class="far fa-calendar"></i> Uploaded {{ archive.created_at|date:"F d, Y" }}
                 </span>
             </div>
@@ -26,7 +26,7 @@
             <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" class="w-full rounded-xl" loading="lazy"
                 decoding="async">
             {% if archive.caption %}
-            <figcaption class="text-sm text-vintage-beaver mt-3">{{ archive.caption }}</figcaption>
+            <figcaption class="text-sm text-text-muted mt-3">{{ archive.caption }}</figcaption>
             {% endif %}
         </figure>
         {% elif archive.archive_type == 'video' and archive.video %}
@@ -36,7 +36,7 @@
                 Your browser does not support the video tag.
             </video>
             {% if archive.caption %}
-            <p class="text-sm text-vintage-beaver mt-3">{{ archive.caption }}</p>
+            <p class="text-sm text-text-muted mt-3">{{ archive.caption }}</p>
             {% endif %}
         </div>
         {% elif archive.archive_type == 'audio' and archive.audio %}
@@ -46,7 +46,7 @@
                 Your browser does not support the audio element.
             </audio>
             {% if archive.caption %}
-            <p class="text-sm text-vintage-beaver mt-3">{{ archive.caption }}</p>
+            <p class="text-sm text-text-muted mt-3">{{ archive.caption }}</p>
             {% endif %}
         </div>
         {% elif archive.archive_type == 'document' and archive.document %}
@@ -55,7 +55,7 @@
                 <i class="fas fa-download"></i> Download Document
             </a>
             {% if archive.caption %}
-            <p class="text-sm text-vintage-beaver mt-3">{{ archive.caption }}</p>
+            <p class="text-sm text-text-muted mt-3">{{ archive.caption }}</p>
             {% endif %}
         </div>
         {% endif %}
@@ -66,7 +66,7 @@
 
         {% if archive.tags.all %}
         <div class="flex flex-wrap items-center gap-2 mb-8">
-            <span class="text-sm font-medium text-dark-brown">Tags:</span>
+            <span class="text-sm font-medium">Tags:</span>
             {% for tag in archive.tags.all %}
             <a href="{% url 'archives:list' %}?tag={{ tag.name }}" class="badge badge-secondary">{{ tag.name }}</a>
             {% endfor %}
@@ -91,38 +91,38 @@
 
         {% if user.is_authenticated and archive.archive_type == 'image' %}
         <!-- AI Analysis Modal -->
-        <div id="aiAnalysisModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-                <div class="flex items-center justify-between p-4 border-b border-sepia-pale/30">
-                    <h3 class="font-serif text-lg font-semibold text-dark-brown">
-                        <i class="fas fa-brain text-vintage-gold mr-2"></i>AI Analysis
+        <div id="aiAnalysisModal" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="font-serif text-lg font-semibold">
+                        <i class="fas fa-brain text-accent mr-2"></i>AI Analysis
                     </h3>
-                    <button id="closeAnalysisModal" class="text-vintage-beaver hover:text-dark-brown">
+                    <button id="closeAnalysisModal" class="text-text-muted hover:text-text">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="p-4">
+                <div class="modal-body">
                     <div id="aiAnalysisLoading" class="hidden text-center py-8">
-                        <i class="fas fa-spinner fa-spin text-2xl text-vintage-gold"></i>
-                        <p class="text-sm text-vintage-beaver mt-2">Analyzing image...</p>
+                        <i class="fas fa-spinner fa-spin text-2xl text-accent"></i>
+                        <p class="text-sm text-text-muted mt-2">Analyzing image...</p>
                     </div>
                     <div id="aiAnalysisResult" class="prose prose-sm max-w-none"></div>
                     <div id="aiAnalysisTypes" class="grid grid-cols-2 gap-2 mt-4">
                         <button data-type="describe"
-                            class="ai-type-btn p-2 text-sm rounded-lg border border-sepia-pale/50 hover:border-vintage-gold hover:bg-vintage-gold/5 transition-colors">
-                            <i class="fas fa-image text-vintage-gold"></i> Describe
+                            class="ai-type-btn p-2 text-sm rounded-lg border border-border hover:border-accent hover:bg-accent/5 transition-colors">
+                            <i class="fas fa-image text-accent"></i> Describe
                         </button>
                         <button data-type="cultural"
-                            class="ai-type-btn p-2 text-sm rounded-lg border border-sepia-pale/50 hover:border-vintage-gold hover:bg-vintage-gold/5 transition-colors">
-                            <i class="fas fa-globe-africa text-vintage-gold"></i> Cultural
+                            class="ai-type-btn p-2 text-sm rounded-lg border border-border hover:border-accent hover:bg-accent/5 transition-colors">
+                            <i class="fas fa-globe-africa text-accent"></i> Cultural
                         </button>
                         <button data-type="historical"
-                            class="ai-type-btn p-2 text-sm rounded-lg border border-sepia-pale/50 hover:border-vintage-gold hover:bg-vintage-gold/5 transition-colors">
-                            <i class="fas fa-history text-vintage-gold"></i> Historical
+                            class="ai-type-btn p-2 text-sm rounded-lg border border-border hover:border-accent hover:bg-accent/5 transition-colors">
+                            <i class="fas fa-history text-accent"></i> Historical
                         </button>
                         <button data-type="translation"
-                            class="ai-type-btn p-2 text-sm rounded-lg border border-sepia-pale/50 hover:border-vintage-gold hover:bg-vintage-gold/5 transition-colors">
-                            <i class="fas fa-language text-vintage-gold"></i> Translation
+                            class="ai-type-btn p-2 text-sm rounded-lg border border-border hover:border-accent hover:bg-accent/5 transition-colors">
+                            <i class="fas fa-language text-accent"></i> Translation
                         </button>
                     </div>
                 </div>
@@ -130,16 +130,16 @@
         </div>
         {% endif %}
 
-        <hr class="border-sepia-pale/50 my-8">
+        <hr class="divider">
 
         {% include 'partials/prev_next_navigation.html' with previous=previous_archive next=next_archive %}
 
         {% include 'partials/recommended_carousel.html' with recommended=recommended %}
 
-        <hr class="border-sepia-pale/50 my-8">
+        <hr class="divider">
 
         <section class="mt-8">
-            <h3 class="font-serif text-xl font-semibold text-dark-brown mb-6">Discussion</h3>
+            <h3 class="font-serif text-xl font-semibold mb-6">Discussion</h3>
             {% render_comment_list for archive %}
             {% render_comment_form for archive %}
         </section>
@@ -149,27 +149,26 @@
         <div class="sticky top-32 space-y-6">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold text-dark-brown mb-3">About the Uploader</h4>
+                    <h4 class="font-serif font-semibold mb-3">About the Uploader</h4>
                     <div class="flex items-center gap-3 mb-3">
                         {% if archive.uploaded_by.profile_picture %}
                         <img src="{{ archive.uploaded_by.profile_picture.url }}"
                             alt="{{ archive.uploaded_by.get_display_name }}"
                             class="w-12 h-12 rounded-full object-cover">
                         {% else %}
-                        <div
-                            class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
+                        <div class="avatar avatar-lg">
                             {{ archive.uploaded_by.get_display_name|slice:":1"|upper }}
                         </div>
                         {% endif %}
                         <div>
                             <a href="{% url 'users:profile' archive.uploaded_by.username %}"
-                                class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
+                                class="hover:text-accent font-medium transition-colors">
                                 {{ archive.uploaded_by.get_display_name }}
                             </a>
                         </div>
                     </div>
                     {% if archive.uploaded_by.bio %}
-                    <p class="text-sm text-vintage-beaver">{{ archive.uploaded_by.bio|truncatewords:30 }}</p>
+                    <p class="text-sm text-text-muted">{{ archive.uploaded_by.bio|truncatewords:30 }}</p>
                     {% endif %}
                 </div>
             </div>
@@ -177,18 +176,18 @@
             {% if archive.source or archive.date_taken %}
             <div class="card">
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold text-dark-brown mb-3">Archive Details</h4>
+                    <h4 class="font-serif font-semibold mb-3">Archive Details</h4>
                     <dl class="space-y-2 text-sm">
                         {% if archive.source %}
                         <div>
-                            <dt class="font-medium text-dark-brown">Source:</dt>
-                            <dd class="text-dark-umber">{{ archive.source }}</dd>
+                            <dt class="font-medium">Source:</dt>
+                            <dd class="text-text-muted">{{ archive.source }}</dd>
                         </div>
                         {% endif %}
                         {% if archive.date_taken %}
                         <div>
-                            <dt class="font-medium text-dark-brown">Date:</dt>
-                            <dd class="text-dark-umber">{{ archive.date_taken }}</dd>
+                            <dt class="font-medium">Date:</dt>
+                            <dd class="text-text-muted">{{ archive.date_taken }}</dd>
                         </div>
                         {% endif %}
                     </dl>
@@ -202,10 +201,8 @@
 
 {% block extra_js %}
 {% if user.is_authenticated and archive.archive_type == 'image' %}
-<!-- Configuration for JavaScript (no inline JS) -->
 <div id="archiveAnalysisConfig" class="hidden" data-archive-id="{{ archive.id }}"
-    data-analyze-url="{% url 'ai:analyze_archive' %}">
-</div>
+    data-analyze-url="{% url 'ai:analyze_archive' %}"></div>
 <script src="{% static 'js/archive-analysis.js' %}"></script>
 {% endif %}
 {% endblock %}

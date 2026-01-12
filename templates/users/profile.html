@@ -1,173 +1,249 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}{{ profile_user.get_display_name }} - Profile{% endblock %}
+{% block title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <aside class="lg:col-span-4">
-        <div class="card sticky top-32">
-            <div class="card-body text-center">
-                {% if profile_user.profile_picture %}
-                <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.get_display_name }}" 
-                     class="w-36 h-36 rounded-full object-cover mx-auto mb-4 border-4 border-sepia-pale">
-                {% else %}
-                <div class="w-36 h-36 rounded-full bg-heritage-cream flex items-center justify-center mb-4 mx-auto text-4xl font-semibold text-dark-brown border-4 border-sepia-pale">
-                    {{ profile_user.get_display_name|first|upper }}
+<div class="max-w-4xl mx-auto">
+    <!-- Profile Card -->
+    <div class="card mb-8">
+        <div class="relative h-40 bg-gradient-to-r from-accent/20 to-accent/5">
+            {% if profile_user.cover_photo %}
+            <img src="{{ profile_user.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
+            {% endif %}
+        </div>
+
+        <div class="px-6 pb-6 relative">
+            <div class="-mt-14 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                <div class="avatar avatar-xl border-4 border-white shadow-lg">
+                    {% if profile_user.profile_picture %}
+                    <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.get_display_name }}">
+                    {% else %}
+                    {{ profile_user.get_display_name|slice:":1"|upper }}
+                    {% endif %}
                 </div>
-                {% endif %}
-                
-                <h2 class="font-serif text-xl font-semibold text-dark-brown mb-1">{{ profile_user.get_display_name }}</h2>
-                <p class="text-vintage-beaver mb-4">@{{ profile_user.username }}</p>
-                
-                {% if profile_user.bio %}
-                <p class="text-sm text-dark-umber mb-4">{{ profile_user.bio }}</p>
-                {% endif %}
-                
-                <div class="space-y-2">
+
+                <div class="flex flex-wrap gap-2">
                     {% if user.is_authenticated and user == profile_user %}
-                    <a href="{% url 'users:profile_edit' username=profile_user.username %}" class="btn-primary w-full">
+                    <a href="{% url 'users:profile_edit' user.username %}" class="btn-primary btn-sm">
                         <i class="fas fa-edit"></i> Edit Profile
                     </a>
                     {% elif user.is_authenticated %}
-                    <a href="{% url 'users:compose' profile_user.username %}" class="btn-primary w-full">
-                        <i class="fas fa-envelope"></i> Send Message
+                    <a href="{% url 'users:compose' profile_user.username %}" class="btn-primary btn-sm">
+                        <i class="fas fa-envelope"></i> Message
                     </a>
                     {% endif %}
-                    
-                    <button onclick="shareProfile()" class="btn-secondary w-full">
-                        <i class="fas fa-share-alt"></i> Share Profile
+                    <button onclick="shareProfile()" class="btn-secondary btn-sm">
+                        <i class="fas fa-share-alt"></i> Share
                     </button>
                 </div>
-                
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <h1 class="text-2xl font-serif font-bold mb-1">{{ profile_user.get_display_name }}</h1>
+                    <p class="text-text-muted">@{{ profile_user.username }}</p>
+                </div>
+
+                {% if profile_user.bio %}
+                <p class="text-text leading-relaxed max-w-2xl">{{ profile_user.bio }}</p>
+                {% endif %}
+
+                <div class="flex flex-wrap gap-4 text-sm text-text-muted">
+                    {% if profile_user.website %}
+                    <a href="{{ profile_user.website }}" target="_blank" rel="noopener"
+                        class="inline-flex items-center gap-1.5 hover:text-accent transition-colors">
+                        <i class="fas fa-globe"></i> Website
+                    </a>
+                    {% endif %}
+
+                    {% if profile_user.location %}
+                    <span class="inline-flex items-center gap-1.5">
+                        <i class="fas fa-map-marker-alt"></i> {{ profile_user.location }}
+                    </span>
+                    {% endif %}
+
+                    <span class="inline-flex items-center gap-1.5">
+                        <i class="far fa-calendar-alt"></i> Joined {{ profile_user.date_joined|date:"F Y" }}
+                    </span>
+                </div>
+
+                <!-- Social Links -->
                 {% if profile_user.social_links %}
-                <hr class="my-6 border-sepia-pale/50">
-                <h5 class="font-semibold text-dark-brown mb-4">Connect</h5>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="flex gap-2 pt-4 border-t border-border">
                     {% if profile_user.social_links.twitter %}
-                    <a href="{{ profile_user.social_links.twitter }}" target="_blank" rel="noopener" class="btn-secondary btn-sm">
-                        <i class="fab fa-twitter"></i> Twitter
+                    <a href="{{ profile_user.social_links.twitter }}" target="_blank" rel="noopener"
+                        class="btn-ghost btn-sm p-2" aria-label="X (Twitter)">
+                        <i class="fa-brands fa-x-twitter"></i>
                     </a>
                     {% endif %}
                     {% if profile_user.social_links.facebook %}
-                    <a href="{{ profile_user.social_links.facebook }}" target="_blank" rel="noopener" class="btn-secondary btn-sm">
-                        <i class="fab fa-facebook"></i> Facebook
-                    </a>
-                    {% endif %}
-                    {% if profile_user.social_links.linkedin %}
-                    <a href="{{ profile_user.social_links.linkedin }}" target="_blank" rel="noopener" class="btn-secondary btn-sm">
-                        <i class="fab fa-linkedin"></i> LinkedIn
+                    <a href="{{ profile_user.social_links.facebook }}" target="_blank" rel="noopener"
+                        class="btn-ghost btn-sm p-2" aria-label="Facebook">
+                        <i class="fa-brands fa-facebook-f"></i>
                     </a>
                     {% endif %}
                     {% if profile_user.social_links.instagram %}
-                    <a href="{{ profile_user.social_links.instagram }}" target="_blank" rel="noopener" class="btn-secondary btn-sm">
-                        <i class="fab fa-instagram"></i> Instagram
+                    <a href="{{ profile_user.social_links.instagram }}" target="_blank" rel="noopener"
+                        class="btn-ghost btn-sm p-2" aria-label="Instagram">
+                        <i class="fa-brands fa-instagram"></i>
                     </a>
                     {% endif %}
-                    {% if profile_user.social_links.website %}
-                    <a href="{{ profile_user.social_links.website }}" target="_blank" rel="noopener" class="btn-secondary btn-sm col-span-2">
-                        <i class="fas fa-globe"></i> Website
+                    {% if profile_user.social_links.linkedin %}
+                    <a href="{{ profile_user.social_links.linkedin }}" target="_blank" rel="noopener"
+                        class="btn-ghost btn-sm p-2" aria-label="LinkedIn">
+                        <i class="fa-brands fa-linkedin-in"></i>
                     </a>
                     {% endif %}
                 </div>
                 {% endif %}
             </div>
         </div>
-    </aside>
+    </div>
 
-    <main class="lg:col-span-8">
-        <div class="mb-6">
-            <div class="flex flex-wrap gap-2 border-b border-sepia-pale/50" role="tablist">
-                <button type="button" class="tab-button active" data-tab="insights">
-                    <i class="fas fa-lightbulb"></i> Insights
-                    <span class="badge badge-primary ml-2">{{ user_insights.count }}</span>
-                </button>
-                <button type="button" class="tab-button" data-tab="reviews">
-                    <i class="fas fa-book"></i> Book Reviews
-                    <span class="badge badge-primary ml-2">{{ user_book_reviews.count }}</span>
-                </button>
-                <button type="button" class="tab-button" data-tab="archives">
-                    <i class="fas fa-archive"></i> Archives
-                    <span class="badge badge-primary ml-2">{{ user_archives.count }}</span>
-                </button>
-            </div>
+    <!-- Content Tabs -->
+    <div class="mb-8">
+        <div class="flex gap-1 border-b border-border mb-6" role="tablist">
+            <button type="button" class="tab active" data-tab="insights">
+                <i class="fas fa-lightbulb"></i> Insights
+                <span class="badge badge-primary ml-1">{{ user_insights.count }}</span>
+            </button>
+            <button type="button" class="tab" data-tab="reviews">
+                <i class="fas fa-book"></i> Reviews
+                <span class="badge badge-primary ml-1">{{ user_book_reviews.count }}</span>
+            </button>
+            <button type="button" class="tab" data-tab="archives">
+                <i class="fas fa-archive"></i> Archives
+                <span class="badge badge-primary ml-1">{{ user_archives.count }}</span>
+            </button>
         </div>
 
         <div class="tab-content">
+            <!-- Insights Tab -->
             <div id="insights" class="tab-panel active">
                 {% if user_insights %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {% for insight in user_insights %}
-                    <a href="{% url 'insights:detail' insight.slug %}" class="card card-hover block no-underline">
+                    <a href="{% url 'insights:detail' insight.slug %}" class="card card-hover group block">
                         {% if insight.featured_image %}
-                        <img src="{{ insight.featured_image.url }}" alt="{{ insight.title }}" class="w-full h-40 object-cover">
+                        <div class="h-40 overflow-hidden">
+                            <img src="{{ insight.featured_image.url }}" alt="{{ insight.title }}"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        </div>
                         {% endif %}
                         <div class="card-body">
-                            <h4 class="font-serif font-semibold text-dark-brown mb-2 line-clamp-2">{{ insight.title }}</h4>
-                            <p class="text-sm text-vintage-beaver">{{ insight.created_at|date:"M d, Y" }}</p>
+                            <h4
+                                class="font-serif font-bold mb-1 line-clamp-2 group-hover:text-accent transition-colors">
+                                {{ insight.title }}
+                            </h4>
+                            <p class="text-xs text-text-muted">{{ insight.created_at|date:"M d, Y" }}</p>
                         </div>
                     </a>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-12 text-vintage-beaver">
-                    <i class="fas fa-lightbulb text-4xl mb-4 text-sepia-pale"></i>
-                    <p>No insights published yet.</p>
+                <div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
+                    <i class="fas fa-lightbulb text-3xl text-text-muted mb-3"></i>
+                    <p class="text-text-muted">No insights published yet.</p>
                 </div>
                 {% endif %}
             </div>
 
-            <div id="reviews" class="tab-panel hidden">
+            <!-- Reviews Tab -->
+            <div id="reviews" class="tab-panel">
                 {% if user_book_reviews %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {% for review in user_book_reviews %}
-                    <a href="{% url 'books:detail' review.slug %}" class="card card-hover block no-underline">
+                    <a href="{% url 'books:detail' review.slug %}" class="card card-hover group block">
                         {% if review.cover_image %}
-                        <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" class="w-full h-40 object-cover">
+                        <div class="h-40 overflow-hidden">
+                            <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        </div>
                         {% endif %}
                         <div class="card-body">
-                            <h4 class="font-serif font-semibold text-dark-brown mb-1 line-clamp-2">{{ review.review_title }}</h4>
-                            <p class="text-sm text-vintage-beaver mb-2">{{ review.book_title }}</p>
-                            <p class="text-vintage-gold">
+                            <h4
+                                class="font-serif font-bold mb-1 line-clamp-2 group-hover:text-accent transition-colors">
+                                {{ review.review_title }}
+                            </h4>
+                            <p class="text-sm text-text-muted mb-2">{{ review.book_title }}</p>
+                            <div class="text-accent text-sm">
                                 {% for i in "12345"|make_list %}
-                                    {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
-                                {% endfor %}
-                            </p>
+                                {% if forloop.counter <= review.rating %}<i class="fas fa-star"></i>{% else %}<i
+                                        class="far fa-star"></i>{% endif %}
+                                    {% endfor %}
+                            </div>
                         </div>
                     </a>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-12 text-vintage-beaver">
-                    <i class="fas fa-book text-4xl mb-4 text-sepia-pale"></i>
-                    <p>No book reviews yet.</p>
+                <div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
+                    <i class="fas fa-book text-3xl text-text-muted mb-3"></i>
+                    <p class="text-text-muted">No book reviews yet.</p>
                 </div>
                 {% endif %}
             </div>
 
-            <div id="archives" class="tab-panel hidden">
+            <!-- Archives Tab -->
+            <div id="archives" class="tab-panel">
                 {% if user_archives %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {% for archive in user_archives %}
-                    <a href="{% url 'archives:detail' archive.pk %}" class="card card-hover block no-underline">
+                    <a href="{% url 'archives:detail' archive.pk %}" class="card card-hover group block">
                         {% if archive.image %}
-                        <img src="{{ archive.image.url }}" alt="{{ archive.title }}" class="w-full h-32 object-cover">
+                        <div class="h-32 overflow-hidden">
+                            <img src="{{ archive.image.url }}" alt="{{ archive.title }}"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        </div>
                         {% endif %}
                         <div class="card-body">
-                            <h4 class="font-serif font-semibold text-dark-brown mb-2 line-clamp-1">{{ archive.title }}</h4>
+                            <h4
+                                class="font-serif font-bold mb-2 line-clamp-1 group-hover:text-accent transition-colors">
+                                {{ archive.title }}
+                            </h4>
                             <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
                         </div>
                     </a>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-12 text-vintage-beaver">
-                    <i class="fas fa-archive text-4xl mb-4 text-sepia-pale"></i>
-                    <p>No archives contributed yet.</p>
+                <div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
+                    <i class="fas fa-archive text-3xl text-text-muted mb-3"></i>
+                    <p class="text-text-muted">No archives contributed yet.</p>
                 </div>
                 {% endif %}
             </div>
         </div>
-    </main>
+    </div>
 </div>
-{% endblock %}
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = document.querySelectorAll('.tab');
+        const panels = document.querySelectorAll('.tab-panel');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                panels.forEach(p => p.classList.remove('active'));
+                const target = document.getElementById(tab.dataset.tab);
+                if (target) target.classList.add('active');
+            });
+        });
+    });
+
+    function shareProfile() {
+        if (navigator.share) {
+            navigator.share({
+                title: '{{ profile_user.get_display_name }} | Igbo Archives',
+                text: 'Check out this profile on Igbo Archives',
+                url: window.location.href,
+            });
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert('Profile link copied to clipboard!');
+        }
+    }
+</script>
+{% endblock %}

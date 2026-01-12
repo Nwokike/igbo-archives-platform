@@ -6,8 +6,8 @@
 <div class="mb-8">
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-            <h1 class="font-serif text-display-lg text-dark-brown mb-2">Welcome, {{ user.get_display_name }}!</h1>
-            <p class="text-vintage-beaver">Manage your content and interactions on Igbo Archives.</p>
+            <h1 class="font-serif text-2xl lg:text-3xl font-bold mb-2">Welcome, {{ user.get_display_name }}!</h1>
+            <p class="text-text-muted">Manage your content and interactions on Igbo Archives.</p>
         </div>
         <a href="{% url 'users:profile' user.username %}" class="btn-secondary btn-sm">
             <i class="fas fa-user-circle"></i> View Public Profile
@@ -16,30 +16,30 @@
 </div>
 
 <div class="mb-6">
-    <div class="flex flex-wrap gap-2 border-b border-sepia-pale/50" role="tablist">
-        <button type="button" class="tab-button active" data-tab="messages">
+    <div class="flex flex-wrap gap-1 border-b border-border" role="tablist">
+        <button type="button" class="tab active" data-tab="messages">
             <i class="fas fa-envelope"></i> Messages
-            <span class="badge badge-primary ml-2">{{ messages_threads.count }}</span>
+            <span class="badge badge-primary ml-1">{{ messages_threads.count }}</span>
         </button>
-        <button type="button" class="tab-button" data-tab="insights">
+        <button type="button" class="tab" data-tab="insights">
             <i class="fas fa-lightbulb"></i> Insights
-            <span class="badge badge-primary ml-2">{{ my_insights.count }}</span>
+            <span class="badge badge-primary ml-1">{{ my_insights.count }}</span>
         </button>
-        <button type="button" class="tab-button" data-tab="drafts">
+        <button type="button" class="tab" data-tab="drafts">
             <i class="fas fa-edit"></i> Drafts
-            <span class="badge badge-secondary ml-2">{{ my_drafts.count }}</span>
+            <span class="badge badge-secondary ml-1">{{ my_drafts.count }}</span>
         </button>
-        <button type="button" class="tab-button" data-tab="reviews">
-            <i class="fas fa-book"></i> Book Reviews
-            <span class="badge badge-primary ml-2">{{ my_book_reviews.count }}</span>
+        <button type="button" class="tab" data-tab="reviews">
+            <i class="fas fa-book"></i> Reviews
+            <span class="badge badge-primary ml-1">{{ my_book_reviews.count }}</span>
         </button>
-        <button type="button" class="tab-button" data-tab="archives">
+        <button type="button" class="tab" data-tab="archives">
             <i class="fas fa-archive"></i> Archives
-            <span class="badge badge-primary ml-2">{{ my_archives.count }}</span>
+            <span class="badge badge-primary ml-1">{{ my_archives.count }}</span>
         </button>
-        <button type="button" class="tab-button" data-tab="suggestions">
+        <button type="button" class="tab" data-tab="suggestions">
             <i class="fas fa-comment-dots"></i> Suggestions
-            <span class="badge badge-warning ml-2">{{ edit_suggestions.count }}</span>
+            <span class="badge badge-warning ml-1">{{ edit_suggestions.count }}</span>
         </button>
     </div>
 </div>
@@ -49,14 +49,14 @@
         {% if messages_threads %}
         <div class="space-y-3">
             {% for thread in messages_threads %}
-            <a href="{% url 'users:thread' thread.id %}" class="card card-hover block no-underline">
+            <a href="{% url 'users:thread' thread.id %}" class="card card-hover block">
                 <div class="card-body">
                     <div class="flex items-start justify-between gap-4">
-                        <h4 class="font-serif font-semibold text-dark-brown">{{ thread.subject }}</h4>
-                        <span class="text-sm text-vintage-beaver whitespace-nowrap">{{ thread.updated_at|date:"M d, Y
-                            g:i A" }}</span>
+                        <h4 class="font-serif font-semibold">{{ thread.subject }}</h4>
+                        <span class="text-sm text-text-muted whitespace-nowrap">{{ thread.updated_at|date:"M d, Y g:i A"
+                            }}</span>
                     </div>
-                    <p class="text-sm text-vintage-beaver mt-1">
+                    <p class="text-sm text-text-muted mt-1">
                         <strong>With:</strong>
                         {% for participant in thread.participants.all %}
                         {% if participant != user %}
@@ -64,21 +64,20 @@
                         {% endif %}
                         {% endfor %}
                     </p>
-                    <p class="text-sm text-dark-umber mt-2 line-clamp-1">{{
-                        thread.messages.last.content|truncatewords:15 }}</p>
+                    <p class="text-sm mt-2 line-clamp-1">{{ thread.messages.last.content|truncatewords:15 }}</p>
                 </div>
             </a>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12 text-vintage-beaver">
-            <i class="fas fa-envelope text-4xl mb-4 text-sepia-pale"></i>
+        <div class="text-center py-12 text-text-muted">
+            <i class="fas fa-envelope text-4xl mb-4 opacity-30"></i>
             <p>No messages yet.</p>
         </div>
         {% endif %}
     </div>
 
-    <div id="insights" class="tab-panel hidden">
+    <div id="insights" class="tab-panel">
         {% if my_insights %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for insight in my_insights %}
@@ -87,13 +86,12 @@
                 <img src="{{ insight.featured_image.url }}" alt="{{ insight.title }}" class="w-full h-40 object-cover">
                 {% endif %}
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold text-dark-brown mb-2">
-                        <a href="{% url 'insights:detail' insight.slug %}"
-                            class="hover:text-vintage-gold transition-colors">
+                    <h4 class="font-serif font-semibold mb-2">
+                        <a href="{% url 'insights:detail' insight.slug %}" class="hover:text-accent transition-colors">
                             {{ insight.title }}
                         </a>
                     </h4>
-                    <p class="text-sm text-vintage-beaver mb-3">
+                    <p class="text-sm text-text-muted mb-3">
                         <i class="far fa-calendar"></i> {{ insight.created_at|date:"M d, Y" }}
                         {% if insight.pending_approval %}
                         <span class="badge badge-warning ml-2">Pending</span>
@@ -107,22 +105,22 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12 text-vintage-beaver">
-            <i class="fas fa-lightbulb text-4xl mb-4 text-sepia-pale"></i>
+        <div class="text-center py-12 text-text-muted">
+            <i class="fas fa-lightbulb text-4xl mb-4 opacity-30"></i>
             <p class="mb-4">You haven't created any insights yet.</p>
             <a href="{% url 'insights:create' %}" class="btn-primary">Create Your First Insight</a>
         </div>
         {% endif %}
     </div>
 
-    <div id="drafts" class="tab-panel hidden">
+    <div id="drafts" class="tab-panel">
         {% if my_drafts %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for draft in my_drafts %}
             <div class="card">
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold text-dark-brown mb-2">{{ draft.title }}</h4>
-                    <p class="text-sm text-vintage-beaver mb-3">
+                    <h4 class="font-serif font-semibold mb-2">{{ draft.title }}</h4>
+                    <p class="text-sm text-text-muted mb-3">
                         Last edited: {{ draft.updated_at|date:"M d, Y" }}
                     </p>
                     <div class="flex gap-2">
@@ -133,14 +131,14 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12 text-vintage-beaver">
-            <i class="fas fa-edit text-4xl mb-4 text-sepia-pale"></i>
+        <div class="text-center py-12 text-text-muted">
+            <i class="fas fa-edit text-4xl mb-4 opacity-30"></i>
             <p>No drafts saved.</p>
         </div>
         {% endif %}
     </div>
 
-    <div id="reviews" class="tab-panel hidden">
+    <div id="reviews" class="tab-panel">
         {% if my_book_reviews %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for review in my_book_reviews %}
@@ -149,31 +147,33 @@
                 <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" class="w-full h-40 object-cover">
                 {% endif %}
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold text-dark-brown mb-2">
-                        <a href="{% url 'books:detail' review.slug %}"
-                            class="hover:text-vintage-gold transition-colors">
+                    <h4 class="font-serif font-semibold mb-2">
+                        <a href="{% url 'books:detail' review.slug %}" class="hover:text-accent transition-colors">
                             {{ review.review_title }}
                         </a>
                     </h4>
-                    <p class="text-sm text-vintage-beaver mb-2">{{ review.book_title }} by {{ review.author }}</p>
-                    <p class="text-vintage-gold mb-3">
+                    <p class="text-sm text-text-muted mb-2">{{ review.book_title }} by {{ review.author }}</p>
+                    <div class="text-accent mb-3">
                         {% for i in "12345"|make_list %}
-                        {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %} {% endfor %} </p>
-                            <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm">View Review</a>
+                        {% if forloop.counter <= review.rating %}<i class="fas fa-star"></i>{% else %}<i
+                                class="far fa-star"></i>{% endif %}
+                            {% endfor %}
+                    </div>
+                    <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm">View Review</a>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12 text-vintage-beaver">
-            <i class="fas fa-book text-4xl mb-4 text-sepia-pale"></i>
+        <div class="text-center py-12 text-text-muted">
+            <i class="fas fa-book text-4xl mb-4 opacity-30"></i>
             <p class="mb-4">You haven't written any book reviews yet.</p>
             <a href="{% url 'books:create' %}" class="btn-primary">Write a Book Review</a>
         </div>
         {% endif %}
     </div>
 
-    <div id="archives" class="tab-panel hidden">
+    <div id="archives" class="tab-panel">
         {% if my_archives %}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for archive in my_archives %}
@@ -182,43 +182,43 @@
                 <img src="{{ archive.image.url }}" alt="{{ archive.title }}" class="w-full h-32 object-cover">
                 {% endif %}
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold text-dark-brown mb-2 line-clamp-1">{{ archive.title }}</h4>
+                    <h4 class="font-serif font-semibold mb-2 line-clamp-1">{{ archive.title }}</h4>
                     <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12 text-vintage-beaver">
-            <i class="fas fa-archive text-4xl mb-4 text-sepia-pale"></i>
+        <div class="text-center py-12 text-text-muted">
+            <i class="fas fa-archive text-4xl mb-4 opacity-30"></i>
             <p class="mb-4">You haven't contributed any archives yet.</p>
             <a href="{% url 'archives:create' %}" class="btn-primary">Add an Archive</a>
         </div>
         {% endif %}
     </div>
 
-    <div id="suggestions" class="tab-panel hidden">
+    <div id="suggestions" class="tab-panel">
         {% if edit_suggestions %}
         <div class="space-y-3">
             {% for suggestion in edit_suggestions %}
             <div class="card">
                 <div class="card-body">
                     <div class="flex items-start justify-between gap-4 mb-2">
-                        <h4 class="font-serif font-semibold text-dark-brown">{{ suggestion.insight.title }}</h4>
+                        <h4 class="font-serif font-semibold">{{ suggestion.insight.title }}</h4>
                         <span
                             class="badge {% if suggestion.status == 'pending' %}badge-warning{% elif suggestion.status == 'approved' %}badge-success{% else %}badge-secondary{% endif %}">
                             {{ suggestion.get_status_display }}
                         </span>
                     </div>
-                    <p class="text-sm text-vintage-beaver mb-2">From: {{ suggestion.suggested_by.get_display_name }}</p>
-                    <p class="text-sm text-dark-umber">{{ suggestion.suggestion|truncatewords:30 }}</p>
+                    <p class="text-sm text-text-muted mb-2">From: {{ suggestion.suggested_by.get_display_name }}</p>
+                    <p class="text-sm">{{ suggestion.suggestion|truncatewords:30 }}</p>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12 text-vintage-beaver">
-            <i class="fas fa-comment-dots text-4xl mb-4 text-sepia-pale"></i>
+        <div class="text-center py-12 text-text-muted">
+            <i class="fas fa-comment-dots text-4xl mb-4 opacity-30"></i>
             <p>No edit suggestions.</p>
         </div>
         {% endif %}
