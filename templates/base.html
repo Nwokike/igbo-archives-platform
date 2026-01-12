@@ -70,30 +70,41 @@
     <div class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-border" id="stickyHeader">
         <header>
             <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2.5 gap-3 relative">
-                <!-- Left: Dark mode toggle -->
-                <div class="w-20 flex justify-start">
-                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg" aria-label="Toggle dark mode" id="darkModeToggle">
+                <!-- Left: Logo & Dark Mode -->
+                <div class="flex items-center gap-4">
+                    <a class="flex items-center" href="{% url 'core:home' %}">
+                        <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
+                            class="h-8 lg:h-9 w-auto logo-dark">
+                        <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
+                            class="h-8 lg:h-9 w-auto logo-light hidden">
+                    </a>
+
+                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg hidden sm:flex items-center justify-center"
+                        aria-label="Toggle dark mode" id="darkModeToggle">
                         <i class="fas fa-moon text-sm"></i>
                     </button>
                 </div>
 
-                <!-- Center: Logo -->
-                <a class="absolute left-1/2 -translate-x-1/2 hidden sm:block" href="{% url 'core:home' %}">
-                    <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
-                        class="h-8 lg:h-9 w-auto logo-dark">
-                    <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
-                        class="h-8 lg:h-9 w-auto logo-light hidden">
-                </a>
-                <!-- Mobile logo -->
-                <a class="flex-1 flex items-center justify-center sm:hidden" href="{% url 'core:home' %}">
-                    <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
-                        class="h-8 w-auto logo-dark">
-                    <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
-                        class="h-8 w-auto logo-light hidden">
-                </a>
+                <!-- Center: Search Bar -->
+                <form action="{% url 'archives:list' %}" method="GET"
+                    class="hidden md:flex flex-1 max-w-md mx-6 relative" id="headerSearch">
+                    <input type="text" name="search" placeholder="Search archives, stories, artifacts..."
+                        class="form-input w-full pl-11 pr-4 py-2 rounded-xl text-sm"
+                        value="{{ request.GET.search|default:'' }}">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"></i>
+                </form>
 
-                <!-- Right: User Menu -->
+                <!-- Right: Mobile Search, Dark Mode & User Menu -->
                 <div class="flex items-center gap-2 sm:gap-3">
+                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg sm:hidden" aria-label="Toggle dark mode"
+                        id="darkModeToggleMobile">
+                        <i class="fas fa-moon text-sm"></i>
+                    </button>
+
+                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg md:hidden" id="mobileSearchBtn" aria-label="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+
                     {% if user.is_authenticated %}
                     <a href="{% url 'users:notifications' %}" class="btn-ghost w-10 h-10 p-0 rounded-full relative"
                         id="notificationBell" aria-label="Notifications">
@@ -131,6 +142,9 @@
                             </a>
                             <a href="{% url 'users:notifications' %}" class="dropdown-item">
                                 <i class="fas fa-bell w-4 text-center"></i> Notifications
+                            </a>
+                            <a href="{% url 'users:profile' user.username %}" class="dropdown-item">
+                                <i class="fas fa-user w-4 text-center"></i> My Profile
                             </a>
                             <a href="{% url 'users:profile_edit' user.username %}" class="dropdown-item">
                                 <i class="fas fa-edit w-4 text-center"></i> Edit Profile
@@ -177,6 +191,36 @@
         </nav>
 
         {% block sub_navigation %}{% endblock %}
+    </div>
+
+    <!-- Mobile Search Overlay -->
+    <div id="mobileSearchOverlay"
+        class="fixed inset-0 z-[60] bg-surface/98 backdrop-blur-xl hidden flex-col animate-fade-in">
+        <div class="flex items-center justify-between p-4 border-b border-border">
+            <h2 class="text-lg font-serif font-bold">Search</h2>
+            <button class="btn-ghost w-10 h-10 p-0 rounded-full" id="closeMobileSearch">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-6">
+            <form action="{% url 'archives:list' %}" method="GET" class="relative">
+                <input type="text" name="search" placeholder="Search archives, stories..."
+                    class="form-input w-full pl-12 pr-4 py-3 rounded-2xl text-base"
+                    value="{{ request.GET.search|default:'' }}" autofocus>
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-lg"></i>
+                <button type="submit" class="mt-4 btn-primary w-full py-3">Search</button>
+            </form>
+
+            <div class="mt-8">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted mb-4">Quick Links</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="{% url 'archives:list' %}" class="btn-secondary py-3 text-sm">Archives</a>
+                    <a href="{% url 'insights:list' %}" class="btn-secondary py-3 text-sm">Insights</a>
+                    <a href="{% url 'books:list' %}" class="btn-secondary py-3 text-sm">Books</a>
+                    <a href="{% url 'ai:home' %}" class="btn-secondary py-3 text-sm">AI Helper</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Mobile Navigation -->

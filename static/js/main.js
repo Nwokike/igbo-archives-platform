@@ -24,25 +24,56 @@
     document.addEventListener('DOMContentLoaded', function () {
 
         // --- Dark Mode Handler ---
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        if (darkModeToggle) {
+        const darkModeToggles = document.querySelectorAll('#darkModeToggle, #darkModeToggleMobile');
+        if (darkModeToggles.length > 0) {
             const body = document.body;
-            const icon = darkModeToggle.querySelector('i');
+
+            const applyTheme = (isDark) => {
+                body.classList.toggle('dark-mode', isDark);
+                localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+                darkModeToggles.forEach(btn => {
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('fa-moon', !isDark);
+                        icon.classList.toggle('fa-sun', isDark);
+                    }
+                });
+            };
 
             // Apply saved theme on page load
             if (localStorage.getItem('darkMode') === 'enabled') {
-                body.classList.add('dark-mode');
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
+                applyTheme(true);
             }
 
-            darkModeToggle.addEventListener('click', () => {
-                body.classList.toggle('dark-mode');
-                const isDarkMode = body.classList.contains('dark-mode');
-                localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
-                icon.classList.toggle('fa-moon', !isDarkMode);
-                icon.classList.toggle('fa-sun', isDarkMode);
+            darkModeToggles.forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const isDark = !body.classList.contains('dark-mode');
+                    applyTheme(isDark);
+                });
             });
+        }
+
+        // --- Mobile Search Overlay Handler ---
+        const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+        const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+        const closeMobileSearch = document.getElementById('closeMobileSearch');
+
+        if (mobileSearchBtn && mobileSearchOverlay) {
+            mobileSearchBtn.addEventListener('click', () => {
+                mobileSearchOverlay.classList.remove('hidden');
+                mobileSearchOverlay.classList.add('flex');
+                document.body.style.overflow = 'hidden'; // Prevent scroll
+                const input = mobileSearchOverlay.querySelector('input');
+                if (input) setTimeout(() => input.focus(), 100);
+            });
+
+            if (closeMobileSearch) {
+                closeMobileSearch.addEventListener('click', () => {
+                    mobileSearchOverlay.classList.add('hidden');
+                    mobileSearchOverlay.classList.remove('flex');
+                    document.body.style.overflow = ''; // Restore scroll
+                });
+            }
         }
 
         // --- Alert Close Handler ---
@@ -52,20 +83,6 @@
                 if (alert) alert.remove();
             });
         });
-
-        // --- Sticky Header Handler ---
-        const stickyHeaderWrapper = document.querySelector('.sticky-header-wrapper');
-        if (stickyHeaderWrapper) {
-            const scrollThreshold = 100;
-            window.addEventListener('scroll', () => {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                if (scrollTop > scrollThreshold) {
-                    stickyHeaderWrapper.classList.add('shrink');
-                } else {
-                    stickyHeaderWrapper.classList.remove('shrink');
-                }
-            }, { passive: true });
-        }
 
         // --- Dropdown Menus (Profile & Notifications) ---
         const profileButton = document.getElementById('profileButton');

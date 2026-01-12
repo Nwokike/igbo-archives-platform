@@ -1,4 +1,4 @@
-(function() {
+(function () {
     'use strict';
 
     const scriptTag = document.getElementById('push-notifications-script');
@@ -14,7 +14,7 @@
         console.warn('Push notifications not fully supported or configured (missing SW, PushManager, or VAPID key).');
         return;
     }
-    
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -29,7 +29,7 @@
         }
         return cookieValue;
     }
-    
+
     function urlBase64ToUint8Array(base64String) {
         const padding = '='.repeat((4 - base64String.length % 4) % 4);
         const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -117,7 +117,7 @@
         try {
             const registration = await navigator.serviceWorker.ready;
             const subscription = await registration.pushManager.getSubscription();
-            
+
             if (subscription) {
                 await removeSubscriptionFromServer(subscription);
                 await subscription.unsubscribe();
@@ -127,11 +127,12 @@
             console.error('Error unsubscribing from push notifications:', error);
         }
     }
-    
+
     function showSoftPrompt() {
         const prompt = document.getElementById(PUSH_PROMPT_ID);
         if (prompt) {
-            prompt.classList.add('show');
+            prompt.classList.remove('hidden');
+            prompt.classList.add('flex');
             let timeoutId = setTimeout(() => {
                 if (!prompt.matches(':hover')) {
                     hideSoftPrompt();
@@ -150,10 +151,8 @@
     function hideSoftPrompt() {
         const prompt = document.getElementById(PUSH_PROMPT_ID);
         if (prompt) {
-            prompt.classList.remove('show');
-            setTimeout(() => {
-                prompt.style.display = 'none';
-            }, 500);
+            prompt.classList.add('hidden');
+            prompt.classList.remove('flex');
         }
     }
 
@@ -164,7 +163,7 @@
             await syncSubscription();
         } else if (permission === 'denied') {
             console.warn('User explicitly denied notifications via browser prompt.');
-            localStorage.setItem(PUSH_PROMPT_DISMISS_KEY, Infinity); 
+            localStorage.setItem(PUSH_PROMPT_DISMISS_KEY, Infinity);
         }
     }
 
