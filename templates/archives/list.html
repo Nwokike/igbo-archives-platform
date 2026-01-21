@@ -13,7 +13,7 @@
                     hx-include="#typeFilter,#sortFilter,#searchInput" hx-push-url="true">
                     <option value="">All Categories</option>
                     {% for cat in categories %}
-                    <option value="{{ cat.slug }}" {% if request.GET.category==cat.slug %}selected{% endif %}>{{
+                    <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>{{
                         cat.name }}</option>
                     {% endfor %}
                 </select>
@@ -23,22 +23,21 @@
                 <select class="form-select text-xs" id="typeFilter" name="type" hx-get="{% url 'archives:list' %}"
                     hx-target="#archiveGrid" hx-include="#categoryFilter,#sortFilter,#searchInput" hx-push-url="true">
                     <option value="">All Types</option>
-                    <option value="image" {% if request.GET.type=='image' %}selected{% endif %}>Images</option>
-                    <option value="video" {% if request.GET.type=='video' %}selected{% endif %}>Videos</option>
-                    <option value="document" {% if request.GET.type=='document' %}selected{% endif %}>Documents</option>
-                    <option value="artifact" {% if request.GET.type=='artifact' %}selected{% endif %}>Artifacts</option>
+                    <option value="image" {% if request.GET.type == 'image' %}selected{% endif %}>Images</option>
+                    <option value="video" {% if request.GET.type == 'video' %}selected{% endif %}>Videos</option>
+                    <option value="document" {% if request.GET.type == 'document' %}selected{% endif %}>Documents</option>
+                    <option value="artifact" {% if request.GET.type == 'artifact' %}selected{% endif %}>Artifacts</option>
                 </select>
             </div>
 
             <div class="flex-1 min-w-[120px] sm:flex-none sm:w-28">
                 <select class="form-select text-xs" id="sortFilter" name="sort" hx-get="{% url 'archives:list' %}"
                     hx-target="#archiveGrid" hx-include="#categoryFilter,#typeFilter,#searchInput" hx-push-url="true">
-                    <option value="-created_at" {% if request.GET.sort=='-created_at' or not request.GET.sort
-                        %}selected{% endif %}>Newest</option>
-                    <option value="created_at" {% if request.GET.sort=='created_at' %}selected{% endif %}>Oldest
+                    <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Newest</option>
+                    <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest
                     </option>
-                    <option value="title" {% if request.GET.sort=='title' %}selected{% endif %}>A-Z</option>
-                    <option value="-title" {% if request.GET.sort=='-title' %}selected{% endif %}>Z-A</option>
+                    <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>A-Z</option>
+                    <option value="-title" {% if request.GET.sort == '-title' %}selected{% endif %}>Z-A</option>
                 </select>
             </div>
 
