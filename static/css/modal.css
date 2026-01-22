@@ -39,7 +39,7 @@
     transition: transform 0.3s ease;
 }
 
-body.dark-mode .modal-content {
+.dark .modal-content {
     background: #3D2817;
 }
 
@@ -55,7 +55,7 @@ body.dark-mode .modal-content {
     border-bottom: 1px solid #E3CEB9;
 }
 
-body.dark-mode .modal-header {
+.dark .modal-header {
     border-color: #6A2D01;
 }
 
@@ -67,7 +67,7 @@ body.dark-mode .modal-header {
     margin: 0;
 }
 
-body.dark-mode .modal-title {
+.dark .modal-title {
     color: #EFE5D7;
 }
 
@@ -96,7 +96,7 @@ body.dark-mode .modal-title {
     color: #3D2817;
 }
 
-body.dark-mode .modal-close:hover {
+.dark .modal-close:hover {
     background: #2A201A;
     color: #EFE5D7;
 }
@@ -117,7 +117,7 @@ body.dark-mode .modal-close:hover {
     background: #F0F0DA;
 }
 
-body.dark-mode .modal-footer {
+.dark .modal-footer {
     border-color: #6A2D01;
     background: #2A201A;
 }
@@ -134,7 +134,7 @@ body.dark-mode .modal-footer {
     border-radius: 10px;
 }
 
-body.dark-mode .tabs-list {
+.dark .tabs-list {
     background: #2A201A;
 }
 
@@ -155,7 +155,7 @@ body.dark-mode .tabs-list {
     color: #3D2817;
 }
 
-body.dark-mode .tab-button:hover {
+.dark .tab-button:hover {
     color: #EFE5D7;
 }
 
@@ -165,7 +165,7 @@ body.dark-mode .tab-button:hover {
     box-shadow: 0 2px 8px rgba(61, 40, 23, 0.1);
 }
 
-body.dark-mode .tab-button.active {
+.dark .tab-button.active {
     background: #3D2817;
     color: #EFE5D7;
 }
@@ -196,7 +196,7 @@ body.dark-mode .tab-button.active {
     color: #3D2817;
 }
 
-body.dark-mode .form-label {
+.dark .form-label {
     color: #DCC1A7;
 }
 
@@ -216,7 +216,7 @@ body.dark-mode .form-label {
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-body.dark-mode .form-input {
+.dark .form-input {
     background: #2A201A;
     border-color: #6A2D01;
     color: #EFE5D7;

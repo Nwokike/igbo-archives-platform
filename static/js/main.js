@@ -29,11 +29,12 @@
             const body = document.body;
 
             const applyTheme = (isDark) => {
-                body.classList.toggle('dark-mode', isDark);
                 if (isDark) {
                     document.documentElement.classList.add('dark');
+                    body.classList.add('dark-mode'); // Keep for legacy CSS compatibility if needed
                 } else {
                     document.documentElement.classList.remove('dark');
+                    body.classList.remove('dark-mode');
                 }
                 localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
                 darkModeToggles.forEach(btn => {
