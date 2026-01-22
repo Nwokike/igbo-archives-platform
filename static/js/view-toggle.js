@@ -7,13 +7,13 @@ function initViewToggle(gridId, storageKey) {
     
     function setView(view) {
         if (view === 'list') {
-            grid.className = 'space-y-4';
-            gridBtn.classList.remove('bg-white', 'text-dark-brown', 'shadow-soft');
-            listBtn.classList.add('bg-white', 'text-dark-brown', 'shadow-soft');
+            grid.className = 'flex flex-col gap-2'; // Small compact list
+            gridBtn.classList.remove('bg-white', 'dark:bg-surface-dark', 'text-accent', 'shadow-sm');
+            listBtn.classList.add('bg-white', 'dark:bg-surface-dark', 'text-accent', 'shadow-sm');
         } else {
-            grid.className = 'archive-grid';
-            listBtn.classList.remove('bg-white', 'text-dark-brown', 'shadow-soft');
-            gridBtn.classList.add('bg-white', 'text-dark-brown', 'shadow-soft');
+            grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+            listBtn.classList.remove('bg-white', 'dark:bg-surface-dark', 'text-accent', 'shadow-sm');
+            gridBtn.classList.add('bg-white', 'dark:bg-surface-dark', 'text-accent', 'shadow-sm');
         }
         localStorage.setItem(storageKey, view);
     }
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('insightsGrid')) {
         initViewToggle('insightsGrid', 'insightsView');
     }
-    if (document.getElementById('booksGrid')) {
-        initViewToggle('booksGrid', 'booksView');
+    if (document.getElementById('reviewsGrid')) {
+        initViewToggle('reviewsGrid', 'booksView');
     }
 });

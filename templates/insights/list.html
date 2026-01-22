@@ -36,6 +36,19 @@
                 <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
             </div>
 
+            <div class="flex items-center gap-0.5 bg-surface-alt dark:bg-surface-dark-alt rounded-lg p-0.5">
+                <button type="button"
+                    class="w-7 h-7 flex items-center justify-center rounded text-text-muted hover:text-text dark:hover:text-text-dark transition-colors view-btn active text-xs"
+                    id="gridViewBtn" title="Grid View">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button type="button"
+                    class="w-7 h-7 flex items-center justify-center rounded text-text-muted hover:text-text dark:hover:text-text-dark transition-colors view-btn text-xs"
+                    id="listViewBtn" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+
             {% if user.is_authenticated %}
             <a href="{% url 'insights:create' %}" class="btn-primary btn-sm">
                 <i class="fas fa-plus text-xs"></i>
