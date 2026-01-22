@@ -30,13 +30,13 @@
     background-color: rgba(168, 155, 140, 0.5);
 }
 
-/* Logo visibility toggle */
+/* Logo visibility toggle - RESTORED ORIGINAL BEHAVIOR */
 .dark .logo-light {
-    display: block;
+    display: none;
 }
 
 .dark .logo-dark {
-    display: none;
+    display: block;
 }
 
 html:not(.dark) .logo-dark {

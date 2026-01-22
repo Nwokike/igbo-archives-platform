@@ -5,7 +5,7 @@
 
 {% block content %}
 <section
-    class="text-center py-12 lg:py-20 -mt-6 lg:-mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-surface-alt/50 to-transparent">
+    class="text-center py-12 lg:py-20 -mt-6 lg:-mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-surface-alt/50 to-transparent dark:from-surface-dark-alt/50 dark:to-transparent">
     <div class="max-w-3xl mx-auto">
         <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 animate-fade-in">
             Preserving the Past,<br class="hidden sm:inline"> Inspiring the Future
@@ -29,11 +29,11 @@
 
 {% if featured_archives %}
 <section
-    class="py-8 lg:py-12 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-surface-dark to-surface-dark/95">
+    class="py-8 lg:py-12 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt dark:bg-surface-dark-alt">
     <div class="max-w-6xl mx-auto">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="font-serif text-lg text-white/90">Featured Archive</h2>
-            <a href="{% url 'archives:list' %}" class="text-sm text-accent hover:text-white transition-colors">
+            <h2 class="font-serif text-lg text-text dark:text-text-dark">Featured Archive</h2>
+            <a href="{% url 'archives:list' %}" class="text-sm text-accent hover:text-accent-hover transition-colors">
                 View All <i class="fas fa-arrow-right ml-1 text-xs"></i>
             </a>
         </div>
@@ -186,7 +186,7 @@
     </div>
 </section>
 
-<section class="py-12 lg:py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt/50">
+<section class="py-12 lg:py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt/50 dark:bg-surface-dark-alt/50">
     <div class="max-w-6xl mx-auto">
         <div class="text-center mb-12">
             <h2 class="font-serif text-2xl lg:text-3xl font-bold mb-4">Why Igbo Archives?</h2>
@@ -195,38 +195,38 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             <div class="text-center">
                 <div
-                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-sm flex items-center justify-center text-accent">
+                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white dark:bg-surface-dark shadow-sm flex items-center justify-center text-accent">
                     <i class="fas fa-cubes text-xl"></i>
                 </div>
                 <h4 class="font-serif font-semibold mb-2">Preserve Heritage</h4>
-                <p class="text-sm text-text-muted">Digitally preserve Igbo cultural artifacts for future generations</p>
+                <p class="text-sm text-text-muted dark:text-text-dark-muted">Digitally preserve Igbo cultural artifacts for future generations</p>
             </div>
 
             <div class="text-center">
                 <div
-                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-sm flex items-center justify-center text-accent">
+                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white dark:bg-surface-dark shadow-sm flex items-center justify-center text-accent">
                     <i class="fas fa-globe text-xl"></i>
                 </div>
                 <h4 class="font-serif font-semibold mb-2">Global Access</h4>
-                <p class="text-sm text-text-muted">Connect Igbo people worldwide with their roots and heritage</p>
+                <p class="text-sm text-text-muted dark:text-text-dark-muted">Connect Igbo people worldwide with their roots and heritage</p>
             </div>
 
             <div class="text-center">
                 <div
-                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-sm flex items-center justify-center text-accent">
+                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white dark:bg-surface-dark shadow-sm flex items-center justify-center text-accent">
                     <i class="fas fa-book-open text-xl"></i>
                 </div>
                 <h4 class="font-serif font-semibold mb-2">Educational</h4>
-                <p class="text-sm text-text-muted">Comprehensive resources for learning and research</p>
+                <p class="text-sm text-text-muted dark:text-text-dark-muted">Comprehensive resources for learning and research</p>
             </div>
 
             <div class="text-center">
                 <div
-                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white shadow-sm flex items-center justify-center text-accent">
+                    class="w-14 h-14 mx-auto mb-4 rounded-xl bg-white dark:bg-surface-dark shadow-sm flex items-center justify-center text-accent">
                     <i class="fas fa-users text-xl"></i>
                 </div>
                 <h4 class="font-serif font-semibold mb-2">Community-Driven</h4>
-                <p class="text-sm text-text-muted">Built by the community, for the community</p>
+                <p class="text-sm text-text-muted dark:text-text-dark-muted">Built by the community, for the community</p>
             </div>
         </div>
     </div>
