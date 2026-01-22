@@ -4,9 +4,6 @@
 
 Igbo Archives is a Django-based cultural preservation platform dedicated to documenting and celebrating Igbo heritage from Nigeria. The platform enables community-driven content creation including cultural archives (images, videos, audio, documents), community insights/articles, and book reviews. It features an AI assistant powered by Groq and Google Gemini for cultural Q&A and archive analysis, along with full PWA support for offline access and push notifications.
 
-## User Preferences
-
-Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
