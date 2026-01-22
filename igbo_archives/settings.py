@@ -18,14 +18,8 @@ if not SECRET_KEY:
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ADMINS = [('Admin', os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng'))]
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
-
-# Production safety check
-if not DEBUG and ('localhost' in ALLOWED_HOSTS or '127.0.0.1' in ALLOWED_HOSTS):
-    import warnings
-    warnings.warn("Production ALLOWED_HOSTS should not include localhost/127.0.0.1")
-
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng').split(',')
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [f"https://{os.getenv('REPLIT_DEV_DOMAIN')}", "https://*.replit.dev"] if os.getenv('REPLIT_DEV_DOMAIN') else os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng').split(',')
 
 SITE_URL = os.getenv('SITE_URL', 'https://igboarchives.com.ng')
 
