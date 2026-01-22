@@ -29,11 +29,10 @@
             </div>
 
             <div class="flex-1 min-w-[180px] relative">
-                <input type="text" class="form-input text-xs pl-10" placeholder="Search insights..." id="searchInput"
+                <input type="text" class="form-input text-xs" placeholder="Search insights..." id="searchInput"
                     name="search" value="{{ request.GET.search }}" hx-get="{% url 'insights:list' %}"
                     hx-trigger="keyup changed delay:500ms" hx-target="#insightsGrid" hx-include="#tagFilter,#sortFilter"
                     hx-push-url="true">
-                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
             </div>
 
             <div class="flex items-center gap-0.5 bg-surface-alt dark:bg-surface-dark-alt rounded-lg p-0.5">
