@@ -94,15 +94,19 @@
                     </button>
 
                     {% if user.is_authenticated %}
-                    <a href="{% url 'users:notifications' %}" class="btn-ghost w-10 h-10 p-0 rounded-full relative"
-                        id="notificationBell" aria-label="Notifications">
-                        <i class="fas fa-bell text-lg"></i>
-                        {% if unread_notification_count > 0 %}
-                        <span id="notificationBadge"
-                            class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{
-                            unread_notification_count }}</span>
-                        {% endif %}
-                    </a>
+                    <div class="relative dropdown" id="notificationDropdownContainer">
+                        <a href="{% url 'users:notifications' %}" class="btn-ghost w-10 h-10 p-0 rounded-full relative"
+                            id="notificationBell" aria-label="Notifications" data-url="{% url 'api:notification_list' %}">
+                            <i class="fas fa-bell text-lg"></i>
+                            {% if unread_notification_count > 0 %}
+                            <span id="notificationBadge"
+                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{ unread_notification_count }}</span>
+                            {% endif %}
+                        </a>
+                        <div class="dropdown-menu w-80 right-0" id="notificationDropdown">
+                            <!-- Dropdown content will be loaded via JS -->
+                        </div>
+                    </div>
 
                     <div class="relative dropdown" id="profileDropdownContainer">
                         <button

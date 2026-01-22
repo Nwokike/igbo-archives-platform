@@ -1,7 +1,10 @@
 function updateFileInput() {
     var type = document.getElementById('archive_type').value;
     var sections = ['imageUploadSection', 'videoUploadSection', 'documentUploadSection', 'audioUploadSection', 'featuredImageSection'];
-    sections.forEach(function (s) { document.getElementById(s).classList.add('hidden'); });
+    sections.forEach(function (s) { 
+        var el = document.getElementById(s);
+        if (el) el.classList.add('hidden'); 
+    });
 
     if (type === 'image') {
         document.getElementById('imageUploadSection').classList.remove('hidden');
@@ -15,6 +18,13 @@ function updateFileInput() {
         document.getElementById('featuredImageSection').classList.remove('hidden');
     }
 }
+
+// Initialize on load to handle back-button or pre-filled forms
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('archive_type')) {
+        updateFileInput();
+    }
+});
 
 function validateFileSize(input, maxMB) {
     var errorDiv = document.getElementById('uploadError');

@@ -9,5 +9,5 @@ urlpatterns = [
     path('push-unsubscribe/', push_views.push_unsubscribe, name='push_unsubscribe'),
     path('archive-media-browser/', views.archive_media_browser, name='archive_media_browser'),
     path('upload-image/', views.upload_image, name='upload_image'),
-    path('get-categories/', views.get_categories, name='get_categories'),
+    path('notification-list/', views.notification_list_api, name='notification_list'),
 ]

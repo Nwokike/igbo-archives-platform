@@ -140,8 +140,9 @@ def upload_image(request):
 
 
 @login_required
-@require_http_methods(["GET"])
-def get_categories(request):
-    """Return all categories for archive submission."""
-    categories = get_cached_api_categories()
-    return JsonResponse({'categories': categories})
+def notification_list_api(request):
+    """Return top 5 unread notifications for the dropdown."""
+    notifications = request.user.notifications.all().order_by('-created_at')[:5]
+    return render(request, 'users/partials/notification_dropdown.html', {
+        'notifications': notifications
+    })

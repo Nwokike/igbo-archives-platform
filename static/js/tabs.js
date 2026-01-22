@@ -13,13 +13,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             container.querySelectorAll('.tab-panel').forEach(function (panel) {
                 panel.classList.add('hidden');
-                panel.classList.remove('active');
+                panel.classList.remove('active', 'block');
             });
 
             var targetPanel = document.getElementById(targetId);
             if (targetPanel) {
                 targetPanel.classList.remove('hidden');
-                targetPanel.classList.add('active');
+                targetPanel.classList.add('active', 'block');
             }
 
             var url = new URL(window.location);

@@ -45,8 +45,10 @@
 </div>
 
 <div class="tab-content">
-    <div id="messages" class="tab-panel active">
-        {% if messages_threads %}
+    <div id="messages" class="tab-panel active block">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-serif text-xl font-bold">Recent Messages</h3>
+        </div>
         <div class="space-y-3">
             {% for thread in messages_threads %}
             <a href="{% url 'users:thread' thread.id %}" class="card card-hover block">
@@ -77,8 +79,13 @@
         {% endif %}
     </div>
 
-    <div id="insights" class="tab-panel">
-        {% if my_insights %}
+    <div id="insights" class="tab-panel hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-serif text-xl font-bold">My Insights</h3>
+            <a href="{% url 'insights:create' %}" class="btn-primary btn-sm">
+                <i class="fas fa-plus"></i> New Insight
+            </a>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for insight in my_insights %}
             <div class="card card-hover">
@@ -113,8 +120,13 @@
         {% endif %}
     </div>
 
-    <div id="drafts" class="tab-panel">
-        {% if my_drafts %}
+    <div id="drafts" class="tab-panel hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-serif text-xl font-bold">My Drafts</h3>
+            <a href="{% url 'insights:create' %}" class="btn-primary btn-sm">
+                <i class="fas fa-plus"></i> New Draft
+            </a>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for draft in my_drafts %}
             <div class="card">
@@ -138,8 +150,13 @@
         {% endif %}
     </div>
 
-    <div id="reviews" class="tab-panel">
-        {% if my_book_reviews %}
+    <div id="reviews" class="tab-panel hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-serif text-xl font-bold">My Book Reviews</h3>
+            <a href="{% url 'books:create' %}" class="btn-primary btn-sm">
+                <i class="fas fa-plus"></i> New Review
+            </a>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for review in my_book_reviews %}
             <div class="card card-hover">
@@ -173,19 +190,27 @@
         {% endif %}
     </div>
 
-    <div id="archives" class="tab-panel">
-        {% if my_archives %}
+    <div id="archives" class="tab-panel hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-serif text-xl font-bold">My Archives</h3>
+            <a href="{% url 'archives:create' %}" class="btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Add Archive
+            </a>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for archive in my_archives %}
-            <div class="card card-hover">
+            <a href="{% url 'archives:detail' archive.pk %}" class="card card-hover block">
                 {% if archive.image %}
                 <img src="{{ archive.image.url }}" alt="{{ archive.title }}" class="w-full h-32 object-cover">
                 {% endif %}
                 <div class="card-body">
                     <h4 class="font-serif font-semibold mb-2 line-clamp-1">{{ archive.title }}</h4>
                     <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
+                    {% if not archive.is_approved %}
+                    <span class="badge badge-warning ml-2">Draft/Pending</span>
+                    {% endif %}
                 </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
         {% else %}
