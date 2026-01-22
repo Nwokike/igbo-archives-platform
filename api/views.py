@@ -30,7 +30,7 @@ def archive_media_browser(request):
     
     archives = Archive.objects.filter(is_approved=True).select_related('category').only(
         'id', 'title', 'description', 'archive_type', 'caption', 'alt_text',
-        'image', 'video', 'audio', 'document', 'featured_image'
+        'image', 'video', 'audio', 'document', 'featured_image', 'category__id', 'category__name', 'category__slug'
     )
     
     if search:
