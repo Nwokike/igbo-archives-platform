@@ -30,6 +30,11 @@
 
             const applyTheme = (isDark) => {
                 body.classList.toggle('dark-mode', isDark);
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
                 localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
                 darkModeToggles.forEach(btn => {
                     const icon = btn.querySelector('i');

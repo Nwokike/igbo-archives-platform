@@ -68,19 +68,19 @@
     </button>
 
     <!-- Header -->
-    <div class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-border" id="stickyHeader">
+    <div class="sticky top-0 z-50 bg-white/95 dark:bg-surface-dark backdrop-blur-md shadow-sm border-b border-border dark:border-border-dark" id="stickyHeader">
         <header>
             <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2.5 gap-3 relative">
                 <!-- Left: Logo & Dark Mode -->
                 <div class="flex items-center gap-4">
                     <a class="flex items-center" href="{% url 'core:home' %}">
                         <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
-                            class="h-8 lg:h-9 w-auto logo-dark">
+                            class="h-8 lg:h-9 w-auto logo-dark dark:hidden">
                         <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
-                            class="h-8 lg:h-9 w-auto logo-light hidden">
+                            class="h-8 lg:h-9 w-auto logo-light hidden dark:block">
                     </a>
 
-                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg hidden sm:flex items-center justify-center"
+                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg hidden sm:flex items-center justify-center dark:text-text-dark"
                         aria-label="Toggle dark mode" id="darkModeToggle">
                         <i class="fas fa-moon text-sm"></i>
                     </button>
@@ -275,39 +275,39 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-surface-dark text-text-dark mt-auto">
+    <footer class="bg-white/95 dark:bg-surface-dark text-text dark:text-text-dark border-t border-border dark:border-none mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10">
                 <!-- Brand Column -->
                 <div class="col-span-2 md:col-span-1">
                     <div class="mb-3">
-                        <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
-                            class="h-9 w-auto logo-light">
                         <img src="{% static 'images/logos/logo-dark.png' %}" alt="Igbo Archives"
-                            class="h-9 w-auto logo-dark hidden">
+                            class="h-9 w-auto logo-dark dark:hidden">
+                        <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
+                            class="h-9 w-auto logo-light hidden dark:block">
                     </div>
-                    <p class="text-text-dark-muted text-xs leading-relaxed mb-4">
+                    <p class="text-text-muted dark:text-text-dark-muted text-xs leading-relaxed mb-4">
                         Preserving and celebrating the rich history and culture of the Igbo people.
                     </p>
                     <div class="flex items-center gap-2">
                         <a href="https://www.facebook.com/IgboArchives/" target="_blank" rel="noopener noreferrer"
-                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
+                            class="w-8 h-8 rounded-lg bg-accent/10 dark:bg-white/10 flex items-center justify-center text-text-muted dark:text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
                             aria-label="Facebook">
                             <i class="fa-brands fa-facebook-f"></i>
                         </a>
                         <a href="https://www.instagram.com/IgboArchives.com.ng/" target="_blank"
                             rel="noopener noreferrer"
-                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
+                            class="w-8 h-8 rounded-lg bg-accent/10 dark:bg-white/10 flex items-center justify-center text-text-muted dark:text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
                             aria-label="Instagram">
                             <i class="fa-brands fa-instagram"></i>
                         </a>
                         <a href="https://x.com/IgboArchives" target="_blank" rel="noopener noreferrer"
-                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
+                            class="w-8 h-8 rounded-lg bg-accent/10 dark:bg-white/10 flex items-center justify-center text-text-muted dark:text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
                             aria-label="X (Twitter)">
                             <i class="fa-brands fa-x-twitter"></i>
                         </a>
                         <a href="https://mastodon.social/@Igbo_Archives" target="_blank" rel="noopener noreferrer"
-                            class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
+                            class="w-8 h-8 rounded-lg bg-accent/10 dark:bg-white/10 flex items-center justify-center text-text-muted dark:text-text-dark-muted hover:bg-accent hover:text-white transition-all text-sm"
                             aria-label="Mastodon">
                             <i class="fa-brands fa-mastodon"></i>
                         </a>
@@ -319,13 +319,13 @@
                     <h3 class="font-medium text-xs uppercase tracking-wider text-accent mb-3">Explore</h3>
                     <div class="space-y-1.5">
                         <a href="{% url 'archives:list' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Archives</a>
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Archives</a>
                         <a href="{% url 'insights:list' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Insights</a>
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Insights</a>
                         <a href="{% url 'books:list' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Books</a>
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Books</a>
                         <a href="{% url 'ai:home' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">AI
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">AI
                             Assistant</a>
                     </div>
                 </div>
@@ -335,14 +335,14 @@
                     <h3 class="font-medium text-xs uppercase tracking-wider text-accent mb-3">Resources</h3>
                     <div class="space-y-1.5">
                         <a href="{% url 'core:about' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">About</a>
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">About</a>
                         <a href="{% url 'core:contact' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Contact</a>
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Contact</a>
                         <a href="{% url 'core:donate' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Support
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Support
                             Us</a>
                         <a href="{% url 'core:copyright' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Copyright</a>
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Copyright</a>
                     </div>
                 </div>
 
@@ -351,18 +351,18 @@
                     <h3 class="font-medium text-xs uppercase tracking-wider text-accent mb-3">Legal</h3>
                     <div class="space-y-1.5">
                         <a href="{% url 'core:privacy' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Privacy</a>
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Privacy</a>
                         <a href="{% url 'core:terms' %}"
-                            class="block text-text-dark-muted hover:text-text-dark transition-colors text-sm">Terms</a>
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Terms</a>
                     </div>
                 </div>
             </div>
 
             <div
-                class="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-dark-muted">
+                class="mt-8 pt-6 border-t border-border dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted dark:text-text-dark-muted">
                 <p>&copy; 2025 - {% now "Y" %} Kiri Research Labs. All Rights Reserved.</p>
                 <p>A project by <a href="https://kiriresearch.com" target="_blank" rel="noopener noreferrer"
-                        class="text-accent hover:text-text-dark transition-colors">Kiri Research Labs</a></p>
+                        class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research Labs</a></p>
             </div>
         </div>
     </footer>
