@@ -86,24 +86,11 @@
                     </button>
                 </div>
 
-                <!-- Center: Search Bar -->
-                <form action="{% url 'archives:list' %}" method="GET"
-                    class="hidden md:flex flex-1 max-w-md mx-6 relative" id="headerSearch">
-                    <input type="text" name="search" placeholder="Search archives, stories, artifacts..."
-                        class="form-input w-full pl-11 pr-4 py-2 rounded-xl text-sm"
-                        value="{{ request.GET.search|default:'' }}">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"></i>
-                </form>
-
-                <!-- Right: Mobile Search, Dark Mode & User Menu -->
+                <!-- Right: Dark Mode & User Menu -->
                 <div class="flex items-center gap-2 sm:gap-3">
                     <button class="btn-ghost w-9 h-9 p-0 rounded-lg sm:hidden" aria-label="Toggle dark mode"
                         id="darkModeToggleMobile">
                         <i class="fas fa-moon text-sm"></i>
-                    </button>
-
-                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg md:hidden" id="mobileSearchBtn" aria-label="Search">
-                        <i class="fas fa-search"></i>
                     </button>
 
                     {% if user.is_authenticated %}
@@ -192,36 +179,6 @@
         </nav>
 
         {% block sub_navigation %}{% endblock %}
-    </div>
-
-    <!-- Mobile Search Overlay -->
-    <div id="mobileSearchOverlay"
-        class="fixed inset-0 z-[60] bg-surface/98 backdrop-blur-xl hidden flex-col animate-fade-in">
-        <div class="flex items-center justify-between p-4 border-b border-border">
-            <h2 class="text-lg font-serif font-bold">Search</h2>
-            <button class="btn-ghost w-10 h-10 p-0 rounded-full" id="closeMobileSearch">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="p-6">
-            <form action="{% url 'archives:list' %}" method="GET" class="relative">
-                <input type="text" name="search" placeholder="Search archives, stories..."
-                    class="form-input w-full pl-12 pr-4 py-3 rounded-2xl text-base"
-                    value="{{ request.GET.search|default:'' }}" autofocus>
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-lg"></i>
-                <button type="submit" class="mt-4 btn-primary w-full py-3">Search</button>
-            </form>
-
-            <div class="mt-8">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted mb-4">Quick Links</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <a href="{% url 'archives:list' %}" class="btn-secondary py-3 text-sm">Archives</a>
-                    <a href="{% url 'insights:list' %}" class="btn-secondary py-3 text-sm">Insights</a>
-                    <a href="{% url 'books:list' %}" class="btn-secondary py-3 text-sm">Books</a>
-                    <a href="{% url 'ai:home' %}" class="btn-secondary py-3 text-sm">AI Helper</a>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Mobile Navigation -->
