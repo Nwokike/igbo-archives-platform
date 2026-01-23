@@ -49,5 +49,6 @@ jobs:
           # 6. Restart Services (Using Sudo Password Secret)
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives-huey
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
 
           echo "Deployment Complete! 🚀"
