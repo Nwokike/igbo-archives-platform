@@ -74,13 +74,14 @@ class CustomSignupForm(SignupForm):
 
 class CustomLoginForm(LoginForm):
     def __init__(self, *args, **kwargs):
-        # Extract request from args if present (allauth passes it as first arg)
-        # Otherwise fall back to kwargs for compatibility
+        # Store request - check both args and kwargs
+        # allauth passes request as first positional arg
         if args and hasattr(args[0], 'META'):
             self.request = args[0]
-            args = args[1:]
         else:
-            self.request = kwargs.pop('request', None)
+            self.request = kwargs.get('request', None)
+        
+        # Pass everything to parent class unmodified
         super().__init__(*args, **kwargs)
         
         self.fields['login'].widget.attrs.update({
