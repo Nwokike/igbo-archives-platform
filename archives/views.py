@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from .models import Archive, Category
 from core.validators import ALLOWED_ARCHIVE_SORTS, get_safe_sort
 from core.views import get_all_approved_archive_ids
@@ -102,127 +103,90 @@ def archive_detail(request, pk):
 @login_required
 def archive_create(request):
     """Create a new archive."""
+    from .forms import ArchiveForm
     import bleach
-    from django.core.exceptions import ValidationError
     
     if request.method == 'POST':
-        title = request.POST.get('title', '').strip()
-        description = bleach.clean(request.POST.get('description', '').strip(), strip=True)
-        archive_type = request.POST.get('archive_type')
-        category_id = request.POST.get('category')
-        caption = request.POST.get('caption', '').strip()
-        alt_text = request.POST.get('alt_text', '').strip()
-        original_author = request.POST.get('original_author', '').strip()
-        location = request.POST.get('location', '').strip()
-        date_created = request.POST.get('date_created') or None
-        circa_date = request.POST.get('circa_date', '').strip()
-        tags_str = request.POST.get('tags', '')
+        form = ArchiveForm(request.POST, request.FILES)
         
-        if not title or not description:
-            messages.error(request, 'Title and description are required.')
-            return render(request, 'archives/create.html', {'categories': get_cached_categories()})
-        
-        archive = Archive(
-            title=title,
-            description=description,
-            archive_type=archive_type,
-            caption=caption,
-            alt_text=alt_text,
-            original_author=original_author,
-            location=location,
-            date_created=date_created,
-            circa_date=circa_date,
-            uploaded_by=request.user,
-            is_approved=False
-        )
-        
-        if category_id:
-            archive.category_id = category_id
-        
-        if archive_type == 'image' and 'image' in request.FILES:
-            archive.image = request.FILES['image']
-        elif archive_type == 'video' and 'video' in request.FILES:
-            archive.video = request.FILES['video']
-        elif archive_type == 'audio' and 'audio' in request.FILES:
-            archive.audio = request.FILES['audio']
-        elif archive_type == 'document' and 'document' in request.FILES:
-            archive.document = request.FILES['document']
-        
-        if 'featured_image' in request.FILES:
-            archive.featured_image = request.FILES['featured_image']
-        
-        # Validate file uploads through model validators
-        try:
-            archive.full_clean()
-        except ValidationError as e:
-            for field, errors in e.message_dict.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
-            return render(request, 'archives/create.html', {'categories': get_cached_categories()})
-        
-        archive.save()
-        
-        if tags_str:
-            tag_list = [t.strip()[:50] for t in tags_str.split(',') if t.strip()][:20]
-            archive.tags.add(*tag_list)
-        
-        # Note: Cache is only invalidated when admin approves, not on create
-        
-        messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
-        return redirect('archives:list')
+        if form.is_valid():
+            archive = form.save(commit=False)
+            archive.uploaded_by = request.user
+            archive.is_approved = False
+            
+            # Clean description with bleach
+            archive.description = bleach.clean(archive.description, strip=True)
+            
+            archive.save()
+            
+            # Handle tags
+            tags = form.cleaned_data.get('tags', [])
+            if tags:
+                archive.tags.add(*tags)
+            
+            messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
+            return redirect('archives:list')
+    else:
+        form = ArchiveForm()
     
-    context = {'categories': get_cached_categories()}
+    context = {
+        'form': form,
+        'categories': get_cached_categories()
+    }
     return render(request, 'archives/create.html', context)
 
 
 @login_required
 def archive_edit(request, pk):
     """Edit an existing archive."""
+    from .forms import ArchiveForm
+    import bleach
+    
     archive = get_object_or_404(Archive, pk=pk, uploaded_by=request.user)
     
     if request.method == 'POST':
-        import bleach
-        archive.title = request.POST.get('title', '').strip()
-        archive.description = bleach.clean(request.POST.get('description', '').strip(), strip=True)
-        archive.caption = request.POST.get('caption', '').strip()
-        archive.alt_text = request.POST.get('alt_text', '').strip()
-        archive.original_author = request.POST.get('original_author', '').strip()
-        archive.location = request.POST.get('location', '').strip()
-        archive.date_created = request.POST.get('date_created') or None
-        archive.circa_date = request.POST.get('circa_date', '').strip()
+        form = ArchiveForm(request.POST, request.FILES, instance=archive)
         
-        category_id = request.POST.get('category')
-        if category_id:
-            archive.category_id = category_id
-        else:
-            archive.category = None
-        
-        if 'image' in request.FILES:
-            archive.image = request.FILES['image']
-        if 'video' in request.FILES:
-            archive.video = request.FILES['video']
-        if 'audio' in request.FILES:
-            archive.audio = request.FILES['audio']
-        if 'document' in request.FILES:
-            archive.document = request.FILES['document']
-        if 'featured_image' in request.FILES:
-            archive.featured_image = request.FILES['featured_image']
-        
-        archive.save()
-        
-        tags_str = request.POST.get('tags', '')
-        archive.tags.clear()
-        if tags_str:
-            tag_list = [t.strip()[:50] for t in tags_str.split(',') if t.strip()][:20]
-            archive.tags.add(*tag_list)
-        
-        if archive.is_approved:
-            cache.delete('all_approved_archive_ids')
-        
-        messages.success(request, 'Archive updated successfully!')
-        return redirect('archives:detail', pk=archive.pk)
+        if form.is_valid():
+            archive = form.save(commit=False)
+            
+            # Clean description with bleach
+            archive.description = bleach.clean(archive.description, strip=True)
+            
+            # Call full_clean to validate file changes
+            try:
+                archive.full_clean()
+            except ValidationError as e:
+                for field, errors in e.message_dict.items():
+                    for error in errors:
+                        form.add_error(field, error)
+                context = {
+                    'form': form,
+                    'archive': archive,
+                    'categories': get_cached_categories(),
+                }
+                return render(request, 'archives/edit.html', context)
+            
+            archive.save()
+            
+            # Handle tags
+            tags = form.cleaned_data.get('tags', [])
+            archive.tags.clear()
+            if tags:
+                archive.tags.add(*tags)
+            
+            if archive.is_approved:
+                cache.delete('all_approved_archive_ids')
+            
+            messages.success(request, 'Archive updated successfully!')
+            return redirect('archives:detail', pk=archive.pk)
+    else:
+        # Initialize form with existing data
+        initial_tags = ', '.join([tag.name for tag in archive.tags.all()])
+        form = ArchiveForm(instance=archive, initial={'tags': initial_tags})
     
     context = {
+        'form': form,
         'archive': archive,
         'categories': get_cached_categories(),
     }

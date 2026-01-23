@@ -5,10 +5,20 @@ from django.conf import settings
 
 
 def pwa_settings(request):
-    """Expose PWA and push notification settings to templates."""
+    """Expose PWA, push notification, and Turnstile settings to templates."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     webpush_settings = getattr(settings, 'WEBPUSH_SETTINGS', {})
+    turnstile_site_key = getattr(settings, 'TURNSTILE_SITE_KEY', '')
+    
+    # Warn if Turnstile is not configured in production
+    if not turnstile_site_key and not settings.DEBUG:
+        logger.warning("TURNSTILE_SITE_KEY is not set. Turnstile widget will not appear.")
+    
     return {
         'VAPID_PUBLIC_KEY': webpush_settings.get('VAPID_PUBLIC_KEY', ''),
+        'turnstile_site_key': turnstile_site_key,
     }
 
 

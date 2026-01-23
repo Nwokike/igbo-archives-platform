@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}400 Bad Request - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto text-center py-16">
+    <h1 class="font-serif text-display-xl text-dark-brown mb-4">400</h1>
+    <p class="text-lg text-vintage-beaver mb-8">Bad Request</p>
+    <p class="text-dark-umber mb-8">The request you sent was invalid. Please try again.</p>
+    <a href="{% url 'core:home' %}" class="btn-primary">Go Home</a>
+</div>
+{% endblock %}

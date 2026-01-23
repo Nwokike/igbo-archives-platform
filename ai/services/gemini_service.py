@@ -1,7 +1,7 @@
 """
 Gemini AI Service for Igbo Archives.
 Handles image analysis, chat, and multimodal tasks with multi-key rotation.
-Uses Gemini 2.0 Flash (best free model).
+Uses Gemini 2.5 Flash (best free model).
 
 Migrated to google-genai SDK (2026).
 """
@@ -19,8 +19,8 @@ class GeminiService:
     """Service for interacting with Google Gemini API with key rotation."""
     
     # Frontier Gemini models (2026)
-    FLASH_MODEL = 'gemini-3.0-flash'  # Optimized for speed and quality
-    PRO_MODEL = 'gemini-3.0-pro'      # High-reasoning professional model
+    FLASH_MODEL = 'gemini-2.5-flash'  # Optimized for speed and quality
+    PRO_MODEL = 'gemini-2.5-pro'      # High-reasoning professional model
     
     def __init__(self):
         self._clients = {}  # Cache clients per key

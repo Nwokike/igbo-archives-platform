@@ -8,11 +8,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.text import slugify
 from .models import BookReview
 from core.validators import ALLOWED_BOOK_SORTS, get_safe_sort
+from core.editorjs_helpers import parse_editorjs_content, parse_tags, generate_unique_slug, get_workflow_flags
 
 
 def get_cached_book_tags():
@@ -178,21 +180,20 @@ def book_create(request):
             isbn=request.POST.get('isbn', '').strip()[:20],
             publisher=request.POST.get('publisher', '').strip(),
             publication_year=publication_year,
-            review_title=review_title,
+            review_title=review_title[:200],
             slug=slug,
             content_json=content_data,
             rating=rating,
             reviewer=request.user,
-            is_published=is_published,
-            is_approved=is_approved,
-            pending_approval=pending_approval,
-            submitted_at=submitted_at
+            **workflow_flags
         )
         
         if request.FILES.get('cover_image'):
             review.cover_image = request.FILES['cover_image']
         if request.FILES.get('cover_image_back'):
             review.cover_image_back = request.FILES['cover_image_back']
+        if request.FILES.get('alternate_cover'):
+            review.alternate_cover = request.FILES['alternate_cover']
         
         # Validate file uploads through model validators before saving
         from django.core.exceptions import ValidationError
@@ -242,9 +243,9 @@ def book_edit(request, slug):
         content_json = request.POST.get('content_json')
         if content_json:
             try:
-                review.content_json = json.loads(content_json) if isinstance(content_json, str) else content_json
-            except json.JSONDecodeError:
-                messages.error(request, 'Invalid content format. Please try again.')
+                review.content_json = parse_editorjs_content(content_json)
+            except ValidationError as e:
+                messages.error(request, str(e))
                 return render(request, 'books/edit.html', {
                     'review': review,
                     'initial_content': content_json
@@ -257,22 +258,34 @@ def book_edit(request, slug):
             pass
         
         action = request.POST.get('action')
+        # Publishing is purely admin-controlled via moderation workflow
+        # Users can only submit for approval, not self-publish
         if action == 'submit':
-            review.pending_approval = True
-            review.submitted_at = timezone.now()
-            review.is_published = False
-            review.is_approved = False
+            workflow_flags = get_workflow_flags(action, is_submit=True)
+            review.pending_approval = workflow_flags['pending_approval']
+            review.submitted_at = workflow_flags['submitted_at']
+            review.is_published = workflow_flags['is_published']
+            review.is_approved = workflow_flags['is_approved']
             messages.success(request, 'Your book review has been submitted for approval!')
         else:
+            # Save as draft - preserve existing approval status
+            # Only reset if it was previously published/approved and user is making changes
+            if review.is_published and review.is_approved:
+                # Changes to approved content require re-approval
+                review.pending_approval = True
+                review.is_published = False
+                review.is_approved = False
             messages.success(request, 'Your book review has been saved!')
         
         if request.FILES.get('cover_image'):
             review.cover_image = request.FILES['cover_image']
         if request.FILES.get('cover_image_back'):
             review.cover_image_back = request.FILES['cover_image_back']
+        if request.FILES.get('alternate_cover'):
+            review.alternate_cover = request.FILES['alternate_cover']
         
         review.tags.clear()
-        tags = [t.strip()[:50] for t in request.POST.get('tags', '').split(',') if t.strip()][:20]
+        tags = parse_tags(request.POST.get('tags', ''))
         if tags:
             review.tags.add(*tags)
         

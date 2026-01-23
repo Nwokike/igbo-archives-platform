@@ -30,21 +30,21 @@
     background-color: rgba(168, 155, 140, 0.5);
 }
 
-/* Logo visibility toggle - CORRECTED */
-.dark .logo-light {
-    display: block;
-}
-
+/* Logo visibility toggle */
 .dark .logo-dark {
-    display: none;
+    display: block !important;
 }
 
-html:not(.dark) .logo-dark {
-    display: block;
+.dark .logo-light {
+    display: none !important;
 }
 
 html:not(.dark) .logo-light {
-    display: none;
+    display: block !important;
+}
+
+html:not(.dark) .logo-dark {
+    display: none !important;
 }
 
 /* HTMX loading states */

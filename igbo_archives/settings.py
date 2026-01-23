@@ -18,7 +18,16 @@ if not SECRET_KEY:
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ADMINS = [('Admin', os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng'))]
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS configuration
+if DEBUG:
+    ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
+else:
+    # Production: use actual domains
+    allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'igboarchives.com.ng,www.igboarchives.com.ng')
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+    if not ALLOWED_HOSTS:
+        ALLOWED_HOSTS = ['igboarchives.com.ng', 'www.igboarchives.com.ng']
+
 CSRF_TRUSTED_ORIGINS = [f"https://{os.getenv('REPLIT_DEV_DOMAIN')}", "https://*.replit.dev"] if os.getenv('REPLIT_DEV_DOMAIN') else os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng').split(',')
 
 SITE_URL = os.getenv('SITE_URL', 'https://igboarchives.com.ng')
@@ -45,7 +54,7 @@ INSTALLED_APPS = [
     'django_htmx',
     'pwa',
     'meta',
-    'django_recaptcha',
+
     'dbbackup',
     'webpush',
     'huey.contrib.djhuey',
@@ -212,9 +221,9 @@ PWA_APP_DIR = 'ltr'
 PWA_APP_LANG = 'en-US'
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
 
-# reCAPTCHA - No fallback keys for security
-RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY', '')
-RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY', '')
+# Cloudflare Turnstile
+TURNSTILE_SITE_KEY = os.getenv('TURNSTILE_SITE_KEY', '')
+TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')
 
 # Web Push Notifications
 WEBPUSH_SETTINGS = {
@@ -327,7 +336,7 @@ from huey import SqliteHuey
 
 HUEY = SqliteHuey(
     filename=str(BASE_DIR / 'huey.db'),
-    immediate=DEBUG,
+    immediate=False,  # Must be False to run the consumer
     results=False,
     store_none=True,
     utc=True,
@@ -349,15 +358,15 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    
-    # Content Security Policy
-    CSP_DEFAULT_SRC = ("'self'",)
-    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
-    CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
-    CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
-    CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", "https://api.indexnow.org")
-    CSP_FRAME_SRC = ("'self'", "https://www.google.com")
+
+# Content Security Policy (applies in all environments since CSP middleware is always active)
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com", "https://challenges.cloudflare.com")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
+CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
+CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
+CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", "https://api.indexnow.org")
+CSP_FRAME_SRC = ("'self'", "https://challenges.cloudflare.com")
 
 # Logging
 LOGGING = {

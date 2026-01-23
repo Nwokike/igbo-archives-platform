@@ -87,23 +87,45 @@
 
         <div class="card">
             <div class="card-header">
-                <h2 class="font-serif text-lg font-semibold">Book Cover</h2>
+                <h2 class="font-serif text-lg font-semibold">Book Covers</h2>
             </div>
             <div class="card-body space-y-4">
-                {% if review.cover_image %}
-                <div class="form-group">
-                    <label class="form-label">Current Cover</label>
-                    <div class="inline-block border-2 border-sepia-pale rounded-lg p-2">
-                        <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}"
-                            class="max-w-[150px] h-auto rounded">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label for="cover_image" class="form-label">Front Cover</label>
+                        {% if review.cover_image %}
+                        <div class="mb-2">
+                            <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}"
+                                class="max-w-[150px] h-auto rounded border-2 border-sepia-pale p-1">
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-input" id="cover_image" name="cover_image" accept="image/*">
+                        <p class="form-help">Leave empty to keep current (Max 5MB)</p>
                     </div>
-                </div>
-                {% endif %}
 
-                <div class="form-group">
-                    <label for="cover_image" class="form-label">Upload New Cover</label>
-                    <input type="file" class="form-input" id="cover_image" name="cover_image" accept="image/*">
-                    <p class="form-help">Leave empty to keep current image (Max 5MB)</p>
+                    <div class="form-group">
+                        <label for="cover_image_back" class="form-label">Back Cover</label>
+                        {% if review.cover_image_back %}
+                        <div class="mb-2">
+                            <img src="{{ review.cover_image_back.url }}" alt="{{ review.book_title }} back"
+                                class="max-w-[150px] h-auto rounded border-2 border-sepia-pale p-1">
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-input" id="cover_image_back" name="cover_image_back" accept="image/*">
+                        <p class="form-help">Leave empty to keep current (Max 5MB)</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="alternate_cover" class="form-label">Alternate Edition</label>
+                        {% if review.alternate_cover %}
+                        <div class="mb-2">
+                            <img src="{{ review.alternate_cover.url }}" alt="{{ review.book_title }} alternate"
+                                class="max-w-[150px] h-auto rounded border-2 border-sepia-pale p-1">
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-input" id="alternate_cover" name="alternate_cover" accept="image/*">
+                        <p class="form-help">Leave empty to keep current (Max 5MB)</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,14 +137,19 @@
                 placeholder="Enter tags separated by commas">
         </div>
 
-        <div class="form-group">
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" class="form-checkbox" id="is_published" name="is_published" {% if
-                    review.is_published %}checked{% endif %}>
-                <span class="text-sm font-medium text-dark-brown">Published</span>
-            </label>
-            <p class="form-help ml-8">Check to make this review publicly visible</p>
+        {% if review.is_published and review.is_approved %}
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle"></i> This review is published and visible to the public.
         </div>
+        {% elif review.pending_approval %}
+        <div class="alert alert-warning mb-4">
+            <i class="fas fa-clock"></i> This review is pending approval by moderators.
+        </div>
+        {% else %}
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-edit"></i> This is a draft. Use "Submit for Approval" to request publication.
+        </div>
+        {% endif %}
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4">
             <button type="submit" class="btn-primary btn-lg flex-1">

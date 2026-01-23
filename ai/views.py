@@ -102,8 +102,9 @@ def chat_send(request):
     history = session.messages.order_by('-created_at')[:10]
     messages = [{'role': m.role, 'content': m.content} for m in reversed(history)]
     
-    # Get AI response
-    result = chat_service.chat(messages, use_web_search=True)
+    # Get AI response with mode preference
+    use_fast = (mode == 'fast')
+    result = chat_service.chat(messages, use_web_search=True, use_fast=use_fast)
     
     # Save AI response
     ai_message = ChatMessage.objects.create(

@@ -9,9 +9,6 @@
         <div class="card overflow-hidden">
             <!-- Cover Photo / Header Gradient -->
             <div class="h-32 bg-gradient-to-r from-accent/20 to-accent/5 relative">
-                {% if profile_user.cover_photo %}
-                <img src="{{ profile_user.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
-                {% endif %}
             </div>
 
             <div class="card-body -mt-12 relative">
@@ -51,20 +48,13 @@
                     </button>
                 </div>
 
-                <!-- Metadata (Location, Website, Joined) -->
+                <!-- Metadata (Website, Joined) -->
                 <div class="space-y-3 text-sm text-text-muted mb-6">
-                    {% if profile_user.location %}
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-map-marker-alt w-4 text-center"></i>
-                        <span>{{ profile_user.location }}</span>
-                    </div>
-                    {% endif %}
-
-                    {% if profile_user.website %}
+                    {% if profile_user.social_links.website %}
                     <div class="flex items-center gap-2">
                         <i class="fas fa-globe w-4 text-center"></i>
-                        <a href="{{ profile_user.website }}" target="_blank" rel="noopener"
-                            class="text-accent hover:underline">{{ profile_user.website|truncatechars:30 }}</a>
+                        <a href="{{ profile_user.social_links.website }}" target="_blank" rel="noopener"
+                            class="text-accent hover:underline">{{ profile_user.social_links.website|truncatechars:30 }}</a>
                     </div>
                     {% endif %}
 

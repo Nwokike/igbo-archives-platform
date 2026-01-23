@@ -2,24 +2,21 @@ from django import forms
 from django.core.exceptions import ValidationError
 from threadedcomments.forms import ThreadedCommentForm
 from django.conf import settings
-
-# Only import reCAPTCHA if keys are configured
-if getattr(settings, 'RECAPTCHA_PUBLIC_KEY', '') and getattr(settings, 'RECAPTCHA_PRIVATE_KEY', ''):
-    from django_recaptcha.fields import ReCaptchaField
-    from django_recaptcha.widgets import ReCaptchaV2Checkbox
-    RECAPTCHA_ENABLED = True
-else:
-    RECAPTCHA_ENABLED = False
+from .turnstile import verify_turnstile
 
 
-class CaptchaThreadedCommentForm(ThreadedCommentForm):
-    """Custom threaded comment form with reCAPTCHA for anonymous users only"""
+class TurnstileCommentForm(ThreadedCommentForm):
+    """Comment form with Cloudflare Turnstile for ALL users."""
     
-    # Add CAPTCHA field (not required - will validate based on user authentication)
-    if RECAPTCHA_ENABLED:
-        captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox(), required=False)
+    # Hidden field to receive the Turnstile token
+    cf_turnstile_response = forms.CharField(
+        widget=forms.HiddenInput(),
+        required=False
+    )
     
     def __init__(self, *args, **kwargs):
+        # Extract request from kwargs if passed
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         
         # Style the existing fields
@@ -31,50 +28,55 @@ class CaptchaThreadedCommentForm(ThreadedCommentForm):
         self.fields['comment'].widget.attrs.update({'class': 'modern-comment-input', 'rows': 3, 'placeholder': 'Share your thoughts...'})
         self.fields['comment'].label = 'Comment'
     
-    def clean_captcha(self):
-        """Validate CAPTCHA only for anonymous users"""
-
+    def clean(self):
+        cleaned_data = super().clean()
         
-        # If user is authenticated (has user attribute and is logged in), skip CAPTCHA validation
-        if hasattr(self, 'user') and self.user and self.user.is_authenticated:
-            return None
+        # Get Turnstile token from form data
+        token = cleaned_data.get('cf_turnstile_response') or self.data.get('cf-turnstile-response', '')
         
-        # For anonymous users, CAPTCHA is required
-        captcha_value = self.cleaned_data.get('captcha')
-        if not captcha_value:
-            raise ValidationError('Please complete the CAPTCHA verification.')
+        # Get client IP
+        remote_ip = None
+        if self.request:
+            remote_ip = self.request.META.get('HTTP_CF_CONNECTING_IP') or \
+                       self.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
+                       self.request.META.get('REMOTE_ADDR')
         
-        return captcha_value
+        # Verify with Cloudflare
+        result = verify_turnstile(token, remote_ip)
+        if not result.get('success'):
+            raise ValidationError('Please complete the verification challenge.')
+        
+        return cleaned_data
 
 
 class ContactForm(forms.Form):
-    """Contact form with proper validation and honeypot protection."""
+    """Contact form with proper validation, honeypot protection, and Turnstile."""
     
     name = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Your name'
         })
     )
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Your email address'
         })
     )
     subject = forms.CharField(
         max_length=200,
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Subject'
         })
     )
     message = forms.CharField(
         max_length=5000,
         widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 5,
+            'class': 'form-textarea',
+            'rows': 6,
             'placeholder': 'Your message'
         })
     )
@@ -83,10 +85,20 @@ class ContactForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'hidden',
+            'style': 'display: none;',
             'autocomplete': 'off',
             'tabindex': '-1'
         })
     )
+    # Hidden field for Turnstile token
+    cf_turnstile_response = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
     
     def clean_website(self):
         """Honeypot validation - reject if filled"""
@@ -101,3 +113,24 @@ class ContactForm(forms.Form):
         if len(message) < 10:
             raise ValidationError('Message is too short.')
         return message
+    
+    def clean(self):
+        """Validate Turnstile token"""
+        cleaned_data = super().clean()
+        
+        # Get Turnstile token from form data
+        token = cleaned_data.get('cf_turnstile_response') or self.data.get('cf-turnstile-response', '')
+        
+        # Get client IP
+        remote_ip = None
+        if self.request:
+            remote_ip = self.request.META.get('HTTP_CF_CONNECTING_IP') or \
+                       self.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
+                       self.request.META.get('REMOTE_ADDR')
+        
+        # Verify with Cloudflare
+        result = verify_turnstile(token, remote_ip)
+        if not result.get('success'):
+            raise ValidationError('Please complete the security verification.')
+        
+        return cleaned_data

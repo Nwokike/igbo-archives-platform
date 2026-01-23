@@ -27,27 +27,41 @@ def get_all_approved_archive_ids():
     return archive_ids
 
 
-def get_random_featured_archives():
+def get_random_featured_archives(max_count=50):
     """Memory-efficient random archive selection for homepage carousel.
     
-    Returns ALL approved image archives in random order for infinite scrolling carousel.
+    Returns up to max_count approved image archives in random order for carousel.
     Uses cached IDs shuffled on each page load for true randomness.
+    Limits memory usage for 1GB VM constraint.
     """
     archive_ids = list(get_all_approved_archive_ids())
     
     if not archive_ids:
         return Archive.objects.none()
     
-    # Shuffle the IDs for random order
-    random.shuffle(archive_ids)
+    # Filter to image archives only
+    image_ids = [
+        aid for aid in archive_ids
+        if Archive.objects.filter(pk=aid, archive_type='image').exists()
+    ]
     
-    # Return all shuffled archives with optimized query
-    # Note: Using pk__in preserves the shuffled order in some DBs but not SQLite
-    # For guaranteed randomness, we shuffle the queryset result
+    if not image_ids:
+        return Archive.objects.none()
+    
+    # Limit to max_count for memory efficiency
+    if len(image_ids) > max_count:
+        random.shuffle(image_ids)
+        image_ids = image_ids[:max_count]
+    else:
+        random.shuffle(image_ids)
+    
+    # Fetch archives with optimized query
     archives = list(Archive.objects.filter(
-        pk__in=archive_ids,
-        archive_type='image'  # Only images for carousel
+        pk__in=image_ids,
+        archive_type='image'
     ).select_related('category', 'uploaded_by'))
+    
+    # Shuffle again for final randomness
     random.shuffle(archives)
     return archives
 
@@ -80,7 +94,8 @@ def contact(request):
     from .forms import ContactForm
     
     if request.method == 'POST':
-        form = ContactForm(request.POST)
+        form = ContactForm(request.POST, request=request)
+        
         if form.is_valid():
             name = form.cleaned_data['name']
             email = form.cleaned_data['email']
@@ -112,11 +127,9 @@ Message:
             else:
                 messages.info(request, f'Email not configured. Your message: "{subject}" from {email} has been logged.')
             
-            return render(request, 'core/pages/contact.html', {'form': ContactForm()})
-        else:
-            return render(request, 'core/pages/contact.html', {'form': form})
+            form = ContactForm(request=request)
     else:
-        form = ContactForm()
+        form = ContactForm(request=request)
     
     return render(request, 'core/pages/contact.html', {'form': form})
 
@@ -134,3 +147,33 @@ def donate(request):
 def offline(request):
     """Offline fallback page for PWA"""
     return render(request, 'offline.html')
+
+
+def health_check(request):
+    """Simple health check endpoint for deployment verification."""
+    return render(request, 'core/health.html', status=200)
+
+
+def bad_request_handler(request, exception):
+    """400 Bad Request handler."""
+    return render(request, '400.html', status=400)
+
+
+def permission_denied_handler(request, exception):
+    """403 Forbidden handler."""
+    return render(request, '403.html', status=403)
+
+
+def page_not_found_handler(request, exception):
+    """404 Not Found handler."""
+    return render(request, '404.html', status=404)
+
+
+def server_error_handler(request):
+    """500 Internal Server Error handler."""
+    return render(request, '500.html', status=500)
+
+
+def health_check(request):
+    """Simple health check endpoint for deployment verification."""
+    return render(request, 'core/health.html', status=200)

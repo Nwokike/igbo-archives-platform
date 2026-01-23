@@ -109,12 +109,12 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form method="post" action="{% url 'insights:suggest_edit' insight.slug %}">
+        <form method="post" action="{% url 'insights:suggest_edit' insight.slug %}" id="suggestEditForm">
             {% csrf_token %}
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="suggestion" class="form-label">Your Suggestion</label>
-                    <textarea class="form-textarea" id="suggestion" name="suggestion" rows="5" required placeholder="Describe what should be changed or corrected..."></textarea>
+                    <label for="suggestion_text" class="form-label">Your Suggestion</label>
+                    <textarea class="form-textarea" id="suggestion_text" name="suggestion_text" rows="5" required placeholder="Describe what should be changed or corrected..."></textarea>
                     <p class="form-help">Describe what should be changed or corrected.</p>
                 </div>
             </div>

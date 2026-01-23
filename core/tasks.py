@@ -179,6 +179,65 @@ def cleanup_tts_files():
         return False
 
 
+@periodic_task(crontab(day='1', hour='4', minute='0'))
+def cleanup_old_notifications():
+    """Archive or delete read notifications older than 18 months to keep DB lean."""
+    try:
+        from users.models import Notification
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        cutoff = timezone.now() - timedelta(days=540)  # 18 months
+        
+        # Delete read notifications older than cutoff
+        deleted_count, _ = Notification.objects.filter(
+            unread=False,
+            timestamp__lt=cutoff
+        ).delete()
+        
+        logger.info(f"Notification cleanup: {deleted_count} old read notifications deleted")
+        return True
+    except Exception as e:
+        logger.error(f"Notification cleanup failed: {e}")
+        return False
+
+
+@periodic_task(crontab(day='1', hour='4', minute='30'))
+def cleanup_old_messages():
+    """Archive very old message threads to keep messaging DB lean.
+    
+    Note: This is a conservative cleanup - only threads with no activity
+    for 2+ years and all messages read. Users should be able to access
+    recent conversations.
+    """
+    try:
+        from users.models import Thread, Message
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        cutoff = timezone.now() - timedelta(days=730)  # 2 years
+        
+        # Find threads with no activity for 2+ years where all messages are read
+        old_threads = Thread.objects.filter(
+            updated_at__lt=cutoff
+        ).prefetch_related('messages')
+        
+        deleted_count = 0
+        for thread in old_threads:
+            # Check if all messages are read
+            unread_count = thread.messages.filter(is_read=False).count()
+            if unread_count == 0:
+                # All messages read, safe to delete
+                thread.delete()
+                deleted_count += 1
+        
+        logger.info(f"Message cleanup: {deleted_count} old threads deleted")
+        return True
+    except Exception as e:
+        logger.error(f"Message cleanup failed: {e}")
+        return False
+
+
 @periodic_task(crontab(hour='*/6'))
 def clear_expired_cache():
     """Clear expired cache entries every 6 hours.

@@ -5,37 +5,82 @@
 {% block content %}
 <div class="max-w-2xl mx-auto">
     <h1 class="font-serif text-display-xl text-dark-brown mb-4">Contact Us</h1>
-    <p class="text-lg text-vintage-beaver mb-8">We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
-    
+    <p class="text-lg text-vintage-beaver mb-8">We'd love to hear from you. Send us a message and we'll respond as soon
+        as possible.</p>
+
     <div class="card mb-8">
         <div class="card-body p-6">
             <form method="post" action="{% url 'core:contact' %}" class="space-y-5">
                 {% csrf_token %}
-                <div class="form-group">
-                    <label for="name" class="form-label">Your Name</label>
-                    <input type="text" class="form-input" id="name" name="name" required>
-                </div>
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error mb-4">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 
                 <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
-                    <input type="email" class="form-input" id="email" name="email" required>
+                    <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.name.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="subject" class="form-label">Subject</label>
-                    <input type="text" class="form-input" id="subject" name="subject" required>
+                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.email.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="message" class="form-label">Message</label>
-                    <textarea class="form-textarea" id="message" name="message" rows="6" required></textarea>
+                    <label for="{{ form.subject.id_for_label }}" class="form-label">{{ form.subject.label }}</label>
+                    {{ form.subject }}
+                    {% if form.subject.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.subject.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                
+
+                <div class="form-group">
+                    <label for="{{ form.message.id_for_label }}" class="form-label">{{ form.message.label }}</label>
+                    {{ form.message }}
+                    {% if form.message.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.message.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Honeypot field (hidden) -->
+                {{ form.website }}
+
+                <!-- Cloudflare Turnstile -->
+                {% if turnstile_site_key %}
+                    <div class="turnstile-wrapper">
+                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                        <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
+                    </div>
+                {% else %}
+                    <div class="text-yellow-600 text-sm mb-4">
+                        Security verification is not configured. Please contact the administrator.
+                    </div>
+                {% endif %}
+
                 <button type="submit" class="btn-primary btn-lg">Send Message</button>
             </form>
         </div>
     </div>
-    
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
             <h3 class="font-serif text-xl font-semibold text-dark-brown mb-4">Other Ways to Reach Us</h3>
@@ -44,14 +89,15 @@
                 <li><i class="fab fa-twitter text-vintage-gold mr-2"></i> @IgboArchives</li>
             </ul>
         </div>
-        
+
         <div>
             <h3 class="font-serif text-xl font-semibold text-dark-brown mb-4">Frequently Asked Questions</h3>
             <p class="text-dark-umber mb-3">Before reaching out, you might find answers in our:</p>
             <ul class="space-y-2">
                 <li><a href="{% url 'core:privacy' %}" class="text-vintage-gold hover:underline">Privacy Policy</a></li>
                 <li><a href="{% url 'core:terms' %}" class="text-vintage-gold hover:underline">Terms of Service</a></li>
-                <li><a href="{% url 'core:copyright' %}" class="text-vintage-gold hover:underline">Copyright Policy</a></li>
+                <li><a href="{% url 'core:copyright' %}" class="text-vintage-gold hover:underline">Copyright Policy</a>
+                </li>
             </ul>
         </div>
     </div>

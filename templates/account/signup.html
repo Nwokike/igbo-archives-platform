@@ -81,14 +81,12 @@
                         {% endif %}
                     </div>
 
-                    {% if form.captcha %}
-                    <div>
-                        {{ form.captcha }}
-                        {% if form.captcha.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.captcha.errors|join:", " }}</p>
-                        {% endif %}
+
+                    <!-- Cloudflare Turnstile -->
+                    <div class="turnstile-wrapper">
+                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                        <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
                     </div>
-                    {% endif %}
 
                     <button type="submit" class="btn-primary btn-lg w-full">
                         <i class="fas fa-user-plus"></i> Create Account

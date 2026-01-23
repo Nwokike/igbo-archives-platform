@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
+from django.views.defaults import page_not_found, server_error, bad_request, permission_denied
 from core.sitemaps import StaticPagesSitemap, ArchiveSitemap, InsightSitemap, BookSitemap, UserProfileSitemap
 
 sitemaps = {
@@ -28,6 +29,12 @@ urlpatterns = [
     path('webpush/', include(('webpush.urls', 'webpush'), namespace='webpush')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
+
+# Error handlers
+handler400 = 'core.views.bad_request_handler'
+handler403 = 'core.views.permission_denied_handler'
+handler404 = 'core.views.page_not_found_handler'
+handler500 = 'core.views.server_error_handler'
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

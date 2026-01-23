@@ -6,8 +6,8 @@
     <div class="max-h-[350px] overflow-y-auto">
         {% if notifications %}
             {% for notification in notifications %}
-            <a href="{% if notification.action_object %}{{ notification.action_object.get_absolute_url }}{% else %}{% url 'users:notifications' %}{% endif %}" 
-               class="flex items-start gap-3 p-3 border-b border-border hover:bg-surface-alt transition-colors {% if not notification.is_read %}bg-accent/5 border-l-4 border-l-accent{% endif %}"
+            <a href="{% if notification.target %}{{ notification.target.get_absolute_url }}{% else %}{% url 'users:notifications' %}{% endif %}" 
+               class="flex items-start gap-3 p-3 border-b border-border hover:bg-surface-alt transition-colors {% if notification.unread %}bg-accent/5 border-l-4 border-l-accent{% endif %}"
                id="notification-{{ notification.id }}">
                 <div class="flex-shrink-0 mt-1">
                     {% if 'approved' in notification.verb|lower %}
@@ -23,10 +23,10 @@
                     {% endif %}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs text-text line-clamp-2">{{ notification.message|default:notification.verb }}</p>
+                    <p class="text-xs text-text line-clamp-2">{{ notification.description|default:notification.verb }}</p>
                     <div class="flex justify-between items-center mt-1">
-                        <span class="text-[10px] text-text-muted">{{ notification.created_at|timesince }} ago</span>
-                        {% if not notification.is_read %}
+                        <span class="text-[10px] text-text-muted">{{ notification.timestamp|timesince }} ago</span>
+                        {% if notification.unread %}
                         <button onclick="event.preventDefault(); markNotificationRead('{{ notification.id }}')" class="text-[10px] text-accent hover:underline">Mark read</button>
                         {% endif %}
                     </div>

@@ -341,24 +341,26 @@
 
     {% block extra_js %}{% endblock %}
 
-    <!-- Push Notification Prompt -->
+    {% if user.is_authenticated %}
+    <!-- Push Notification Prompt --
+>
     <div id="push-notification-prompt"
-        class="fixed bottom-24 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 card p-5 hidden animate-fade-in">
-        <div class="flex items-start gap-4 mb-4">
-            <div class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-bell text-xl text-accent"></i>
+        class="fixed bottom-24 lg:bottom-6 right-4 z-50 card p-3 sm:p-4 hidden animate-fade-in shadow-lg max-w-xs sm:max-w-sm">
+        <div class="flex items-start gap-2 sm:gap-3 mb-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-bell text-sm sm:text-base text-accent"></i>
             </div>
-            <div>
-                <h4 class="font-serif font-semibold mb-1">Stay Connected in Real-Time</h4>
-                <p class="text-sm text-text-muted">Receive instant notifications for messages and interactions with
-                    your posts. You're in control and can manage these settings anytime.</p>
+            <div class="flex-1 min-w-0">
+                <h4 class="font-serif font-semibold text-sm sm:text-base mb-0.5">Get Notifications</h4>
+                <p class="text-xs sm:text-sm text-text-muted line-clamp-2">Stay updated with instant alerts for messages and post interactions.</p>
             </div>
         </div>
-        <div class="flex items-center justify-end gap-3">
-            <button id="push-prompt-dismiss" class="btn-secondary btn-sm">Not Now</button>
-            <button id="push-prompt-accept" class="btn-primary btn-sm">I Understand</button>
+        <div class="flex items-center justify-end gap-2">
+            <button id="push-prompt-dismiss" class="btn-secondary btn-sm text-xs px-2 py-1">Not Now</button>
+            <button id="push-prompt-accept" class="btn-primary btn-sm text-xs px-2 py-1">Enable</button>
         </div>
     </div>
+    {% endif %}
 </body>
 
 </html>

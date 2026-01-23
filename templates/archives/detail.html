@@ -61,7 +61,7 @@
         {% endif %}
 
         <div class="prose prose-lg max-w-none mb-8">
-            {{ archive.description|safe }}
+            <p class="whitespace-pre-wrap">{{ archive.description }}</p>
         </div>
 
         {% if archive.tags.all %}
@@ -173,21 +173,26 @@
                 </div>
             </div>
 
-            {% if archive.source or archive.date_taken %}
+            {% if archive.original_author or archive.circa_date or archive.date_created %}
             <div class="card">
                 <div class="card-body">
                     <h4 class="font-serif font-semibold mb-3">Archive Details</h4>
                     <dl class="space-y-2 text-sm">
-                        {% if archive.source %}
+                        {% if archive.original_author %}
                         <div>
-                            <dt class="font-medium">Source:</dt>
-                            <dd class="text-text-muted">{{ archive.source }}</dd>
+                            <dt class="font-medium">Original Author:</dt>
+                            <dd class="text-text-muted">{{ archive.original_author }}</dd>
                         </div>
                         {% endif %}
-                        {% if archive.date_taken %}
+                        {% if archive.circa_date %}
                         <div>
-                            <dt class="font-medium">Date:</dt>
-                            <dd class="text-text-muted">{{ archive.date_taken }}</dd>
+                            <dt class="font-medium">Circa Date:</dt>
+                            <dd class="text-text-muted">{{ archive.circa_date }}</dd>
+                        </div>
+                        {% elif archive.date_created %}
+                        <div>
+                            <dt class="font-medium">Date Created:</dt>
+                            <dd class="text-text-muted">{{ archive.date_created|date:"F d, Y" }}</dd>
                         </div>
                         {% endif %}
                     </dl>

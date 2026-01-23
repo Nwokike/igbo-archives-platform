@@ -1,16 +1,10 @@
 from allauth.account.forms import SignupForm, LoginForm
 from django import forms
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from .models import CustomUser
+from core.turnstile import verify_turnstile
 import re
-
-# Only import reCAPTCHA if keys are configured
-if getattr(settings, 'RECAPTCHA_PUBLIC_KEY', '') and getattr(settings, 'RECAPTCHA_PRIVATE_KEY', ''):
-    from django_recaptcha.fields import ReCaptchaField
-    from django_recaptcha.widgets import ReCaptchaV2Checkbox
-    RECAPTCHA_ENABLED = True
-else:
-    RECAPTCHA_ENABLED = False
 
 
 class CustomSignupForm(SignupForm):
@@ -31,13 +25,10 @@ class CustomSignupForm(SignupForm):
     )
     
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         if 'username' in self.fields:
             del self.fields['username']
-        
-        # Add reCAPTCHA field only if keys are configured
-        if RECAPTCHA_ENABLED:
-            self.fields['captcha'] = ReCaptchaField(widget=ReCaptchaV2Checkbox())
         
         self.fields['email'].widget.attrs.update({
             'class': 'form-control',
@@ -51,6 +42,15 @@ class CustomSignupForm(SignupForm):
             'class': 'form-control',
             'placeholder': 'Confirm your password'
         })
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        # Validate Turnstile
+        token = self.data.get('cf-turnstile-response', '')
+        result = verify_turnstile(token)
+        if not result.get('success'):
+            raise ValidationError('Please complete the security verification.')
+        return cleaned_data
     
     def save(self, request):
         email = self.cleaned_data['email']
@@ -74,11 +74,14 @@ class CustomSignupForm(SignupForm):
 
 class CustomLoginForm(LoginForm):
     def __init__(self, *args, **kwargs):
+        # Extract request from args if present (allauth passes it as first arg)
+        # Otherwise fall back to kwargs for compatibility
+        if args and hasattr(args[0], 'META'):
+            self.request = args[0]
+            args = args[1:]
+        else:
+            self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        
-        # Add reCAPTCHA field only if keys are configured
-        if RECAPTCHA_ENABLED:
-            self.fields['captcha'] = ReCaptchaField(widget=ReCaptchaV2Checkbox())
         
         self.fields['login'].widget.attrs.update({
             'class': 'form-control',
@@ -89,6 +92,15 @@ class CustomLoginForm(LoginForm):
             'class': 'form-control',
             'placeholder': 'Enter your password'
         })
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        # Validate Turnstile
+        token = self.data.get('cf-turnstile-response', '')
+        result = verify_turnstile(token)
+        if not result.get('success'):
+            raise ValidationError('Please complete the security verification.')
+        return cleaned_data
 
 
 class ProfileEditForm(forms.ModelForm):

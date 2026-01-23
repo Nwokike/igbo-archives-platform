@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.text import slugify
@@ -164,10 +165,12 @@ def insight_create(request):
             }
             return render(request, 'insights/create.html', context)
         
+        from core.editorjs_helpers import parse_editorjs_content, parse_tags, generate_unique_slug, get_workflow_flags
+        
         try:
-            content_data = json.loads(content_json) if isinstance(content_json, str) else content_json
-        except json.JSONDecodeError:
-            messages.error(request, 'Invalid content format. Please try again.')
+            content_data = parse_editorjs_content(content_json)
+        except ValidationError as e:
+            messages.error(request, str(e))
             context = {
                 'archive_title': archive_title,
                 'initial_title': title,
@@ -176,45 +179,28 @@ def insight_create(request):
             }
             return render(request, 'insights/create.html', context)
         
-        base_slug = slugify(title)[:200]
-        slug = base_slug
-        counter = 1
-        while InsightPost.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-            if counter > 100:
-                slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
-                break
-        
-        is_published = False
-        is_approved = False
-        pending_approval = False
-        submitted_at = None
+        slug = generate_unique_slug(title, InsightPost)
+        workflow_flags = get_workflow_flags(action, is_submit=(action == 'submit'))
         
         if action == 'submit':
-            pending_approval = True
-            submitted_at = timezone.now()
             messages.success(request, 'Your insight has been submitted for approval!')
         else:
             messages.success(request, 'Your insight has been saved as a draft!')
         
         insight = InsightPost.objects.create(
-            title=title,
+            title=title[:200],
             slug=slug,
             content_json=content_data,
-            excerpt=excerpt,
+            excerpt=excerpt[:500] if excerpt else '',
             author=request.user,
-            is_published=is_published,
-            is_approved=is_approved,
-            pending_approval=pending_approval,
-            submitted_at=submitted_at
+            **workflow_flags
         )
         
         if request.FILES.get('featured_image'):
             insight.featured_image = request.FILES['featured_image']
             insight.alt_text = request.POST.get('alt_text', '')
         
-        tags = [t.strip()[:50] for t in request.POST.get('tags', '').split(',') if t.strip()][:20]
+        tags = parse_tags(request.POST.get('tags', ''))
         if tags:
             insight.tags.add(*tags)
         
@@ -254,6 +240,8 @@ def insight_edit(request, slug):
         
         action = request.POST.get('action')
         
+        # Publishing is purely admin-controlled via moderation workflow
+        # Users can only submit for approval, not self-publish
         if action == 'submit':
             insight.pending_approval = True
             insight.submitted_at = timezone.now()
@@ -261,6 +249,13 @@ def insight_edit(request, slug):
             insight.is_approved = False
             messages.success(request, 'Your insight has been submitted for approval!')
         else:
+            # Save as draft - preserve existing approval status
+            # Only reset if it was previously published/approved and user is making changes
+            if insight.is_published and insight.is_approved:
+                # Changes to approved content require re-approval
+                insight.pending_approval = True
+                insight.is_published = False
+                insight.is_approved = False
             messages.success(request, 'Your insight has been saved!')
         
         if request.FILES.get('featured_image'):
@@ -300,11 +295,11 @@ def suggest_edit(request, slug):
         return redirect('insights:detail', slug=slug)
     
     if request.method == 'POST':
-        suggestion_text = request.POST.get('suggestion', '').strip()
+        suggestion_text = request.POST.get('suggestion_text', request.POST.get('suggestion', '')).strip()
         
         if not suggestion_text:
             messages.error(request, 'Please provide a suggestion.')
-            return render(request, 'insights/suggest_edit.html', {'insight': insight})
+            return render(request, 'insights/suggest_edit.html', {'post': insight, 'insight': insight})
         
         suggestion = EditSuggestion.objects.create(
             post=insight,
@@ -319,4 +314,4 @@ def suggest_edit(request, slug):
         messages.success(request, 'Thank you! Your edit suggestion has been sent to the author.')
         return redirect('insights:detail', slug=slug)
     
-    return render(request, 'insights/suggest_edit.html', {'insight': insight})
+    return render(request, 'insights/suggest_edit.html', {'post': insight, 'insight': insight})

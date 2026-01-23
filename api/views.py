@@ -142,7 +142,8 @@ def upload_image(request):
 @login_required
 def notification_list_api(request):
     """Return top 5 unread notifications for the dropdown."""
-    notifications = request.user.notifications.all().order_by('-created_at')[:5]
+    from django.shortcuts import render
+    notifications = request.user.notifications.filter(unread=True).order_by('-timestamp')[:5]
     return render(request, 'users/partials/notification_dropdown.html', {
         'notifications': notifications
     })

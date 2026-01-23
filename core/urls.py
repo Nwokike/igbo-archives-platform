@@ -15,6 +15,7 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('donate/', views.donate, name='donate'),
     path('offline/', views.offline, name='offline'),
+    path('health/', views.health_check, name='health'),
 ]
 
 

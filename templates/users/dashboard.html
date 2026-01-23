@@ -71,7 +71,7 @@
             </a>
             {% endfor %}
         </div>
-        {% else %}
+        {% empty %}
         <div class="text-center py-12 text-text-muted">
             <i class="fas fa-envelope text-4xl mb-4 opacity-30"></i>
             <p>No messages yet.</p>
@@ -111,7 +111,7 @@
             </div>
             {% endfor %}
         </div>
-        {% else %}
+        {% empty %}
         <div class="text-center py-12 text-text-muted">
             <i class="fas fa-lightbulb text-4xl mb-4 opacity-30"></i>
             <p class="mb-4">You haven't created any insights yet.</p>
@@ -142,7 +142,7 @@
             </div>
             {% endfor %}
         </div>
-        {% else %}
+        {% empty %}
         <div class="text-center py-12 text-text-muted">
             <i class="fas fa-edit text-4xl mb-4 opacity-30"></i>
             <p>No drafts saved.</p>
@@ -181,7 +181,7 @@
             </div>
             {% endfor %}
         </div>
-        {% else %}
+        {% empty %}
         <div class="text-center py-12 text-text-muted">
             <i class="fas fa-book text-4xl mb-4 opacity-30"></i>
             <p class="mb-4">You haven't written any book reviews yet.</p>
@@ -213,7 +213,7 @@
             </a>
             {% endfor %}
         </div>
-        {% else %}
+        {% empty %}
         <div class="text-center py-12 text-text-muted">
             <i class="fas fa-archive text-4xl mb-4 opacity-30"></i>
             <p class="mb-4">You haven't contributed any archives yet.</p>

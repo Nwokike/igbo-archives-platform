@@ -123,7 +123,7 @@ class ChatService:
     
     MODELS = {
         'groq': 'llama-3.3-70b-versatile',
-        'gemini': 'gemini-3.0-flash',
+        'gemini': 'gemini-2.5-flash',
     }
     
     STT_MODEL = 'whisper-large-v3'
@@ -163,9 +163,14 @@ class ChatService:
     def is_available(self):
         return key_manager.has_groq or key_manager.has_gemini
     
-    def chat(self, messages: list, use_web_search: bool = True) -> dict:
+    def chat(self, messages: list, use_web_search: bool = True, use_fast: bool = True) -> dict:
         """
         Send a chat message with database and web grounding.
+        
+        Args:
+            messages: List of message dicts with 'role' and 'content'
+            use_web_search: Whether to use web search for context
+            use_fast: If True, prefer Groq (faster); if False, prefer Gemini (more advanced)
         """
         if not self.is_available:
             return {
@@ -196,16 +201,29 @@ class ChatService:
         
         grounded_context = "\n\n".join(context_parts) if context_parts else ""
         
-        # Try Groq first, then Gemini
-        if key_manager.has_groq:
-            result = self._groq_chat(messages, grounded_context)
-            if result['success']:
-                return result
-        
-        if key_manager.has_gemini:
-            result = self._gemini_chat(messages, grounded_context)
-            if result['success']:
-                return result
+        # Choose provider based on mode preference
+        if use_fast:
+            # Fast mode: Try Groq first, then Gemini
+            if key_manager.has_groq:
+                result = self._groq_chat(messages, grounded_context)
+                if result['success']:
+                    return result
+            
+            if key_manager.has_gemini:
+                result = self._gemini_chat(messages, grounded_context)
+                if result['success']:
+                    return result
+        else:
+            # Advanced mode: Try Gemini first, then Groq
+            if key_manager.has_gemini:
+                result = self._gemini_chat(messages, grounded_context)
+                if result['success']:
+                    return result
+            
+            if key_manager.has_groq:
+                result = self._groq_chat(messages, grounded_context)
+                if result['success']:
+                    return result
         
         return {
             'success': False,
