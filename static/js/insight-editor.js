@@ -3,6 +3,7 @@
 
     let editor = null;
     let selectedArchive = null;
+    let openingBlockIndex = null;
 
     document.addEventListener('DOMContentLoaded', function () {
         initEditor();
@@ -25,19 +26,30 @@
     }
 
     function initTabs() {
-        const tabButtons = document.querySelectorAll('.tab-button');
+        // FIXED: Selector changed to avoid conflict with global tabs.js
+        const tabButtons = document.querySelectorAll('.tab-button[data-img-tab]');
         const uploadBtn = document.getElementById('uploadBtn');
         const insertBtn = document.getElementById('insertArchiveBtn');
 
         tabButtons.forEach(function (btn) {
             btn.addEventListener('click', function () {
-                const tabId = this.dataset.tab;
+                // FIXED: Using data-img-tab instead of data-tab
+                const tabId = this.dataset.imgTab;
 
                 tabButtons.forEach(function (b) { b.classList.remove('active'); });
                 this.classList.add('active');
 
-                document.querySelectorAll('#imageModal .tab-panel').forEach(function (p) { p.classList.remove('active'); });
-                document.getElementById(tabId + '-panel').classList.add('active');
+                // Explicitly manage hidden classes to override any global css conflicts
+                document.querySelectorAll('#imageModal .tab-panel').forEach(function (p) {
+                    p.classList.remove('active');
+                    p.classList.add('hidden');
+                });
+
+                const activePanel = document.getElementById(tabId + '-panel');
+                if (activePanel) {
+                    activePanel.classList.add('active');
+                    activePanel.classList.remove('hidden');
+                }
 
                 if (tabId === 'upload') {
                     uploadBtn.classList.remove('hidden');
@@ -110,12 +122,12 @@
             });
     }
 
-    window.openImageModal = function () {
+    window.openImageModal = function (index) {
         const modal = document.getElementById('imageModal');
+        openingBlockIndex = index;
         if (modal) {
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
-            // Load archives since archive tab is default
             loadArchives();
         }
     };
@@ -178,13 +190,16 @@
             .then(function (response) { return response.json(); })
             .then(function (data) {
                 if (data.success === 1) {
+                    // FIXED: Now passing 'alt' (description) to the editor block
+                    // Using index and replace true to swap the placeholder
                     editor.blocks.insert('image', {
                         file: { url: data.file.url },
                         caption: caption,
+                        alt: description,
                         withBorder: false,
                         stretched: false,
-                        withBackground: false
-                    });
+                        withBackground: true
+                    }, {}, openingBlockIndex, true, true);
                     closeImageModal();
                     showToast('Image uploaded successfully', 'success');
                     IgboEditor.updateFeaturedImageOptions();
@@ -203,13 +218,16 @@
 
     window.insertSelectedArchive = function () {
         if (selectedArchive) {
+            // FIXED: Now passing 'alt' from archive data
+            // Using index and replace true to swap the placeholder
             editor.blocks.insert('image', {
                 file: { url: selectedArchive.url },
                 caption: selectedArchive.caption || selectedArchive.title || '',
+                alt: selectedArchive.alt_text || selectedArchive.title || '',
                 withBorder: false,
                 stretched: false,
-                withBackground: false
-            });
+                withBackground: true
+            }, {}, openingBlockIndex, true, true);
             closeImageModal();
             showToast('Image inserted successfully', 'success');
             IgboEditor.updateFeaturedImageOptions();
@@ -257,6 +275,5 @@
         }
     }
 
-    // showToast is handled globally by main.js
     console.log('Insight editor module loaded');
 })();

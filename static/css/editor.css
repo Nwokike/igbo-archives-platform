@@ -218,6 +218,10 @@
     font-size: 14px;
     color: #6A2D01;
     margin-top: 8px;
+    min-height: 40px;
+    outline: none;
+    display: block;
+    width: 100%;
 }
 
 .dark .image-tool__caption {
@@ -225,8 +229,17 @@
     color: #DCC1A7;
 }
 
-.image-tool__caption::placeholder {
+.image-tool__caption:empty::before {
+    content: attr(data-placeholder);
     color: #9D896E;
+    pointer-events: none;
+    display: block;
+    font-style: italic;
+}
+
+/* Fix for stretched images to actually stretch if needed, or normal to be contained */
+.image-tool--stretched .image-tool__image-picture {
+    width: 100%;
 }
 
 .image-tool--withBorder .image-tool__image {

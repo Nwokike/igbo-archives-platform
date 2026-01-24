@@ -24,8 +24,46 @@
                             defaultLevel: 2
                         }
                     },
+                    list: {
+                        class: window.List,
+                        inlineToolbar: true,
+                        config: {
+                            defaultStyle: 'unordered'
+                        }
+                    },
+                    quote: {
+                        class: window.Quote,
+                        inlineToolbar: true,
+                        config: {
+                            quotePlaceholder: 'Enter a quote',
+                            captionPlaceholder: 'Quote author',
+                        },
+                    },
                     image: {
                         class: class ModalImageTool {
+                            constructor({ data, api }) {
+                                this.data = data;
+                                this.api = api;
+                                this.wrapper = undefined;
+                                this.settings = [
+                                    {
+                                        name: 'withBorder',
+                                        icon: `<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M15.8 10.592v2.043h2.35v2.138H15.8v2.232h-2.25v-2.232h-2.4v-2.138h2.4v-2.28h2.25v.237h1.15-1.15zM1.9 8.455v-3.42c0-1.154.985-2.09 2.2-2.09h4.2v2.137H4.15c-.22 0-.4.187-.4.418v3.42H1.9zm0 2.137h1.9v3.42c0 .231.18.418.4.418h4.2v2.137H4.15c-1.215 0-2.2-.936-2.2-2.09v-3.885zm6.1 6.877V15.7h2.25v1.772H8zM14.05 5.09H8V2.945h6.05c1.215 0 2.2.936 2.2 2.09v4.18h-2.25V5.508c0-.231-.18-.418-.4-.418z"/></svg>`,
+                                        title: 'Add Border'
+                                    },
+                                    {
+                                        name: 'stretched',
+                                        icon: `<svg width="17" height="10" viewBox="0 0 17 10" xmlns="http://www.w3.org/2000/svg"><path d="M13.568 5.925H4.056l1.703 1.703a1.125 1.125 0 0 1-1.59 1.591L.962 6.014A1.069 1.069 0 0 1 .588 4.26L4.38.469a1.069 1.069 0 0 1 1.759 1.511L4.056 3.975h9.512l-1.703-1.703a1.125 1.125 0 0 1 1.59-1.591l3.207 3.207a1.069 1.069 0 0 1 .374 1.754L13.26 9.249a1.069 1.069 0 0 1-1.759-1.511l2.067-2.067z"/></svg>`,
+                                        title: 'Stretch Image'
+                                    },
+                                    {
+                                        name: 'withBackground',
+                                        icon: `<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.043 8.265l3.183-3.183h-2.924L4.75 10.636v2.923l4.15-4.15v2.351l-2.158 2.159H8.9v2.137H4.75v-3.903l.971-.971-3.062-3.062h3.448l3.936 3.095zM18.1 10.93v3.238c0 .971-.828 1.757-1.849 1.757h-3.14l-4.71-4.71h.236c2.478 0 4.295-.922 5.253-2.664.67-1.219.782-2.326.33-3.084-.366-.615-.992-.885-1.722-.885-.145 0-.285.01-.421.033l-1.353.221-1.228-1.228c.459-.148.966-.23 1.503-.23 1.944 0 3.873.864 4.876 2.548 1.442 2.42 1.049 4.908 2.225 4.908h.001z"/></svg>`,
+                                        title: 'Boxed Layout'
+                                    }
+                                ];
+                            }
+
                             static get toolbox() {
                                 return {
                                     title: 'Image',
@@ -33,45 +71,117 @@
                                 };
                             }
 
-                            render() {
+                            renderSettings() {
                                 const wrapper = document.createElement('div');
-                                wrapper.classList.add('ce-block__content');
+                                this.settings.forEach(tune => {
+                                    let button = document.createElement('div');
+                                    button.classList.add('cdx-settings-button');
+                                    button.innerHTML = tune.icon;
+                                    button.title = tune.title;
 
-                                // Create a placeholder that looks like an empty image block
+                                    if (this.data[tune.name]) {
+                                        button.classList.add('cdx-settings-button--active');
+                                    }
+
+                                    button.addEventListener('click', () => {
+                                        this._toggleTune(tune.name);
+                                        button.classList.toggle('cdx-settings-button--active');
+                                    });
+
+                                    wrapper.appendChild(button);
+                                });
+                                return wrapper;
+                            }
+
+                            _toggleTune(tune) {
+                                this.data[tune] = !this.data[tune];
+                                this._acceptTune(tune);
+                            }
+
+                            _acceptTune(tune) {
+                                if (this.wrapper) {
+                                    const imgContainer = this.wrapper.querySelector('.image-tool');
+                                    if (imgContainer) {
+                                        imgContainer.classList.toggle(`image-tool--${tune}`, !!this.data[tune]);
+                                    }
+                                }
+                            }
+
+                            render() {
+                                this.wrapper = document.createElement('div');
+                                this.wrapper.classList.add('ce-block__content');
+
+                                if (this.data && this.data.file && this.data.file.url) {
+                                    const imgContainer = document.createElement('div');
+                                    imgContainer.classList.add('cdx-block', 'image-tool', 'image-tool--filled');
+
+                                    // Default to boxed (withBackground) if not specified
+                                    if (this.data.withBackground === undefined) this.data.withBackground = true;
+
+                                    if (this.data.stretched) imgContainer.classList.add('image-tool--stretched');
+                                    if (this.data.withBorder) imgContainer.classList.add('image-tool--withBorder');
+                                    if (this.data.withBackground) imgContainer.classList.add('image-tool--withBackground');
+
+                                    const imgWrapper = document.createElement('div');
+                                    imgWrapper.classList.add('image-tool__image');
+
+                                    const img = document.createElement('img');
+                                    img.classList.add('image-tool__image-picture');
+                                    img.src = this.data.file.url;
+
+                                    // UPDATED: Use description/alt as the actual HTML alt attribute
+                                    // It will NOT be shown as text in the editor
+                                    const altText = this.data.alt || this.data.description || '';
+                                    img.alt = altText;
+
+                                    // Consolidate 'description' into 'alt' for future saves
+                                    this.data.alt = altText;
+
+                                    imgWrapper.appendChild(img);
+                                    imgContainer.appendChild(imgWrapper);
+
+                                    const caption = document.createElement('div');
+                                    caption.classList.add('cdx-input', 'image-tool__caption');
+                                    caption.contentEditable = true;
+                                    caption.dataset.placeholder = 'Enter a caption...';
+
+                                    // Only show the actual caption text
+                                    caption.innerHTML = this.data.caption || '';
+
+                                    caption.addEventListener('input', () => {
+                                        this.data.caption = caption.innerHTML;
+                                    });
+
+                                    imgContainer.appendChild(img);
+                                    imgContainer.appendChild(caption);
+                                    this.wrapper.appendChild(imgContainer);
+
+                                    return this.wrapper;
+                                }
+
                                 const placeholder = document.createElement('div');
                                 placeholder.className = 'cdx-input';
                                 placeholder.textContent = 'Select or Upload Image...';
-                                placeholder.style.cursor = 'pointer';
-                                placeholder.style.color = '#707684';
-                                placeholder.style.textAlign = 'center';
-                                placeholder.style.padding = '20px';
-                                placeholder.style.border = '1px dashed #E8E8EB';
-                                placeholder.style.borderRadius = '3px';
+                                placeholder.style.cssText = 'cursor: pointer; color: #707684; text-align: center; padding: 20px; border: 1px dashed #E8E8EB; border-radius: 3px;';
 
                                 placeholder.onclick = () => {
-                                    if (window.openImageModal) {
-                                        window.openImageModal();
-                                    }
+                                    const index = this.api.blocks.getCurrentBlockIndex();
+                                    if (window.openImageModal) window.openImageModal(index);
                                 };
 
-                                wrapper.appendChild(placeholder);
-
-                                // Auto-open modal shortly after render
-                                setTimeout(() => {
-                                    if (window.openImageModal) {
-                                        window.openImageModal();
-                                    }
-                                }, 50);
-
-                                return wrapper;
+                                this.wrapper.appendChild(placeholder);
+                                return this.wrapper;
                             }
 
                             save(blockContent) {
                                 return {
-                                    // This custom tool is just a trigger. 
-                                    // The modal inserts a standard 'image' block which uses window.ImageTool
-                                    // So this block itself doesn't need to save anything valuable 
-                                    // because it gets REPLACED by the actual image block.
+                                    file: { url: (this.data.file && this.data.file.url) ? this.data.file.url : '' },
+                                    caption: this.data.caption || '',
+                                    // UPDATED: Explicitly save the description as 'alt'
+                                    alt: this.data.alt || this.data.description || '',
+                                    withBorder: !!this.data.withBorder,
+                                    stretched: !!this.data.stretched,
+                                    withBackground: !!this.data.withBackground
                                 };
                             }
                         }
@@ -82,41 +192,25 @@
                             services: {
                                 youtube: true,
                                 vimeo: true,
-                                twitter: true,
-                                instagram: true,
-                                facebook: true
+                                twitter: true
                             }
                         }
                     },
                     link: {
                         class: window.LinkTool,
-                        config: {
-                            endpoint: '/api/fetch-url-meta/'
-                        }
+                        config: { endpoint: '/api/fetch-url-meta/' }
                     },
-                    delimiter: {
-                        class: window.Delimiter
-                    },
-                    marker: {
-                        class: window.Marker,
-                        shortcut: 'CMD+SHIFT+M'
-                    },
-                    code: {
-                        class: window.CodeTool
-                    }
+                    delimiter: { class: window.Delimiter },
+                    marker: { class: window.Marker, shortcut: 'CMD+SHIFT+M' },
+                    code: { class: window.CodeTool }
                 },
                 data: options.data || {},
                 onChange: function (api, event) {
-                    if (options.onChange) {
-                        options.onChange(api, event);
-                    }
+                    if (options.onChange) options.onChange(api, event);
                     self.updateFeaturedImageOptions();
                 },
                 onReady: function () {
-                    if (options.onReady) {
-                        options.onReady();
-                    }
-                    console.log('Editor.js initialized successfully');
+                    if (options.onReady) options.onReady();
                 }
             };
 
@@ -124,7 +218,7 @@
             return this.instance;
         },
 
-        // Simple editor for book reviews - no image/embed tools
+        // Simple editor for book reviews (no image tool)
         initSimple: function (holderId, options) {
             const self = this;
             options = options || {};
@@ -143,33 +237,35 @@
                             defaultLevel: 2
                         }
                     },
-                    link: {
-                        class: window.LinkTool,
+                    list: {
+                        class: window.List,
+                        inlineToolbar: true,
                         config: {
-                            endpoint: '/api/fetch-url-meta/'
+                            defaultStyle: 'unordered'
                         }
                     },
-                    delimiter: {
-                        class: window.Delimiter
+                    quote: {
+                        class: window.Quote,
+                        inlineToolbar: true,
+                        config: {
+                            quotePlaceholder: 'Enter a quote',
+                            captionPlaceholder: 'Quote author',
+                        },
                     },
-                    marker: {
-                        class: window.Marker,
-                        shortcut: 'CMD+SHIFT+M'
+                    link: {
+                        class: window.LinkTool,
+                        config: { endpoint: '/api/fetch-url-meta/' }
                     },
-                    code: {
-                        class: window.CodeTool
-                    }
+                    delimiter: { class: window.Delimiter },
+                    marker: { class: window.Marker, shortcut: 'CMD+SHIFT+M' },
+                    code: { class: window.CodeTool }
                 },
                 data: options.data || {},
                 onChange: function (api, event) {
-                    if (options.onChange) {
-                        options.onChange(api, event);
-                    }
+                    if (options.onChange) options.onChange(api, event);
                 },
                 onReady: function () {
-                    if (options.onReady) {
-                        options.onReady();
-                    }
+                    if (options.onReady) options.onReady();
                     console.log('Simple Editor.js initialized successfully');
                 }
             };
@@ -216,31 +312,23 @@
         },
 
         getData: function () {
-            if (this.instance) {
-                return this.instance.save();
-            }
+            if (this.instance) return this.instance.save();
             return Promise.resolve({ blocks: [] });
         },
 
         setData: function (data) {
-            if (this.instance && data) {
-                return this.instance.render(data);
-            }
+            if (this.instance && data) return this.instance.render(data);
             return Promise.resolve();
         },
 
         clear: function () {
-            if (this.instance) {
-                return this.instance.clear();
-            }
+            if (this.instance) return this.instance.clear();
             return Promise.resolve();
         },
 
         isEmpty: function () {
             return this.getData().then(function (data) {
-                if (!data.blocks || data.blocks.length === 0) {
-                    return true;
-                }
+                if (!data.blocks || data.blocks.length === 0) return true;
                 const hasContent = data.blocks.some(function (block) {
                     if (block.type === 'paragraph') {
                         return block.data.text && block.data.text.trim().length > 0;
@@ -335,10 +423,8 @@
                 console.error('Archive modal not found');
                 return;
             }
-
             modal.classList.add('active');
             this.loadArchives('');
-
             this.archiveCallback = callback;
         },
 
@@ -445,7 +531,8 @@
                             type: 'image',
                             data: {
                                 file: { url: img.src },
-                                caption: img.alt || '',
+                                caption: img.title || '', // Mapping title to caption
+                                alt: img.alt || '', // Mapping alt correctly
                                 withBorder: false,
                                 stretched: false,
                                 withBackground: false
@@ -465,7 +552,8 @@
                         type: 'image',
                         data: {
                             file: { url: node.src },
-                            caption: node.alt || '',
+                            caption: node.title || '',
+                            alt: node.alt || '',
                             withBorder: false,
                             stretched: false,
                             withBackground: false
@@ -541,8 +629,11 @@
 
                     case 'image':
                         const imgUrl = block.data.file ? block.data.file.url : block.data.url;
+                        // UPDATED: Use the saved 'alt' field for the image tag
+                        const altText = block.data.alt || block.data.description || block.data.caption || '';
+
                         html += '<figure class="editor-image">';
-                        html += '<img src="' + imgUrl + '" alt="' + (block.data.caption || '') + '"';
+                        html += '<img src="' + imgUrl + '" alt="' + altText + '"';
                         let imgClasses = [];
                         if (block.data.stretched) imgClasses.push('stretched');
                         if (block.data.withBorder) imgClasses.push('editor-image-bordered');
