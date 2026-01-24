@@ -25,21 +25,55 @@
                         }
                     },
                     image: {
-                        class: window.ImageTool,
-                        config: {
-                            uploader: {
-                                uploadByFile: function (file) {
-                                    return self.uploadImage(file);
-                                },
-                                uploadByUrl: function (url) {
-                                    return Promise.resolve({
-                                        success: 1,
-                                        file: { url: url }
-                                    });
-                                }
-                            },
-                            captionPlaceholder: 'Image caption with source/copyright info',
-                            buttonContent: 'Add Image'
+                        class: class ModalImageTool {
+                            static get toolbox() {
+                                return {
+                                    title: 'Image',
+                                    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 10C9.32843 10 10 9.32843 10 8.5C10 7.67157 9.32843 7 8.5 7C7.67157 7 7 7.67157 7 8.5C7 9.32843 7.67157 10 8.5 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                                };
+                            }
+
+                            render() {
+                                const wrapper = document.createElement('div');
+                                wrapper.classList.add('ce-block__content');
+
+                                // Create a placeholder that looks like an empty image block
+                                const placeholder = document.createElement('div');
+                                placeholder.className = 'cdx-input';
+                                placeholder.textContent = 'Select or Upload Image...';
+                                placeholder.style.cursor = 'pointer';
+                                placeholder.style.color = '#707684';
+                                placeholder.style.textAlign = 'center';
+                                placeholder.style.padding = '20px';
+                                placeholder.style.border = '1px dashed #E8E8EB';
+                                placeholder.style.borderRadius = '3px';
+
+                                placeholder.onclick = () => {
+                                    if (window.openImageModal) {
+                                        window.openImageModal();
+                                    }
+                                };
+
+                                wrapper.appendChild(placeholder);
+
+                                // Auto-open modal shortly after render
+                                setTimeout(() => {
+                                    if (window.openImageModal) {
+                                        window.openImageModal();
+                                    }
+                                }, 50);
+
+                                return wrapper;
+                            }
+
+                            save(blockContent) {
+                                return {
+                                    // This custom tool is just a trigger. 
+                                    // The modal inserts a standard 'image' block which uses window.ImageTool
+                                    // So this block itself doesn't need to save anything valuable 
+                                    // because it gets REPLACED by the actual image block.
+                                };
+                            }
                         }
                     },
                     embed: {
