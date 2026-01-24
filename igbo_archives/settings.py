@@ -286,21 +286,29 @@ STORAGES = {
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
-    'dbbackup': {
-        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
-        'OPTIONS': {
-            'access_key': os.getenv('R2_ACCESS_KEY_ID', ''),
-            'secret_key': os.getenv('R2_SECRET_ACCESS_KEY', ''),
-            'bucket_name': 'igboarchives-backup',
-            'endpoint_url': os.getenv('R2_ENDPOINT_URL', ''),
-            'default_acl': 'private',
-        },
-    },
 }
-DBBACKUP_STORAGE_ALIAS = 'dbbackup'
+
+# Database Backup settings (Direct configuration for django-dbbackup)
+DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DBBACKUP_STORAGE_OPTIONS = {
+    'access_key': os.getenv('R2_ACCESS_KEY_ID', ''),
+    'secret_key': os.getenv('R2_SECRET_ACCESS_KEY', ''),
+    'bucket_name': 'igboarchives-backup',
+    'endpoint_url': os.getenv('R2_ENDPOINT_URL', ''),
+    'default_acl': 'private',
+    'location': 'backups',
+    'addressing_style': 'path',
+    'signature_version': 's3v4',
+}
 DBBACKUP_CLEANUP_KEEP = 3
 DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
 DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
+
+DBBACKUP_CONNECTORS = {
+    'default': {
+        'CONNECTOR': 'dbbackup.db.sqlite.SqliteConnector',
+    }
+}
 
 # Monetization
 GOOGLE_ADSENSE_CLIENT_ID = os.getenv('GOOGLE_ADSENSE_CLIENT_ID', '')

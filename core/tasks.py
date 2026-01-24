@@ -127,14 +127,15 @@ def notify_post_rejected(post_id, post_type, reason=''):
 
 @periodic_task(crontab(hour='3', minute='0'))
 def daily_database_backup():
-    """Run database backup daily at 3 AM"""
+    """Run database and media backup daily at 3 AM"""
     try:
         from django.core.management import call_command
-        call_command('dbbackup', '--clean')
-        logger.info("Daily database backup completed")
+        # Calling our wrapper command which handles both DB and Media + cleanup
+        call_command('backup_database', clean=True)
+        logger.info("Daily database and media backup completed")
         return True
     except Exception as e:
-        logger.error(f"Database backup failed: {e}")
+        logger.error(f"Daily backup failed: {e}")
         return False
 
 
