@@ -69,14 +69,13 @@
                     <p class="text-sm mt-2 line-clamp-1">{{ thread.messages.last.content|truncatewords:15 }}</p>
                 </div>
             </a>
+            {% empty %}
+            <div class="text-center py-12 text-text-muted">
+                <i class="fas fa-envelope text-4xl mb-4 opacity-30"></i>
+                <p>No messages yet.</p>
+            </div>
             {% endfor %}
         </div>
-        {% empty %}
-        <div class="text-center py-12 text-text-muted">
-            <i class="fas fa-envelope text-4xl mb-4 opacity-30"></i>
-            <p>No messages yet.</p>
-        </div>
-        {% endif %}
     </div>
 
     <div id="insights" class="tab-panel hidden">
@@ -109,15 +108,14 @@
                     <a href="{% url 'insights:detail' insight.slug %}" class="btn-secondary btn-sm">View Post</a>
                 </div>
             </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-text-muted">
+                <i class="fas fa-lightbulb text-4xl mb-4 opacity-30"></i>
+                <p class="mb-4">You haven't created any insights yet.</p>
+                <a href="{% url 'insights:create' %}" class="btn-primary">Create Your First Insight</a>
+            </div>
             {% endfor %}
         </div>
-        {% empty %}
-        <div class="text-center py-12 text-text-muted">
-            <i class="fas fa-lightbulb text-4xl mb-4 opacity-30"></i>
-            <p class="mb-4">You haven't created any insights yet.</p>
-            <a href="{% url 'insights:create' %}" class="btn-primary">Create Your First Insight</a>
-        </div>
-        {% endif %}
     </div>
 
     <div id="drafts" class="tab-panel hidden">
@@ -140,14 +138,13 @@
                     </div>
                 </div>
             </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-text-muted">
+                <i class="fas fa-edit text-4xl mb-4 opacity-30"></i>
+                <p>No drafts saved.</p>
+            </div>
             {% endfor %}
         </div>
-        {% empty %}
-        <div class="text-center py-12 text-text-muted">
-            <i class="fas fa-edit text-4xl mb-4 opacity-30"></i>
-            <p>No drafts saved.</p>
-        </div>
-        {% endif %}
     </div>
 
     <div id="reviews" class="tab-panel hidden">
@@ -179,15 +176,14 @@
                     <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm">View Review</a>
                 </div>
             </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-text-muted">
+                <i class="fas fa-book text-4xl mb-4 opacity-30"></i>
+                <p class="mb-4">You haven't written any book reviews yet.</p>
+                <a href="{% url 'books:create' %}" class="btn-primary">Write a Book Review</a>
+            </div>
             {% endfor %}
         </div>
-        {% empty %}
-        <div class="text-center py-12 text-text-muted">
-            <i class="fas fa-book text-4xl mb-4 opacity-30"></i>
-            <p class="mb-4">You haven't written any book reviews yet.</p>
-            <a href="{% url 'books:create' %}" class="btn-primary">Write a Book Review</a>
-        </div>
-        {% endif %}
     </div>
 
     <div id="archives" class="tab-panel hidden">
@@ -211,15 +207,14 @@
                     {% endif %}
                 </div>
             </a>
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-text-muted">
+                <i class="fas fa-archive text-4xl mb-4 opacity-30"></i>
+                <p class="mb-4">You haven't contributed any archives yet.</p>
+                <a href="{% url 'archives:create' %}" class="btn-primary">Add an Archive</a>
+            </div>
             {% endfor %}
         </div>
-        {% empty %}
-        <div class="text-center py-12 text-text-muted">
-            <i class="fas fa-archive text-4xl mb-4 opacity-30"></i>
-            <p class="mb-4">You haven't contributed any archives yet.</p>
-            <a href="{% url 'archives:create' %}" class="btn-primary">Add an Archive</a>
-        </div>
-        {% endif %}
     </div>
 
     <div id="suggestions" class="tab-panel">

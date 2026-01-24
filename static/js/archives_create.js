@@ -1,9 +1,12 @@
 function updateFileInput() {
-    var type = document.getElementById('archive_type').value;
+    var typeSelect = document.getElementById('id_archive_type');
+    if (!typeSelect) return;
+
+    var type = typeSelect.value;
     var sections = ['imageUploadSection', 'videoUploadSection', 'documentUploadSection', 'audioUploadSection', 'featuredImageSection'];
-    sections.forEach(function (s) { 
+    sections.forEach(function (s) {
         var el = document.getElementById(s);
-        if (el) el.classList.add('hidden'); 
+        if (el) el.classList.add('hidden');
     });
 
     if (type === 'image') {
@@ -19,10 +22,12 @@ function updateFileInput() {
     }
 }
 
-// Initialize on load to handle back-button or pre-filled forms
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('archive_type')) {
+// Initialize on load and add change event listener
+document.addEventListener('DOMContentLoaded', function () {
+    var typeSelect = document.getElementById('id_archive_type');
+    if (typeSelect) {
         updateFileInput();
+        typeSelect.addEventListener('change', updateFileInput);
     }
 });
 

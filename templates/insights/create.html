@@ -81,8 +81,8 @@
     <div class="modal-content">
         <div class="modal-header">
             <div>
-                <h3 class="modal-title">Add Image to Content</h3>
-                <p class="modal-subtitle">Choose to upload a new image or select from existing archives</p>
+                <h3 class="modal-title"><i class="fas fa-image text-accent mr-2"></i>Add Image to Content</h3>
+                <p class="modal-subtitle">Select from archives or upload a new image</p>
             </div>
             <button type="button" class="modal-close" onclick="closeImageModal()">
                 <i class="fas fa-times"></i>
@@ -92,12 +92,26 @@
         <div class="modal-body">
             <div class="tabs-container">
                 <div class="tabs-list">
-                    <button type="button" class="tab-button active" data-tab="upload">Upload New Image</button>
-                    <button type="button" class="tab-button" data-tab="archive">Select from Archives</button>
+                    <button type="button" class="tab-button active" data-tab="archive">
+                        <i class="fas fa-archive mr-1"></i> Select from Archives
+                    </button>
+                    <button type="button" class="tab-button" data-tab="upload">
+                        <i class="fas fa-upload mr-1"></i> Upload New Image
+                    </button>
                 </div>
             </div>
 
-            <div id="upload-panel" class="tab-panel active">
+            <div id="archive-panel" class="tab-panel active">
+                <div class="search-input-container">
+                    <i class="fas fa-search search-input-icon"></i>
+                    <input type="text" class="form-input" id="archiveSearch" placeholder="Search archives...">
+                </div>
+                <div id="archiveGrid" class="archive-grid">
+                    <p class="text-center text-vintage-beaver py-8">Loading archives...</p>
+                </div>
+            </div>
+
+            <div id="upload-panel" class="tab-panel">
                 <div class="form-group">
                     <label class="form-label form-label-required">Select Image File</label>
                     <input type="file" class="form-input" id="imageFileInput" accept="image/*">
@@ -115,24 +129,14 @@
                     <p class="form-help">Required: Describe what's in the image for screen readers</p>
                 </div>
             </div>
-
-            <div id="archive-panel" class="tab-panel">
-                <div class="search-input-container">
-                    <i class="fas fa-search search-input-icon"></i>
-                    <input type="text" class="form-input" id="archiveSearch" placeholder="Search archives...">
-                </div>
-                <div id="archiveGrid" class="archive-grid">
-                    <p class="text-center text-vintage-beaver py-8">Loading archives...</p>
-                </div>
-            </div>
         </div>
 
         <div class="modal-footer">
             <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
-            <button type="button" class="btn-primary" id="uploadBtn" onclick="uploadAndInsertImage()">
+            <button type="button" class="btn-primary hidden" id="uploadBtn" onclick="uploadAndInsertImage()">
                 <i class="fas fa-upload"></i> Upload & Insert
             </button>
-            <button type="button" class="btn-primary hidden" id="insertArchiveBtn" onclick="insertSelectedArchive()">
+            <button type="button" class="btn-primary" id="insertArchiveBtn" onclick="insertSelectedArchive()">
                 <i class="fas fa-check"></i> Insert Selected
             </button>
         </div>

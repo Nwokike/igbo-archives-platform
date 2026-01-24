@@ -4,7 +4,8 @@
     var editor = null;
 
     document.addEventListener('DOMContentLoaded', function () {
-        editor = IgboEditor.init('editor', {
+        // Use simple editor config for books - no image tool
+        editor = IgboEditor.initSimple('editor', {
             placeholder: 'Start writing your book review... Share your thoughts about the book!',
             autofocus: false
         });

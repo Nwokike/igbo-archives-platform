@@ -36,7 +36,7 @@
                 tabButtons.forEach(function (b) { b.classList.remove('active'); });
                 this.classList.add('active');
 
-                document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+                document.querySelectorAll('#imageModal .tab-panel').forEach(function (p) { p.classList.remove('active'); });
                 document.getElementById(tabId + '-panel').classList.add('active');
 
                 if (tabId === 'upload') {
@@ -44,7 +44,7 @@
                     insertBtn.classList.add('hidden');
                 } else {
                     uploadBtn.classList.add('hidden');
-                    insertBtn.classList.add('hidden');
+                    insertBtn.classList.remove('hidden');
                     loadArchives();
                 }
             });
@@ -115,6 +115,8 @@
         if (modal) {
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            // Load archives since archive tab is default
+            loadArchives();
         }
     };
 

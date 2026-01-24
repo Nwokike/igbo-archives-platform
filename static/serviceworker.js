@@ -3,7 +3,7 @@
  * Handles caching, offline support, and push notifications
  */
 
-const CACHE_VERSION = 'v1.2.1';
+const CACHE_VERSION = 'v1.5.0';
 const STATIC_CACHE_NAME = 'static-cache-' + CACHE_VERSION;
 const DYNAMIC_CACHE_NAME = 'dynamic-cache-' + CACHE_VERSION;
 const MAX_DYNAMIC_CACHE_ITEMS = 50;
@@ -28,6 +28,10 @@ const EXCLUDE_FROM_CACHE = [
 ];
 
 function shouldCache(url) {
+    // Never cache HTML pages - they contain user-specific content
+    if (!url.includes('/static/') && !url.includes('.css') && !url.includes('.js') && !url.includes('.png') && !url.includes('.jpg') && !url.includes('.woff')) {
+        return false;
+    }
     return !EXCLUDE_FROM_CACHE.some(pattern => url.includes(pattern));
 }
 
@@ -82,6 +86,12 @@ self.addEventListener('fetch', event => {
     }
 
     const url = event.request.url;
+    const requestUrl = new URL(url);
+
+    // Skip service worker for external resources - let browser handle them directly
+    if (requestUrl.origin !== self.location.origin) {
+        return;
+    }
 
     event.respondWith(
         caches.match(event.request).then(response => {
@@ -89,11 +99,13 @@ self.addEventListener('fetch', event => {
                 return response;
             }
 
-            return fetch(event.request.clone())
+            return fetch(event.request)
                 .then(res => {
-                    if (res.status === 200 && shouldCache(url)) {
+                    // Only cache successful responses from same origin
+                    if (res.status === 200 && shouldCache(url) && res.type === 'basic') {
+                        const responseToCache = res.clone();
                         caches.open(DYNAMIC_CACHE_NAME).then(cache => {
-                            cache.put(event.request, res.clone());
+                            cache.put(event.request, responseToCache);
                             limitCacheSize(DYNAMIC_CACHE_NAME, MAX_DYNAMIC_CACHE_ITEMS);
                         });
                     }
@@ -104,7 +116,7 @@ self.addEventListener('fetch', event => {
                     if (event.request.mode === 'navigate') {
                         return caches.match('/offline/');
                     }
-                    return null;
+                    return new Response('', { status: 408, statusText: 'Request Timeout' });
                 });
         })
     );

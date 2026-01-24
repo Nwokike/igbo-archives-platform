@@ -171,7 +171,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/profile/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_EMAIL_REQUIRED = True
@@ -365,7 +365,7 @@ CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.goo
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
 CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
-CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", "https://api.indexnow.org")
+CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", "https://api.indexnow.org", "https://challenges.cloudflare.com", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com")
 CSP_FRAME_SRC = ("'self'", "https://challenges.cloudflare.com")
 
 # Logging

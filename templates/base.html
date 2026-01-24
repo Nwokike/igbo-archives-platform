@@ -68,7 +68,8 @@
     </button>
 
     <!-- Header -->
-    <div class="sticky top-0 z-50 bg-white/95 dark:bg-surface-dark backdrop-blur-md shadow-sm border-b border-border dark:border-border-dark" id="stickyHeader">
+    <div class="sticky top-0 z-50 bg-white/95 dark:bg-surface-dark backdrop-blur-md shadow-sm border-b border-border dark:border-border-dark"
+        id="stickyHeader">
         <header>
             <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-2.5 gap-3 relative">
                 <!-- Left: Logo & Dark Mode -->
@@ -80,7 +81,8 @@
                             class="h-8 lg:h-9 w-auto logo-dark hidden">
                     </a>
 
-                    <button class="btn-ghost w-9 h-9 p-0 rounded-lg hidden sm:flex items-center justify-center dark:text-text-dark"
+                    <button
+                        class="btn-ghost w-9 h-9 p-0 rounded-lg hidden sm:flex items-center justify-center dark:text-text-dark"
                         aria-label="Toggle dark mode" id="darkModeToggle">
                         <i class="fas fa-moon text-sm"></i>
                     </button>
@@ -95,14 +97,16 @@
 
                     {% if user.is_authenticated %}
                     <div class="relative dropdown" id="notificationDropdownContainer">
-                        <a href="{% url 'users:notifications' %}" class="btn-ghost w-10 h-10 p-0 rounded-full relative"
-                            id="notificationBell" aria-label="Notifications" data-url="{% url 'api:notification_list' %}">
+                        <button type="button" class="btn-ghost w-10 h-10 p-0 rounded-full relative"
+                            id="notificationBell" aria-label="Notifications"
+                            data-url="{% url 'api:notification_list' %}">
                             <i class="fas fa-bell text-lg"></i>
                             {% if unread_notification_count > 0 %}
                             <span id="notificationBadge"
-                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{ unread_notification_count }}</span>
+                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{
+                                unread_notification_count }}</span>
                             {% endif %}
-                        </a>
+                        </button>
                         <div class="dropdown-menu w-80 right-0" id="notificationDropdown">
                             <!-- Dropdown content will be loaded via JS -->
                         </div>
@@ -236,7 +240,8 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white/95 dark:bg-surface-dark text-text dark:text-text-dark border-t border-border dark:border-none mt-auto">
+    <footer
+        class="bg-white/95 dark:bg-surface-dark text-text dark:text-text-dark border-t border-border dark:border-none mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10">
                 <!-- Brand Column -->
@@ -323,7 +328,8 @@
                 class="mt-8 pt-6 border-t border-border dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted dark:text-text-dark-muted">
                 <p>&copy; 2025 - {% now "Y" %} Kiri Research Labs. All Rights Reserved.</p>
                 <p>A project by <a href="https://kiri.ng/about" target="_blank" rel="noopener noreferrer"
-                        class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research Labs</a></p>
+                        class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research
+                        Labs</a></p>
             </div>
         </div>
     </footer>

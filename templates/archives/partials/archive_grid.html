@@ -68,8 +68,11 @@
 <div class="col-span-full">
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i>
-        <div>No archives found matching your criteria. <a href="{% url 'archives:list' %}"
-                class="text-accent hover:underline font-medium">View all archives</a></div>
+        <div>
+            <h4 class="font-semibold mb-1">No archives found</h4>
+            <p>Be the first to contribute! <a href="{% url 'archives:create' %}"
+                    class="text-accent hover:underline font-medium">Upload an archive</a></p>
+        </div>
     </div>
 </div>
 {% endif %}

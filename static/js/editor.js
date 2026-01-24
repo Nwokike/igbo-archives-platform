@@ -39,7 +39,7 @@
                                 }
                             },
                             captionPlaceholder: 'Image caption with source/copyright info',
-                            buttonContent: 'Select Image'
+                            buttonContent: 'Add Image'
                         }
                     },
                     embed: {
@@ -58,14 +58,6 @@
                         class: window.LinkTool,
                         config: {
                             endpoint: '/api/fetch-url-meta/'
-                        }
-                    },
-                    archive: {
-                        class: window.ArchiveTool,
-                        config: {
-                            callback: function (archive) {
-                                // This will be handled by the modal callback
-                            }
                         }
                     },
                     delimiter: {
@@ -91,6 +83,60 @@
                         options.onReady();
                     }
                     console.log('Editor.js initialized successfully');
+                }
+            };
+
+            this.instance = new EditorJS(editorConfig);
+            return this.instance;
+        },
+
+        // Simple editor for book reviews - no image/embed tools
+        initSimple: function (holderId, options) {
+            const self = this;
+            options = options || {};
+
+            const editorConfig = {
+                holder: holderId,
+                placeholder: options.placeholder || 'Start writing your content...',
+                autofocus: options.autofocus !== false,
+                tools: {
+                    header: {
+                        class: window.Header,
+                        inlineToolbar: true,
+                        config: {
+                            placeholder: 'Enter a heading',
+                            levels: [2, 3, 4],
+                            defaultLevel: 2
+                        }
+                    },
+                    link: {
+                        class: window.LinkTool,
+                        config: {
+                            endpoint: '/api/fetch-url-meta/'
+                        }
+                    },
+                    delimiter: {
+                        class: window.Delimiter
+                    },
+                    marker: {
+                        class: window.Marker,
+                        shortcut: 'CMD+SHIFT+M'
+                    },
+                    code: {
+                        class: window.CodeTool
+                    }
+                },
+                data: options.data || {},
+                onChange: function (api, event) {
+                    if (options.onChange) {
+                        options.onChange(api, event);
+                    }
+                },
+                onReady: function () {
+                    if (options.onReady) {
+                        options.onReady();
+                    }
+                    console.log('Simple Editor.js initialized successfully');
                 }
             };
 
