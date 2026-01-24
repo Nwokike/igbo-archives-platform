@@ -367,7 +367,8 @@ CSP_SCRIPT_SRC = (
     "https://www.gstatic.com", 
     "https://www.googletagmanager.com", 
     "https://pagead2.googlesyndication.com", 
-    "https://challenges.cloudflare.com"
+    "https://challenges.cloudflare.com",
+    "https://*.adtrafficquality.google"  # Added wildcard to fix ad script blocking
 )
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
@@ -379,12 +380,12 @@ CSP_CONNECT_SRC = (
     "https://challenges.cloudflare.com", 
     "https://www.googletagmanager.com", 
     "https://pagead2.googlesyndication.com",
-    "https://ep1.adtrafficquality.google"  # Added to fix ad traffic blocking
+    "https://*.adtrafficquality.google"  # Added wildcard to fix ad traffic blocking
 )
 CSP_FRAME_SRC = (
     "'self'", 
     "https://challenges.cloudflare.com",
-    "https://googleads.g.doubleclick.net"  # Added to allow ads framing
+    "https://googleads.g.doubleclick.net" 
 )
 
 # Logging
