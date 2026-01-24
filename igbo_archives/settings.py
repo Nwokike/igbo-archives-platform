@@ -148,7 +148,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cloudflare R2 Storage configuration (env vars used in STORAGES dict)
+# Cloudflare R2 Storage configuration
 R2_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID', '')
 R2_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY', '')
 R2_BUCKET_NAME = os.getenv('R2_BUCKET_NAME', '')
@@ -198,9 +198,9 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-SOCIALACCOUNT_AUTO_SIGNUP = True  # Auto-signup, no form
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Social emails already verified
-SOCIALACCOUNT_LOGIN_ON_GET = True  # Instant social login
+SOCIALACCOUNT_AUTO_SIGNUP = True 
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none' 
+SOCIALACCOUNT_LOGIN_ON_GET = True 
 SOCIALACCOUNT_EMAIL_REQUIRED = False
 SOCIALACCOUNT_QUERY_EMAIL = False
 
@@ -234,11 +234,11 @@ WEBPUSH_SETTINGS = {
 
 COMMENTS_APP = 'threadedcomments'
 
-# AI Integration - Multi-Key Support for Free Tier Maximization
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')  # Single key fallback
-GEMINI_API_KEYS = os.getenv('GEMINI_API_KEYS', '')  # Comma-separated keys
-GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')  # Single key fallback
-GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')  # Comma-separated keys
+# AI Integration
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+GEMINI_API_KEYS = os.getenv('GEMINI_API_KEYS', '')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
+GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')
 
 # Email Configuration
 if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_SMTP_KEY'):
@@ -269,7 +269,6 @@ META_USE_SITES = True
 META_OG_NAMESPACES = ['og', 'fb']
 
 # Database Backup - Stored in R2 igboarchives-backup bucket
-# Uses Django 4.2+ STORAGES configuration
 STORAGES = {
     'default': {
         'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
@@ -299,7 +298,7 @@ STORAGES = {
     },
 }
 DBBACKUP_STORAGE_ALIAS = 'dbbackup'
-DBBACKUP_CLEANUP_KEEP = 3  # Keep only 3 latest backups
+DBBACKUP_CLEANUP_KEEP = 3
 DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
 DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
 
@@ -307,7 +306,7 @@ DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
 GOOGLE_ADSENSE_CLIENT_ID = os.getenv('GOOGLE_ADSENSE_CLIENT_ID', '')
 ENABLE_ADSENSE = bool(GOOGLE_ADSENSE_CLIENT_ID)
 
-# Donations (Paystack-only - no Stripe/PayPal)
+# Donations
 PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
 ENABLE_DONATIONS = bool(PAYSTACK_SECRET_KEY)
@@ -320,7 +319,7 @@ ENABLE_ANALYTICS = bool(GOOGLE_ANALYTICS_ID)
 INDEXNOW_API_KEY = os.getenv('INDEXNOW_API_KEY', '')
 INDEXNOW_API_URL = "https://api.indexnow.org/indexnow"
 
-# Caching - Database cache for shared access and persistence
+# Caching
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
@@ -331,21 +330,20 @@ CACHES = {
     }
 }
 
-# Huey Task Queue - Optimized for 1GB RAM
+# Huey Task Queue
 from huey import SqliteHuey
 
 HUEY = SqliteHuey(
     filename=str(BASE_DIR / 'huey.db'),
-    immediate=False,  # Must be False to run the consumer
+    immediate=False,
     results=False,
     store_none=True,
     utc=True,
 )
 
-# Security Settings for Production
 # Session Configuration
 SESSION_COOKIE_AGE = 86400 * 7  # 7 days
-SESSION_SAVE_EVERY_REQUEST = False  # Don't update session on every request
+SESSION_SAVE_EVERY_REQUEST = False
 
 # Security Settings for Production
 if not DEBUG:
@@ -359,14 +357,35 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Content Security Policy (applies in all environments since CSP middleware is always active)
+# Content Security Policy
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google.com", "https://www.gstatic.com", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com", "https://challenges.cloudflare.com")
+CSP_SCRIPT_SRC = (
+    "'self'", 
+    "'unsafe-inline'", 
+    "'unsafe-eval'", 
+    "https://www.google.com", 
+    "https://www.gstatic.com", 
+    "https://www.googletagmanager.com", 
+    "https://pagead2.googlesyndication.com", 
+    "https://challenges.cloudflare.com"
+)
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
 CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
-CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", "https://api.indexnow.org", "https://challenges.cloudflare.com", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com")
-CSP_FRAME_SRC = ("'self'", "https://challenges.cloudflare.com")
+CSP_CONNECT_SRC = (
+    "'self'", 
+    "https://www.google-analytics.com", 
+    "https://api.indexnow.org", 
+    "https://challenges.cloudflare.com", 
+    "https://www.googletagmanager.com", 
+    "https://pagead2.googlesyndication.com",
+    "https://ep1.adtrafficquality.google"  # Added to fix ad traffic blocking
+)
+CSP_FRAME_SRC = (
+    "'self'", 
+    "https://challenges.cloudflare.com",
+    "https://googleads.g.doubleclick.net"  # Added to allow ads framing
+)
 
 # Logging
 LOGGING = {
