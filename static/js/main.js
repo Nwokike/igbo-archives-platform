@@ -3,8 +3,6 @@
 
     /**
      * Helper function to get CSRF token from cookies.
-     * @param {string} name - The name of the cookie (usually 'csrftoken').
-     * @returns {string|null} The value of the cookie or null if not found.
      */
     function getCookie(name) {
         let cookieValue = null;
@@ -21,7 +19,55 @@
         return cookieValue;
     }
 
+    // --- PWA LOGIC (Global Scope) ---
+    // Defined outside DOMContentLoaded to catch early events
+    let deferredPrompt;
+
+    function showInstallButton() {
+        const installButton = document.getElementById('pwaInstallBtn');
+        if (installButton) {
+            installButton.style.display = 'flex';
+            installButton.classList.remove('hidden');
+        }
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
+        // Update UI logic
+        showInstallButton();
+    });
+
+    window.addEventListener('appinstalled', () => {
+        const installButton = document.getElementById('pwaInstallBtn');
+        if (installButton) {
+            installButton.style.display = 'none';
+        }
+        deferredPrompt = null;
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
+
+        // --- PWA Button Click Handler ---
+        const installButton = document.getElementById('pwaInstallBtn');
+        if (installButton) {
+            // Check if the event fired *before* the DOM was ready
+            if (deferredPrompt) {
+                showInstallButton();
+            }
+
+            installButton.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    deferredPrompt = null;
+                    installButton.style.display = 'none';
+                }
+            });
+        }
 
         // --- Dark Mode Handler ---
         const darkModeToggles = document.querySelectorAll('#darkModeToggle, #darkModeToggleMobile');
@@ -31,7 +77,7 @@
             const applyTheme = (isDark) => {
                 if (isDark) {
                     document.documentElement.classList.add('dark');
-                    body.classList.add('dark-mode'); // Keep for legacy CSS compatibility if needed
+                    body.classList.add('dark-mode');
                 } else {
                     document.documentElement.classList.remove('dark');
                     body.classList.remove('dark-mode');
@@ -46,7 +92,6 @@
                 });
             };
 
-            // Apply saved theme on page load
             if (localStorage.getItem('darkMode') === 'enabled') {
                 applyTheme(true);
             }
@@ -68,7 +113,7 @@
             mobileSearchBtn.addEventListener('click', () => {
                 mobileSearchOverlay.classList.remove('hidden');
                 mobileSearchOverlay.classList.add('flex');
-                document.body.style.overflow = 'hidden'; // Prevent scroll
+                document.body.style.overflow = 'hidden';
                 const input = mobileSearchOverlay.querySelector('input');
                 if (input) setTimeout(() => input.focus(), 100);
             });
@@ -77,7 +122,7 @@
                 closeMobileSearch.addEventListener('click', () => {
                     mobileSearchOverlay.classList.add('hidden');
                     mobileSearchOverlay.classList.remove('flex');
-                    document.body.style.overflow = ''; // Restore scroll
+                    document.body.style.overflow = '';
                 });
             }
         }
@@ -149,7 +194,6 @@
             });
         }
 
-        // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
             if (profileDropdown && isDropdownVisible(profileDropdown) && !profileButton.contains(e.target)) {
                 hideDropdown(profileDropdown);
@@ -166,7 +210,7 @@
                 e.preventDefault();
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = this.href; // Use the URL from the link
+                form.action = this.href;
 
                 const csrfInput = document.createElement('input');
                 csrfInput.type = 'hidden';
@@ -179,34 +223,6 @@
             });
         }
 
-        // --- PWA Installation Prompt ---
-        let deferredPrompt;
-        const installButton = document.getElementById('pwaInstallBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (installButton) {
-                installButton.style.display = 'flex';
-            }
-        });
-
-        if (installButton) {
-            installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    deferredPrompt = null;
-                    installButton.style.display = 'none';
-                }
-            });
-        }
-
-        window.addEventListener('appinstalled', () => {
-            if (installButton) {
-                installButton.style.display = 'none';
-            }
-        });
-
         // --- Comment Success Toast Notification ---
         if (window.location.hash.includes('comment-')) {
             const toast = document.createElement('div');
@@ -216,7 +232,6 @@
 
             setTimeout(() => toast.remove(), 3500);
 
-            // Clean the URL hash
             setTimeout(() => {
                 history.replaceState(null, null, window.location.pathname + window.location.search);
             }, 100);
@@ -243,7 +258,6 @@
             gridViewBtn.addEventListener('click', () => toggleView('grid'));
             listViewBtn.addEventListener('click', () => toggleView('list'));
 
-            // Apply saved view on page load
             const savedView = localStorage.getItem(pageType + 'View') || 'grid';
             toggleView(savedView);
         }
@@ -313,7 +327,7 @@
 
                 const cardWidth = card.offsetWidth;
                 const gap = 20;
-                const scrollAmount = (cardWidth + gap) * 2; // Scroll 2 cards
+                const scrollAmount = (cardWidth + gap) * 2;
 
                 track.scrollBy({
                     left: direction * scrollAmount,
@@ -335,9 +349,6 @@
 
 /**
  * A function to copy text to the clipboard.
- * Note: This remains in the global scope intentionally to be callable from rare `onclick` attributes if needed for specific simple cases.
- * For new development, prefer using event listeners.
- * @param {string} text - The text to copy.
  */
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
@@ -350,8 +361,6 @@ function copyToClipboard(text) {
 
 /**
  * Display a custom toast notification.
- * @param {string} message - The message to display.
- * @param {string} type - 'success', 'error', 'info', 'warning'.
  */
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
@@ -365,7 +374,6 @@ function showToast(message, type = 'success') {
     toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
     document.body.appendChild(toast);
 
-    // Trigger reflow to enable transition
     toast.offsetHeight;
     toast.classList.add('show');
 
@@ -375,5 +383,4 @@ function showToast(message, type = 'success') {
     }, 3500);
 }
 
-// Export for global usage
 window.showToast = showToast;
