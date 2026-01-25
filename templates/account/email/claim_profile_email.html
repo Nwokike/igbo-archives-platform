@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body style="margin: 0; padding: 0; background-color: #F5F1E8; font-family: Georgia, 'Times New Roman', serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #F5F1E8;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                    style="max-width: 480px; background-color: #FFFFFF; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <!-- Logo -->
+                    <tr>
+                        <td align="center" style="padding: 32px 32px 24px;">
+                            <img src="https://igboarchives.com.ng/static/images/logos/logo-light.png"
+                                alt="Igbo Archives" width="160" style="max-width: 160px; height: auto;">
+                        </td>
+                    </tr>
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 0 32px 32px;">
+                            <h2
+                                style="margin: 0 0 16px; color: #3D2817; font-size: 20px; text-align: center; font-weight: 700;">
+                                Unlock Full Access</h2>
+                            <p
+                                style="margin: 0 0 24px; color: #5C4A3D; font-size: 15px; line-height: 1.6; text-align: center;">
+                                Hello{% if name and name != 'Guest' %} {{ name }}{% endif %},<br><br>
+                                You've started the conversation on Igbo Archives. Don't miss out on what's next.
+                            </p>
+                            <p
+                                style="margin: 0 0 24px; color: #5C4A3D; font-size: 15px; line-height: 1.6; text-align: center;">
+                                Complete your profile now to save articles, track replies, and unlock exclusive
+                                community features.
+                            </p>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{ claim_url }}"
+                                            style="display: inline-block; padding: 14px 32px; background-color: #C4A052; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 6px rgba(196, 160, 82, 0.25);">
+                                            Complete Profile
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="margin: 24px 0 0; color: #8B7355; font-size: 13px; text-align: center;">
+                                Stay connected to your heritage. Join thousands of others preserving our history.
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; border-top: 1px solid #E8E0D4; text-align: center;">
+                            <p style="margin: 0; color: #A89880; font-size: 11px;">
+                                If you didn't leave a comment, please ignore this email.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

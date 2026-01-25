@@ -3,36 +3,60 @@
 
 <div class="comments-list">
     {% if comment_list %}
-        {% for comment in comment_list %}
-            <div class="comment-box {% if comment.parent %}comment-reply{% endif %}" id="comment-{{ comment.id }}">
-                <div class="comment-header">
-                    {% if comment.user %}
-                        <a href="{% url 'users:profile' comment.user.username %}" class="comment-author text-decoration-none">{{ comment.user.get_display_name }}</a>
+    {% for comment in comment_list %}
+    <div class="comment-item {% if comment.parent_id %}is-reply{% endif %}" id="comment-{{ comment.id }}">
+        <div class="comment-header">
+            <div class="author-info">
+                <div class="active-avatar avatar-sm">
+                    {% if comment.user and comment.user.profile_picture %}
+                    <img src="{{ comment.user.profile_picture.url }}" alt="{{ comment.user.get_display_name }}">
+                    {% elif comment.user %}
+                    {{ comment.user.get_display_name|slice:":1"|upper }}
                     {% else %}
-                        <span class="comment-author">{{ comment.name }}</span>
-                    {% endif %}
-                    <span class="comment-time">{{ comment.submit_date|timesince }} ago</span>
-                </div>
-                <div class="comment-content">
-                    {{ comment.comment|linebreaks }}
-                </div>
-                <div class="comment-actions">
-                    <button class="comment-reply-btn" data-comment-id="{{ comment.id }}">
-                        <i class="fas fa-reply"></i> Reply
-                    </button>
-                    {% if user.is_authenticated and comment.user == user %}
-                        <a href="{% url 'comments-delete' comment.id %}" class="comment-delete-btn">
-                            <i class="fas fa-trash"></i> Delete
-                        </a>
+                    <i class="fas fa-user text-muted"></i>
                     {% endif %}
                 </div>
-                
-                
+                <div class="meta-wrapper">
+                    {% if comment.user %}
+                    <a href="{% url 'users:profile' comment.user.username %}" class="author-link">{{
+                        comment.user.get_display_name }}</a>
+                    {% else %}
+                    <span class="author-link">{{ comment.user_name }}</span>
+                    <span class="guest-tag">Guest</span>
+                    {% endif %}
+                </div>
             </div>
-        {% endfor %}
+
+            <div class="post-meta">
+                <i class="far fa-clock"></i>
+                <span>{{ comment.submit_date|timesince }} ago</span>
+            </div>
+        </div>
+
+        <div class="comment-body">
+            {{ comment.comment|linebreaks }}
+        </div>
+
+        <div class="comment-footer">
+            <button class="action-link comment-reply-btn" data-comment-id="{{ comment.id }}">
+                <i class="fas fa-reply"></i>
+                <span>Reply</span>
+            </button>
+            {% if user.is_authenticated and comment.user == user %}
+            <a href="{% url 'comments-delete' comment.id %}" class="action-link is-delete">
+                <i class="fas fa-trash"></i>
+                <span>Delete</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
     {% else %}
-        <p class="no-comments">No comments yet. Be the first to share your thoughts!</p>
+    <div class="empty-comments">
+        <div class="empty-icon">
+            <i class="far fa-comments"></i>
+        </div>
+        <p>No comments yet. Be the first to start the conversation!</p>
+    </div>
     {% endif %}
 </div>
-
-

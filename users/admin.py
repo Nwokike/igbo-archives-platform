@@ -8,6 +8,29 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ('Additional Info', {'fields': ('full_name', 'bio', 'profile_picture', 'social_links')}),
     )
+    actions = ['send_onboarding_email']
+
+    @admin.action(description='Send onboarding/claim profile email')
+    def send_onboarding_email(self, request, queryset):
+        from .utils import send_claim_profile_email
+        sent_count = 0
+        skipped_count = 0
+        
+        for user in queryset:
+            # Only send if they haven't set a password (unusable password)
+            if not user.has_usable_password():
+                if send_claim_profile_email(user):
+                    sent_count += 1
+                else:
+                    skipped_count += 1
+            else:
+                skipped_count += 1
+        
+        self.message_user(
+            request,
+            f"Successfully sent onboarding emails to {sent_count} users. Skipped {skipped_count} (already have passwords or error).",
+            level='INFO' if sent_count > 0 else 'WARNING'
+        )
 
 
 @admin.register(Notification)

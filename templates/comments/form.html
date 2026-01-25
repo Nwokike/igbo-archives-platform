@@ -1,9 +1,14 @@
 {% load static %}
 
-<div class="modern-comment-section">
-    <h3 class="comment-section-title">Leave a Comment</h3>
-    <p class="guest-notice">Or <a href="{% url 'account_login' %}?next={{ request.path }}">log in</a> for faster
-        commenting</p>
+<section class="modern-comment-section" id="comment-form-section">
+    <div class="section-header">
+        <h3 class="comment-section-title">
+            <i class="fas fa-comments text-accent mr-2"></i>Discussion
+        </h3>
+        {% if not user.is_authenticated %}
+        <span class="guest-notice-badge">Guest Mode</span>
+        {% endif %}
+    </div>
 
     <form method="post" action="{% url 'comments-post-comment' %}" class="modern-comment-form">
         {% csrf_token %}
@@ -14,44 +19,67 @@
         {{ form.security_hash }}
         {{ form.parent }}
 
-        <div class="guest-info-row">
-            <div class="form-field">
-                <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-                {{ form.name }}
+        {% if not user.is_authenticated %}
+        <div class="guest-grid">
+            <div class="floating-group">
+                <input type="text" name="name" id="{{ form.name.id_for_label }}" placeholder="Name" required
+                    value="{{ form.name.value|default:'' }}">
+                <label for="{{ form.name.id_for_label }}">Name</label>
                 {% if form.name.errors %}
-                <div class="form-error">{{ form.name.errors }}</div>
+                <span class="field-error">{{ form.name.errors.0 }}</span>
                 {% endif %}
             </div>
-            <div class="form-field">
-                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-                {{ form.email }}
+            <div class="floating-group">
+                <input type="email" name="email" id="{{ form.email.id_for_label }}" placeholder="Email" required
+                    value="{{ form.email.value|default:'' }}">
+                <label for="{{ form.email.id_for_label }}">Email</label>
                 {% if form.email.errors %}
-                <div class="form-error">{{ form.email.errors }}</div>
+                <span class="field-error">{{ form.email.errors.0 }}</span>
                 {% endif %}
             </div>
         </div>
+        <p class="guest-login-hint">
+            Already have an account? <a href="{% url 'account_login' %}?next={{ request.path }}">Log in here</a>
+        </p>
+        {% else %}
+        <div class="logged-in-user-info">
+            <div class="active-avatar">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}">
+                {% else %}
+                {{ user.get_display_name|slice:":1"|upper }}
+                {% endif %}
+            </div>
+            <div class="user-meta-text">
+                <span class="commenting-as">Commenting as</span>
+                <span class="current-user-name">{{ user.get_display_name }}</span>
+            </div>
+        </div>
+        {# Include hidden fields for name and email if required by the form but we shouldn't really need them if signal
+        handles it or if user is authenticated #}
+        {# However, django-comments usually requires name/email for validation if not set on the user object. #}
+        {# But since we are logged in, we can pre-fill or the backend will handle it. #}
+        {% endif %}
 
-        <div class="comment-input-wrapper">
-            <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}</label>
-            {{ form.comment }}
+        <div class="floating-group">
+            <textarea name="comment" id="{{ form.comment.id_for_label }}" placeholder="Share your thoughts..."
+                required>{{ form.comment.value|default:'' }}</textarea>
+            <label for="{{ form.comment.id_for_label }}">Share your thoughts...</label>
             {% if form.comment.errors %}
-            <div class="form-error">{{ form.comment.errors }}</div>
+            <span class="field-error">{{ form.comment.errors.0 }}</span>
             {% endif %}
         </div>
 
-        <!-- Cloudflare Turnstile for ALL users -->
-        <div class="form-group turnstile-wrapper">
+        <div class="turnstile-wrapper mt-4">
             <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
             <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
         </div>
 
-        <div class="comment-actions">
-            <button type="submit" class="comment-submit-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-                </svg>
-                Post Comment
+        <div class="form-actions">
+            <button type="submit" class="submit-btn" id="submit-comment">
+                <span>Post Comment</span>
+                <i class="fas fa-paper-plane"></i>
             </button>
         </div>
     </form>
-</div>
+</section>
