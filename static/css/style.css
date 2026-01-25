@@ -118,12 +118,7 @@ html:not(.dark) .logo-dark {
 }
 
 /* Subheader wrapping fix - ensure max 2 lines on mobile */
-@media (max-width: 640px) {
-    nav.border-b .flex {
-        max-height: 4rem; /* ~2 lines */
-        overflow: hidden;
-    }
-    
+@media (max-width: 640px) {    
     nav.border-b .btn-primary.btn-sm {
         flex-shrink: 0;
     }
