@@ -26,6 +26,25 @@ class Category(models.Model):
         return self.name
 
 
+class Author(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    description = models.TextField(blank=True, help_text="Bio or description of the author")
+    image = models.ImageField(upload_to='authors/', blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('archives:author_detail', args=[self.slug])
+
+
 class Archive(models.Model):
     ARCHIVE_TYPES = [
         ('image', 'Image'),
@@ -108,7 +127,15 @@ class Archive(models.Model):
     original_author = models.CharField(
         max_length=255, 
         blank=True,
-        help_text="Optional: Original photographer/creator (e.g., Northcote Thomas)"
+        help_text="Optional: Original photographer/creator (e.g., Northcote Thomas). Will auto-link to Author profile if match exists."
+    )
+    author = models.ForeignKey(
+        Author,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='archives',
+        help_text="Link to a full author profile"
     )
     date_created = models.DateField(
         null=True, 
@@ -144,6 +171,20 @@ class Archive(models.Model):
     
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+        # Auto-link logic:
+        # 1. If Author FK is empty but text exists, try to find an Author match
+        if self.original_author and not self.author:
+            match = Author.objects.filter(name__iexact=self.original_author.strip()).first()
+            if match:
+                self.author = match
+        
+        # 2. If Author FK is set but text is empty, auto-fill text for display consistency
+        if self.author and not self.original_author:
+            self.original_author = self.author.name
+            
+        super().save(*args, **kwargs)
     
     def get_absolute_url(self):
         """Return the URL for this archive."""

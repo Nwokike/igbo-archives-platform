@@ -44,19 +44,31 @@ def get_random_recommendations(exclude_pk, count=9):
 def archive_list(request):
     """List all approved archives with filtering and pagination."""
     archives = Archive.objects.filter(is_approved=True).select_related(
-        'uploaded_by', 'category'
+        'uploaded_by', 'category', 'author'
     ).prefetch_related('tags').only(
         'id', 'title', 'archive_type', 'image', 'featured_image',
         'alt_text', 'description', 'created_at', 'uploaded_by_id', 'category_id',
-        'uploaded_by__full_name', 'uploaded_by__username',
+        'author_id', 'uploaded_by__full_name', 'uploaded_by__username',
         'category__name', 'category__slug'
     )
     
     if category := request.GET.get('category'):
         archives = archives.filter(category__slug=category)
     
+    if author_slug := request.GET.get('author'):
+        archives = archives.filter(author__slug=author_slug)
+    
+    if circa_date := request.GET.get('date'):
+        archives = archives.filter(circa_date__icontains=circa_date)
+    
     if search := request.GET.get('search'):
-        archives = archives.filter(title__icontains=search)
+        # Search in title, description, and author name
+        from django.db.models import Q
+        archives = archives.filter(
+            Q(title__icontains=search) | 
+            Q(description__icontains=search) |
+            Q(original_author__icontains=search)
+        )
     
     if archive_type := request.GET.get('type'):
         archives = archives.filter(archive_type=archive_type)
@@ -83,12 +95,12 @@ def archive_detail(request, pk=None, slug=None):
     # Get archive by slug or pk
     if slug:
         archive = get_object_or_404(
-            Archive.objects.select_related('uploaded_by', 'category'),
+            Archive.objects.select_related('uploaded_by', 'category', 'author'),
             slug=slug
         )
     elif pk:
         archive = get_object_or_404(
-            Archive.objects.select_related('uploaded_by', 'category'),
+            Archive.objects.select_related('uploaded_by', 'category', 'author'),
             pk=pk
         )
         # Redirect to slug URL if slug exists for SEO
@@ -106,6 +118,12 @@ def archive_detail(request, pk=None, slug=None):
             return redirect('archives:edit', pk=archive.pk)
         raise Http404("Archive not found")
     
+    # Similar archives (same category, excluding current)
+    similar_archives = Archive.objects.filter(
+        is_approved=True,
+        category=archive.category
+    ).exclude(pk=archive.pk).select_related('uploaded_by', 'author')[:5]
+    
     previous_archive = Archive.objects.filter(
         is_approved=True, created_at__lt=archive.created_at
     ).order_by('-created_at').only('id', 'title', 'slug').first()
@@ -118,12 +136,67 @@ def archive_detail(request, pk=None, slug=None):
     
     context = {
         'archive': archive,
+        'similar_archives': similar_archives,
         'previous_archive': previous_archive,
         'next_archive': next_archive,
         'recommended': recommended,
     }
     
     return render(request, 'archives/detail.html', context)
+
+
+def author_detail(request, slug):
+    """Display an author's profile and their archives."""
+    from .models import Author
+    author = get_object_or_404(Author, slug=slug)
+    
+    # Get all approved archives by this author
+    archives_list = Archive.objects.filter(
+        is_approved=True, 
+        author=author
+    ).select_related('category', 'uploaded_by').order_by('-created_at')
+    
+    paginator = Paginator(archives_list, 12)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    
+    context = {
+        'author': author,
+        'archives': page_obj,
+    }
+    return render(request, 'archives/author_detail.html', context)
+
+
+def metadata_suggestions(request):
+    """Fetch unique metadata suggestions for autocomplete."""
+    from django.http import JsonResponse
+    from .models import Author
+    
+    query = request.GET.get('q', '')
+    field = request.GET.get('field', 'author')
+    
+    results = []
+    
+    if len(query) > 1:
+        if field == 'author':
+            # Suggest from existing Authors OR distinct text values
+            results = list(Author.objects.filter(
+                name__icontains=query
+            ).values_list('name', flat=True)[:10])
+            
+            # If still short, maybe search original_author text field?
+            if len(results) < 5:
+                text_results = Archive.objects.filter(
+                    original_author__icontains=query
+                ).values_list('original_author', flat=True).distinct()[:5]
+                results = list(set(results + list(text_results)))[:10]
+            
+        elif field == 'date':
+            # Suggest standard circa dates
+            results = list(Archive.objects.filter(
+                circa_date__icontains=query
+            ).values_list('circa_date', flat=True).distinct()[:10])
+
+    return JsonResponse({'results': results})
 
 
 @login_required

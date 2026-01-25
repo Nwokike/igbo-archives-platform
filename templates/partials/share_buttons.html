@@ -23,16 +23,6 @@
             <span class="hidden sm:inline">X</span>
         </a>
         
-        <!-- LinkedIn -->
-        <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri|urlencode }}&title={{ title|urlencode }}" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="share-btn share-btn-linkedin"
-           aria-label="Share on LinkedIn">
-            <i class="fab fa-linkedin-in"></i>
-            <span class="hidden sm:inline">LinkedIn</span>
-        </a>
-        
         <!-- WhatsApp -->
         <a href="https://wa.me/?text={{ title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" 
            target="_blank" 

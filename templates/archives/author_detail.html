@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ author.name }} - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="container py-12">
+    <!-- Author Profile Header -->
+    <div class="max-w-4xl mx-auto mb-16">
+        <div class="card p-8 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
+            {% if author.image %}
+            <img src="{{ author.image.url }}" alt="{{ author.name }}"
+                class="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover border-4 border-secondary/10 shadow-lg">
+            {% else %}
+            <div
+                class="w-32 h-32 md:w-48 md:h-48 rounded-full bg-secondary/10 flex items-center justify-center text-5xl font-serif text-secondary shadow-inner">
+                {{ author.name|slice:":1"|upper }}
+            </div>
+            {% endif %}
+
+            <div class="flex-1">
+                <h1 class="font-serif text-4xl md:text-5xl font-bold mb-4 text-text">{{ author.name }}</h1>
+
+                {% if author.description %}
+                <div class="prose max-w-none text-text-muted leading-relaxed">
+                    {{ author.description|linebreaks }}
+                </div>
+                {% else %}
+                <p class="text-text-muted italic">No biography available for this author.</p>
+                {% endif %}
+
+                <div
+                    class="mt-8 pt-6 border-t border-secondary/5 flex flex-wrap justify-center md:justify-start gap-6 text-sm font-medium">
+                    <div class="flex items-center text-accent">
+                        <i class="fas fa-layer-group mr-2"></i>
+                        <span>{{ archives.paginator.count }} Archives Found</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Author's Archives Grid -->
+    <div class="archive-section">
+        <h2 class="font-serif text-2xl font-bold mb-8 flex items-center gap-3">
+            <span class="w-8 h-1 bg-accent rounded-full"></span>
+            Archives by {{ author.name }}
+        </h2>
+
+        {% if archives %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {% for archive in archives %}
+            {% include 'archives/partials/archive_grid_item.html' with archive=archive %}
+            {% endfor %}
+        </div>
+
+        {% if archives.has_other_pages %}
+        <div class="mt-16">
+            {% include 'partials/pagination.html' with page_obj=archives %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-20 bg-secondary/5 rounded-2xl">
+            <i class="far fa-folder-open text-5xl text-secondary/30 mb-4 block"></i>
+            <p class="text-text-muted">No public archives found for this author yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

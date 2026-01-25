@@ -6,46 +6,49 @@
 {% block content %}
 <div class="max-w-2xl mx-auto">
     <h1 class="font-serif text-display-lg text-dark-brown mb-6">Edit Archive</h1>
-    
+
     <form method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
-        
+
         {% if form.non_field_errors %}
-            <div class="alert alert-error mb-4">
-                {% for error in form.non_field_errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-            </div>
+        <div class="alert alert-error mb-4">
+            {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
         {% endif %}
-        
+
         <div class="form-group">
-            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}{% if form.title.field.required %} *{% endif %}</label>
+            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}{% if
+                form.title.field.required %} *{% endif %}</label>
             {{ form.title }}
             {% if form.title.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.title.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.title.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
         <div class="form-group">
-            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}{% if form.description.field.required %} *{% endif %}</label>
+            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}{% if
+                form.description.field.required %} *{% endif %}</label>
             {{ form.description }}
             {% if form.description.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.description.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.description.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Plain text description of the archive</p>
         </div>
 
         <div class="form-group">
-            <label for="{{ form.archive_type.id_for_label }}" class="form-label">{{ form.archive_type.label }}{% if form.archive_type.field.required %} *{% endif %}</label>
+            <label for="{{ form.archive_type.id_for_label }}" class="form-label">{{ form.archive_type.label }}{% if
+                form.archive_type.field.required %} *{% endif %}</label>
             {{ form.archive_type }}
             {% if form.archive_type.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.archive_type.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.archive_type.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -53,9 +56,9 @@
             <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
             {{ form.category }}
             {% if form.category.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.category.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.category.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -98,9 +101,9 @@
             <label for="{{ form.image.id_for_label }}" class="form-label">New Image File</label>
             {{ form.image }}
             {% if form.image.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.image.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.image.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Leave empty to keep current file. Accepted: JPG, PNG, WEBP (Max 5MB)</p>
         </div>
@@ -109,9 +112,9 @@
             <label for="{{ form.video.id_for_label }}" class="form-label">New Video File</label>
             {{ form.video }}
             {% if form.video.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.video.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.video.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Leave empty to keep current file. Accepted: MP4, WEBM, OGG, MOV (Max 50MB)</p>
         </div>
@@ -120,9 +123,9 @@
             <label for="{{ form.audio.id_for_label }}" class="form-label">New Audio File</label>
             {{ form.audio }}
             {% if form.audio.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.audio.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.audio.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Leave empty to keep current file. Accepted: MP3, WAV, OGG, M4A (Max 10MB)</p>
         </div>
@@ -131,9 +134,9 @@
             <label for="{{ form.document.id_for_label }}" class="form-label">New Document File</label>
             {{ form.document }}
             {% if form.document.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.document.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.document.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Leave empty to keep current file. Accepted: PDF, DOC, DOCX, TXT (Max 10MB)</p>
         </div>
@@ -144,48 +147,52 @@
             <label for="{{ form.featured_image.id_for_label }}" class="form-label">Featured Image/Thumbnail</label>
             {% if archive.featured_image %}
             <div class="mb-2">
-                <img src="{{ archive.featured_image.url }}" alt="Current thumbnail" class="max-w-xs rounded-lg shadow-soft">
+                <img src="{{ archive.featured_image.url }}" alt="Current thumbnail"
+                    class="max-w-xs rounded-lg shadow-soft">
             </div>
             {% endif %}
             {{ form.featured_image }}
             {% if form.featured_image.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.featured_image.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.featured_image.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Thumbnail for videos/audio (optional, Max 5MB)</p>
         </div>
         {% endif %}
 
         <div class="form-group">
-            <label for="{{ form.caption.id_for_label }}" class="form-label">{{ form.caption.label }}{% if form.caption.field.required %} *{% endif %}</label>
+            <label for="{{ form.caption.id_for_label }}" class="form-label">{{ form.caption.label }}{% if
+                form.caption.field.required %} *{% endif %}</label>
             {{ form.caption }}
             {% if form.caption.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.caption.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.caption.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Must include copyright or source information</p>
         </div>
 
         <div class="form-group">
-            <label for="{{ form.alt_text.id_for_label }}" class="form-label">{{ form.alt_text.label }}{% if form.alt_text.field.required %} *{% endif %}</label>
+            <label for="{{ form.alt_text.id_for_label }}" class="form-label">{{ form.alt_text.label }}{% if
+                form.alt_text.field.required %} *{% endif %}</label>
             {{ form.alt_text }}
             {% if form.alt_text.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.alt_text.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.alt_text.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Describe the content for accessibility</p>
         </div>
 
         <div class="form-group">
-            <label for="{{ form.original_author.id_for_label }}" class="form-label">{{ form.original_author.label }}</label>
+            <label for="{{ form.original_author.id_for_label }}" class="form-label">{{ form.original_author.label
+                }}</label>
             {{ form.original_author }}
             {% if form.original_author.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.original_author.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.original_author.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -193,9 +200,9 @@
             <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
             {{ form.location }}
             {% if form.location.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.location.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.location.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -203,9 +210,9 @@
             <label for="{{ form.date_created.id_for_label }}" class="form-label">{{ form.date_created.label }}</label>
             {{ form.date_created }}
             {% if form.date_created.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.date_created.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.date_created.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </div>
 
@@ -213,9 +220,9 @@
             <label for="{{ form.circa_date.id_for_label }}" class="form-label">{{ form.circa_date.label }}</label>
             {{ form.circa_date }}
             {% if form.circa_date.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.circa_date.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.circa_date.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Use if exact date is unknown (e.g., c1910, around 1910s)</p>
         </div>
@@ -224,31 +231,43 @@
             <label for="{{ form.tags.id_for_label }}" class="form-label">{{ form.tags.label }}</label>
             {{ form.tags }}
             {% if form.tags.errors %}
-                <div class="text-red-600 text-sm mt-1">
-                    {% for error in form.tags.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-red-600 text-sm mt-1">
+                {% for error in form.tags.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
             <p class="form-help">Comma-separated tags (max 20)</p>
         </div>
+
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4">
             <button type="submit" class="btn-primary flex-1">Update Archive</button>
             {% if archive.slug %}
             <a href="{% url 'archives:detail' archive.slug %}" class="btn-secondary text-center">Cancel</a>
             {% if not archive.is_approved %}
-            <a href="{% url 'archives:delete' archive.slug %}" class="btn-secondary text-red-600 hover:bg-red-50 text-center" onclick="return confirm('Are you sure you want to delete this archive? This action cannot be undone.');">
+            <a href="{% url 'archives:delete' archive.slug %}"
+                class="btn-secondary text-red-600 hover:bg-red-50 text-center"
+                onclick="return confirm('Are you sure you want to delete this archive? This action cannot be undone.');">
                 <i class="fas fa-trash"></i> Delete
             </a>
             {% endif %}
             {% else %}
             <a href="{% url 'archives:detail' archive.pk %}" class="btn-secondary text-center">Cancel</a>
             {% if not archive.is_approved %}
-            <a href="{% url 'archives:delete' archive.pk %}" class="btn-secondary text-red-600 hover:bg-red-50 text-center" onclick="return confirm('Are you sure you want to delete this archive? This action cannot be undone.');">
+            <a href="{% url 'archives:delete' archive.pk %}"
+                class="btn-secondary text-red-600 hover:bg-red-50 text-center"
+                onclick="return confirm('Are you sure you want to delete this archive? This action cannot be undone.');">
                 <i class="fas fa-trash"></i> Delete
             </a>
             {% endif %}
             {% endif %}
         </div>
     </form>
+
+    <datalist id="author-list"></datalist>
+    <datalist id="date-list"></datalist>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/archives_create.js' %}"></script>
 {% endblock %}

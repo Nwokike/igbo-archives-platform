@@ -53,7 +53,8 @@ class ArchiveForm(forms.ModelForm):
             }),
             'original_author': forms.TextInput(attrs={
                 'class': 'form-input',
-                'placeholder': 'e.g., Northcote Thomas'
+                'placeholder': 'e.g., Northcote Thomas',
+                'list': 'author-list'
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-input',
@@ -61,7 +62,8 @@ class ArchiveForm(forms.ModelForm):
             }),
             'circa_date': forms.TextInput(attrs={
                 'class': 'form-input',
-                'placeholder': 'e.g., c1910, around 1910s'
+                'placeholder': 'e.g., c1910, around 1910s',
+                'list': 'date-list'
             }),
             'image': forms.FileInput(attrs={
                 'class': 'form-input',
