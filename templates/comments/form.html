@@ -55,10 +55,6 @@
                 <span class="current-user-name">{{ user.get_display_name }}</span>
             </div>
         </div>
-        {# Include hidden fields for name and email if required by the form but we shouldn't really need them if signal
-        handles it or if user is authenticated #}
-        {# However, django-comments usually requires name/email for validation if not set on the user object. #}
-        {# But since we are logged in, we can pre-fill or the backend will handle it. #}
         {% endif %}
 
         <div class="floating-group">
