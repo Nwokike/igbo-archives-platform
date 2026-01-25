@@ -28,8 +28,7 @@
 </section>
 
 {% if featured_archives %}
-<section
-    class="py-8 lg:py-12 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt dark:bg-surface-dark-alt">
+<section class="py-8 lg:py-12 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt dark:bg-surface-dark-alt">
     <div class="max-w-6xl mx-auto">
         <div class="flex items-center justify-between mb-4">
             <h2 class="font-serif text-lg text-text dark:text-text-dark">Featured Archive</h2>
@@ -47,13 +46,13 @@
                     data-index="{{ forloop.counter0 }}">
                     <div class="relative aspect-[16/9] rounded-xl overflow-hidden group/slide">
                         <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover/slide:scale-105"
                             loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
                         <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 left-0 right-0 p-5 lg:p-7">
                             <span class="inline-flex items-center gap-1.5 text-xs text-accent mb-2">
-                                <i class="fas fa-archive"></i> {% if archive.category %}{{ archive.category.name }}{% else %}Cultural Archive{% endif %}
+                                <i class="fas fa-archive"></i> {% if archive.category %}{{ archive.category.name }}{%
+                                else %}Cultural Archive{% endif %}
                             </span>
                             <h3 class="font-serif text-xl lg:text-2xl font-semibold text-white mb-2 line-clamp-1">{{
                                 archive.title }}</h3>
@@ -186,7 +185,8 @@
     </div>
 </section>
 
-<section class="py-12 lg:py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt/50 dark:bg-surface-dark-alt/50">
+<section
+    class="py-12 lg:py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt/50 dark:bg-surface-dark-alt/50">
     <div class="max-w-6xl mx-auto">
         <div class="text-center mb-12">
             <h2 class="font-serif text-2xl lg:text-3xl font-bold mb-4">Why Igbo Archives?</h2>
@@ -199,7 +199,8 @@
                     <i class="fas fa-cubes text-xl"></i>
                 </div>
                 <h4 class="font-serif font-semibold mb-2">Preserve Heritage</h4>
-                <p class="text-sm text-text-muted dark:text-text-dark-muted">Digitally preserve Igbo cultural artifacts for future generations</p>
+                <p class="text-sm text-text-muted dark:text-text-dark-muted">Digitally preserve Igbo cultural artifacts
+                    for future generations</p>
             </div>
 
             <div class="text-center">
@@ -208,7 +209,8 @@
                     <i class="fas fa-globe text-xl"></i>
                 </div>
                 <h4 class="font-serif font-semibold mb-2">Global Access</h4>
-                <p class="text-sm text-text-muted dark:text-text-dark-muted">Connect Igbo people worldwide with their roots and heritage</p>
+                <p class="text-sm text-text-muted dark:text-text-dark-muted">Connect Igbo people worldwide with their
+                    roots and heritage</p>
             </div>
 
             <div class="text-center">
@@ -217,7 +219,8 @@
                     <i class="fas fa-book-open text-xl"></i>
                 </div>
                 <h4 class="font-serif font-semibold mb-2">Educational</h4>
-                <p class="text-sm text-text-muted dark:text-text-dark-muted">Comprehensive resources for learning and research</p>
+                <p class="text-sm text-text-muted dark:text-text-dark-muted">Comprehensive resources for learning and
+                    research</p>
             </div>
 
             <div class="text-center">
@@ -226,7 +229,8 @@
                     <i class="fas fa-users text-xl"></i>
                 </div>
                 <h4 class="font-serif font-semibold mb-2">Community-Driven</h4>
-                <p class="text-sm text-text-muted dark:text-text-dark-muted">Built by the community, for the community</p>
+                <p class="text-sm text-text-muted dark:text-text-dark-muted">Built by the community, for the community
+                </p>
             </div>
         </div>
     </div>

@@ -325,8 +325,7 @@
 
             <div
                 class="mt-8 pt-6 border-t border-border dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted dark:text-text-dark-muted">
-                <p>&copy; 2025 - {% now "Y" %} <a href="https://kiri.ng/about" target="_blank" rel="noopener noreferrer"
-                        class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research Labs</a>. All Rights Reserved.</p>
+                <p>&copy; 2025 - {% now "Y" %} <a href="https://kiri.ng/about" target="_blank" rel="noopener noreferrer"class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research Labs</a></p>
             </div>
         </div>
     </footer>
@@ -345,8 +344,7 @@
     {% block extra_js %}{% endblock %}
 
     {% if user.is_authenticated %}
-    <!-- Push Notification Prompt --
->
+    <!-- Push Notification Prompt -->
     <div id="push-notification-prompt"
         class="fixed bottom-24 lg:bottom-6 right-4 z-50 card p-3 sm:p-4 hidden animate-fade-in shadow-lg max-w-xs sm:max-w-sm">
         <div class="flex items-start gap-2 sm:gap-3 mb-3">
