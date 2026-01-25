@@ -28,67 +28,79 @@
 </section>
 
 {% if featured_archives %}
-<section class="py-8 lg:py-12 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface-alt dark:bg-surface-dark-alt">
-    <div class="max-w-6xl mx-auto">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="font-serif text-lg text-text dark:text-text-dark">Featured Archive</h2>
-            <a href="{% url 'archives:list' %}" class="text-sm text-accent hover:text-accent-hover transition-colors">
-                View All <i class="fas fa-arrow-right ml-1 text-xs"></i>
-            </a>
-        </div>
+<section
+    class="py-8 lg:py-12 -mx-4 sm:-mx-6 lg:-mx-8 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] lg:w-[calc(100%+4rem)] overflow-hidden">
+    <div class="swiper swiper-container h-[85vh] min-h-[600px] max-h-[800px] bg-surface-alt dark:bg-surface-dark-alt">
+        <div class="swiper-wrapper">
+            {% for archive in featured_archives %}
+            <div class="swiper-slide flex flex-col lg:flex-row w-full h-full relative group">
+                <!-- Text Area -->
+                <div
+                    class="w-full lg:w-1/2 h-1/2 lg:h-full flex flex-col justify-center px-6 sm:px-10 lg:px-20 py-10 order-2 lg:order-1 bg-surface-alt dark:bg-surface-dark-alt relative z-10">
+                    <div class="animate-content max-w-xl mx-auto lg:mx-0">
+                        <span
+                            class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent mb-4">
+                            <span class="w-8 h-[1px] bg-accent"></span>
+                            {% if archive.category %}{{ archive.category.name }}{% else %}Cultural Archive{% endif %}
+                        </span>
 
-        <div class="relative group" id="heroCarousel">
-            <div class="carousel-container overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
-                id="carouselTrack">
-                {% for archive in featured_archives %}
-                <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
-                    class="carousel-slide snap-center flex-shrink-0 w-full sm:w-[85%] lg:w-[75%] inline-block first:ml-0 mr-3 last:mr-0"
-                    data-index="{{ forloop.counter0 }}">
-                    <div class="relative aspect-[16/9] rounded-xl overflow-hidden group/slide">
-                        <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}"
-                            loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                        <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
-                        <div class="absolute bottom-0 left-0 right-0 p-5 lg:p-7">
-                            <span class="inline-flex items-center gap-1.5 text-xs text-accent mb-2">
-                                <i class="fas fa-archive"></i> {% if archive.category %}{{ archive.category.name }}{% else %}Cultural Archive{% endif %}
-                            </span>
-                            <h3 class="font-serif text-xl lg:text-2xl font-semibold text-white mb-2 line-clamp-1">{{ archive.title }}</h3>
-                            <p class="text-sm text-white/75 line-clamp-2 max-w-xl">{{ archive.description|truncatewords:25 }}</p>
-                        </div>
-                        <div
-                            class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover/slide:opacity-100 transition-opacity">
-                            <i class="fas fa-external-link-alt text-xs"></i>
+                        <h2
+                            class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-text dark:text-text-dark mb-6 leading-tight">
+                            <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
+                                class="hover:text-accent transition-colors">
+                                {{ archive.title }}
+                            </a>
+                        </h2>
+
+                        <p class="text-text-muted dark:text-text-dark-muted text-base lg:text-lg mb-8 leading-relaxed">
+                            {{ archive.description|truncatewords:50 }}
+                        </p>
+
+                        <div class="flex flex-wrap items-center gap-4">
+                            <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
+                                class="btn-primary btn-lg">
+                                <i class="fas fa-eye mr-2"></i> View Archive
+                            </a>
+                            <a href="{% url 'archives:list' %}"
+                                class="text-sm font-semibold text-text dark:text-text-dark hover:text-accent transition-colors px-4 py-3 flex items-center">
+                                View All <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                            </a>
                         </div>
                     </div>
-                </a>
-                {% endfor %}
-            </div>
+                </div>
 
-            <button
-                class="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                id="carouselPrev" aria-label="Previous slide">
-                <i class="fas fa-chevron-left text-sm"></i>
-            </button>
-            <button
-                class="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                id="carouselNext" aria-label="Next slide">
-                <i class="fas fa-chevron-right text-sm"></i>
-            </button>
-
-            <div class="flex items-center justify-center gap-1.5 mt-4" id="carouselDots">
-                {% for archive in featured_archives %}
-                <button
-                    class="carousel-dot w-1.5 h-1.5 rounded-full transition-all duration-300 {% if forloop.first %}bg-accent w-4{% else %}bg-white/30 hover:bg-white/50{% endif %}"
-                    data-index="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
-                {% endfor %}
+                <!-- Image Area -->
+                <div class="w-full lg:w-1/2 h-1/2 lg:h-full relative order-1 lg:order-2 overflow-hidden">
+                    <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}"
+                        class="w-full h-full object-cover transition-transform duration-[2000ms] ease-out group-[.swiper-slide-active]:scale-105"
+                        loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                    <!-- Subtle overlay for mobile consistency -->
+                    <div class="absolute inset-0 bg-black/10 lg:bg-transparent"></div>
+                </div>
             </div>
+            {% endfor %}
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="absolute bottom-8 left-0 w-full lg:w-1/2 flex items-center justify-center gap-4 z-20">
+            <button
+                class="swiper-button-prev-custom w-12 h-12 rounded-full border border-border dark:border-border-dark text-text dark:text-text-dark hover:bg-accent hover:border-accent hover:text-white transition-all flex items-center justify-center"
+                aria-label="Previous slide">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="swiper-pagination-custom flex gap-2"></div>
+            <button
+                class="swiper-button-next-custom w-12 h-12 rounded-full border border-border dark:border-border-dark text-text dark:text-text-dark hover:bg-accent hover:border-accent hover:text-white transition-all flex items-center justify-center"
+                aria-label="Next slide">
+                <i class="fas fa-arrow-right"></i>
+            </button>
         </div>
     </div>
 </section>
 
 <script src="{% static 'js/home_carousel.js' %}"></script>
 {% endif %}
+
 
 <section class="py-12 lg:py-16">
     <div class="text-center mb-12">

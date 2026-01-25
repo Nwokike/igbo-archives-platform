@@ -33,6 +33,7 @@
     "@editorjs/warning": "^1.4.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/playfair-display": "^5.2.8",
-    "@fortawesome/fontawesome-free": "^7.1.0"
+    "@fortawesome/fontawesome-free": "^7.1.0",
+    "swiper": "^12.0.3"
   }
 }
