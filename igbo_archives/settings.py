@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'insights.apps.InsightsConfig',
     'books.apps.BooksConfig',
     'ai.apps.AiConfig',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [

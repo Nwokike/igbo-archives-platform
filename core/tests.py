@@ -2,11 +2,12 @@
 Unit tests for the core app.
 Tests homepage, static pages, contact form, and utility functions.
 """
-from django.test import TestCase, Client
+from django.test import TestCase, TransactionTestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from unittest.mock import patch, MagicMock
 from archives.models import Archive, Category
 
@@ -173,3 +174,87 @@ class ValidatorsTests(TestCase):
         
         result = get_safe_sort('invalid_sort; DROP TABLE;', ALLOWED_ARCHIVE_SORTS)
         self.assertEqual(result, '-created_at')
+
+
+class MediaCleanupTests(TestCase):
+    """Tests for automatic media deletion using django-cleanup."""
+    
+    def setUp(self):
+        self.user = User.objects.create_user(username='testcleanupuser', password='password')
+        # Create a small image file
+        self.test_image = SimpleUploadedFile(
+            name='test_image.jpg',
+            content=b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x05\x04\x03\x02\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x4c\x01\x00\x3b',
+            content_type='image/jpeg'
+        )
+
+    @patch('storages.backends.s3.S3Storage.delete')
+    def test_archive_deletion_cleans_media(self, mock_delete):
+        """Test that deleting an Archive record deletes its files from storage."""
+        archive = Archive.objects.create(
+            title='Test Archive',
+            description='Test description',
+            archive_type='image',
+            image=self.test_image,
+            uploaded_by=self.user
+        )
+        file_name = archive.image.name
+        
+        # Delete the archive within a commit capture block
+        with self.captureOnCommitCallbacks(execute=True):
+            archive.delete()
+        
+        # Verify storage.delete was called
+        self.assertTrue(mock_delete.called, f"storage.delete not called for {file_name}")
+        mock_delete.assert_called_with(file_name)
+
+    @patch('storages.backends.s3.S3Storage.delete')
+    def test_profile_picture_update_cleans_old_media(self, mock_delete):
+        """Test that updating a profile picture deletes the old one."""
+        user = User.objects.create_user(username='testcleanupuser2', password='password')
+        
+        # Set initial profile picture
+        user.profile_picture = SimpleUploadedFile(
+            name='old_pfp.jpg',
+            content=b'old_content',
+            content_type='image/jpeg'
+        )
+        user.save()
+        old_file_name = user.profile_picture.name
+        
+        # Update profile picture within a commit capture block
+        with self.captureOnCommitCallbacks(execute=True):
+            user.profile_picture = SimpleUploadedFile(
+                name='new_pfp.jpg',
+                content=b'new_content',
+                content_type='image/jpeg'
+            )
+            user.save()
+        
+        # Verify old file was deleted
+        self.assertTrue(mock_delete.called, f"storage.delete not called for old pfp: {old_file_name}")
+        mock_delete.assert_called_with(old_file_name)
+
+    @patch('storages.backends.s3.S3Storage.delete')
+    def test_bulk_deletion_cleans_media(self, mock_delete):
+        """Test that bulk deletion also triggers cleanup."""
+        # Create multiple archives
+        a1 = Archive.objects.create(
+            title='A1', description='D', archive_type='image',
+            image=SimpleUploadedFile('a1.jpg', b'c'), uploaded_by=self.user
+        )
+        a2 = Archive.objects.create(
+            title='A2', description='D', archive_type='image',
+            image=SimpleUploadedFile('a2.jpg', b'c'), uploaded_by=self.user
+        )
+        
+        names = [a1.image.name, a2.image.name]
+        
+        # Bulk delete within a commit capture block
+        with self.captureOnCommitCallbacks(execute=True):
+            Archive.objects.filter(title__in=['A1', 'A2']).delete()
+        
+        # Verify all were deleted
+        self.assertEqual(mock_delete.call_count, 2)
+        for name in names:
+            mock_delete.assert_any_call(name)

@@ -35,7 +35,7 @@ class ArchiveSitemap(Sitemap):
     priority = 0.8
     
     def items(self):
-        return Archive.objects.filter(is_approved=True).only('id', 'slug', 'updated_at').iterator(chunk_size=500)
+        return Archive.objects.filter(is_approved=True).only('id', 'slug', 'updated_at')
     
     def lastmod(self, obj):
         return obj.updated_at if hasattr(obj, 'updated_at') else obj.created_at
@@ -54,7 +54,7 @@ class InsightSitemap(Sitemap):
     def items(self):
         return InsightPost.objects.filter(
             is_published=True, is_approved=True
-        ).only('id', 'slug', 'updated_at').iterator(chunk_size=500)
+        ).only('id', 'slug', 'updated_at')
     
     def lastmod(self, obj):
         return obj.updated_at
@@ -71,7 +71,7 @@ class BookSitemap(Sitemap):
     def items(self):
         return BookReview.objects.filter(
             is_published=True, is_approved=True
-        ).only('id', 'slug', 'updated_at').iterator(chunk_size=500)
+        ).only('id', 'slug', 'updated_at')
     
     def lastmod(self, obj):
         return obj.updated_at
@@ -86,7 +86,7 @@ class UserProfileSitemap(Sitemap):
     priority = 0.5
     
     def items(self):
-        return User.objects.filter(is_active=True).only('id', 'username').iterator(chunk_size=500)
+        return User.objects.filter(is_active=True).only('id', 'username')
     
     def location(self, obj):
         return reverse('users:profile', args=[obj.username])

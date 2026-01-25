@@ -308,6 +308,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a1/6f/3ccc016b901d7e5a1178e78671048f889d967091586cdce2cd9d590da407/django_allauth-0.63.6.tar.gz", hash = "sha256:f15f49defb09e0604dad5214e53a69a1f723cb03176bb115c8930bcd19b91749", size = 1082450, upload-time = "2024-07-12T20:49:32.229Z" }
 
 [[package]]
+name = "django-cleanup"
+version = "9.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/01/b15a8de8b9ec75ea157ec58f86411894ca1182305fabaee31193076e7f62/django_cleanup-9.0.0.tar.gz", hash = "sha256:bb9fb560aaf62959c81e31fa40885c36bbd5854d5aa21b90df2c7e4ba633531e", size = 17917, upload-time = "2024-09-18T21:58:06.089Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/87/d7/a83dc87c2383e125da29948f7bccf5b30126c087a5a831316482407a960f/django_cleanup-9.0.0-py3-none-any.whl", hash = "sha256:19f8b0e830233f9f0f683b17181f414672a0f48afe3ea3cc80ba47ae40ad880c", size = 10726, upload-time = "2024-09-18T21:58:04.626Z" },
+]
+
+[[package]]
 name = "django-contrib-comments"
 version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -601,6 +610,7 @@ dependencies = [
     { name = "cryptography" },
     { name = "django" },
     { name = "django-allauth" },
+    { name = "django-cleanup" },
     { name = "django-csp" },
     { name = "django-dbbackup" },
     { name = "django-editorjs-fields" },
@@ -631,6 +641,7 @@ requires-dist = [
     { name = "cryptography", specifier = "==42.0.5" },
     { name = "django", specifier = "==5.1.4" },
     { name = "django-allauth", specifier = "==0.63.6" },
+    { name = "django-cleanup", specifier = ">=9.0.0" },
     { name = "django-csp", specifier = "==3.8" },
     { name = "django-dbbackup", specifier = "==4.1.0" },
     { name = "django-editorjs-fields", specifier = "==0.2.7" },

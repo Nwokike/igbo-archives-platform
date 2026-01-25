@@ -31,4 +31,5 @@ dependencies = [
     "duckduckgo-search==5.3.1",
     "requests==2.31.0",
     "django-csp==3.8",
+    "django-cleanup>=9.0.0",
 ]
