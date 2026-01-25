@@ -8,8 +8,7 @@
     </div>
     {% endif %}
     <div class="card-body">
-        <h3 class="font-serif text-lg font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">{{
-            post.title }}</h3>
+        <h3 class="font-serif text-lg font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">{{post.title }}</h3>
         <p class="text-sm text-text-muted mb-3 flex items-center gap-2">
             <i class="fas fa-user text-xs"></i>
             <span>{{ post.author.full_name|default:post.author.username }}</span>

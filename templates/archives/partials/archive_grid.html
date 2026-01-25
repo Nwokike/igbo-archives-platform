@@ -17,8 +17,7 @@
     </div>
     {% endif %}
     <div class="card-body">
-        <h3 class="font-serif text-lg font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">{{
-            archive.title }}</h3>
+        <h3 class="font-serif text-lg font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">{{archive.title }}</h3>
         <p class="text-sm text-text-muted line-clamp-2 mb-3">{{ archive.description|truncatewords:15 }}</p>
         <div class="flex flex-wrap gap-2">
             <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>

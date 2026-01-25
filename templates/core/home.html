@@ -51,13 +51,10 @@
                         <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 left-0 right-0 p-5 lg:p-7">
                             <span class="inline-flex items-center gap-1.5 text-xs text-accent mb-2">
-                                <i class="fas fa-archive"></i> {% if archive.category %}{{ archive.category.name }}{%
-                                else %}Cultural Archive{% endif %}
+                                <i class="fas fa-archive"></i> {% if archive.category %}{{ archive.category.name }}{% else %}Cultural Archive{% endif %}
                             </span>
-                            <h3 class="font-serif text-xl lg:text-2xl font-semibold text-white mb-2 line-clamp-1">{{
-                                archive.title }}</h3>
-                            <p class="text-sm text-white/75 line-clamp-2 max-w-xl">{{
-                                archive.description|truncatewords:25 }}</p>
+                            <h3 class="font-serif text-xl lg:text-2xl font-semibold text-white mb-2 line-clamp-1">{{ archive.title }}</h3>
+                            <p class="text-sm text-white/75 line-clamp-2 max-w-xl">{{ archive.description|truncatewords:25 }}</p>
                         </div>
                         <div
                             class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white opacity-0 group-hover/slide:opacity-100 transition-opacity">
