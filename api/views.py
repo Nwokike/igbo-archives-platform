@@ -56,6 +56,7 @@ def archive_media_browser(request):
     for archive in archives_page:
         archive_data = {
             'id': archive.id,
+            'slug': getattr(archive, 'slug', None),  # Use getattr for safety
             'title': archive.title,
             'description': archive.description,
             'archive_type': archive.archive_type,
@@ -63,6 +64,7 @@ def archive_media_browser(request):
             'alt_text': archive.alt_text,
         }
         
+        # Set media URL and thumbnail based on archive type
         if archive.archive_type == 'image' and archive.image:
             archive_data['url'] = archive.image.url
             archive_data['thumbnail'] = archive.image.url
@@ -75,6 +77,8 @@ def archive_media_browser(request):
         elif archive.archive_type == 'document' and archive.document:
             archive_data['url'] = archive.document.url
             archive_data['thumbnail'] = ''
+        else:
+            continue  # Skip archives without valid media
         
         data['archives'].append(archive_data)
     

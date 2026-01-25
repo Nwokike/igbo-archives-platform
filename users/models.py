@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
 
 
 class CustomUser(AbstractUser):
@@ -16,6 +17,10 @@ class CustomUser(AbstractUser):
     
     def get_display_name(self):
         return self.full_name or (self.email.split('@')[0] if self.email else self.username)
+    
+    def get_absolute_url(self):
+        """Return the URL for this user's profile."""
+        return reverse('users:profile', args=[self.username])
 
 
 class Thread(models.Model):

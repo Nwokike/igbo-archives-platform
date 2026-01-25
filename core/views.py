@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 from django.core.cache import cache
+from django.views.decorators.cache import never_cache
 from archives.models import Archive
 
 
@@ -66,6 +67,7 @@ def get_random_featured_archives(max_count=50):
     return archives
 
 
+@never_cache
 def home(request):
     featured_archives = get_random_featured_archives()
     context = {

@@ -302,3 +302,23 @@ def book_edit(request, slug):
         'review': review,
         'initial_content': initial_content
     })
+
+
+@login_required
+def book_delete(request, slug):
+    """Delete a book review (only for drafts/pending, or owner)."""
+    review = get_object_or_404(BookReview, slug=slug, reviewer=request.user)
+    
+    # Only allow deletion if not approved (draft/pending) or if user is owner
+    if review.is_published and review.is_approved and not request.user.is_staff:
+        messages.error(request, 'Published book reviews cannot be deleted. Please contact an administrator.')
+        return redirect('books:detail', slug=slug)
+    
+    if request.method == 'POST':
+        review_title = review.review_title
+        review.delete()
+        cache.delete('book_tags')
+        messages.success(request, f'Book review "{review_title}" has been deleted.')
+        return redirect('users:dashboard')
+    
+    return render(request, 'books/delete.html', {'review': review})

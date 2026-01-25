@@ -29,7 +29,9 @@
 
         {% if insight.featured_image %}
         <figure class="mb-8 rounded-xl overflow-hidden">
-            <img src="{{ insight.featured_image.url }}" alt="{{ insight.alt_text }}" class="w-full h-auto">
+            <a href="{{ insight.featured_image.url }}" target="_blank" rel="noopener noreferrer" class="block">
+                <img src="{{ insight.featured_image.url }}" alt="{{ insight.alt_text }}" class="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity">
+            </a>
         </figure>
         {% endif %}
 
@@ -45,6 +47,8 @@
             {% endfor %}
         </div>
         {% endif %}
+
+        {% include 'partials/share_buttons.html' with title=insight.title %}
 
         <div class="flex flex-wrap gap-3 mb-8">
             {% if user == insight.author %}

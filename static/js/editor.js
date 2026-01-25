@@ -15,30 +15,6 @@
                 placeholder: options.placeholder || 'Start writing your content...',
                 autofocus: options.autofocus !== false,
                 tools: {
-                    header: {
-                        class: window.Header,
-                        inlineToolbar: true,
-                        config: {
-                            placeholder: 'Enter a heading',
-                            levels: [1, 2, 3, 4, 5, 6],
-                            defaultLevel: 2
-                        }
-                    },
-                    list: {
-                        class: window.List,
-                        inlineToolbar: true,
-                        config: {
-                            defaultStyle: 'unordered'
-                        }
-                    },
-                    quote: {
-                        class: window.Quote,
-                        inlineToolbar: true,
-                        config: {
-                            quotePlaceholder: 'Enter a quote',
-                            captionPlaceholder: 'Quote author',
-                        },
-                    },
                     image: {
                         class: class ModalImageTool {
                             constructor({ data, api }) {
@@ -152,7 +128,7 @@
                                         this.data.caption = caption.innerHTML;
                                     });
 
-                                    imgContainer.appendChild(img);
+                                    // Append caption AFTER imgWrapper, not after img
                                     imgContainer.appendChild(caption);
                                     this.wrapper.appendChild(imgContainer);
 
@@ -179,12 +155,42 @@
                                     caption: this.data.caption || '',
                                     // UPDATED: Explicitly save the description as 'alt'
                                     alt: this.data.alt || this.data.description || '',
+                                    archive_id: this.data.archive_id || null,  // Preserve archive ID
+                                    archive_slug: this.data.archive_slug || null,  // Preserve archive slug
                                     withBorder: !!this.data.withBorder,
                                     stretched: !!this.data.stretched,
                                     withBackground: !!this.data.withBackground
                                 };
                             }
                         }
+                    },
+                    paragraph: {
+                        class: window.Paragraph,
+                        inlineToolbar: true
+                    },
+                    header: {
+                        class: window.Header,
+                        inlineToolbar: true,
+                        config: {
+                            placeholder: 'Enter a heading',
+                            levels: [1, 2, 3, 4, 5, 6],
+                            defaultLevel: 2
+                        }
+                    },
+                    list: {
+                        class: window.List,
+                        inlineToolbar: true,
+                        config: {
+                            defaultStyle: 'unordered'
+                        }
+                    },
+                    quote: {
+                        class: window.Quote,
+                        inlineToolbar: true,
+                        config: {
+                            quotePlaceholder: 'Enter a quote',
+                            captionPlaceholder: 'Quote author',
+                        },
                     },
                     embed: {
                         class: window.Embed,

@@ -54,6 +54,21 @@
     color: #EFE5D7;
 }
 
+/* Editor.js placeholder styling */
+.ce-paragraph[data-placeholder]:empty::before,
+.ce-header[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: #9D896E;
+    opacity: 0.6;
+    font-style: italic;
+    pointer-events: none;
+}
+
+.dark .ce-paragraph[data-placeholder]:empty::before,
+.dark .ce-header[data-placeholder]:empty::before {
+    color: #A89B8C;
+}
+
 .ce-header {
     font-family: 'Playfair Display', Georgia, serif;
     font-weight: 600;

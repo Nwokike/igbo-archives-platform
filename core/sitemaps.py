@@ -35,12 +35,14 @@ class ArchiveSitemap(Sitemap):
     priority = 0.8
     
     def items(self):
-        return Archive.objects.filter(is_approved=True).only('id', 'updated_at').iterator(chunk_size=500)
+        return Archive.objects.filter(is_approved=True).only('id', 'slug', 'updated_at').iterator(chunk_size=500)
     
     def lastmod(self, obj):
         return obj.updated_at if hasattr(obj, 'updated_at') else obj.created_at
     
     def location(self, obj):
+        if obj.slug:
+            return reverse('archives:detail', args=[obj.slug])
         return reverse('archives:detail', args=[obj.id])
 
 

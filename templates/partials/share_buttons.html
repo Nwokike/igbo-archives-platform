@@ -1,0 +1,141 @@
+{% load static %}
+<div class="share-buttons-container mb-6">
+    <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm font-medium text-text-muted dark:text-text-dark-muted mr-2">Share:</span>
+        
+        <!-- Facebook -->
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="share-btn share-btn-facebook"
+           aria-label="Share on Facebook">
+            <i class="fab fa-facebook-f"></i>
+            <span class="hidden sm:inline">Facebook</span>
+        </a>
+        
+        <!-- Twitter/X -->
+        <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ title|urlencode }}" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="share-btn share-btn-twitter"
+           aria-label="Share on X (Twitter)">
+            <i class="fab fa-x-twitter"></i>
+            <span class="hidden sm:inline">X</span>
+        </a>
+        
+        <!-- LinkedIn -->
+        <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri|urlencode }}&title={{ title|urlencode }}" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="share-btn share-btn-linkedin"
+           aria-label="Share on LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+            <span class="hidden sm:inline">LinkedIn</span>
+        </a>
+        
+        <!-- WhatsApp -->
+        <a href="https://wa.me/?text={{ title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="share-btn share-btn-whatsapp"
+           aria-label="Share on WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+            <span class="hidden sm:inline">WhatsApp</span>
+        </a>
+        
+        <!-- Telegram -->
+        <a href="https://t.me/share/url?url={{ request.build_absolute_uri|urlencode }}&text={{ title|urlencode }}" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="share-btn share-btn-telegram"
+           aria-label="Share on Telegram">
+            <i class="fab fa-telegram"></i>
+            <span class="hidden sm:inline">Telegram</span>
+        </a>
+        
+        <!-- Email -->
+        <a href="mailto:?subject={{ title|urlencode }}&body={{ request.build_absolute_uri|urlencode }}" 
+           class="share-btn share-btn-email"
+           aria-label="Share via Email">
+            <i class="fas fa-envelope"></i>
+            <span class="hidden sm:inline">Email</span>
+        </a>
+        
+        <!-- Copy Link -->
+        <button type="button" 
+                onclick="copyToClipboard('{{ request.build_absolute_uri }}')"
+                class="share-btn share-btn-copy"
+                aria-label="Copy link">
+            <i class="fas fa-link"></i>
+            <span class="hidden sm:inline">Copy</span>
+        </button>
+        
+        <!-- Print -->
+        <button type="button" 
+                onclick="window.print()"
+                class="share-btn share-btn-print"
+                aria-label="Print page">
+            <i class="fas fa-print"></i>
+            <span class="hidden sm:inline">Print</span>
+        </button>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    // Use existing showToast if available, otherwise create one
+    window.copyToClipboard = function(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                if (typeof showToast === 'function') {
+                    showToast('Link copied to clipboard!');
+                } else {
+                    showShareToast('Link copied to clipboard!');
+                }
+            }).catch(function() {
+                fallbackCopyToClipboard(text);
+            });
+        } else {
+            fallbackCopyToClipboard(text);
+        }
+    };
+    
+    function fallbackCopyToClipboard(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            if (typeof showToast === 'function') {
+                showToast('Link copied to clipboard!');
+            } else {
+                showShareToast('Link copied to clipboard!');
+            }
+        } catch (err) {
+            alert('Failed to copy. Please copy manually: ' + text);
+        }
+        document.body.removeChild(textarea);
+    }
+    
+    function showShareToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        toast.style.animation = 'fadeIn 0.3s ease-in';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(function() { toast.remove(); }, 300);
+        }, 2000);
+    }
+})();
+</script>

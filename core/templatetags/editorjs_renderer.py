@@ -153,18 +153,22 @@ def render_code(data):
 
 def render_image(data):
     """Render image block."""
+    from django.urls import reverse
+    
     url = data.get('file', {}).get('url', '') or data.get('url', '')
     caption = sanitize_html(data.get('caption', ''))
     with_border = data.get('withBorder', False)
     stretched = data.get('stretched', False)
     with_background = data.get('withBackground', False)
+    archive_id = data.get('archive_id')
+    archive_slug = data.get('archive_slug')
     
     if not url:
         return ''
     
     safe_url = escape(url)
     
-    img_classes = ['rounded-lg', 'max-w-full', 'h-auto']
+    img_classes = ['rounded-lg', 'max-w-full', 'h-auto', 'cursor-pointer', 'hover:opacity-90', 'transition-opacity']
     if with_border:
         img_classes.append('border-2 border-sepia-pale')
     if stretched:
@@ -176,8 +180,21 @@ def render_image(data):
     if not stretched:
         wrapper_classes.append('text-center')
     
+    # Build image tag with clickable link
+    img_tag = f'<img src="{safe_url}" alt="{escape(caption)}" class="{" ".join(img_classes)}" loading="lazy">'
+    
+    # Determine link URL: archive detail if from archive, otherwise full-size image
+    if archive_slug:
+        link_url = reverse('archives:detail', args=[archive_slug])
+    elif archive_id:
+        link_url = reverse('archives:detail', args=[archive_id])
+    else:
+        link_url = safe_url
+    
+    img_tag = f'<a href="{link_url}" target="_blank" rel="noopener noreferrer" class="block">{img_tag}</a>'
+    
     html = f'<figure class="{" ".join(wrapper_classes)}">'
-    html += f'<img src="{safe_url}" alt="{escape(caption)}" class="{" ".join(img_classes)}" loading="lazy">'
+    html += img_tag
     if caption:
         html += f'<figcaption class="text-sm text-vintage-beaver mt-2 text-center">{caption}</figcaption>'
     html += '</figure>'

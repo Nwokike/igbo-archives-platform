@@ -73,8 +73,27 @@ html:not(.dark) .logo-dark {
     padding-bottom: 100px !important;
 }
 
+/* Fix mobile bottom navigation overlap */
+@media (max-width: 1024px) {
+    .codex-editor__redactor {
+        padding-bottom: 120px !important; /* Extra space for mobile nav */
+    }
+}
+
 .ce-block__content {
     max-width: 100%;
+}
+
+/* Editor.js placeholder styling */
+.ce-block[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: #9D896E;
+    opacity: 0.6;
+    font-style: italic;
+}
+
+.dark .ce-block[data-placeholder]:empty::before {
+    color: #A89B8C;
 }
 
 /* Line clamp utilities (for older browsers) */
@@ -96,4 +115,16 @@ html:not(.dark) .logo-dark {
 
 .line-clamp-3 {
     -webkit-line-clamp: 3;
+}
+
+/* Subheader wrapping fix - ensure max 2 lines on mobile */
+@media (max-width: 640px) {
+    nav.border-b .flex {
+        max-height: 4rem; /* ~2 lines */
+        overflow: hidden;
+    }
+    
+    nav.border-b .btn-primary.btn-sm {
+        flex-shrink: 0;
+    }
 }

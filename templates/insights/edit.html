@@ -79,6 +79,11 @@
             <a href="{% url 'insights:detail' insight.slug %}" class="btn-secondary btn-lg flex-1 text-center">
                 Cancel
             </a>
+            {% if not insight.is_approved or not insight.is_published %}
+            <a href="{% url 'insights:delete' insight.slug %}" class="btn-secondary btn-lg text-red-600 hover:bg-red-50 flex-1 text-center" onclick="return confirm('Are you sure you want to delete this insight? This action cannot be undone.');">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+            {% endif %}
         </div>
     </form>
 </div>

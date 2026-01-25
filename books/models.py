@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from taggit.managers import TaggableManager
 from django.core.validators import FileExtensionValidator
 
@@ -82,6 +83,10 @@ class BookReview(models.Model):
     
     def __str__(self):
         return f"{self.book_title} - Review by {self.reviewer.full_name if hasattr(self.reviewer, 'full_name') else self.reviewer.username}"
+    
+    def get_absolute_url(self):
+        """Return the URL for this book review."""
+        return reverse('books:detail', args=[self.slug])
     
     @property
     def content(self):

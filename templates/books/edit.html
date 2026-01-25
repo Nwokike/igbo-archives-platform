@@ -158,6 +158,11 @@
             <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-lg flex-1 text-center">
                 Cancel
             </a>
+            {% if not review.is_approved or not review.is_published %}
+            <a href="{% url 'books:delete' review.slug %}" class="btn-secondary btn-lg text-red-600 hover:bg-red-50 flex-1 text-center" onclick="return confirm('Are you sure you want to delete this review? This action cannot be undone.');">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+            {% endif %}
         </div>
     </form>
 </div>

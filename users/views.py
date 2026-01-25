@@ -89,9 +89,9 @@ def profile_view(request, username):
     
     context = {
         'profile_user': user,
-        'archives': archives,
-        'insights': insights,
-        'book_reviews': book_reviews,
+        'user_archives': archives,  # Fixed: match template variable name
+        'user_insights': insights,  # Fixed: match template variable name
+        'user_book_reviews': book_reviews,  # Fixed: match template variable name
     }
     
     return render(request, 'users/profile.html', context)

@@ -2,7 +2,6 @@
 Insight views for browsing and managing community articles.
 """
 import json
-import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -11,10 +10,10 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
-from django.utils.text import slugify
 from .models import InsightPost, EditSuggestion
 from archives.models import Archive
 from core.validators import ALLOWED_INSIGHT_SORTS, get_safe_sort
+from core.editorjs_helpers import parse_editorjs_content, parse_tags, generate_unique_slug, get_workflow_flags, download_and_save_image_from_url
 
 
 def get_cached_insight_tags():
@@ -165,8 +164,6 @@ def insight_create(request):
             }
             return render(request, 'insights/create.html', context)
         
-        from core.editorjs_helpers import parse_editorjs_content, parse_tags, generate_unique_slug, get_workflow_flags
-        
         try:
             content_data = parse_editorjs_content(content_json)
         except ValidationError as e:
@@ -196,9 +193,15 @@ def insight_create(request):
             **workflow_flags
         )
         
+        # Handle featured image - prioritize file upload, fallback to URL
+        featured_url = request.POST.get('featured_image_url', '').strip()
         if request.FILES.get('featured_image'):
             insight.featured_image = request.FILES['featured_image']
             insight.alt_text = request.POST.get('alt_text', '')
+        elif featured_url:
+            # Download and save featured image from URL (auto-creates featured_image)
+            if download_and_save_image_from_url(insight, 'featured_image', featured_url):
+                insight.alt_text = request.POST.get('alt_text', '')
         
         tags = parse_tags(request.POST.get('tags', ''))
         if tags:
@@ -258,8 +261,15 @@ def insight_edit(request, slug):
                 insight.is_approved = False
             messages.success(request, 'Your insight has been saved!')
         
+        # Handle featured image update - prioritize file upload, fallback to URL
+        featured_url = request.POST.get('featured_image_url', '').strip()
+        current_featured_url = insight.featured_image.url if insight.featured_image else ''
+        
         if request.FILES.get('featured_image'):
             insight.featured_image = request.FILES['featured_image']
+        elif featured_url and featured_url != current_featured_url:
+            # Download and save featured image from URL if changed
+            download_and_save_image_from_url(insight, 'featured_image', featured_url)
         
         insight.tags.clear()
         tags = [t.strip()[:50] for t in request.POST.get('tags', '').split(',') if t.strip()][:20]
@@ -315,3 +325,23 @@ def suggest_edit(request, slug):
         return redirect('insights:detail', slug=slug)
     
     return render(request, 'insights/suggest_edit.html', {'post': insight, 'insight': insight})
+
+
+@login_required
+def insight_delete(request, slug):
+    """Delete an insight post (only for drafts/pending, or owner)."""
+    insight = get_object_or_404(InsightPost, slug=slug, author=request.user)
+    
+    # Only allow deletion if not approved (draft/pending) or if user is owner
+    if insight.is_published and insight.is_approved and not request.user.is_staff:
+        messages.error(request, 'Published insights cannot be deleted. Please contact an administrator.')
+        return redirect('insights:detail', slug=slug)
+    
+    if request.method == 'POST':
+        insight_title = insight.title
+        insight.delete()
+        cache.delete('insight_tags')
+        messages.success(request, f'Insight "{insight_title}" has been deleted.')
+        return redirect('users:dashboard')
+    
+    return render(request, 'insights/delete.html', {'insight': insight})

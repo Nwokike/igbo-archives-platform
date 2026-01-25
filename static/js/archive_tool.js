@@ -110,8 +110,11 @@ class ArchiveTool {
                     const currentBlockIndex = this.api.blocks.getCurrentBlockIndex();
                     this.api.blocks.delete(currentBlockIndex);
                     this.api.blocks.insert('image', {
-                        file: { url: archive.thumbnail || archive.image },
+                        file: { url: archive.thumbnail || archive.image || archive.url },
                         caption: archive.title + ' - ' + (archive.description || ''),
+                        alt: archive.alt_text || archive.title || '',
+                        archive_id: archive.id || archive.archive_id,
+                        archive_slug: archive.slug || null,
                         withBorder: false,
                         withBackground: false,
                         stretched: false

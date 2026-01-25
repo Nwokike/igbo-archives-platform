@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from taggit.managers import TaggableManager
 from django.core.validators import FileExtensionValidator
 
@@ -60,6 +61,10 @@ class InsightPost(models.Model):
     
     def __str__(self):
         return self.title
+    
+    def get_absolute_url(self):
+        """Return the URL for this insight."""
+        return reverse('insights:detail', args=[self.slug])
     
     @property
     def content(self):

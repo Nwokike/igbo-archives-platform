@@ -97,9 +97,10 @@
                     data.archives.forEach(function (archive) {
                         const item = document.createElement('div');
                         item.className = 'archive-item';
+                        const imgUrl = archive.thumbnail || archive.url || '';
                         item.innerHTML =
-                            '<img src="' + archive.thumbnail + '" alt="' + (archive.alt_text || archive.title) + '">' +
-                            '<div class="archive-item-title">' + archive.title + '</div>';
+                            '<img src="' + imgUrl + '" alt="' + (archive.alt_text || archive.title || '') + '" loading="lazy">' +
+                            '<div class="archive-item-title">' + (archive.title || 'Untitled') + '</div>';
 
                         item.addEventListener('click', function () {
                             document.querySelectorAll('.archive-item').forEach(function (el) {
@@ -218,12 +219,13 @@
 
     window.insertSelectedArchive = function () {
         if (selectedArchive) {
-            // FIXED: Now passing 'alt' from archive data
-            // Using index and replace true to swap the placeholder
+            // Insert image with archive metadata for linking
             editor.blocks.insert('image', {
-                file: { url: selectedArchive.url },
+                file: { url: selectedArchive.thumbnail || selectedArchive.url || '' },
                 caption: selectedArchive.caption || selectedArchive.title || '',
                 alt: selectedArchive.alt_text || selectedArchive.title || '',
+                archive_id: selectedArchive.id,  // For linking to archive detail
+                archive_slug: selectedArchive.slug || null,
                 withBorder: false,
                 stretched: false,
                 withBackground: true

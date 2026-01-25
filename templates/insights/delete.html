@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete {{ insight.title }} - Igbo Archives{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="font-serif text-display-lg text-red-600 mb-6">Delete Insight</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="alert alert-warning mb-6">
+                <strong>Warning!</strong> This action cannot be undone. The insight will be permanently deleted.
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="font-serif font-semibold mb-2">Insight Details:</h3>
+                <p class="text-text-muted"><strong>Title:</strong> {{ insight.title }}</p>
+                <p class="text-text-muted"><strong>Status:</strong> 
+                    {% if insight.is_published and insight.is_approved %}Published
+                    {% elif insight.pending_approval %}Pending Approval
+                    {% else %}Draft
+                    {% endif %}
+                </p>
+            </div>
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button type="submit" class="btn-primary bg-red-600 hover:bg-red-700 flex-1">
+                        <i class="fas fa-trash"></i> Delete Insight
+                    </button>
+                    <a href="{% url 'insights:edit' insight.slug %}" class="btn-secondary text-center">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 {% if archives %}
 {% for archive in archives %}
-<a href="{% url 'archives:detail' archive.pk %}" class="card card-hover group block">
+<a href="{% url 'archives:detail' archive.slug|default:archive.pk %}" class="card card-hover group block">
     {% if archive.image %}
     <div class="overflow-hidden">
         <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" loading="lazy" decoding="async"

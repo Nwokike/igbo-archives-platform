@@ -42,7 +42,7 @@
             <div class="carousel-container overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
                 id="carouselTrack">
                 {% for archive in featured_archives %}
-                <a href="{% url 'archives:detail' archive.pk %}"
+                <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
                     class="carousel-slide snap-center flex-shrink-0 w-full sm:w-[85%] lg:w-[75%] inline-block first:ml-0 mr-3 last:mr-0"
                     data-index="{{ forloop.counter0 }}">
                     <div class="relative aspect-[16/9] rounded-xl overflow-hidden group/slide">
@@ -53,7 +53,7 @@
                         <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 left-0 right-0 p-5 lg:p-7">
                             <span class="inline-flex items-center gap-1.5 text-xs text-accent mb-2">
-                                <i class="fas fa-archive"></i> Cultural Archive
+                                <i class="fas fa-archive"></i> {% if archive.category %}{{ archive.category.name }}{% else %}Cultural Archive{% endif %}
                             </span>
                             <h3 class="font-serif text-xl lg:text-2xl font-semibold text-white mb-2 line-clamp-1">{{
                                 archive.title }}</h3>

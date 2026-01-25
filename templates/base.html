@@ -29,6 +29,8 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
     <link rel="stylesheet" href="{% static 'css/modal.css' %}">
+    <link rel="stylesheet" href="{% static 'css/comments.css' %}">
+    <link rel="stylesheet" href="{% static 'css/share-buttons.css' %}">
 
     {% block extra_css %}{% endblock %}
 
@@ -136,9 +138,6 @@
                             <a href="{% url 'users:inbox' %}" class="dropdown-item">
                                 <i class="fas fa-envelope w-4 text-center"></i> Messages
                             </a>
-                            <a href="{% url 'users:notifications' %}" class="dropdown-item">
-                                <i class="fas fa-bell w-4 text-center"></i> Notifications
-                            </a>
                             <a href="{% url 'users:profile' user.username %}" class="dropdown-item">
                                 <i class="fas fa-user w-4 text-center"></i> My Profile
                             </a>
@@ -190,26 +189,26 @@
     </div>
 
     <!-- Mobile Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-border lg:hidden safe-area-pb"
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-surface-dark backdrop-blur-md border-t border-border dark:border-border-dark lg:hidden safe-area-pb"
         aria-label="Mobile navigation">
         <div class="flex items-center justify-around py-2">
             <a href="{% url 'archives:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
                 <i class="fas fa-archive text-base"></i>
                 <span class="text-[10px] font-medium">Archives</span>
             </a>
             <a href="{% url 'insights:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'insights' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'insights' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
                 <i class="fas fa-lightbulb text-base"></i>
                 <span class="text-[10px] font-medium">Insights</span>
             </a>
             <a href="{% url 'books:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'books' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'books' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
                 <i class="fas fa-book text-base"></i>
                 <span class="text-[10px] font-medium">Books</span>
             </a>
             <a href="{% url 'ai:home' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'ai' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'ai' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
                 <i class="fas fa-robot text-base"></i>
                 <span class="text-[10px] font-medium">AI</span>
             </a>
@@ -326,10 +325,8 @@
 
             <div
                 class="mt-8 pt-6 border-t border-border dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted dark:text-text-dark-muted">
-                <p>&copy; 2025 - {% now "Y" %} Kiri Research Labs. All Rights Reserved.</p>
-                <p>A project by <a href="https://kiri.ng/about" target="_blank" rel="noopener noreferrer"
-                        class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research
-                        Labs</a></p>
+                <p>&copy; 2025 - {% now "Y" %} <a href="https://kiri.ng/about" target="_blank" rel="noopener noreferrer"
+                        class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research Labs</a>. All Rights Reserved.</p>
             </div>
         </div>
     </footer>

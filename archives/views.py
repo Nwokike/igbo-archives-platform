@@ -2,15 +2,20 @@
 Archive views for browsing and managing cultural archives.
 """
 import random
+import bleach
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
+from django.http import Http404
+from django.utils.text import slugify
 from .models import Archive, Category
+from .forms import ArchiveForm
 from core.validators import ALLOWED_ARCHIVE_SORTS, get_safe_sort
 from core.views import get_all_approved_archive_ids
+from core.editorjs_helpers import generate_unique_slug
 
 
 def get_cached_categories():
@@ -73,20 +78,41 @@ def archive_list(request):
     return render(request, 'archives/list.html', context)
 
 
-def archive_detail(request, pk):
+def archive_detail(request, pk=None, slug=None):
     """Display a single archive with recommendations."""
-    archive = get_object_or_404(
-        Archive.objects.select_related('uploaded_by', 'category'),
-        pk=pk, is_approved=True
-    )
+    # Get archive by slug or pk
+    if slug:
+        archive = get_object_or_404(
+            Archive.objects.select_related('uploaded_by', 'category'),
+            slug=slug
+        )
+    elif pk:
+        archive = get_object_or_404(
+            Archive.objects.select_related('uploaded_by', 'category'),
+            pk=pk
+        )
+        # Redirect to slug URL if slug exists for SEO
+        if archive.slug:
+            return redirect('archives:detail', slug=archive.slug, permanent=True)
+    else:
+        raise Http404("Archive not found")
+    
+    # Handle draft/pending archives - redirect owner to edit, 404 for others
+    if not archive.is_approved:
+        if request.user.is_authenticated and archive.uploaded_by == request.user:
+            # Redirect owner to edit page
+            if archive.slug:
+                return redirect('archives:edit', slug=archive.slug)
+            return redirect('archives:edit', pk=archive.pk)
+        raise Http404("Archive not found")
     
     previous_archive = Archive.objects.filter(
         is_approved=True, created_at__lt=archive.created_at
-    ).order_by('-created_at').only('id', 'title').first()
+    ).order_by('-created_at').only('id', 'title', 'slug').first()
     
     next_archive = Archive.objects.filter(
         is_approved=True, created_at__gt=archive.created_at
-    ).order_by('created_at').only('id', 'title').first()
+    ).order_by('created_at').only('id', 'title', 'slug').first()
     
     recommended = get_random_recommendations(archive.pk, count=9)
     
@@ -103,9 +129,6 @@ def archive_detail(request, pk):
 @login_required
 def archive_create(request):
     """Create a new archive."""
-    from .forms import ArchiveForm
-    import bleach
-    
     if request.method == 'POST':
         form = ArchiveForm(request.POST, request.FILES)
         
@@ -113,6 +136,10 @@ def archive_create(request):
             archive = form.save(commit=False)
             archive.uploaded_by = request.user
             archive.is_approved = False
+            
+            # Generate slug from title
+            if not archive.slug:
+                archive.slug = generate_unique_slug(archive.title, Archive)
             
             # Clean description with bleach
             archive.description = bleach.clean(archive.description, strip=True)
@@ -125,7 +152,9 @@ def archive_create(request):
                 archive.tags.add(*tags)
             
             messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
-            return redirect('archives:list')
+            if archive.slug:
+                return redirect('archives:detail', slug=archive.slug)
+            return redirect('archives:detail', pk=archive.pk)
     else:
         form = ArchiveForm()
     
@@ -137,18 +166,25 @@ def archive_create(request):
 
 
 @login_required
-def archive_edit(request, pk):
+def archive_edit(request, pk=None, slug=None):
     """Edit an existing archive."""
-    from .forms import ArchiveForm
-    import bleach
-    
-    archive = get_object_or_404(Archive, pk=pk, uploaded_by=request.user)
+    if slug:
+        archive = get_object_or_404(Archive, slug=slug, uploaded_by=request.user)
+    elif pk:
+        archive = get_object_or_404(Archive, pk=pk, uploaded_by=request.user)
+    else:
+        raise Http404("Archive not found")
     
     if request.method == 'POST':
         form = ArchiveForm(request.POST, request.FILES, instance=archive)
         
         if form.is_valid():
             archive = form.save(commit=False)
+            
+            # Update slug if title changed
+            old_title = Archive.objects.get(pk=archive.pk).title
+            if archive.title != old_title or not archive.slug:
+                archive.slug = generate_unique_slug(archive.title, Archive, exclude_pk=archive.pk)
             
             # Clean description with bleach
             archive.description = bleach.clean(archive.description, strip=True)
@@ -179,6 +215,8 @@ def archive_edit(request, pk):
                 cache.delete('all_approved_archive_ids')
             
             messages.success(request, 'Archive updated successfully!')
+            if archive.slug:
+                return redirect('archives:detail', slug=archive.slug)
             return redirect('archives:detail', pk=archive.pk)
     else:
         # Initialize form with existing data
@@ -191,3 +229,30 @@ def archive_edit(request, pk):
         'categories': get_cached_categories(),
     }
     return render(request, 'archives/edit.html', context)
+
+
+@login_required
+def archive_delete(request, pk=None, slug=None):
+    """Delete an archive (only for drafts/pending, or owner)."""
+    if slug:
+        archive = get_object_or_404(Archive, slug=slug, uploaded_by=request.user)
+    elif pk:
+        archive = get_object_or_404(Archive, pk=pk, uploaded_by=request.user)
+    else:
+        raise Http404("Archive not found")
+    
+    # Only allow deletion if not approved (draft/pending) or if user is owner
+    if archive.is_approved and not request.user.is_staff:
+        messages.error(request, 'Approved archives cannot be deleted. Please contact an administrator.')
+        if archive.slug:
+            return redirect('archives:detail', slug=archive.slug)
+        return redirect('archives:detail', pk=archive.pk)
+    
+    if request.method == 'POST':
+        archive_title = archive.title
+        archive.delete()
+        cache.delete('all_approved_archive_ids')
+        messages.success(request, f'Archive "{archive_title}" has been deleted.')
+        return redirect('users:dashboard')
+    
+    return render(request, 'archives/delete.html', {'archive': archive})

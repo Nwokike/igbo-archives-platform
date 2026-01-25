@@ -35,7 +35,9 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {% if review.cover_image %}
             <div class="md:col-span-1">
-                <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" class="w-full rounded-lg shadow-soft">
+                <a href="{{ review.cover_image.url }}" target="_blank" rel="noopener noreferrer" class="block">
+                    <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" class="w-full rounded-lg shadow-soft cursor-pointer hover:opacity-90 transition-opacity">
+                </a>
             </div>
             <div class="md:col-span-2">
             {% else %}
@@ -85,6 +87,8 @@
             {% endfor %}
         </div>
         {% endif %}
+
+        {% include 'partials/share_buttons.html' with title=review.review_title %}
 
         {% if user == review.reviewer %}
         <div class="mb-8">

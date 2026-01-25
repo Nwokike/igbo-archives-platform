@@ -4,8 +4,14 @@ Centralizes JSON parsing, tag handling, slug generation, and workflow flags.
 """
 import json
 import uuid
+import os
+import logging
+import requests
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+
+logger = logging.getLogger(__name__)
 
 
 def parse_editorjs_content(content_json):
@@ -70,7 +76,7 @@ def parse_tags(tags_str, max_tags=20, max_tag_length=50):
     return tags
 
 
-def generate_unique_slug(base_text, model_class, max_length=200):
+def generate_unique_slug(base_text, model_class, max_length=200, exclude_pk=None):
     """
     Generate a unique slug from text with collision handling.
     
@@ -78,6 +84,7 @@ def generate_unique_slug(base_text, model_class, max_length=200):
         base_text: Text to slugify
         model_class: Model class to check for uniqueness (must have 'slug' field)
         max_length: Maximum slug length (default 200)
+        exclude_pk: PK to exclude from uniqueness check (for updates)
         
     Returns:
         str: Unique slug
@@ -86,8 +93,15 @@ def generate_unique_slug(base_text, model_class, max_length=200):
     slug = base_slug
     
     counter = 1
-    while model_class.objects.filter(slug=slug).exists():
+    queryset = model_class.objects.filter(slug=slug)
+    if exclude_pk:
+        queryset = queryset.exclude(pk=exclude_pk)
+    
+    while queryset.exists():
         slug = f"{base_slug}-{counter}"
+        queryset = model_class.objects.filter(slug=slug)
+        if exclude_pk:
+            queryset = queryset.exclude(pk=exclude_pk)
         counter += 1
         if counter > 100:
             # Fallback to UUID if too many collisions
@@ -128,3 +142,92 @@ def get_workflow_flags(action, is_submit=False):
             'pending_approval': False,
             'submitted_at': None
         }
+
+
+def download_and_save_image_from_url(model_instance, image_field_name, url, max_size_mb=5):
+    """
+    Download an image from URL and save it to a model's ImageField.
+    Handles both local media URLs and remote URLs.
+    
+    Args:
+        model_instance: The model instance to save the image to
+        image_field_name: Name of the ImageField (e.g., 'featured_image')
+        url: URL of the image to download
+        max_size_mb: Maximum file size in MB (default 5)
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    if not url:
+        return False
+    
+    try:
+        from django.conf import settings
+        
+        # Handle local media URLs - copy the file
+        if url.startswith('/media/'):
+            file_path = os.path.join(settings.MEDIA_ROOT, url.replace('/media/', '').lstrip('/'))
+            if os.path.exists(file_path):
+                # Check if already using this file to avoid unnecessary copy
+                current_file = getattr(model_instance, image_field_name)
+                if current_file and current_file.name:
+                    current_path = os.path.join(settings.MEDIA_ROOT, current_file.name)
+                    if os.path.exists(current_path) and os.path.samefile(file_path, current_path):
+                        return True  # Already using this exact file
+                
+                # Copy the file
+                with open(file_path, 'rb') as f:
+                    file_name = os.path.basename(file_path)
+                    getattr(model_instance, image_field_name).save(
+                        file_name,
+                        ContentFile(f.read()),
+                        save=False
+                    )
+                return True
+            return False
+        
+        # Handle absolute URLs (http/https)
+        if url.startswith('http://') or url.startswith('https://'):
+            # Download from URL
+            response = requests.get(url, timeout=10, stream=True)
+            response.raise_for_status()
+            
+            # Check content type
+            content_type = response.headers.get('content-type', '')
+            if not content_type.startswith('image/'):
+                return False
+            
+            # Check file size
+            content_length = response.headers.get('content-length')
+            if content_length and int(content_length) > max_size_mb * 1024 * 1024:
+                return False
+            
+            # Download image
+            img_data = response.content
+            if len(img_data) > max_size_mb * 1024 * 1024:
+                return False
+            
+            # Get file extension from URL or content type
+            ext = 'jpg'
+            if '.jpg' in url.lower() or '.jpeg' in url.lower() or 'jpeg' in content_type:
+                ext = 'jpg'
+            elif '.png' in url.lower() or 'png' in content_type:
+                ext = 'png'
+            elif '.webp' in url.lower() or 'webp' in content_type:
+                ext = 'webp'
+            
+            # Generate filename
+            file_name = f"{image_field_name}_{uuid.uuid4().hex[:8]}.{ext}"
+            
+            # Save to ImageField
+            getattr(model_instance, image_field_name).save(
+                file_name,
+                ContentFile(img_data),
+                save=False
+            )
+            return True
+    except Exception as e:
+        logger.error(f"Error downloading image from URL {url}: {e}", exc_info=True)
+        return False
+    
+    return False

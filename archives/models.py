@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from taggit.managers import TaggableManager
 from django.core.validators import FileExtensionValidator
 
@@ -34,6 +35,7 @@ class Archive(models.Model):
     ]
     
     title = models.CharField(max_length=255, help_text="Required: Archive title")
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True, help_text="URL-friendly version of title")
     description = models.TextField(help_text="Required: Detailed description (plain text)")
     archive_type = models.CharField(max_length=20, choices=ARCHIVE_TYPES, help_text="Required: Type of archive")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
@@ -142,6 +144,12 @@ class Archive(models.Model):
     
     def __str__(self):
         return self.title
+    
+    def get_absolute_url(self):
+        """Return the URL for this archive."""
+        if self.slug:
+            return reverse('archives:detail', args=[self.slug])
+        return reverse('archives:detail', args=[self.pk])
     
     def get_primary_file(self):
         """Return the primary file based on archive type"""
