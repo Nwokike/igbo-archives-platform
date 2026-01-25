@@ -13,8 +13,7 @@
                     hx-include="#typeFilter,#sortFilter,#searchInput" hx-push-url="true">
                     <option value="">All Categories</option>
                     {% for cat in categories %}
-                    <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>{{
-                        cat.name }}</option>
+                    <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>{{cat.name }}</option>
                     {% endfor %}
                 </select>
             </div>
