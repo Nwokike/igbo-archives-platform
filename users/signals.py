@@ -90,7 +90,7 @@ def send_guest_invitation_email(sender, comment, request, **kwargs):
 
             # Send Claim Profile Email using utility
             from users.utils import send_claim_profile_email
-            send_claim_profile_email(user, name=comment.user_name)
+            send_claim_profile_email(user, name=comment.user_name, mode='commenter')
 
         except Exception as e:
             logger.error(f"Error in send_guest_invitation_email: {str(e)}")

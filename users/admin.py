@@ -19,7 +19,7 @@ class CustomUserAdmin(UserAdmin):
         for user in queryset:
             # Only send if they haven't set a password (unusable password)
             if not user.has_usable_password():
-                if send_claim_profile_email(user):
+                if send_claim_profile_email(user, mode='onboarding'):
                     sent_count += 1
                 else:
                     skipped_count += 1

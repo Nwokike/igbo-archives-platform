@@ -18,7 +18,8 @@
                 </div>
                 <div class="meta-wrapper">
                     {% if comment.user %}
-                    <a href="{% url 'users:profile' comment.user.username %}" class="author-link">{{comment.user.get_display_name }}</a>
+                    <a href="{% url 'users:profile' comment.user.username %}" class="author-link">{{
+                        comment.user.get_display_name }}</a>
                     {% else %}
                     <span class="author-link">{{ comment.user_name }}</span>
                     <span class="guest-tag">Guest</span>

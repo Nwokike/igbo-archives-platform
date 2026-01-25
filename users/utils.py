@@ -10,41 +10,46 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def send_claim_profile_email(user, name=None):
+def send_claim_profile_email(user, name=None, mode='commenter'):
     """
-    Sends the 'Claim Profile' email to a user, allowing them to set a password.
-    Used for guest comments and admin onboarding of migrated users.
+    Sends a profile claim/onboarding email to a user.
+    Modes:
+    - 'commenter': For guest commenters (personal follow-up).
+    - 'onboarding': For migrated WordPress users (welcome back/upgrade).
     """
     if not user.email:
         return False
 
     try:
-        # Generate password reset URL (Claim Profile)
+        # Generate password reset URL
         token = default_token_generator.make_token(user)
         uid = user_pk_to_url_str(user)
         
         try:
-            # Try standard Allauth URL name first
             reset_url = reverse('account_reset_password_from_key', kwargs={'uidb36': uid, 'key': token})
         except:
-            # Fallback to Django standard
             uid_django = urlsafe_base64_encode(force_bytes(user.pk))
             reset_url = reverse('password_reset_confirm', kwargs={'uidb64': uid_django, 'token': token})
 
         claim_url = f"{settings.SITE_URL}{reset_url}"
+        display_name = name or user.full_name or 'there'
         
-        subject = "Don't miss out: Complete your profile on Igbo Archives"
+        # Mode-specific configuration
+        if mode == 'onboarding':
+            template = 'account/email/onboarding_email.html'
+            subject = "Welcome back to the upgraded Igbo Archives"
+            plain_message = f"Hello {display_name},\n\nWe've upgraded the Igbo Archives platform! You can now review books, save archives, and more.\n\nComplete your profile to get started: {claim_url}"
+        else:
+            template = 'account/email/claim_profile_email.html'
+            subject = "Regarding your activity on Igbo Archives"
+            plain_message = f"Hello {display_name},\n\nYou've started the conversation on Igbo Archives. Don't miss out on replies and new features.\n\nComplete your profile here: {claim_url}"
         
-        display_name = name or user.full_name or 'Guest'
-        
-        # Context for the email template
         context = {
             'name': display_name,
             'claim_url': claim_url,
         }
         
-        html_message = render_to_string('account/email/claim_profile_email.html', context)
-        plain_message = f"Hello {display_name},\n\nYou've started the conversation on Igbo Archives. Don't miss out on what's next.\n\nComplete your profile now to save articles, track replies, and unlock exclusive community features: {claim_url}"
+        html_message = render_to_string(template, context)
         
         send_mail(
             subject,
@@ -54,9 +59,9 @@ def send_claim_profile_email(user, name=None):
             html_message=html_message,
             fail_silently=False
         )
-        logger.info(f"Sent invitation/claim email to user {user.email}")
+        logger.info(f"Sent {mode} email to {user.email}")
         return True
 
     except Exception as e:
-        logger.error(f"Error in send_claim_profile_email for {user.email}: {str(e)}")
+        logger.error(f"Error in send_claim_profile_email ({mode}) for {user.email}: {str(e)}")
         return False
