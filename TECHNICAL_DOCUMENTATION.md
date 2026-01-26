@@ -8,7 +8,7 @@ Igbo Archives is a Django-based cultural preservation platform dedicated to docu
 ## System Architecture
 
 ### Backend Framework
-- **Django 5.2** with **Python 3.12+** as the core web framework (required)
+- **Django 5.1.4** with **Python 3.12+** as the core web framework (required)
 - **SQLite with WAL mode** for database storage, optimized for 1GB RAM constraints with custom configuration in `igbo_archives/sqlite_wal.py`
 - **Gunicorn** for production WSGI serving with memory-optimized settings (2 workers, max 500 requests before restart)
 
@@ -96,7 +96,7 @@ The project follows Django's app-based architecture with clear separation of con
 #### Service Worker Versioning
 - Service worker cache version is defined in `static/serviceworker.js` as `CACHE_VERSION`
 - **Important**: Bump `CACHE_VERSION` when making breaking changes to static assets
-- Current version: `v1.2.1`
+- Current version: `v1.5.0`
 - Deployment process should ensure service worker is updated and old caches are cleared
 
 ### Background Tasks & Schedules

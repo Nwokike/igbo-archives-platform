@@ -156,7 +156,7 @@ class Archive(models.Model):
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='archives')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_approved = models.BooleanField(default=True, help_text="Admin approval status")
+    is_approved = models.BooleanField(default=False, help_text="Admin approval status")
     
     tags = TaggableManager(blank=True)
     
@@ -167,12 +167,35 @@ class Archive(models.Model):
             models.Index(fields=['is_approved', '-created_at'], name='arch_approved_date_idx'),
             models.Index(fields=['archive_type', 'is_approved'], name='arch_type_approved_idx'),
             models.Index(fields=['category', 'is_approved'], name='arch_cat_approved_idx'),
+            models.Index(fields=['slug'], name='arch_slug_idx'),
         ]
     
     def __str__(self):
         return self.title
     
     def save(self, *args, **kwargs):
+        # Auto-generate slug if missing
+        if not self.slug:
+            from django.utils.text import slugify
+            import uuid
+            
+            base_slug = slugify(self.title)[:200]
+            if not base_slug:
+                base_slug = "archive"
+            
+            slug = base_slug
+            counter = 1
+            
+            # Check for slug collision
+            while Archive.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+                if counter > 100:
+                    slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+                    break
+            
+            self.slug = slug
+
         # Auto-link logic:
         # 1. If Author FK is empty but text exists, try to find an Author match
         if self.original_author and not self.author:

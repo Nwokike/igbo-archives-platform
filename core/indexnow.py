@@ -86,7 +86,7 @@ def submit_urls_bulk(urls, host=None):
         parsed = urlparse(urls[0])
         host = parsed.netloc
     
-    endpoint = getattr(settings, 'INDEXNOW_API_URL', \"https://api.indexnow.org/indexnow\")
+    endpoint = getattr(settings, 'INDEXNOW_API_URL', "https://api.indexnow.org/indexnow")
     
     # IndexNow allows up to 10,000 URLs per request
     for i in range(0, len(urls), 10000):

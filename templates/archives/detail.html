@@ -8,7 +8,15 @@
 
 {% block og_title %}{{ archive.title }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ archive.description|truncatewords:50 }}{% endblock %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ archive.image.url }}{% endblock %}
+{% block og_image %}
+{% if archive.image %}
+{{ request.scheme }}://{{ request.get_host }}{{ archive.image.url }}
+{% elif archive.featured_image %}
+{{ request.scheme }}://{{ request.get_host }}{{ archive.featured_image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
+{% endblock %}
 {% block og_type %}article{% endblock %}
 
 {% block twitter_title %}{{ archive.title }} | Igbo Archives{% endblock %}
@@ -123,7 +131,7 @@
             {% if user.is_authenticated and archive.archive_type == 'image' %}
             <button type="button" id="aiAnalyzeBtn" class="btn-secondary btn-sm flex items-center gap-2"
                 title="Get AI analysis of this image">
-                <i class="fas fa-brain"></i> <span class="hidden sm:inline">AI Analyis</span>
+                <i class="fas fa-brain"></i> <span class="hidden sm:inline">AI Analysis</span>
             </button>
             {% endif %}
 
