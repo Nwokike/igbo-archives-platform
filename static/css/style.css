@@ -76,7 +76,8 @@ html:not(.dark) .logo-dark {
 /* Fix mobile bottom navigation overlap */
 @media (max-width: 1024px) {
     .codex-editor__redactor {
-        padding-bottom: 120px !important; /* Extra space for mobile nav */
+        padding-bottom: 120px !important;
+        /* Extra space for mobile nav */
     }
 }
 
@@ -118,7 +119,7 @@ html:not(.dark) .logo-dark {
 }
 
 /* Subheader wrapping fix - ensure max 2 lines on mobile */
-@media (max-width: 640px) {    
+@media (max-width: 640px) {
     nav.border-b .btn-primary.btn-sm {
         flex-shrink: 0;
     }
@@ -133,41 +134,10 @@ html:not(.dark) .logo-dark {
     height: 100%;
 }
 
-/* Custom Pagination Bullets */
-.swiper-pagination-custom .swiper-pagination-bullet {
-    width: 10px;
-    height: 10px;
-    background-color: transparent;
-    border: 1px solid #D4AF37; /* Vintage Gold border */
-    opacity: 0.5;
-    margin: 0 5px;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.swiper-pagination-custom .swiper-pagination-bullet-active {
-    background-color: #D4AF37; /* Vintage Gold fill */
-    opacity: 1;
-    transform: scale(1.2);
-}
-
-.dark .swiper-pagination-custom .swiper-pagination-bullet {
-    border-color: #A89B8C;
-}
-
-.dark .swiper-pagination-custom .swiper-pagination-bullet-active {
-    background-color: #A89B8C;
-}
-
 /* Fix Swiper fade effect artifacts */
 .swiper-slide {
-    background-color: transparent; /* Prevents white flash during fade */
-}
-
-/* Smooth Image Scale on Active */
-.swiper-slide-active img {
-    transform: scale(1.05);
+    background-color: transparent;
+    /* Prevents white flash during fade */
 }
 
 /* Animated Content Transition */
@@ -181,4 +151,69 @@ html:not(.dark) .logo-dark {
 .swiper-slide-active .animate-content {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* ========================================
+   DETAIL PAGE - COMPACT UI & SHARE MENU
+   ======================================== */
+
+#shareMenu {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.bg-surface-alt\/50 {
+    background-color: rgba(248, 250, 252, 0.5);
+}
+
+.dark .bg-surface-dark-alt\/50 {
+    background-color: rgba(31, 41, 55, 0.5);
+}
+
+/* Mini Comment Form Overrides */
+.mini-comment-form {
+    margin-top: 2rem !important;
+    padding: 1.5rem !important;
+    border-radius: 1rem !important;
+}
+
+.mini-comment-form .section-header {
+    margin-bottom: 1.25rem !important;
+}
+
+.mini-comment-form .floating-group input,
+.mini-comment-form .floating-group textarea {
+    padding: 1rem !important;
+    font-size: 0.875rem !important;
+    border-radius: 0.75rem !important;
+}
+
+.mini-comment-form .floating-group textarea {
+    min-height: 100px !important;
+}
+
+.mini-comment-form .floating-group label {
+    display: none !important;
+    /* Use placeholders for mini form */
+}
+
+.mini-comment-form .floating-group input::placeholder,
+.mini-comment-form .floating-group textarea::placeholder {
+    color: var(--comment-text-muted) !important;
+    opacity: 0.6 !important;
+}
+
+.mini-comment-form .form-actions {
+    margin-top: 1rem !important;
+}
+
+.btn-sm {
+    @apply py-1.5 px-3 text-xs md:text-sm;
+}
+
+/* Ensure Share button and others stay responsive */
+@media (max-width: 640px) {
+    .flex-wrap.items-center.gap-2 {
+        gap: 0.5rem;
+    }
 }

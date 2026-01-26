@@ -5,6 +5,19 @@
 
 {% block title %}{{ insight.title }} - Insights{% endblock %}
 
+{% block meta_description %}{{ insight.content|striptags|truncatewords:25 }}{% endblock %}
+
+{% block og_title %}{{ insight.title }} | Igbo Archives{% endblock %}
+{% block og_description %}{{ insight.content|striptags|truncatewords:50 }}{% endblock %}
+{% if insight.featured_image %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ insight.featured_image.url }}{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ insight.featured_image.url }}{% endblock %}
+{% endif %}
+{% block og_type %}article{% endblock %}
+
+{% block twitter_title %}{{ insight.title }} | Igbo Archives{% endblock %}
+{% block twitter_description %}{{ insight.content|striptags|truncatewords:50 }}{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editor.css' %}">
 {% endblock %}
@@ -14,10 +27,11 @@
     <article class="lg:col-span-8">
         <header class="mb-6">
             <h1 class="font-serif text-display-lg text-dark-brown mb-4">{{ insight.title }}</h1>
-            
+
             <div class="flex flex-wrap items-center gap-2 text-sm text-vintage-beaver mb-4">
                 <span>By</span>
-                <a href="{% url 'users:profile' insight.author.username %}" class="text-vintage-gold hover:underline font-medium">{{ insight.author.get_display_name }}</a>
+                <a href="{% url 'users:profile' insight.author.username %}"
+                    class="text-vintage-gold hover:underline font-medium">{{ insight.author.get_display_name }}</a>
                 <span class="text-sepia-pale">•</span>
                 <span>{{ insight.created_at|date:"F d, Y" }}</span>
                 {% if insight.updated_at != insight.created_at %}
@@ -30,7 +44,8 @@
         {% if insight.featured_image %}
         <figure class="mb-8 rounded-xl overflow-hidden">
             <a href="{{ insight.featured_image.url }}" target="_blank" rel="noopener noreferrer" class="block">
-                <img src="{{ insight.featured_image.url }}" alt="{{ insight.alt_text }}" class="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity">
+                <img src="{{ insight.featured_image.url }}" alt="{{ insight.alt_text }}"
+                    class="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity">
             </a>
         </figure>
         {% endif %}
@@ -48,18 +63,21 @@
         </div>
         {% endif %}
 
-        {% include 'partials/share_buttons.html' with title=insight.title %}
-
-        <div class="flex flex-wrap gap-3 mb-8">
+        <div
+            class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/50 dark:bg-surface-dark-alt/50 rounded-xl border border-border/50">
             {% if user == insight.author %}
-            <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary">
-                <i class="fas fa-edit"></i> Edit Post
+            <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary btn-sm flex items-center gap-2">
+                <i class="fas fa-edit"></i> <span class="hidden sm:inline">Edit</span>
             </a>
             {% else %}
-            <button type="button" class="btn-secondary" onclick="openSuggestModal()">
-                <i class="fas fa-lightbulb"></i> Suggest Edit
+            <button type="button" class="btn-secondary btn-sm flex items-center gap-2" onclick="openSuggestModal()">
+                <i class="fas fa-lightbulb"></i> <span class="hidden sm:inline">Suggest Edit</span>
             </button>
             {% endif %}
+
+            <div class="ml-auto">
+                {% include 'partials/share_buttons.html' with title=insight.title %}
+            </div>
         </div>
 
         <hr class="border-sepia-pale/50 my-8">
@@ -84,14 +102,17 @@
                     <h4 class="font-serif font-semibold text-dark-brown mb-3">About the Author</h4>
                     <div class="flex items-center gap-3 mb-3">
                         {% if insight.author.profile_picture %}
-                        <img src="{{ insight.author.profile_picture.url }}" alt="{{ insight.author.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
+                        <img src="{{ insight.author.profile_picture.url }}" alt="{{ insight.author.get_display_name }}"
+                            class="w-12 h-12 rounded-full object-cover">
                         {% else %}
-                        <div class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
+                        <div
+                            class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
                             {{ insight.author.get_display_name|slice:":1"|upper }}
                         </div>
                         {% endif %}
                         <div>
-                            <a href="{% url 'users:profile' insight.author.username %}" class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
+                            <a href="{% url 'users:profile' insight.author.username %}"
+                                class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
                                 {{ insight.author.get_display_name }}
                             </a>
                         </div>
@@ -118,7 +139,8 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="suggestion_text" class="form-label">Your Suggestion</label>
-                    <textarea class="form-textarea" id="suggestion_text" name="suggestion_text" rows="5" required placeholder="Describe what should be changed or corrected..."></textarea>
+                    <textarea class="form-textarea" id="suggestion_text" name="suggestion_text" rows="5" required
+                        placeholder="Describe what should be changed or corrected..."></textarea>
                     <p class="form-help">Describe what should be changed or corrected.</p>
                 </div>
             </div>

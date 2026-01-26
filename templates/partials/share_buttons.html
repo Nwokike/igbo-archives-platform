@@ -1,131 +1,135 @@
 {% load static %}
-<div class="share-buttons-container mb-6">
-    <div class="flex flex-wrap items-center gap-2">
-        <span class="text-sm font-medium text-text-muted dark:text-text-dark-muted mr-2">Share:</span>
-        
-        <!-- Facebook -->
-        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="share-btn share-btn-facebook"
-           aria-label="Share on Facebook">
-            <i class="fab fa-facebook-f"></i>
-            <span class="hidden sm:inline">Facebook</span>
-        </a>
-        
-        <!-- Twitter/X -->
-        <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ title|urlencode }}" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="share-btn share-btn-twitter"
-           aria-label="Share on X (Twitter)">
-            <i class="fab fa-x-twitter"></i>
-            <span class="hidden sm:inline">X</span>
-        </a>
-        
-        <!-- WhatsApp -->
-        <a href="https://wa.me/?text={{ title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="share-btn share-btn-whatsapp"
-           aria-label="Share on WhatsApp">
-            <i class="fab fa-whatsapp"></i>
-            <span class="hidden sm:inline">WhatsApp</span>
-        </a>
-        
-        <!-- Telegram -->
-        <a href="https://t.me/share/url?url={{ request.build_absolute_uri|urlencode }}&text={{ title|urlencode }}" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="share-btn share-btn-telegram"
-           aria-label="Share on Telegram">
-            <i class="fab fa-telegram"></i>
-            <span class="hidden sm:inline">Telegram</span>
-        </a>
-        
-        <!-- Email -->
-        <a href="mailto:?subject={{ title|urlencode }}&body={{ request.build_absolute_uri|urlencode }}" 
-           class="share-btn share-btn-email"
-           aria-label="Share via Email">
-            <i class="fas fa-envelope"></i>
-            <span class="hidden sm:inline">Email</span>
-        </a>
-        
-        <!-- Copy Link -->
-        <button type="button" 
-                onclick="copyToClipboard('{{ request.build_absolute_uri }}')"
-                class="share-btn share-btn-copy"
-                aria-label="Copy link">
-            <i class="fas fa-link"></i>
-            <span class="hidden sm:inline">Copy</span>
-        </button>
-        
-        <!-- Print -->
-        <button type="button" 
-                onclick="window.print()"
-                class="share-btn share-btn-print"
-                aria-label="Print page">
-            <i class="fas fa-print"></i>
-            <span class="hidden sm:inline">Print</span>
-        </button>
+<div class="relative inline-block text-left" id="shareDropdownContainer">
+    <button type="button"
+        class="btn-secondary btn-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:bg-accent hover:border-accent hover:text-white transition-all duration-300"
+        id="shareToggleButton" aria-expanded="false" aria-haspopup="true">
+        <i class="fas fa-share-alt"></i>
+        <span>Share</span>
+    </button>
+
+    <div id="shareMenu"
+        class="absolute right-0 bottom-full mb-2 w-48 rounded-xl bg-white dark:bg-surface-dark shadow-2xl border border-border dark:border-border-dark opacity-0 scale-95 pointer-events-none transition-all duration-300 z-50 origin-bottom-right">
+        <div class="p-2 grid grid-cols-1 gap-1">
+            <!-- Facebook -->
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}"
+                target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text dark:text-text-dark transition-colors">
+                <i class="fab fa-facebook-f w-4 text-center text-blue-600"></i>
+                <span>Facebook</span>
+            </a>
+
+            <!-- Twitter/X -->
+            <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ title|urlencode }}"
+                target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 text-text dark:text-text-dark transition-colors">
+                <i class="fab fa-x-twitter w-4 text-center"></i>
+                <span>Twitter</span>
+            </a>
+
+            <!-- WhatsApp -->
+            <a href="https://wa.me/?text={{ title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}"
+                target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 text-text dark:text-text-dark transition-colors">
+                <i class="fab fa-whatsapp w-4 text-center text-green-600"></i>
+                <span>WhatsApp</span>
+            </a>
+
+            <div class="my-1 border-t border-border dark:border-border-dark"></div>
+
+            <!-- Copy Link -->
+            <button type="button" onclick="copyToClipboard('{{ request.build_absolute_uri }}')"
+                class="flex items-center gap-3 w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-accent/10 text-text dark:text-text-dark transition-colors">
+                <i class="fas fa-link w-4 text-center text-accent"></i>
+                <span>Copy Link</span>
+            </button>
+        </div>
     </div>
 </div>
 
 <script>
-(function() {
-    'use strict';
-    
-    // Use existing showToast if available, otherwise create one
-    window.copyToClipboard = function(text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(function() {
-                if (typeof showToast === 'function') {
-                    showToast('Link copied to clipboard!');
-                } else {
-                    showShareToast('Link copied to clipboard!');
-                }
-            }).catch(function() {
-                fallbackCopyToClipboard(text);
-            });
-        } else {
-            fallbackCopyToClipboard(text);
-        }
-    };
-    
-    function fallbackCopyToClipboard(text) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            if (typeof showToast === 'function') {
-                showToast('Link copied to clipboard!');
-            } else {
-                showShareToast('Link copied to clipboard!');
+    (function () {
+        'use strict';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.getElementById('shareToggleButton');
+            const shareMenu = document.getElementById('shareMenu');
+
+            if (toggleBtn && shareMenu) {
+                toggleBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+
+                    if (isExpanded) {
+                        closeShareMenu();
+                    } else {
+                        openShareMenu();
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!shareMenu.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        closeShareMenu();
+                    }
+                });
             }
-        } catch (err) {
-            alert('Failed to copy. Please copy manually: ' + text);
+
+            function openShareMenu() {
+                toggleBtn.setAttribute('aria-expanded', 'true');
+                shareMenu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                shareMenu.classList.add('opacity-100', 'scale-100');
+            }
+
+            function closeShareMenu() {
+                toggleBtn.setAttribute('aria-expanded', 'false');
+                shareMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                shareMenu.classList.remove('opacity-100', 'scale-100');
+            }
+        });
+
+        window.copyToClipboard = function (text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                    showShareToast('Link copied!');
+                }).catch(function () {
+                    fallbackCopyToClipboard(text);
+                });
+            } else {
+                fallbackCopyToClipboard(text);
+            }
+        };
+
+        function fallbackCopyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showShareToast('Link copied!');
+            } catch (err) {
+                alert('Failed to copy. Please copy manually: ' + text);
+            }
+            document.body.removeChild(textarea);
         }
-        document.body.removeChild(textarea);
-    }
-    
-    function showShareToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        toast.style.animation = 'fadeIn 0.3s ease-in';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(function() {
-            toast.style.opacity = '0';
-            toast.style.transition = 'opacity 0.3s';
-            setTimeout(function() { toast.remove(); }, 300);
-        }, 2000);
-    }
-})();
+
+        function showShareToast(message) {
+            if (typeof showToast === 'function') {
+                showToast(message);
+                return;
+            }
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-white px-4 py-2 rounded-lg shadow-lg z-[100] transition-opacity duration-300';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(function () {
+                toast.style.opacity = '0';
+                setTimeout(function () { toast.remove(); }, 300);
+            }, 2000);
+        }
+    })();
 </script>

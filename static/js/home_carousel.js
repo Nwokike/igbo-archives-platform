@@ -4,7 +4,7 @@
  */
 document.addEventListener('DOMContentLoaded', function () {
     const swiperContainer = document.querySelector('.swiper-container');
-    
+
     if (swiperContainer && typeof Swiper !== 'undefined') {
         const heroSwiper = new Swiper(swiperContainer, {
             // "Grand" fade effect
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fadeEffect: {
                 crossFade: true
             },
-            
+
             // Loop and Autoplay
             loop: true,
             speed: 1200, // Slightly slower for more "grand" feel
@@ -29,14 +29,15 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             // Pagination dots
-            pagination: {
-                el: '.swiper-pagination-custom',
-                clickable: true,
-                renderBullet: function (index, className) {
-                    return '<span class="' + className + '"></span>';
-                },
-            },
-            
+            // Pagination (Removed for cleaner look)
+            // pagination: {
+            //     el: '.swiper-pagination-custom',
+            //     clickable: true,
+            //     renderBullet: function (index, className) {
+            //         return '<span class="' + className + '"></span>';
+            //     },
+            // },
+
             // Accessibility
             a11y: {
                 prevSlideMessage: 'Previous slide',

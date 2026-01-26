@@ -2,6 +2,21 @@
 
 {% block title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
 
+{% block meta_description %}{{ profile_user.get_display_name }}'s profile on Igbo Archives. {{
+profile_user.bio|truncatewords:25 }}{% endblock %}
+
+{% block og_title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
+{% block og_description %}{{ profile_user.bio|truncatewords:50 }}{% endblock %}
+{% if profile_user.profile_picture %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}{% endblock
+%}
+{% endif %}
+{% block og_type %}profile{% endblock %}
+
+{% block twitter_title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
+{% block twitter_description %}{{ profile_user.bio|truncatewords:50 }}{% endblock %}
+
 {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <!-- Sidebar: Profile Info -->
@@ -54,7 +69,8 @@
                     <div class="flex items-center gap-2">
                         <i class="fas fa-globe w-4 text-center"></i>
                         <a href="{{ profile_user.social_links.website }}" target="_blank" rel="noopener"
-                            class="text-accent hover:underline">{{ profile_user.social_links.website|truncatechars:30 }}</a>
+                            class="text-accent hover:underline">{{ profile_user.social_links.website|truncatechars:30
+                            }}</a>
                     </div>
                     {% endif %}
 
@@ -215,7 +231,8 @@
                 {% if user_archives %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {% for archive in user_archives %}
-                    <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}" class="card card-hover group block">
+                    <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
+                        class="card card-hover group block">
                         {% if archive.image %}
                         <div class="h-32 overflow-hidden">
                             <img src="{{ archive.image.url }}" alt="{{ archive.title }}"
