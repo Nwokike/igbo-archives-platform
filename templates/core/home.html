@@ -53,16 +53,9 @@
                         </h2>
 
                         <p
-                            class="text-text-muted dark:text-text-dark-muted text-base lg:text-lg mb-8 leading-relaxed line-clamp-3 md:line-clamp-none">
+                            class="text-text-muted dark:text-text-dark-muted text-base lg:text-lg leading-relaxed line-clamp-3 md:line-clamp-none">
                             {{ archive.description|truncatewords:50 }}
                         </p>
-
-                        <div class="flex flex-wrap items-center gap-4">
-                            <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
-                                class="btn-primary btn-lg group-hover:scale-105 transition-transform duration-300">
-                                <i class="fas fa-eye mr-2"></i> View Archive
-                            </a>
-                        </div>
                     </div>
                 </div>
 
@@ -84,16 +77,16 @@
             {% endfor %}
         </div>
 
-        <!-- Navigation Controls (Side) -->
+        <!-- Navigation Controls (Side) - Simplified -->
         <button
-            class="swiper-button-prev-custom absolute top-1/2 left-4 md:left-8 z-30 w-12 h-12 md:w-16 md:h-16 -translate-y-1/2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-text dark:text-white hover:bg-accent hover:border-accent hover:text-white transition-all duration-300 flex items-center justify-center opacity-0 group-hover/section:opacity-100 translate-x-4 group-hover/section:translate-x-0"
+            class="swiper-button-prev-custom absolute top-1/2 left-4 md:left-6 z-30 w-10 h-10 -translate-y-1/2 rounded-lg bg-surface/80 dark:bg-surface-dark/80 text-text dark:text-white hover:bg-accent hover:text-white transition-all duration-300 flex items-center justify-center opacity-0 group-hover/section:opacity-100 shadow-sm"
             aria-label="Previous slide">
-            <i class="fas fa-arrow-left text-lg md:text-xl"></i>
+            <i class="fas fa-chevron-left text-sm"></i>
         </button>
         <button
-            class="swiper-button-next-custom absolute top-1/2 right-4 md:right-8 z-30 w-12 h-12 md:w-16 md:h-16 -translate-y-1/2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-text dark:text-white hover:bg-accent hover:border-accent hover:text-white transition-all duration-300 flex items-center justify-center opacity-0 group-hover/section:opacity-100 -translate-x-4 group-hover/section:translate-x-0"
+            class="swiper-button-next-custom absolute top-1/2 right-4 md:right-6 z-30 w-10 h-10 -translate-y-1/2 rounded-lg bg-surface/80 dark:bg-surface-dark/80 text-text dark:text-white hover:bg-accent hover:text-white transition-all duration-300 flex items-center justify-center opacity-0 group-hover/section:opacity-100 shadow-sm"
             aria-label="Next slide">
-            <i class="fas fa-arrow-right text-lg md:text-xl"></i>
+            <i class="fas fa-chevron-right text-sm"></i>
         </button>
 
     </div>
