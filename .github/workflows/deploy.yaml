@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Deploy via SSH
-      uses: appleboy/ssh-action@v0.1.10
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.GCP_HOST }}
         username: ${{ secrets.GCP_USERNAME }}
@@ -29,24 +29,23 @@ jobs:
           git pull origin main
 
           # 3. Sync Dependencies using uv
-          source $HOME/.local/bin/env
+          export PATH="$HOME/.local/bin:$PATH"
           export UV_PYTHON=python3.12
           uv sync
 
           # 4. Run Database Migrations
           uv run python manage.py migrate
           
-          # 4b. Ensure cache table exists
+          # 5. Ensure cache table exists
           uv run python manage.py createcachetable
 
-          # 5. Update Static Files
+          # 6. Update Static Files
           uv run python manage.py collectstatic --noinput
 
-          # 6. Maintenance: Clean uv cache (force avoid lock issues)
-          source $HOME/.local/bin/env
+          # 7. Maintenance: Clean uv cache (force avoid lock issues)
           uv cache clean --force
 
-          # 6. Restart Services (Using Sudo Password Secret)
+          # 8. Restart Services
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives-huey
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx

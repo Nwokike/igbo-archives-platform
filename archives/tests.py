@@ -65,7 +65,7 @@ class ArchiveModelTests(TestCase):
         self.assertEqual(str(archive), 'Test Archive')
     
     def test_archive_default_is_approved(self):
-        """Test that archives have correct default for is_approved."""
+        """Test that archives default to NOT approved (pending moderation)."""
         archive = Archive.objects.create(
             title='Test Archive',
             description='Description',
@@ -73,8 +73,8 @@ class ArchiveModelTests(TestCase):
             uploaded_by=self.user
         )
         
-        # Default should be True per the model
-        self.assertTrue(archive.is_approved)
+        # Default should be False - archives need approval before publishing
+        self.assertFalse(archive.is_approved)
     
     def test_archive_types(self):
         """Test all archive type choices are valid."""

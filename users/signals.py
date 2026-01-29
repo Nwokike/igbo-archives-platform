@@ -4,9 +4,6 @@ from .models import Message
 # Import your new, fixed utility function
 from core.notifications_utils import send_message_notification
 from django_comments.signals import comment_was_posted
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
 from django.conf import settings
 import re
 import logging

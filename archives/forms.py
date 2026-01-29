@@ -30,9 +30,11 @@ class ArchiveForm(forms.ModelForm):
         model = Archive
         fields = [
             'title', 'description', 'archive_type', 'category',
-            'caption', 'alt_text', 'original_author', 'location',
-            'date_created', 'circa_date', 'image', 'video', 'audio',
-            'document', 'featured_image'
+            'item_count',  # How many items in this archive
+            'caption', 'copyright_holder', 'alt_text', 
+            'original_author', 'original_url', 'original_identity_number',
+            'location', 'date_created', 'circa_date', 
+            'image', 'video', 'audio', 'document', 'featured_image'
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-input'}),
@@ -43,9 +45,20 @@ class ArchiveForm(forms.ModelForm):
             }),
             'archive_type': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
+            'item_count': forms.Select(attrs={'class': 'form-select'}, choices=[
+                (1, '1 item'),
+                (2, '2 items'),
+                (3, '3 items'),
+                (4, '4 items'),
+                (5, '5 items'),
+            ]),
             'caption': forms.TextInput(attrs={
                 'class': 'form-input',
-                'placeholder': 'e.g., Photo by Northcote Thomas, 1910. Public Domain'
+                'placeholder': 'Caption for this archive'
+            }),
+            'copyright_holder': forms.TextInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'e.g., British Museum, Public Domain'
             }),
             'alt_text': forms.TextInput(attrs={
                 'class': 'form-input',
@@ -55,6 +68,14 @@ class ArchiveForm(forms.ModelForm):
                 'class': 'form-input',
                 'placeholder': 'e.g., Northcote Thomas',
                 'list': 'author-list'
+            }),
+            'original_url': forms.URLInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'https://museum.org/collection/item123'
+            }),
+            'original_identity_number': forms.TextInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'e.g., BM-1234, NT.001'
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-input',

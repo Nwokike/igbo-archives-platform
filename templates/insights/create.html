@@ -34,11 +34,6 @@
         <div class="form-group">
             <div class="flex items-center justify-between mb-2">
                 <label class="form-label mb-0">Content <span class="text-red-500">*</span></label>
-                <button type="button"
-                    class="text-sm text-vintage-gold hover:text-dark-brown font-medium transition-colors"
-                    onclick="openAiModal()">
-                    <i class="fas fa-magic mr-1"></i> AI Writing Assistant
-                </button>
             </div>
             <div id="editor" class="editor-container"></div>
             <input type="hidden" id="content_json" name="content_json" required>
@@ -78,11 +73,11 @@
 </div>
 
 <div id="imageModal" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content modal-lg">
         <div class="modal-header">
             <div>
-                <h3 class="modal-title"><i class="fas fa-image text-accent mr-2"></i>Add Image to Content</h3>
-                <p class="modal-subtitle">Select from archives or upload a new image</p>
+                <h3 class="modal-title"><i class="fas fa-photo-video text-accent mr-2"></i>Add Media to Content</h3>
+                <p class="modal-subtitle">Select from archives or upload new media (image, video, or audio)</p>
             </div>
             <button type="button" class="modal-close" onclick="closeImageModal()">
                 <i class="fas fa-times"></i>
@@ -93,99 +88,137 @@
             <div class="tabs-container">
                 <div class="tabs-list">
                     <button type="button" class="tab-button active" data-img-tab="archive">
-                        <i class="fas fa-archive mr-1"></i> Select from Archives
+                        <i class="fas fa-archive mr-1"></i> From Archives
                     </button>
                     <button type="button" class="tab-button" data-img-tab="upload">
-                        <i class="fas fa-upload mr-1"></i> Upload New Image
+                        <i class="fas fa-upload mr-1"></i> Upload New
                     </button>
                 </div>
             </div>
 
             <div id="archive-panel" class="tab-panel active">
-                <div class="search-input-container">
-                    <i class="fas fa-search search-input-icon"></i>
-                    <input type="text" class="form-input" id="archiveSearch" placeholder="Search archives...">
+                <div class="flex gap-2 mb-3">
+                    <div class="search-input-container flex-1">
+                        <i class="fas fa-search search-input-icon"></i>
+                        <input type="text" class="form-input" id="archiveSearch" placeholder="Search archives...">
+                    </div>
+                    <select id="archiveTypeFilter" class="form-input w-auto">
+                        <option value="image">Images</option>
+                        <option value="video">Videos</option>
+                        <option value="audio">Audio</option>
+                    </select>
                 </div>
                 <div id="archiveGrid" class="archive-grid">
                     <p class="text-center text-vintage-beaver py-8">Loading archives...</p>
                 </div>
             </div>
 
-            <div id="upload-panel" class="tab-panel">
+            <div id="upload-panel" class="tab-panel hidden">
+                <!-- Media Type Selection -->
                 <div class="form-group">
-                    <label class="form-label form-label-required">Select Image File</label>
-                    <input type="file" id="imageFileInput" accept="image/*"
+                    <label class="form-label form-label-required">Media Type</label>
+                    <div class="flex gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="mediaType" value="image" checked class="form-radio"
+                                onchange="updateMediaUploadUI()">
+                            <i class="fas fa-image text-accent"></i> Image
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="mediaType" value="video" class="form-radio"
+                                onchange="updateMediaUploadUI()">
+                            <i class="fas fa-video text-blue-500"></i> Video
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="mediaType" value="audio" class="form-radio"
+                                onchange="updateMediaUploadUI()">
+                            <i class="fas fa-music text-green-500"></i> Audio
+                        </label>
+                    </div>
+                </div>
+
+                <!-- File Input (dynamic accept) -->
+                <div class="form-group">
+                    <label class="form-label form-label-required" id="fileInputLabel">Select Image File</label>
+                    <input type="file" id="mediaFileInput" accept="image/*"
                         class="w-full p-2 border border-border rounded">
+                    <p class="form-help" id="fileInputHelp">Accepted: JPG, PNG, WEBP (Max 5MB)</p>
                 </div>
+
+                <!-- Required Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label form-label-required">Title</label>
+                        <input type="text" class="form-input" id="mediaTitle" placeholder="Archive title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-input" id="mediaCategory">
+                            <option value="">Select category...</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label form-label-required">Caption (with copyright/source info)</label>
-                    <input type="text" class="form-input" id="imageCaption"
+                    <label class="form-label form-label-required">Caption (with copyright/source)</label>
+                    <input type="text" class="form-input" id="mediaCaption"
                         placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
-                    <p class="form-help">Required: Include copyright or image source information</p>
+                    <p class="form-help">Required: Include copyright or source information</p>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label form-label-required">Description (Alt Text)</label>
-                    <input type="text" class="form-input" id="imageDescription"
-                        placeholder="Describe the image for accessibility">
-                    <p class="form-help">Required: Describe what's in the image for screen readers</p>
+                    <input type="text" class="form-input" id="mediaDescription"
+                        placeholder="Describe the media for accessibility">
                 </div>
+
+                <!-- Advanced Options (Collapsible) -->
+                <details class="border border-border rounded-lg mt-4">
+                    <summary class="px-3 py-2 cursor-pointer text-sm font-medium text-text-secondary">
+                        Advanced Options (Location, Date, Copyright Holder)
+                    </summary>
+                    <div class="px-3 pb-3 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="form-group">
+                                <label class="form-label">Location</label>
+                                <input type="text" class="form-input" id="mediaLocation"
+                                    placeholder="e.g., Onitsha, Anambra">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Circa Date</label>
+                                <input type="text" class="form-input" id="mediaCircaDate"
+                                    placeholder="e.g., c1920, 1910s">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Copyright Holder</label>
+                            <input type="text" class="form-input" id="mediaCopyrightHolder"
+                                placeholder="Person or organization">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Original Source URL</label>
+                            <input type="url" class="form-input" id="mediaOriginalUrl" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tags</label>
+                            <input type="text" class="form-input" id="mediaTags"
+                                placeholder="culture, history, tradition">
+                            <p class="form-help">Comma-separated tags</p>
+                        </div>
+                    </div>
+                </details>
             </div>
         </div>
 
         <div class="modal-footer">
             <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
-            <button type="button" class="btn-primary hidden" id="uploadBtn" onclick="uploadAndInsertImage()">
+            <button type="button" class="btn-primary hidden" id="uploadBtn" onclick="uploadAndInsertMedia()">
                 <i class="fas fa-upload"></i> Upload & Insert
             </button>
             <button type="button" class="btn-primary" id="insertArchiveBtn" onclick="insertSelectedArchive()">
                 <i class="fas fa-check"></i> Insert Selected
-            </button>
-        </div>
-    </div>
-</div>
-<div id="aiAssistModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div>
-                <h3 class="modal-title"><i class="fas fa-magic text-vintage-gold mr-2"></i>AI Writing Assistant</h3>
-                <p class="modal-subtitle">Draft, refine, or expand your post with AI</p>
-            </div>
-            <button type="button" class="modal-close" onclick="closeAiModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body space-y-4">
-            <div class="form-group">
-                <label class="form-label">I want to...</label>
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="ai-mode-btn active" data-mode="draft" onclick="setAiMode('draft')">
-                        <i class="fas fa-pen-nib mb-1"></i> Draft New Section
-                    </button>
-                    <button type="button" class="ai-mode-btn" data-mode="refine" onclick="setAiMode('refine')">
-                        <i class="fas fa-edit mb-1"></i> Refine Selection
-                    </button>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Topic / Instructions</label>
-                <textarea id="aiPrompt" class="form-textarea" rows="3"
-                    placeholder="e.g., Describe the significance of the New Yam Festival..."></textarea>
-            </div>
-            <div id="aiContextSection" class="form-group hidden">
-                <label class="form-label">Selected Text to Refine</label>
-                <div id="aiSelectedText"
-                    class="p-3 bg-heritage-cream/30 rounded-lg text-sm text-vintage-beaver italic border border-sepia-pale/30 max-h-32 overflow-y-auto">
-                </div>
-            </div>
-            <div id="aiLoading" class="hidden text-center py-4">
-                <i class="fas fa-spinner fa-spin text-vintage-gold text-xl"></i>
-                <p class="text-sm text-vintage-beaver mt-2">AI is thinking...</p>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="closeAiModal()">Cancel</button>
-            <button type="button" class="btn-primary" onclick="generateAiContent()">
-                <i class="fas fa-magic"></i> Generate
             </button>
         </div>
     </div>
@@ -203,8 +236,7 @@
 <script src="{% static 'vendor/js/editorjs/code.js' %}"></script>
 <script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
 <script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
-<script src="{% static 'js/archive_tool.js' %}"></script>
-<script src="{% static 'js/editor.js' %}"></script>
-<script src="{% static 'js/insight-editor.js' %}"></script>
-<script src="{% static 'js/ai_assist.js' %}"></script>
+<script src="{% static 'js/editor/archive_tool.js' %}"></script>
+<script src="{% static 'js/editor/editor.js' %}"></script>
+<script src="{% static 'js/editor/insight-editor.js' %}"></script>
 {% endblock %}

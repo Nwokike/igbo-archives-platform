@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class VisionService:
     """Advanced vision analysis for cultural heritage content."""
     
-    MODEL = 'gemini-2.5-flash'  # Current 2026 standard
+    MODEL = 'gemini-2.5-flash' 
     
     ANALYSIS_PROMPTS = {
         'describe': """You are analyzing an image for the Igbo Archives, a platform dedicated to preserving Igbo cultural heritage.

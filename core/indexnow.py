@@ -17,12 +17,11 @@ def generate_api_key():
 
 
 def get_indexnow_key():
-    """Get or generate IndexNow API key"""
-    key = getattr(settings, 'INDEXNOW_API_KEY', None)
+    """Get IndexNow API key from settings. Returns None if not configured."""
+    key = getattr(settings, 'INDEXNOW_API_KEY', None) or os.getenv('INDEXNOW_API_KEY')
     if not key:
-        key = generate_api_key()
-        logger.warning(f"IndexNow API key not set. Generated: {key}")
-        logger.warning("Add this to your .env file: INDEXNOW_API_KEY=" + key)
+        logger.error("INDEXNOW_API_KEY is not set. Generate with: python -c \"import uuid; print(uuid.uuid4())\"")
+        return None
     return key
 
 

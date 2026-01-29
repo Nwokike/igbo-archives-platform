@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from insights.models import InsightPost
-from books.models import BookReview
+from books.models import BookRecommendation
 from core.notifications_utils import send_post_approved_notification, send_post_rejected_notification
 from django.utils import timezone
 
@@ -14,9 +14,9 @@ def moderation_dashboard(request):
         pending_approval=True, is_approved=False
     ).select_related('author').order_by('-submitted_at')
     
-    pending_books = BookReview.objects.filter(
+    pending_books = BookRecommendation.objects.filter(
         pending_approval=True, is_approved=False
-    ).select_related('reviewer').order_by('-submitted_at')
+    ).select_related('added_by').order_by('-submitted_at')
     
     context = {
         'pending_insights': pending_insights,
@@ -65,7 +65,7 @@ def reject_insight(request, pk):
 @staff_member_required
 def approve_book_review(request, pk):
     """Approve a book review"""
-    review = get_object_or_404(BookReview.objects.select_related('reviewer'), pk=pk)
+    review = get_object_or_404(BookRecommendation.objects.select_related('added_by'), pk=pk)
     
     review.is_published = True
     review.is_approved = True
@@ -81,7 +81,7 @@ def approve_book_review(request, pk):
 @staff_member_required
 def reject_book_review(request, pk):
     """Reject a book review"""
-    review = get_object_or_404(BookReview.objects.select_related('reviewer'), pk=pk)
+    review = get_object_or_404(BookRecommendation.objects.select_related('added_by'), pk=pk)
     
     if request.method == 'POST':
         reason = request.POST.get('reason', '')
@@ -96,3 +96,4 @@ def reject_book_review(request, pk):
         return redirect('users:moderation_dashboard')
     
     return render(request, 'users/admin/reject_post.html', {'post': review, 'post_type': 'book review'})
+

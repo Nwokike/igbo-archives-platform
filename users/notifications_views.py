@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from .models import Notification
 from django.http import JsonResponse, HttpRequest
@@ -28,6 +29,7 @@ def notifications_list(request: HttpRequest):
 
 
 @login_required
+@require_POST
 def notification_mark_read(request: HttpRequest, notification_id: int):
     """Mark a single notification as read"""
     notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
@@ -41,6 +43,7 @@ def notification_mark_read(request: HttpRequest, notification_id: int):
 
 
 @login_required
+@require_POST
 def notification_mark_all_read(request: HttpRequest):
     """Mark all notifications as read"""
     request.user.notifications.filter(unread=True).update(unread=False)

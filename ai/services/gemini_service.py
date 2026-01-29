@@ -18,9 +18,8 @@ SYSTEM_PROMPT = """You are Igbo Archives AI, a knowledgeable and friendly assist
 class GeminiService:
     """Service for interacting with Google Gemini API with key rotation."""
     
-    # Frontier Gemini models (2026)
-    FLASH_MODEL = 'gemini-2.5-flash'  # Optimized for speed and quality
-    PRO_MODEL = 'gemini-2.5-pro'      # High-reasoning professional model
+    FLASH_MODEL = 'gemini-2.5-flash'   
+    FALLBACK_MODEL = 'gemini-3-flash' 
     
     def __init__(self):
         self._clients = {}  # Cache clients per key

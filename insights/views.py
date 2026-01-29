@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
 from .models import InsightPost, EditSuggestion
-from archives.models import Archive
+from archives.models import Archive, Category
 from core.validators import ALLOWED_INSIGHT_SORTS, get_safe_sort
 from core.editorjs_helpers import parse_editorjs_content, parse_tags, generate_unique_slug, get_workflow_flags, download_and_save_image_from_url
 
@@ -34,8 +34,7 @@ def get_insight_recommendations(insight, count=9):
         is_published=True,
         is_approved=True
     ).exclude(pk=insight.pk).select_related('author').only(
-        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at',
-        'author__full_name', 'author__username'
+        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at'
     )
     
     if tag_names:
@@ -53,8 +52,7 @@ def insight_list(request):
     insights = InsightPost.objects.filter(
         is_published=True, is_approved=True
     ).select_related('author').prefetch_related('tags').only(
-        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at',
-        'author__full_name', 'author__username'
+        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at'
     )
     
     if search := request.GET.get('search'):
@@ -217,6 +215,7 @@ def insight_create(request):
         'initial_title': initial_title,
         'initial_content': initial_content,
         'initial_excerpt': initial_excerpt,
+        'categories': Category.objects.all(),
     }
     return render(request, 'insights/create.html', context)
 
@@ -233,9 +232,10 @@ def insight_edit(request, slug):
         
         if content_json:
             try:
-                insight.content_json = json.loads(content_json) if isinstance(content_json, str) else content_json
-            except json.JSONDecodeError:
-                messages.error(request, 'Invalid content format. Please try again.')
+                from core.editorjs_helpers import parse_editorjs_content
+                insight.content_json = parse_editorjs_content(content_json)
+            except (json.JSONDecodeError, ValidationError) as e:
+                messages.error(request, f'Invalid content format: {e}')
                 return render(request, 'insights/edit.html', {
                     'insight': insight,
                     'initial_content': content_json
@@ -317,8 +317,7 @@ def suggest_edit(request, slug):
             suggestion_text=suggestion_text[:5000]
         )
         
-        # Send notification to post author
-        send_edit_suggestion_notification(suggestion)
+        # Note: Notification is sent by signal in signals.py
         
         cache.set(rate_key, suggestion_count + 1, 86400)
         messages.success(request, 'Thank you! Your edit suggestion has been sent to the author.')

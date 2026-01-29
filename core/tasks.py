@@ -67,9 +67,9 @@ def notify_post_approved(post_id, post_type):
             author = post.author
             title = post.title
         elif post_type == 'book':
-            from books.models import BookReview
-            post = BookReview.objects.select_related('reviewer').get(id=post_id)
-            author = post.reviewer
+            from books.models import BookRecommendation
+            post = BookRecommendation.objects.select_related('added_by').get(id=post_id)
+            author = post.added_by
             title = post.review_title
         else:
             return False
@@ -104,9 +104,9 @@ def notify_post_rejected(post_id, post_type, reason=''):
             author = post.author
             title = post.title
         elif post_type == 'book':
-            from books.models import BookReview
-            post = BookReview.objects.select_related('reviewer').get(id=post_id)
-            author = post.reviewer
+            from books.models import BookRecommendation
+            post = BookRecommendation.objects.select_related('added_by').get(id=post_id)
+            author = post.added_by
             title = post.review_title
         else:
             return False
@@ -215,44 +215,23 @@ def cleanup_old_messages():
         from users.models import Thread, Message
         from django.utils import timezone
         from datetime import timedelta
+        from django.db.models import Count, Q
         
         cutoff = timezone.now() - timedelta(days=730)  # 2 years
         
-        # Find threads with no activity for 2+ years where all messages are read
+        # Use annotation to avoid N+1 query - find threads with all messages read
         old_threads = Thread.objects.filter(
             updated_at__lt=cutoff
-        ).prefetch_related('messages')
+        ).annotate(
+            unread_count=Count('messages', filter=Q(messages__is_read=False))
+        ).filter(unread_count=0)
         
-        deleted_count = 0
-        for thread in old_threads:
-            # Check if all messages are read
-            unread_count = thread.messages.filter(is_read=False).count()
-            if unread_count == 0:
-                # All messages read, safe to delete
-                thread.delete()
-                deleted_count += 1
+        deleted_count, _ = old_threads.delete()
         
         logger.info(f"Message cleanup: {deleted_count} old threads deleted")
         return True
     except Exception as e:
         logger.error(f"Message cleanup failed: {e}")
-        return False
-
-
-@periodic_task(crontab(hour='*/6'))
-def clear_expired_cache():
-    """Clear expired cache entries every 6 hours.
-    
-    Note: Django's DatabaseCache automatically handles expiration.
-    This task is kept as a placeholder for any future manual cleanup.
-    We no longer call cache.clear() as that destroys ALL cache entries.
-    """
-    try:
-        # DatabaseCache auto-expires entries, no action needed
-        logger.info("Cache expiration check completed (auto-managed by DatabaseCache)")
-        return True
-    except Exception as e:
-        logger.error(f"Cache check failed: {e}")
         return False
 
 
@@ -274,3 +253,4 @@ def notify_indexnow(urls):
     except Exception as e:
         logger.error(f"IndexNow submission failed: {e}")
         return False
+

@@ -76,6 +76,7 @@ class ArchiveAnalysis(models.Model):
         ('historical', 'Historical Context'),
         ('cultural', 'Cultural Significance'),
         ('translation', 'Text Translation'),
+        ('artifact', 'Artifact Identification'),
     ])
     content = models.TextField()
     model_used = models.CharField(max_length=50)

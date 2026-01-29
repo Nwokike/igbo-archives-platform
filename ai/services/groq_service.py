@@ -1,7 +1,6 @@
 """
 Groq AI Service for Igbo Archives.
 Handles chat completions with multi-key rotation and fallback to Gemini.
-Best models: LLaMA 3.3 70B (chat), Whisper (STT)
 """
 import logging
 from django.conf import settings
@@ -30,10 +29,11 @@ Format responses in a clear, readable way using markdown when helpful."""
 class GroqService:
     """Service for interacting with Groq API with key rotation."""
     
-    # Best free Groq models (as of Dec 2024)
-    CHAT_MODEL = 'llama-3.3-70b-versatile'  # Best for chat, 128k context
-    FAST_MODEL = 'llama-3.1-8b-instant'      # Faster, for simple tasks
-    WHISPER_MODEL = 'whisper-large-v3'       # Best STT model
+    CHAT_MODEL = 'moonshotai/kimi-k2-instruct'           
+    FAST_MODEL = 'openai/gpt-oss-120b'  
+    TITLE_MODEL = 'qwen/qwen3-32b'                       
+    FALLBACK_MODEL = 'moonshotai/kimi-k2-instruct-0905'           
+    WHISPER_MODEL = 'whisper-large-v3-turbo'             
     
     def __init__(self):
         self.max_tokens = 1024
@@ -179,15 +179,38 @@ class GroqService:
         return {'success': False, 'text': '', 'error': 'All API keys exhausted'}
     
     def generate_title(self, first_message: str) -> str:
-        """Generate a short title for a chat session."""
-        result = self.chat(
-            [{'role': 'user', 'content': first_message[:200]}],
-            session_context='Generate a very short title (max 5 words) for this conversation. Return only the title.',
-            use_fast=True
-        )
+        """Generate a short title for a chat session using title-optimized model."""
+        if not self.is_available:
+            return first_message[:50] + '...' if len(first_message) > 50 else first_message
         
-        if result['success']:
-            return result['content'].strip()[:100]
+        for _ in range(key_manager.groq_key_count):
+            api_key = key_manager.get_groq_key()
+            if not api_key:
+                break
+            
+            client = self._get_client(api_key)
+            if not client:
+                continue
+            
+            try:
+                response = client.chat.completions.create(
+                    model=self.TITLE_MODEL,
+                    messages=[
+                        {'role': 'system', 'content': 'Generate a very short title (max 5 words) for this conversation. Return only the title.'},
+                        {'role': 'user', 'content': first_message[:200]}
+                    ],
+                    max_tokens=50,
+                    temperature=0.3,
+                )
+                return response.choices[0].message.content.strip()[:100]
+            except Exception as e:
+                error_str = str(e).lower()
+                if 'rate' in error_str or 'limit' in error_str:
+                    key_manager.mark_key_rate_limited('groq', api_key, 3600)
+                    continue
+                logger.error(f"Title generation error: {e}")
+                break
+        
         return first_message[:50] + '...' if len(first_message) > 50 else first_message
 
 

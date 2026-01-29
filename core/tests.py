@@ -103,13 +103,14 @@ class ContactFormTests(TestCase):
         response = self.client.get('/contact/', follow=True)
         self.assertEqual(response.status_code, 200)
     
-    def test_contact_form_submission(self):
-        """Test contact form submission."""
+    @patch('core.turnstile.verify_turnstile', return_value={'success': True})
+    def test_contact_form_submission(self, mock_turnstile):
+        """Test contact form submission with mocked Turnstile."""
         response = self.client.post('/contact/', {
             'name': 'Test User',
             'email': 'user@example.com',
             'subject': 'Test Subject',
-            'message': 'Test message content'
+            'message': 'Test message content that is long enough to pass validation'
         }, follow=True)
         
         self.assertEqual(response.status_code, 200)

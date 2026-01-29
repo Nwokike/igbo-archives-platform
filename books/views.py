@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.text import slugify
-from .models import BookReview
+from .models import BookRecommendation
 from core.validators import ALLOWED_BOOK_SORTS, get_safe_sort
 from core.editorjs_helpers import parse_editorjs_content, parse_tags, generate_unique_slug, get_workflow_flags
 
@@ -22,7 +22,7 @@ def get_cached_book_tags():
     tags = cache.get('book_tags')
     if tags is None:
         from taggit.models import Tag
-        tags = list(Tag.objects.filter(bookreview__isnull=False).distinct()[:50])
+        tags = list(Tag.objects.filter(BookRecommendation__isnull=False).distinct()[:50])
         cache.set('book_tags', tags, 1800)
     return tags
 
@@ -31,12 +31,12 @@ def get_book_recommendations(review, count=9):
     """Efficient recommendation fetching based on shared tags."""
     tag_names = list(review.tags.values_list('name', flat=True))
     
-    recommendations = BookReview.objects.filter(
+    recommendations = BookRecommendation.objects.filter(
         is_published=True,
         is_approved=True
-    ).exclude(pk=review.pk).select_related('reviewer').only(
-        'id', 'book_title', 'review_title', 'slug', 'rating', 'cover_image',
-        'created_at', 'reviewer__full_name', 'reviewer__username'
+    ).exclude(pk=review.pk).select_related('added_by').only(
+        'id', 'book_title', 'title', 'slug', 'cover_image',
+        'created_at', 'added_by__full_name', 'added_by__username'
     )
     
     if tag_names:
@@ -51,26 +51,20 @@ def get_book_recommendations(review, count=9):
 
 def book_list(request):
     """List all published book reviews with filtering and pagination."""
-    reviews = BookReview.objects.filter(
+    reviews = BookRecommendation.objects.filter(
         is_published=True, is_approved=True
-    ).select_related('reviewer').prefetch_related('tags').only(
-        'id', 'book_title', 'review_title', 'slug', 'rating', 'cover_image',
-        'created_at', 'reviewer__full_name', 'reviewer__username'
+    ).select_related('added_by').prefetch_related('tags').only(
+        'id', 'book_title', 'title', 'slug', 'cover_image',
+        'created_at', 'added_by__full_name', 'added_by__username'
     )
     
     if search := request.GET.get('search'):
         reviews = reviews.filter(
-            Q(book_title__icontains=search) | Q(review_title__icontains=search)
+            Q(book_title__icontains=search) | Q(title__icontains=search)
         )
     
     if tag := request.GET.get('tag'):
         reviews = reviews.filter(tags__name=tag)
-    
-    if rating := request.GET.get('rating'):
-        try:
-            reviews = reviews.filter(rating__gte=int(rating))
-        except ValueError:
-            pass
     
     sort = get_safe_sort(request.GET.get('sort', '-created_at'), ALLOWED_BOOK_SORTS)
     reviews = reviews.order_by(sort)
@@ -92,17 +86,17 @@ def book_list(request):
 def book_detail(request, slug):
     """Display a single book review with recommendations."""
     review = get_object_or_404(
-        BookReview.objects.select_related('reviewer'),
+        BookRecommendation.objects.select_related('added_by'),
         slug=slug, is_published=True, is_approved=True
     )
     
-    previous_review = BookReview.objects.filter(
+    previous_review = BookRecommendation.objects.filter(
         is_published=True,
         is_approved=True,
         created_at__lt=review.created_at
     ).order_by('-created_at').only('id', 'review_title', 'slug').first()
     
-    next_review = BookReview.objects.filter(
+    next_review = BookRecommendation.objects.filter(
         is_published=True,
         is_approved=True,
         created_at__gt=review.created_at
@@ -142,7 +136,7 @@ def book_create(request):
         base_slug = slugify(review_title)[:200]
         slug = base_slug
         counter = 1
-        while BookReview.objects.filter(slug=slug).exists():
+        while BookRecommendation.objects.filter(slug=slug).exists():
             slug = f"{base_slug}-{counter}"
             counter += 1
             if counter > 100:
@@ -174,18 +168,20 @@ def book_create(request):
         except (ValueError, TypeError):
             publication_year = None
         
-        review = BookReview(
+        review = BookRecommendation(
             book_title=book_title,
             author=request.POST.get('author', '').strip(),
             isbn=request.POST.get('isbn', '').strip()[:20],
             publisher=request.POST.get('publisher', '').strip(),
             publication_year=publication_year,
-            review_title=review_title[:200],
+            title=review_title[:200],
             slug=slug,
             content_json=content_data,
-            rating=rating,
-            reviewer=request.user,
-            **workflow_flags
+            added_by=request.user,
+            is_published=is_published,
+            is_approved=is_approved,
+            pending_approval=pending_approval,
+            submitted_at=submitted_at,
         )
         
         if request.FILES.get('cover_image'):
@@ -222,7 +218,7 @@ def book_create(request):
 @login_required
 def book_edit(request, slug):
     """Edit an existing book review."""
-    review = get_object_or_404(BookReview, slug=slug, reviewer=request.user)
+    review = get_object_or_404(BookRecommendation, slug=slug, added_by=request.user)
     
     if request.method == 'POST':
         review.book_title = request.POST.get('book_title', '').strip()
@@ -307,7 +303,7 @@ def book_edit(request, slug):
 @login_required
 def book_delete(request, slug):
     """Delete a book review (only for drafts/pending, or owner)."""
-    review = get_object_or_404(BookReview, slug=slug, reviewer=request.user)
+    review = get_object_or_404(BookRecommendation, slug=slug, added_by=request.user)
     
     # Only allow deletion if not approved (draft/pending) or if user is owner
     if review.is_published and review.is_approved and not request.user.is_staff:
@@ -322,3 +318,4 @@ def book_delete(request, slug):
         return redirect('users:dashboard')
     
     return render(request, 'books/delete.html', {'review': review})
+

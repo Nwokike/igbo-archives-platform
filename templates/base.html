@@ -15,7 +15,7 @@
 
     {% if ENABLE_ANALYTICS and GOOGLE_ANALYTICS_ID %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
-    <script src="{% static 'js/analytics.js' %}" data-ga-id="{{ GOOGLE_ANALYTICS_ID }}"></script>
+    <script src="{% static 'js/common/analytics.js' %}" data-ga-id="{{ GOOGLE_ANALYTICS_ID }}"></script>
     {% endif %}
 
     {% progressive_web_app_meta %}
@@ -355,16 +355,20 @@
         </div>
     </footer>
 
-    <script src="{% static 'vendor/js/swiper-bundle.min.js' %}"></script>
-    <script src="{% static 'vendor/js/htmx.min.js' %}" defer></script>
-    <script src="{% static 'js/main.js' %}" defer></script>
-    <script src="{% static 'js/notifications.js' %}" defer></script>
-    <script src="{% static 'js/comments.js' %}" defer></script>
-    <script src="{% static 'js/modals.js' %}" defer></script>
-    <script src="{% static 'js/tabs.js' %}" defer></script>
-    <script src="{% static 'js/view-toggle.js' %}" defer></script>
-    <script src="{% static 'js/share.js' %}" defer></script>
-    <script src="{% static 'js/push-notifications.js' %}" id="push-notifications-script"
+    <script src="{% static 'vendor/js/swiper-bundle.min.js' %}"
+        integrity="sha384-wtXd9wCC/NN1lN0UtqEaTsgSg4lyQoPV4/TjVue3fIYmIy590+oSU0PLVXwTJf92"
+        crossorigin="anonymous"></script>
+    <script src="{% static 'vendor/js/htmx.min.js' %}"
+        integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"
+        defer></script>
+    <script src="{% static 'js/common/main.js' %}" defer></script>
+    <script src="{% static 'js/common/notifications.js' %}" defer></script>
+    <script src="{% static 'js/common/comments.js' %}" defer></script>
+    <script src="{% static 'js/common/modals.js' %}" defer></script>
+    <script src="{% static 'js/common/tabs.js' %}" defer></script>
+    <script src="{% static 'js/common/view-toggle.js' %}" defer></script>
+    <script src="{% static 'js/common/share.js' %}" defer></script>
+    <script src="{% static 'js/common/push-notifications.js' %}" id="push-notifications-script"
         data-subscribe-url="{% url 'api:push_subscribe' %}" data-unsubscribe-url="{% url 'api:push_unsubscribe' %}"
         defer></script>
 

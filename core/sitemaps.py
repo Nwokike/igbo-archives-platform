@@ -2,7 +2,7 @@ from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from archives.models import Archive
 from insights.models import InsightPost
-from books.models import BookReview
+from books.models import BookRecommendation
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -69,7 +69,7 @@ class BookSitemap(Sitemap):
     priority = 0.7
     
     def items(self):
-        return BookReview.objects.filter(
+        return BookRecommendation.objects.filter(
             is_published=True, is_approved=True
         ).only('id', 'slug', 'updated_at')
     
@@ -86,7 +86,11 @@ class UserProfileSitemap(Sitemap):
     priority = 0.5
     
     def items(self):
-        return User.objects.filter(is_active=True).only('id', 'username')
+        return User.objects.filter(is_active=True).only('id', 'username', 'last_login', 'date_joined')
     
     def location(self, obj):
         return reverse('users:profile', args=[obj.username])
+    
+    def lastmod(self, obj):
+        return obj.last_login or obj.date_joined
+

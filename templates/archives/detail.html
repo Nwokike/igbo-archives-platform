@@ -21,7 +21,7 @@
 
 {% block twitter_title %}{{ archive.title }} | Igbo Archives{% endblock %}
 {% block twitter_description %}{{ archive.description|truncatewords:50 }}{% endblock %}
-{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ archive.image.url }}{% endblock %}
+{% block twitter_image %}{% if archive.image %}{{ request.scheme }}://{{ request.get_host }}{{ archive.image.url }}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -34,9 +34,6 @@
                 {% if archive.category %}
                 <span class="badge badge-primary">{{ archive.category.name }}</span>
                 {% endif %}
-                <span class="text-sm text-text-muted ml-2">
-                    <i class="far fa-calendar"></i> Uploaded {{ archive.created_at|date:"F d, Y" }}
-                </span>
             </div>
         </header>
 
@@ -270,7 +267,7 @@
             </div>
             {% endif %}
 
-            {% if archive.original_author or archive.author or archive.circa_date or archive.date_created %}
+            {% if archive.original_author or archive.author or archive.circa_date or archive.date_created or archive.copyright_holder or archive.original_url or archive.original_identity_number %}
             <div class="card">
                 <div class="card-body">
                     <h4 class="font-serif font-semibold mb-3">Archive Details</h4>
@@ -313,6 +310,43 @@
                             <dd class="text-text-muted">{{ archive.date_created|date:"F d, Y" }}</dd>
                         </div>
                         {% endif %}
+
+                        {% if archive.copyright_holder %}
+                        <div>
+                            <dt class="font-medium">Copyright:</dt>
+                            <dd class="text-text-muted">© {{ archive.copyright_holder }}</dd>
+                        </div>
+                        {% endif %}
+
+                        {% if archive.original_identity_number %}
+                        <div>
+                            <dt class="font-medium">Archive ID:</dt>
+                            <dd class="text-text-muted font-mono text-xs">{{ archive.original_identity_number }}</dd>
+                        </div>
+                        {% endif %}
+
+                        {% if archive.original_url %}
+                        <div>
+                            <dt class="font-medium">Original Source:</dt>
+                            <dd class="text-text-muted">
+                                <a href="{{ archive.original_url }}" target="_blank" rel="noopener"
+                                    class="hover:text-accent transition-colors inline-flex items-center gap-1">
+                                    View Original
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                            </dd>
+                        </div>
+                        {% endif %}
+
+                        {% if archive.item_count > 1 %}
+                        <div>
+                            <dt class="font-medium">Items:</dt>
+                            <dd class="text-text-muted">{{ archive.item_count }} items in collection</dd>
+                        </div>
+                        {% endif %}
                     </dl>
                 </div>
             </div>
@@ -326,6 +360,6 @@
 {% if user.is_authenticated and archive.archive_type == 'image' %}
 <div id="archiveAnalysisConfig" class="hidden" data-archive-id="{{ archive.id }}"
     data-analyze-url="{% url 'ai:analyze_archive' %}"></div>
-<script src="{% static 'js/archive-analysis.js' %}"></script>
+<script src="{% static 'js/archives/archive-analysis.js' %}"></script>
 {% endif %}
 {% endblock %}

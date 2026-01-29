@@ -1,12 +1,6 @@
 """
 AI Services for Igbo Archives.
 Uses advanced language models with multi-key rotation for maximum free tier usage.
-
-Best Free Models (December 2025):
-- Gemini 2.5 Flash: Best balance of speed/quality for free tier
-- Groq Llama 3.3 70B Versatile: Best open-source LLM
-- Groq Llama 4 Scout: Newest, most advanced (free tier $0.00)
-- Groq Whisper Large V3: Best free STT
 """
 import logging
 from django.conf import settings

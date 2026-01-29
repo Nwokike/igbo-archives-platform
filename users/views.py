@@ -18,7 +18,7 @@ def dashboard(request):
     """User dashboard showing their content and activity."""
     from archives.models import Archive
     from insights.models import InsightPost, EditSuggestion
-    from books.models import BookReview
+    from books.models import BookRecommendation
     
     user = request.user
     
@@ -36,8 +36,8 @@ def dashboard(request):
         pending_approval=False
     ).order_by('-created_at')[:10]
     
-    my_book_reviews = BookReview.objects.filter(
-        reviewer=user
+    my_book_recommendations = BookRecommendation.objects.filter(
+        added_by=user
     ).order_by('-created_at')[:20]
     
     my_archives = Archive.objects.filter(
@@ -54,7 +54,7 @@ def dashboard(request):
         'messages_threads': messages_threads,
         'my_insights': my_insights,
         'my_drafts': my_drafts,
-        'my_book_reviews': my_book_reviews,
+        'my_book_recommendations': my_book_recommendations,
         'my_archives': my_archives,
         'edit_suggestions': edit_suggestions,
     }
@@ -66,7 +66,7 @@ def profile_view(request, username):
     """Public profile view - only shows approved content."""
     from archives.models import Archive
     from insights.models import InsightPost
-    from books.models import BookReview
+    from books.models import BookRecommendation
     
     user = get_object_or_404(User, username=username)
     
@@ -81,8 +81,8 @@ def profile_view(request, username):
         is_approved=True
     ).order_by('-created_at')[:20]
     
-    book_reviews = BookReview.objects.filter(
-        reviewer=user,
+    book_recommendations = BookRecommendation.objects.filter(
+        added_by=user,
         is_published=True,
         is_approved=True
     ).order_by('-created_at')[:20]
@@ -91,7 +91,7 @@ def profile_view(request, username):
         'profile_user': user,
         'user_archives': archives,  # Fixed: match template variable name
         'user_insights': insights,  # Fixed: match template variable name
-        'user_book_reviews': book_reviews,  # Fixed: match template variable name
+        'user_book_recommendations': book_recommendations,  # Fixed: match template variable name
     }
     
     return render(request, 'users/profile.html', context)
@@ -149,7 +149,7 @@ def message_thread(request, thread_id):
             Message.objects.create(
                 thread=thread,
                 sender=request.user,
-                content=clean_content[:10000]
+                content=clean_content  # Already validated above
             )
             cache.set(rate_key, msg_count + 1, 3600)
             return redirect('users:thread', thread_id=thread_id)
@@ -228,3 +228,4 @@ def delete_account(request):
             django_messages.error(request, 'Incorrect password.')
     
     return render(request, 'users/delete_account.html')
+

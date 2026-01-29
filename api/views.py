@@ -144,6 +144,132 @@ def upload_image(request):
 
 
 @login_required
+@require_POST
+def upload_media(request):
+    """Handle multi-media uploads (image/video/audio) with full archive fields."""
+    rate_key = f'upload_rate_{request.user.id}'
+    upload_count = cache.get(rate_key, 0)
+    if upload_count >= 20:
+        return JsonResponse({'success': 0, 'error': 'Upload limit reached. Try again later.'})
+    
+    if 'file' not in request.FILES:
+        return JsonResponse({'success': 0, 'error': 'No file provided'})
+    
+    uploaded_file = request.FILES['file']
+    media_type = request.POST.get('media_type', 'image')
+    title = request.POST.get('title', '').strip()
+    caption = request.POST.get('caption', '').strip()
+    description = request.POST.get('description', '').strip()
+    
+    # Optional fields
+    category_id = request.POST.get('category', '').strip()
+    location = request.POST.get('location', '').strip()
+    circa_date = request.POST.get('circa_date', '').strip()
+    copyright_holder = request.POST.get('copyright_holder', '').strip()
+    original_url = request.POST.get('original_url', '').strip()
+    tags = request.POST.get('tags', '').strip()
+    
+    # Validate required fields
+    if not title:
+        return JsonResponse({'success': 0, 'error': 'Title is required'})
+    if not caption:
+        return JsonResponse({'success': 0, 'error': 'Caption with copyright/source info is required'})
+    if not description:
+        return JsonResponse({'success': 0, 'error': 'Description (alt text) is required'})
+    
+    # Media type configuration
+    media_config = {
+        'image': {
+            'max_size': 5 * 1024 * 1024,
+            'extensions': ['jpg', 'jpeg', 'png', 'webp'],
+            'field': 'image'
+        },
+        'video': {
+            'max_size': 50 * 1024 * 1024,
+            'extensions': ['mp4', 'webm', 'ogg', 'mov'],
+            'field': 'video'
+        },
+        'audio': {
+            'max_size': 10 * 1024 * 1024,
+            'extensions': ['mp3', 'wav', 'ogg', 'm4a'],
+            'field': 'audio'
+        }
+    }
+    
+    if media_type not in media_config:
+        return JsonResponse({'success': 0, 'error': 'Invalid media type'})
+    
+    config = media_config[media_type]
+    file_size = uploaded_file.size
+    
+    if file_size > config['max_size']:
+        max_mb = config['max_size'] // (1024 * 1024)
+        return JsonResponse({'success': 0, 'error': f'Maximum file size is {max_mb}MB'})
+    if file_size < 1024:
+        return JsonResponse({'success': 0, 'error': 'File too small'})
+    
+    file_extension = os.path.splitext(uploaded_file.name)[1][1:].lower()
+    if file_extension not in config['extensions']:
+        return JsonResponse({'success': 0, 'error': f'Only {", ".join(config["extensions"])} files are allowed'})
+    
+    # Create archive
+    archive_data = {
+        'title': title[:255],
+        'description': description,
+        'caption': caption,
+        'alt_text': description[:255],
+        'archive_type': media_type,
+        'uploaded_by': request.user,
+        'is_approved': False,
+        config['field']: uploaded_file
+    }
+    
+    # Optional fields
+    if location:
+        archive_data['location'] = location[:255]
+    if circa_date:
+        archive_data['circa_date'] = circa_date[:50]
+    if copyright_holder:
+        archive_data['copyright_holder'] = copyright_holder[:255]
+    if original_url:
+        archive_data['original_url'] = original_url
+    
+    archive = Archive.objects.create(**archive_data)
+    
+    # Handle category
+    if category_id:
+        try:
+            category = Category.objects.get(id=int(category_id))
+            archive.category = category
+            archive.save(update_fields=['category'])
+        except (ValueError, Category.DoesNotExist):
+            pass
+    
+    # Handle tags
+    if tags:
+        from taggit.utils import parse_tags
+        tag_list = parse_tags(tags)
+        if tag_list:
+            archive.tags.add(*tag_list[:20])  # Max 20 tags
+    
+    cache.set(rate_key, upload_count + 1, 3600)
+    
+    # Get file URL based on media type
+    media_field = getattr(archive, config['field'])
+    file_url = request.build_absolute_uri(media_field.url)
+    
+    return JsonResponse({
+        'success': 1,
+        'file': {
+            'url': file_url,
+            'size': file_size,
+            'name': uploaded_file.name,
+        },
+        'archive_id': archive.id
+    })
+
+
+@login_required
 def notification_list_api(request):
     """Return top 5 unread notifications for the dropdown."""
     from django.shortcuts import render

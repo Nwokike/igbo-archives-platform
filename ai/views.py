@@ -102,9 +102,9 @@ def chat_send(request):
     history = session.messages.order_by('-created_at')[:10]
     messages = [{'role': m.role, 'content': m.content} for m in reversed(history)]
     
-    # Get AI response with mode preference
-    use_fast = (mode == 'fast')
-    result = chat_service.chat(messages, use_web_search=True, use_fast=use_fast)
+    # Get AI response with task-appropriate model
+    task_type = 'analysis' if mode == 'advanced' else 'chat'
+    result = chat_service.chat(messages, use_web_search=True, task_type=task_type)
     
     # Save AI response
     ai_message = ChatMessage.objects.create(
@@ -149,9 +149,13 @@ def analyze_archive(request):
     if not archive_id:
         return JsonResponse({'error': 'Archive ID required'}, status=400)
     
-    valid_types = ['describe', 'historical', 'cultural', 'translation', 'artifact']
+    valid_types = ['description', 'historical', 'cultural', 'translation', 'artifact']
     if analysis_type not in valid_types:
-        analysis_type = 'describe'
+        analysis_type = 'description'
+    
+    # Map old 'describe' to new 'description' for backwards compatibility
+    if analysis_type == 'describe':
+        analysis_type = 'description'
     
     # Rate limiting
     rate_key = f'ai_vision_{request.user.id}'
@@ -256,33 +260,59 @@ def generate_tts(request):
 @login_required
 @require_POST
 def transcribe_audio(request):
-    """Transcribe audio to text."""
+    """Transcribe audio to text using NaijaLingo ASR (Nigerian languages)."""
+    from .services.stt_service import stt_service
+    
     if 'audio' not in request.FILES:
         return JsonResponse({'error': 'No audio file'}, status=400)
     
     audio_file = request.FILES['audio']
+    language = request.POST.get('language', 'ig')  # Default to Igbo
+    
+    # Validate language
+    if language not in stt_service.SUPPORTED_LANGUAGES:
+        return JsonResponse({
+            'error': f"Unsupported language. Use: {', '.join(stt_service.SUPPORTED_LANGUAGES.keys())}"
+        }, status=400)
+    
+    # Check if STT is available
+    if not stt_service.is_available:
+        return JsonResponse({
+            'error': 'Speech recognition not available. Install: pip install naijalingo-asr[audio]'
+        }, status=503)
     
     # Size limit (10MB)
     if audio_file.size > 10 * 1024 * 1024:
-        return JsonResponse({'error': 'File too large'}, status=400)
+        return JsonResponse({'error': 'File too large (max 10MB)'}, status=400)
     
     # Rate limiting
     rate_key = f'ai_stt_{request.user.id}'
     count = cache.get(rate_key, 0)
-    if count >= 20:
+    if count >= 50:  # More generous limit since it's local
         return JsonResponse({'error': 'Transcription limit reached'}, status=429)
     
     # Save temp file
     import tempfile
     import os
     
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as tmp:
+    # Determine file extension from content type
+    content_type = audio_file.content_type or ''
+    if 'webm' in content_type:
+        suffix = '.webm'
+    elif 'mp3' in content_type or 'mpeg' in content_type:
+        suffix = '.mp3'
+    elif 'wav' in content_type:
+        suffix = '.wav'
+    else:
+        suffix = '.webm'  # Default for browser recordings
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         for chunk in audio_file.chunks():
             tmp.write(chunk)
         tmp_path = tmp.name
     
     try:
-        result = chat_service.transcribe(tmp_path)
+        result = stt_service.transcribe(tmp_path, language=language)
         
         if result['success']:
             cache.set(rate_key, count + 1, 3600)
@@ -290,6 +320,8 @@ def transcribe_audio(request):
         return JsonResponse({
             'success': result['success'],
             'text': result.get('text', ''),
+            'language': result.get('language', language),
+            'language_name': result.get('language_name', ''),
             'error': result.get('error', '')
         })
     finally:

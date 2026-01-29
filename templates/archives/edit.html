@@ -181,7 +181,8 @@
         </div>
 
         <div class="form-group">
-            <label for="{{ form.original_author.id_for_label }}" class="form-label">{{ form.original_author.label}}</label>
+            <label for="{{ form.original_author.id_for_label }}" class="form-label">{{
+                form.original_author.label}}</label>
             {{ form.original_author }}
             {% if form.original_author.errors %}
             <div class="text-red-600 text-sm mt-1">
@@ -232,6 +233,60 @@
             <p class="form-help">Comma-separated tags (max 20)</p>
         </div>
 
+        <!-- Advanced Archive Options -->
+        <details class="border border-border rounded-lg">
+            <summary
+                class="px-4 py-3 cursor-pointer font-medium text-text-secondary hover:text-text-primary transition-colors">
+                Advanced Options (Copyright, Source, etc.)
+            </summary>
+            <div class="px-4 pb-4 space-y-4">
+                <div class="form-group">
+                    <label for="{{ form.item_count.id_for_label }}" class="form-label">{{ form.item_count.label }}</label>
+                    {{ form.item_count }}
+                    {% if form.item_count.errors %}
+                    <div class="text-red-600 text-sm mt-1">
+                        {% for error in form.item_count.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="form-help">Number of items in this archive (1-5)</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.copyright_holder.id_for_label }}" class="form-label">{{
+                        form.copyright_holder.label }}</label>
+                    {{ form.copyright_holder }}
+                    {% if form.copyright_holder.errors %}
+                    <div class="text-red-600 text-sm mt-1">
+                        {% for error in form.copyright_holder.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="form-help">Person or organization that holds copyright</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.original_url.id_for_label }}" class="form-label">{{ form.original_url.label }}</label>
+                    {{ form.original_url }}
+                    {% if form.original_url.errors %}
+                    <div class="text-red-600 text-sm mt-1">
+                        {% for error in form.original_url.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="form-help">Link to original source (if available)</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.original_identity_number.id_for_label }}" class="form-label">{{
+                        form.original_identity_number.label }}</label>
+                    {{ form.original_identity_number }}
+                    {% if form.original_identity_number.errors %}
+                    <div class="text-red-600 text-sm mt-1">
+                        {% for error in form.original_identity_number.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="form-help">Original catalog/reference number from source archive</p>
+                </div>
+            </div>
+        </details>
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4">
             <button type="submit" class="btn-primary flex-1">Update Archive</button>
@@ -263,5 +318,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/archives_create.js' %}"></script>
+<script src="{% static 'js/archives/archives_create.js' %}"></script>
 {% endblock %}
+

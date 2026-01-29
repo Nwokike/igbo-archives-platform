@@ -35,31 +35,30 @@ def get_random_featured_archives(max_count=50):
     Uses cached IDs shuffled on each page load for true randomness.
     Limits memory usage for 1GB VM constraint.
     """
-    archive_ids = list(get_all_approved_archive_ids())
+    cache_key = 'image_archive_ids'
+    image_ids = cache.get(cache_key)
     
-    if not archive_ids:
-        return Archive.objects.none()
-    
-    # Filter to image archives only
-    image_ids = [
-        aid for aid in archive_ids
-        if Archive.objects.filter(pk=aid, archive_type='image').exists()
-    ]
+    if image_ids is None:
+        # Single query to get all image archive IDs
+        image_ids = list(
+            Archive.objects.filter(is_approved=True, archive_type='image')
+            .values_list('id', flat=True)
+        )
+        cache.set(cache_key, image_ids, 300)
     
     if not image_ids:
         return Archive.objects.none()
     
     # Limit to max_count for memory efficiency
     if len(image_ids) > max_count:
-        random.shuffle(image_ids)
-        image_ids = image_ids[:max_count]
+        selected_ids = random.sample(image_ids, max_count)
     else:
-        random.shuffle(image_ids)
+        selected_ids = image_ids[:]
+        random.shuffle(selected_ids)
     
     # Fetch archives with optimized query
     archives = list(Archive.objects.filter(
-        pk__in=image_ids,
-        archive_type='image'
+        pk__in=selected_ids
     ).select_related('category', 'uploaded_by'))
     
     # Shuffle again for final randomness
@@ -174,8 +173,3 @@ def page_not_found_handler(request, exception):
 def server_error_handler(request):
     """500 Internal Server Error handler."""
     return render(request, '500.html', status=500)
-
-
-def health_check(request):
-    """Simple health check endpoint for deployment verification."""
-    return render(request, 'core/health.html', status=200)

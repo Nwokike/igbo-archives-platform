@@ -637,14 +637,26 @@
                         const imgUrl = block.data.file ? block.data.file.url : block.data.url;
                         // UPDATED: Use the saved 'alt' field for the image tag
                         const altText = block.data.alt || block.data.description || block.data.caption || '';
+                        const archiveSlug = block.data.archive_slug;
 
                         html += '<figure class="editor-image">';
+
+                        // Wrap image in archive link if archive_slug exists
+                        if (archiveSlug) {
+                            html += '<a href="/archives/' + archiveSlug + '/" class="archive-image-link" title="View in Archives">';
+                        }
+
                         html += '<img src="' + imgUrl + '" alt="' + altText + '"';
                         let imgClasses = [];
                         if (block.data.stretched) imgClasses.push('stretched');
                         if (block.data.withBorder) imgClasses.push('editor-image-bordered');
                         if (imgClasses.length > 0) html += ' class="' + imgClasses.join(' ') + '"';
                         html += '>';
+
+                        if (archiveSlug) {
+                            html += '</a>';
+                        }
+
                         if (block.data.caption) {
                             html += '<figcaption>' + block.data.caption + '</figcaption>';
                         }

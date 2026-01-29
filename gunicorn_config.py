@@ -8,8 +8,8 @@ import multiprocessing
 bind = "unix:/tmp/igboarchives.sock"
 backlog = 256
 
-# Worker processes
-workers = 2  # Optimal for 1GB RAM
+# Worker processes - cap at 2 for 1GB RAM constraint
+workers = min(2, (multiprocessing.cpu_count() * 2) + 1)
 worker_class = "sync"  # Use sync for SQLite (avoid gevent with SQLite)
 worker_connections = 100
 timeout = 30

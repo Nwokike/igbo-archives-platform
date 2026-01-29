@@ -65,6 +65,8 @@
 
     function initArchiveSearch() {
         const searchInput = document.getElementById('archiveSearch');
+        const typeFilter = document.getElementById('archiveTypeFilter');
+
         if (searchInput) {
             let debounceTimer;
             searchInput.addEventListener('input', function () {
@@ -74,11 +76,19 @@
                 }, 300);
             });
         }
+
+        if (typeFilter) {
+            typeFilter.addEventListener('change', function () {
+                loadArchives();
+            });
+        }
     }
 
     function loadArchives() {
         const search = document.getElementById('archiveSearch').value || '';
-        const url = '/api/archive-media-browser/?search=' + encodeURIComponent(search) + '&type=image';
+        const typeFilter = document.getElementById('archiveTypeFilter');
+        const mediaType = typeFilter ? typeFilter.value : 'image';
+        const url = '/api/archive-media-browser/?search=' + encodeURIComponent(search) + '&type=' + mediaType;
         const grid = document.getElementById('archiveGrid');
         const insertBtn = document.getElementById('insertArchiveBtn');
 
@@ -97,10 +107,19 @@
                     data.archives.forEach(function (archive) {
                         const item = document.createElement('div');
                         item.className = 'archive-item';
-                        const imgUrl = archive.thumbnail || archive.url || '';
-                        item.innerHTML =
-                            '<img src="' + imgUrl + '" alt="' + (archive.alt_text || archive.title || '') + '" loading="lazy">' +
-                            '<div class="archive-item-title">' + (archive.title || 'Untitled') + '</div>';
+
+                        // Different display based on media type
+                        let mediaPreview = '';
+                        if (mediaType === 'image') {
+                            const imgUrl = archive.thumbnail || archive.url || '';
+                            mediaPreview = '<img src="' + imgUrl + '" alt="' + (archive.alt_text || archive.title || '') + '" loading="lazy">';
+                        } else if (mediaType === 'video') {
+                            mediaPreview = '<div class="archive-item-icon"><i class="fas fa-video text-3xl text-blue-500"></i></div>';
+                        } else if (mediaType === 'audio') {
+                            mediaPreview = '<div class="archive-item-icon"><i class="fas fa-music text-3xl text-green-500"></i></div>';
+                        }
+
+                        item.innerHTML = mediaPreview + '<div class="archive-item-title">' + (archive.title || 'Untitled') + '</div>';
 
                         item.addEventListener('click', function () {
                             document.querySelectorAll('.archive-item').forEach(function (el) {
@@ -114,7 +133,7 @@
                         grid.appendChild(item);
                     });
                 } else {
-                    grid.innerHTML = '<p class="col-span-full text-center text-vintage-beaver py-8">No image archives found</p>';
+                    grid.innerHTML = '<p class="col-span-full text-center text-vintage-beaver py-8">No ' + mediaType + ' archives found</p>';
                 }
             })
             .catch(function (error) {
@@ -140,9 +159,28 @@
             document.body.style.overflow = '';
         }
 
-        document.getElementById('imageFileInput').value = '';
-        document.getElementById('imageCaption').value = '';
-        document.getElementById('imageDescription').value = '';
+        // Reset all form fields
+        const fileInput = document.getElementById('mediaFileInput');
+        if (fileInput) fileInput.value = '';
+
+        const fieldsToReset = ['mediaTitle', 'mediaCaption', 'mediaDescription',
+            'mediaLocation', 'mediaCircaDate', 'mediaCopyrightHolder',
+            'mediaOriginalUrl', 'mediaTags'];
+        fieldsToReset.forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+
+        const categorySelect = document.getElementById('mediaCategory');
+        if (categorySelect) categorySelect.selectedIndex = 0;
+
+        // Reset radio buttons to image
+        const imageRadio = document.querySelector('input[name="mediaType"][value="image"]');
+        if (imageRadio) {
+            imageRadio.checked = true;
+            updateMediaUploadUI();
+        }
+
         selectedArchive = null;
         document.querySelectorAll('.archive-item').forEach(function (item) {
             item.classList.remove('selected');
@@ -150,13 +188,59 @@
         document.getElementById('insertArchiveBtn').classList.add('hidden');
     };
 
-    window.uploadAndInsertImage = function () {
-        const file = document.getElementById('imageFileInput').files[0];
-        const caption = document.getElementById('imageCaption').value.trim();
-        const description = document.getElementById('imageDescription').value.trim();
+    // Update UI when media type changes
+    window.updateMediaUploadUI = function () {
+        const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
+        const fileInput = document.getElementById('mediaFileInput');
+        const fileLabel = document.getElementById('fileInputLabel');
+        const fileHelp = document.getElementById('fileInputHelp');
 
+        const config = {
+            image: {
+                accept: 'image/*',
+                label: 'Select Image File',
+                help: 'Accepted: JPG, PNG, WEBP (Max 5MB)'
+            },
+            video: {
+                accept: 'video/*',
+                label: 'Select Video File',
+                help: 'Accepted: MP4, WEBM, OGG (Max 50MB)'
+            },
+            audio: {
+                accept: 'audio/*',
+                label: 'Select Audio File',
+                help: 'Accepted: MP3, WAV, OGG, M4A (Max 10MB)'
+            }
+        };
+
+        const c = config[mediaType] || config.image;
+        if (fileInput) fileInput.accept = c.accept;
+        if (fileLabel) fileLabel.textContent = c.label;
+        if (fileHelp) fileHelp.textContent = c.help;
+    };
+
+    window.uploadAndInsertMedia = function () {
+        const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
+        const file = document.getElementById('mediaFileInput').files[0];
+        const title = document.getElementById('mediaTitle').value.trim();
+        const caption = document.getElementById('mediaCaption').value.trim();
+        const description = document.getElementById('mediaDescription').value.trim();
+
+        // Optional fields
+        const category = document.getElementById('mediaCategory').value;
+        const location = document.getElementById('mediaLocation').value.trim();
+        const circaDate = document.getElementById('mediaCircaDate').value.trim();
+        const copyrightHolder = document.getElementById('mediaCopyrightHolder').value.trim();
+        const originalUrl = document.getElementById('mediaOriginalUrl').value.trim();
+        const tags = document.getElementById('mediaTags').value.trim();
+
+        // Validation
         if (!file) {
-            showToast('Please select an image file', 'error');
+            showToast('Please select a file', 'error');
+            return;
+        }
+        if (!title) {
+            showToast('Title is required', 'error');
             return;
         }
         if (!caption) {
@@ -164,14 +248,24 @@
             return;
         }
         if (!description) {
-            showToast('Image description (alt text) is required', 'error');
+            showToast('Description (alt text) is required', 'error');
             return;
         }
 
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('file', file);
+        formData.append('media_type', mediaType);
+        formData.append('title', title);
         formData.append('caption', caption);
         formData.append('description', description);
+
+        // Optional fields
+        if (category) formData.append('category', category);
+        if (location) formData.append('location', location);
+        if (circaDate) formData.append('circa_date', circaDate);
+        if (copyrightHolder) formData.append('copyright_holder', copyrightHolder);
+        if (originalUrl) formData.append('original_url', originalUrl);
+        if (tags) formData.append('tags', tags);
 
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
         if (csrfToken) {
@@ -183,7 +277,7 @@
         uploadBtn.disabled = true;
         uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
 
-        fetch('/api/upload-image/', {
+        fetch('/api/upload-media/', {
             method: 'POST',
             body: formData,
             credentials: 'same-origin'
@@ -191,18 +285,29 @@
             .then(function (response) { return response.json(); })
             .then(function (data) {
                 if (data.success === 1) {
-                    // FIXED: Now passing 'alt' (description) to the editor block
-                    // Using index and replace true to swap the placeholder
-                    editor.blocks.insert('image', {
-                        file: { url: data.file.url },
-                        caption: caption,
-                        alt: description,
-                        withBorder: false,
-                        stretched: false,
-                        withBackground: true
-                    }, {}, openingBlockIndex, true, true);
+                    // Insert appropriate block based on media type
+                    const blockType = mediaType === 'image' ? 'image' :
+                        (mediaType === 'video' ? 'embed' : 'embed');
+
+                    if (mediaType === 'image') {
+                        editor.blocks.insert('image', {
+                            file: { url: data.file.url },
+                            caption: caption,
+                            alt: description,
+                            archive_id: data.archive_id,
+                            withBorder: false,
+                            stretched: false,
+                            withBackground: true
+                        }, {}, openingBlockIndex, true, true);
+                    } else {
+                        // For video/audio, insert as embed or raw HTML
+                        editor.blocks.insert('paragraph', {
+                            text: '<a href="' + data.file.url + '" target="_blank">' + title + '</a> - ' + caption
+                        }, {}, openingBlockIndex, true, true);
+                    }
+
                     closeImageModal();
-                    showToast('Image uploaded successfully', 'success');
+                    showToast(mediaType.charAt(0).toUpperCase() + mediaType.slice(1) + ' uploaded successfully', 'success');
                     IgboEditor.updateFeaturedImageOptions();
                 } else {
                     showToast('Upload failed: ' + (data.error || 'Unknown error'), 'error');

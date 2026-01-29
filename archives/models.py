@@ -115,7 +115,28 @@ class Archive(models.Model):
         max_length=500,
         blank=True,
         default='',
-        help_text="Required: Caption with copyright/source information"
+        help_text="Caption for the archive"
+    )
+    copyright_holder = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text="Copyright holder (displays small after caption)"
+    )
+    original_url = models.URLField(
+        blank=True,
+        default='',
+        help_text="Original URL from source museum/collection"
+    )
+    original_identity_number = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text="Museum catalog/identity number"
+    )
+    item_count = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Number of items in this archive (1-5)"
     )
     alt_text = models.CharField(
         max_length=255,
@@ -234,3 +255,99 @@ class Archive(models.Model):
         elif self.featured_image:
             return True
         return False
+
+
+class ArchiveItem(models.Model):
+    """
+    Individual items within a multi-item archive.
+    Allows archives to have 1-5 items (e.g., front/side views, image+audio).
+    """
+    ITEM_TYPES = [
+        ('image', 'Image'),
+        ('video', 'Video'),
+        ('document', 'Document'),
+        ('audio', 'Audio'),
+    ]
+    
+    archive = models.ForeignKey(
+        Archive,
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+    item_number = models.PositiveSmallIntegerField(
+        help_text="Order of this item (1-5)"
+    )
+    item_type = models.CharField(
+        max_length=20,
+        choices=ITEM_TYPES,
+        help_text="Type of this item"
+    )
+    
+    # File fields - only one should be filled based on item_type
+    image = models.ImageField(
+        upload_to='archives/items/',
+        validators=[
+            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
+            validate_image_size
+        ],
+        blank=True,
+        null=True
+    )
+    video = models.FileField(
+        upload_to='archives/items/videos/',
+        validators=[
+            FileExtensionValidator(['mp4', 'webm', 'ogg', 'mov']),
+            validate_video_size
+        ],
+        blank=True,
+        null=True
+    )
+    audio = models.FileField(
+        upload_to='archives/items/audio/',
+        validators=[
+            FileExtensionValidator(['mp3', 'wav', 'ogg', 'm4a']),
+            validate_audio_size
+        ],
+        blank=True,
+        null=True
+    )
+    document = models.FileField(
+        upload_to='archives/items/documents/',
+        validators=[
+            FileExtensionValidator(['pdf', 'doc', 'docx', 'txt']),
+            validate_document_size
+        ],
+        blank=True,
+        null=True
+    )
+    
+    # Item-specific metadata
+    caption = models.CharField(max_length=500, blank=True, help_text="Caption for this item")
+    description = models.TextField(blank=True, help_text="Description for this item")
+    alt_text = models.CharField(max_length=255, blank=True, help_text="Alt text for accessibility")
+    
+    class Meta:
+        ordering = ['item_number']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['archive', 'item_number'],
+                name='unique_archive_item_number'
+            )
+        ]
+        verbose_name = 'Archive Item'
+        verbose_name_plural = 'Archive Items'
+    
+    def __str__(self):
+        return f"{self.archive.title} - Item {self.item_number}"
+    
+    def get_file(self):
+        """Return the file based on item type."""
+        if self.item_type == 'image' and self.image:
+            return self.image
+        elif self.item_type == 'video' and self.video:
+            return self.video
+        elif self.item_type == 'audio' and self.audio:
+            return self.audio
+        elif self.item_type == 'document' and self.document:
+            return self.document
+        return None

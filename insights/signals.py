@@ -1,6 +1,5 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-# from notifications.signals import notify # <--- REMOVED OLD IMPORT
 from .models import InsightPost, EditSuggestion
 import logging
 

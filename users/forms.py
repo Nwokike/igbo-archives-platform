@@ -43,6 +43,16 @@ class CustomSignupForm(SignupForm):
             'placeholder': 'Confirm your password'
         })
     
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').lower().strip()
+        # Check if email already exists - tell user to login instead
+        if CustomUser.objects.filter(email__iexact=email).exists():
+            raise ValidationError(
+                'An account with this email already exists. Please login instead.',
+                code='email_exists'
+            )
+        return email
+    
     def clean(self):
         cleaned_data = super().clean()
         # Validate Turnstile

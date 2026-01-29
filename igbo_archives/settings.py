@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     'webpush',
     'huey.contrib.djhuey',
     'csp',
+    'rest_framework',
+    'rest_framework.authtoken',
     
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
@@ -66,8 +68,27 @@ INSTALLED_APPS = [
     'insights.apps.InsightsConfig',
     'books.apps.BooksConfig',
     'ai.apps.AiConfig',
+    'api.apps.ApiConfig',
     'django_cleanup.apps.CleanupConfig',
 ]
+
+# Django REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '500/hour',
+    },
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -215,8 +236,13 @@ PWA_APP_SCOPE = '/'
 PWA_APP_ORIENTATION = 'any'
 PWA_APP_START_URL = '/'
 PWA_APP_STATUS_BAR_COLOR = 'default'
-PWA_APP_ICONS = [{'src': '/static/images/logos/logo-light.png', 'sizes': '160x160'}]
-PWA_APP_ICONS_APPLE = [{'src': '/static/images/logos/logo-light.png', 'sizes': '160x160'}]
+PWA_APP_ICONS = [
+    {'src': '/static/images/logos/logo-light.png', 'sizes': '192x192', 'type': 'image/png'},
+    {'src': '/static/images/logos/logo-light.png', 'sizes': '512x512', 'type': 'image/png'},
+]
+PWA_APP_ICONS_APPLE = [
+    {'src': '/static/images/logos/logo-light.png', 'sizes': '180x180'},
+]
 PWA_APP_SPLASH_SCREEN = [{'src': '/static/images/logos/logo-light.png', 'media': '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'}]
 PWA_APP_DIR = 'ltr'
 PWA_APP_LANG = 'en-US'
@@ -240,6 +266,7 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 GEMINI_API_KEYS = os.getenv('GEMINI_API_KEYS', '')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')
+YARNGPT_API_KEY = os.getenv('YARNGPT_API_KEY', '')  # YarnGPT TTS for Igbo
 
 # Email Configuration
 if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_SMTP_KEY'):
@@ -334,7 +361,8 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'cache_table',
         'OPTIONS': {
-            'MAX_ENTRIES': 500,
+            'MAX_ENTRIES': 1000,  # Increased from 500 for scaling
+            'CULL_FREQUENCY': 3,  # Delete 1/3 when full
         }
     }
 }
@@ -353,6 +381,9 @@ HUEY = SqliteHuey(
 # Session Configuration
 SESSION_COOKIE_AGE = 86400 * 7  # 7 days
 SESSION_SAVE_EVERY_REQUEST = False
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Security Settings for Production
 if not DEBUG:
@@ -367,11 +398,12 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Content Security Policy
+# Note: unsafe-inline required for inline event handlers, unsafe-eval for Editor.js
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = (
     "'self'", 
-    "'unsafe-inline'", 
-    "'unsafe-eval'", 
+    "'unsafe-inline'",  # Required for inline event handlers in templates
+    "'unsafe-eval'",    # Required for Editor.js block rendering 
     "https://www.google.com", 
     "https://www.gstatic.com", 
     "https://www.googletagmanager.com", 

@@ -23,17 +23,22 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 - **Publication Details**: ISBN, publisher, year
 
 ### 🤖 AI Assistant
-- **Igbo Archives AI**: Powered by Groq (LLaMA 3.3) and Google Gemini 3.0 Flash
-- **Archive Analysis**: Advanced multimodal analysis using latest Gemini Flash agents
-- **Text-to-Speech**: High-fidelity cultural narration and response listening
-- **Voice Interaction**: Natural language processing for voice-driven inquiries
-- **Cultural Q&A**: Intelligent grounded responses on Igbo heritage and history
+- **Igbo-Optimized Models**: Kimi K2 (best Igbo), Llama-4 Scout, Qwen3-32B via Groq
+- **Gemini Flash**: Vision analysis with gemini-2.5-flash and gemini-3-flash
+- **YarnGPT TTS**: Nigerian-native text-to-speech for Igbo audio output
+- **NaijaLingo ASR**: Local speech-to-text for Igbo, Yoruba, Hausa, Nigerian English
+- **Cultural Q&A**: Intelligent grounded responses with live archive links
+
+### 🔌 REST API
+- **RESTful Endpoints**: `/api/v1/archives/`, `/api/v1/books/`, `/api/v1/categories/`
+- **Token Auth**: Secure API token authentication
+- **Full Documentation**: See [docs/API.md](docs/API.md)
 
 ### 👥 Community Features
 - **User Profiles**: Customizable profiles with social links
 - **Private Messaging**: Thread-based conversations
 - **Notifications**: In-app, email, and push notifications
-- **Comments**: Threaded discussions with reCAPTCHA protection
+- **Comments**: Threaded discussions with Cloudflare Turnstile protection
 
 ### 📱 Progressive Web App
 - **Installable**: Add to home screen on mobile/desktop
@@ -57,16 +62,18 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 │                   SERVER SIDE (Django)                  │
 ├─────────────────────────────────────────────────────────┤
 │ 🎮 Application Layer                                    │
-│ └─ Django 5.1 + Gunicorn                                │
-│    └─ REST endpoints, Auth, Templates                   │
+│ └─ Django 5.2 LTS + Gunicorn                            │
+│    └─ REST API, Auth, Templates                         │
 │                                                         │
 │ 💾 Storage Strategy                                     │
 │ └─ SQLite with WAL mode (optimized for 1GB RAM)         │
 │ └─ Local media storage                                  │
 │                                                         │
 │ 🤖 AI & External Services                               │
-│ ├─ Google Gemini (Image Analysis)                       │
-│ ├─ Groq LLaMA 3.1 (Chat & Text)                         │
+│ ├─ Google Gemini Flash (Vision Analysis)                │
+│ ├─ Groq Kimi K2/Llama-4 Scout (Chat)                    │
+│ ├─ YarnGPT (Igbo TTS)                                   │
+│ ├─ NaijaLingo ASR (Nigerian STT)                        │
 │ └─ Brevo (Transactional Email)                          │
 │                                                         │
 │ ⏰ Background Tasks                                     │
@@ -78,14 +85,14 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 
 | Category | Technology |
 |----------|------------|
-| **Backend** | Django 5.1, Python 3.12 (uv) |
+| **Backend** | Django 5.2 LTS, Python 3.12 (uv), Django REST Framework |
 | **Database** | SQLite with WAL mode |
 | **Task Queue** | Huey (SQLite backend) |
 | **Frontend** | Tailwind CSS, HTMX, Editor.js |
 | **Server** | Gunicorn + Whitenoise |
 | **PWA** | django-pwa, django-webpush |
 | **Auth** | django-allauth (Email + Google OAuth) |
-| **AI** | Google Gemini, Groq API |
+| **AI** | Groq (Kimi K2, Llama-4 Scout), Google Gemini Flash, YarnGPT, NaijaLingo ASR |
 | **Email** | Brevo (Sendinblue) |
 
 ## 📁 Project Structure
@@ -140,15 +147,15 @@ igbo-archives-platform/
    npm install
    ```
 
-4. **Install Node dependencies (for Tailwind)**
-   ```bash
-   npm install
-   ```
-
-5. **Set up environment variables**
+4. **Set up environment variables**
    ```bash
    cp .env.example .env
    # Edit .env with your values
+   ```
+
+5. **Run migrations**
+   ```bash
+   uv run python manage.py migrate
    ```
 
 6. **Create cache table**
@@ -156,25 +163,20 @@ igbo-archives-platform/
    uv run python manage.py createcachetable
    ```
 
-7. **Run migrations**
-   ```bash
-   uv run python manage.py migrate
-   ```
-
-8. **Create superuser**
+7. **Create superuser**
    ```bash
    uv run python manage.py createsuperuser
    ```
 
-9. **Build Tailwind CSS**
+8. **Build Tailwind CSS**
    ```bash
    npm run build:css
    ```
 
-10. **Start development server**
-    ```bash
-    uv run python manage.py runserver
-    ```
+9. **Start development server**
+   ```bash
+   uv run python manage.py runserver
+   ```
 
 11. **Start Huey worker**
     ```bash
@@ -215,12 +217,11 @@ This platform is optimized for deployment on a 1GB RAM VM:
 ## 🔒 Security Features
 
 - **CSRF Protection**: All forms and APIs protected
-- **reCAPTCHA**: Spam protection on public forms
-- **XSS Prevention**: Content sanitization with bleach
+- **Cloudflare Turnstile**: Spam protection on public forms
 - **SQL Injection Prevention**: Parameterized queries via ORM
 - **HTTPS**: Enforced in production with HSTS
 - **Secure Cookies**: HttpOnly, Secure, SameSite
-- **Rate Limiting**: On uploads and suggestions
+- **Rate Limiting**: On uploads, suggestions, and REST API endpoints
 
 ## 🤝 Contributing
 

@@ -91,12 +91,12 @@ def render_header(data):
     level = max(1, min(6, level))
     
     class_map = {
-        1: 'font-serif text-3xl font-bold text-dark-brown mt-8 mb-4',
-        2: 'font-serif text-2xl font-semibold text-dark-brown mt-8 mb-4',
-        3: 'font-serif text-xl font-semibold text-dark-brown mt-6 mb-3',
-        4: 'font-semibold text-lg text-dark-brown mt-4 mb-2',
-        5: 'font-semibold text-dark-brown mt-4 mb-2',
-        6: 'font-semibold text-sm text-dark-brown mt-4 mb-2',
+        1: 'font-serif text-3xl font-bold text-text dark:text-text-dark mt-8 mb-4',
+        2: 'font-serif text-2xl font-semibold text-text dark:text-text-dark mt-8 mb-4',
+        3: 'font-serif text-xl font-semibold text-text dark:text-text-dark mt-6 mb-3',
+        4: 'font-semibold text-lg text-text dark:text-text-dark mt-4 mb-2',
+        5: 'font-semibold text-text dark:text-text-dark mt-4 mb-2',
+        6: 'font-semibold text-sm text-text dark:text-text-dark mt-4 mb-2',
     }
     
     return f'<h{level} class="{class_map[level]}">{text}</h{level}>'
@@ -137,10 +137,10 @@ def render_quote(data):
     
     align_class = 'text-center' if alignment == 'center' else ''
     
-    html = f'<blockquote class="border-l-4 border-vintage-gold pl-6 my-6 italic text-dark-umber {align_class}">'
+    html = f'<blockquote class="border-l-4 border-accent pl-6 my-6 italic text-text dark:text-text-dark {align_class}">'
     html += f'<p class="text-lg">{text}</p>'
     if caption:
-        html += f'<cite class="block mt-2 text-sm text-vintage-beaver not-italic">— {caption}</cite>'
+        html += f'<cite class="block mt-2 text-sm text-text-muted dark:text-text-dark-muted not-italic">— {caption}</cite>'
     html += '</blockquote>'
     return html
 

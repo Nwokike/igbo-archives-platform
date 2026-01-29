@@ -31,14 +31,14 @@ The project follows Django's app-based architecture with clear separation of con
 
 ### Authentication & Authorization
 - **django-allauth** for authentication with Google social login support
-- **django-recaptcha** for spam protection on forms (conditionally enabled based on configuration)
+- **Cloudflare Turnstile** for spam protection on forms
 - Custom user model with full_name, bio, profile_picture, and social_links fields
 - Staff-only moderation dashboard for approving/rejecting community content
 
 ### Content Workflow
 - User-submitted content goes through approval workflow (pending_approval → is_approved)
 - Edit suggestion system allows community members to propose changes to existing insights
-- Threaded comments with reCAPTCHA protection via django-threadedcomments
+- Threaded comments with Turnstile protection via django-threadedcomments
 
 ### Caching Strategy
 - Django's cache framework used extensively for categories, tags, archive IDs, and notification counts
@@ -53,9 +53,10 @@ The project follows Django's app-based architecture with clear separation of con
 ## External Dependencies
 
 ### AI Services
-- **Google Gemini** (gemini-2.5-flash, gemini-2.5-pro): Primary AI for image analysis, chat, and multimodal tasks via google-genai SDK
-- **Groq** (LLaMA 3.3 70B, Whisper Large V3): Chat completions and speech-to-text transcription
-- **gTTS**: Text-to-speech generation for audio responses
+- **Google Gemini** (gemini-2.5-flash, gemini-3-flash): Primary AI for image analysis, chat, and multimodal tasks via google-genai SDK
+- **Groq** (Kimi K2, Llama-4 Scout, Qwen3-32B): High-speed chat completions via fallback chain
+- **YarnGPT TTS**: Nigerian-native text-to-speech for Igbo audio output
+- **NaijaLingo ASR**: Local speech-to-text for Igbo, Yoruba, Hausa, Nigerian English
 - Multi-key rotation system in `ai/services/key_manager.py` for maximizing free tier usage across multiple API keys
 - Mode-based selection: 'fast' mode prefers Groq, 'advanced' mode prefers Gemini
 
@@ -64,7 +65,7 @@ The project follows Django's app-based architecture with clear separation of con
 - **django-taggit**: Tag management for archives, insights, and books
 - **django-htmx**: HTMX integration middleware
 - **django-webpush**: Web push notification handling
-- **django-recaptcha**: Form spam protection
+- **Cloudflare Turnstile**: Form spam protection
 - **django-dbbackup**: Database backup utilities
 - **django-meta**: SEO meta tag management
 - **whitenoise**: Static file serving in production

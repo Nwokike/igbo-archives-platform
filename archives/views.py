@@ -219,10 +219,7 @@ def archive_create(request):
             
             archive.save()
             
-            # Handle tags
-            tags = form.cleaned_data.get('tags', [])
-            if tags:
-                archive.tags.add(*tags)
+            # Note: Tags are handled in form.save() method
             
             messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
             if archive.slug:
