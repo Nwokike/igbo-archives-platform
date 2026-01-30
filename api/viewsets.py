@@ -12,8 +12,8 @@ from archives.models import Archive, Category
 from books.models import BookRecommendation
 from .serializers import (
     CategorySerializer,
-    ArchiveListSerializer, ArchiveDetailSerializer, ArchiveCreateSerializer,
-    BookRecommendationListSerializer, BookRecommendationDetailSerializer
+    ArchiveListSerializer, ArchiveSerializer, ArchiveCreateSerializer,
+    BookRecommendationSerializer
 )
 
 
@@ -80,17 +80,17 @@ class ArchiveViewSet(viewsets.ModelViewSet):
                 Q(caption__icontains=search)
             )
         
-        return queryset.select_related('category', 'uploaded_by').prefetch_related('tags')
+        return queryset.select_related('category', 'uploaded_by').prefetch_related('tags', 'items')
     
     def get_serializer_class(self):
         if self.action == 'list':
             return ArchiveListSerializer
         if self.action == 'create':
             return ArchiveCreateSerializer
-        return ArchiveDetailSerializer
+        return ArchiveSerializer
     
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user, is_approved=False)
+        serializer.save(uploaded_by=self.request.user)
     
     @action(detail=False, methods=['get'])
     def featured(self, request):
@@ -107,15 +107,16 @@ class ArchiveViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class BookRecommendationViewSet(viewsets.ReadOnlyModelViewSet):
+class BookRecommendationViewSet(viewsets.ModelViewSet):
     """
-    API endpoint for book recommendations (read-only for now).
+    API endpoint for book recommendations.
     
     GET /api/v1/books/ - List approved books
     GET /api/v1/books/{slug}/ - Book detail
     """
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     lookup_field = 'slug'
+    serializer_class = BookRecommendationSerializer
     
     def get_queryset(self):
         queryset = BookRecommendation.objects.filter(
@@ -131,19 +132,14 @@ class BookRecommendationViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(
                 Q(book_title__icontains=search) |
                 Q(author__icontains=search) |
-                Q(title__icontains=search)
+                Q(review_title__icontains=search)
             )
         
         return queryset.select_related('added_by').prefetch_related('tags')
-    
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return BookRecommendationListSerializer
-        return BookRecommendationDetailSerializer
     
     @action(detail=False, methods=['get'])
     def top_rated(self, request):
         """Get top-rated books."""
         top = self.get_queryset().order_by('-average_rating')[:10]
-        serializer = BookRecommendationListSerializer(top, many=True)
+        serializer = self.get_serializer(top, many=True)
         return Response(serializer.data)

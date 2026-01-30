@@ -3,11 +3,16 @@ Forms for Archive create and edit.
 """
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Archive, Category
+from django.forms import inlineformset_factory
+from .models import Archive, ArchiveItem, Category
 
 
 class ArchiveForm(forms.ModelForm):
-    """Form for creating and editing Archive entries."""
+    """
+    Form for the 'Parent' Archive container.
+    Handles metadata like Title, Category, Source, and Tags.
+    Does NOT handle file uploads directly anymore (handled by ArchiveItemForm).
+    """
     
     tags = forms.CharField(
         required=False,
@@ -28,41 +33,32 @@ class ArchiveForm(forms.ModelForm):
     
     class Meta:
         model = Archive
+        # Exclude file fields and archive_type (inferred from first item)
         fields = [
-            'title', 'description', 'archive_type', 'category',
-            'item_count',  # How many items in this archive
-            'caption', 'copyright_holder', 'alt_text', 
+            'title', 'description', 'category',
+            'item_count', 
+            'copyright_holder', 
             'original_author', 'original_url', 'original_identity_number',
             'location', 'date_created', 'circa_date', 
-            'image', 'video', 'audio', 'document', 'featured_image'
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-input'}),
             'description': forms.Textarea(attrs={
                 'class': 'form-textarea',
-                'rows': 5,
-                'placeholder': 'Detailed description of the archive (plain text)'
+                'rows': 4,
+                'placeholder': 'Detailed description of the archive context'
             }),
-            'archive_type': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
-            'item_count': forms.Select(attrs={'class': 'form-select'}, choices=[
+            'item_count': forms.Select(attrs={'class': 'form-select', 'id': 'id_item_count'}, choices=[
                 (1, '1 item'),
                 (2, '2 items'),
                 (3, '3 items'),
                 (4, '4 items'),
                 (5, '5 items'),
             ]),
-            'caption': forms.TextInput(attrs={
-                'class': 'form-input',
-                'placeholder': 'Caption for this archive'
-            }),
             'copyright_holder': forms.TextInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'e.g., British Museum, Public Domain'
-            }),
-            'alt_text': forms.TextInput(attrs={
-                'class': 'form-input',
-                'placeholder': 'Describe the image for accessibility'
             }),
             'original_author': forms.TextInput(attrs={
                 'class': 'form-input',
@@ -86,70 +82,12 @@ class ArchiveForm(forms.ModelForm):
                 'placeholder': 'e.g., c1910, around 1910s',
                 'list': 'date-list'
             }),
-            'image': forms.FileInput(attrs={
-                'class': 'form-input',
-                'accept': '.jpg,.jpeg,.png,.webp'
-            }),
-            'video': forms.FileInput(attrs={
-                'class': 'form-input',
-                'accept': '.mp4,.webm,.ogg,.mov'
-            }),
-            'audio': forms.FileInput(attrs={
-                'class': 'form-input',
-                'accept': '.mp3,.wav,.ogg,.m4a'
-            }),
-            'document': forms.FileInput(attrs={
-                'class': 'form-input',
-                'accept': '.pdf,.doc,.docx,.txt'
-            }),
-            'featured_image': forms.FileInput(attrs={
-                'class': 'form-input',
-                'accept': '.jpg,.jpeg,.png,.webp'
-            }),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['category'].queryset = Category.objects.all()
         self.fields['category'].empty_label = 'Select category...'
-        
-        # Make archive_type required
-        self.fields['archive_type'].empty_label = 'Select type...'
-        
-        # Conditionally require caption and alt_text for images
-        if self.instance and self.instance.pk:
-            if self.instance.archive_type == 'image':
-                self.fields['caption'].required = True
-                self.fields['alt_text'].required = True
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        archive_type = cleaned_data.get('archive_type')
-        
-        # Validate that exactly one primary media file is provided based on archive_type
-        image = cleaned_data.get('image') or (self.instance.image if self.instance.pk else None)
-        video = cleaned_data.get('video') or (self.instance.video if self.instance.pk else None)
-        audio = cleaned_data.get('audio') or (self.instance.audio if self.instance.pk else None)
-        document = cleaned_data.get('document') or (self.instance.document if self.instance.pk else None)
-        
-        if archive_type == 'image':
-            if not image and not self.instance.pk:
-                raise ValidationError('Image file is required for image-type archives.')
-            if not cleaned_data.get('caption'):
-                raise ValidationError('Caption is required for images.')
-            if not cleaned_data.get('alt_text'):
-                raise ValidationError('Alt text is required for images.')
-        elif archive_type == 'video':
-            if not video and not self.instance.pk:
-                raise ValidationError('Video file is required for video-type archives.')
-        elif archive_type == 'audio':
-            if not audio and not self.instance.pk:
-                raise ValidationError('Audio file is required for audio-type archives.')
-        elif archive_type == 'document':
-            if not document and not self.instance.pk:
-                raise ValidationError('Document file is required for document-type archives.')
-        
-        return cleaned_data
     
     def clean_tags(self):
         tags_str = self.cleaned_data.get('tags', '')
@@ -168,3 +106,61 @@ class ArchiveForm(forms.ModelForm):
                 archive.tags.clear()
                 archive.tags.add(*tags)
         return archive
+
+
+class ArchiveItemForm(forms.ModelForm):
+    """
+    Form for individual Archive Items (File + Caption).
+    """
+    class Meta:
+        model = ArchiveItem
+        fields = ['item_type', 'image', 'video', 'audio', 'document', 'caption', 'alt_text']
+        widgets = {
+            'item_type': forms.Select(attrs={'class': 'form-select item-type-select'}),
+            'caption': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Caption for this specific item'}),
+            'alt_text': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Accessibility description'}),
+            'image': forms.FileInput(attrs={'class': 'form-input item-file-input', 'accept': '.jpg,.jpeg,.png,.webp'}),
+            'video': forms.FileInput(attrs={'class': 'form-input item-file-input', 'accept': '.mp4,.webm,.ogg,.mov'}),
+            'audio': forms.FileInput(attrs={'class': 'form-input item-file-input', 'accept': '.mp3,.wav,.ogg,.m4a'}),
+            'document': forms.FileInput(attrs={'class': 'form-input item-file-input', 'accept': '.pdf,.doc,.docx,.txt'}),
+        }
+
+    def clean(self):
+        """Validate that the correct file is present for the selected item type."""
+        cleaned_data = super().clean()
+        item_type = cleaned_data.get('item_type')
+        
+        if not item_type:
+            return cleaned_data # Let field validation handle required error
+
+        # Check existing instance files (for edit mode) or new upload
+        image = cleaned_data.get('image') or (self.instance.image if self.instance.pk else None)
+        video = cleaned_data.get('video') or (self.instance.video if self.instance.pk else None)
+        audio = cleaned_data.get('audio') or (self.instance.audio if self.instance.pk else None)
+        document = cleaned_data.get('document') or (self.instance.document if self.instance.pk else None)
+
+        if item_type == 'image':
+            if not image:
+                raise ValidationError('Image file is required for image type items.')
+            if not cleaned_data.get('alt_text'):
+                raise ValidationError('Alt text is required for images.')
+        elif item_type == 'video' and not video:
+            raise ValidationError('Video file is required for video type items.')
+        elif item_type == 'audio' and not audio:
+            raise ValidationError('Audio file is required for audio type items.')
+        elif item_type == 'document' and not document:
+            raise ValidationError('Document file is required for document type items.')
+            
+        return cleaned_data
+
+
+# Formset to manage multiple ArchiveItems attached to one Archive
+ArchiveItemFormSet = inlineformset_factory(
+    Archive,
+    ArchiveItem,
+    form=ArchiveItemForm,
+    extra=5,       # Allow up to 5 blank forms (JS will hide/show them)
+    max_num=5,     # Maximum 5 items
+    can_delete=True,
+    validate_max=True
+)

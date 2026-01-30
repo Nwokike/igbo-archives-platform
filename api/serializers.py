@@ -1,125 +1,186 @@
-"""
-Django REST Framework Serializers for Igbo Archives API.
-Provides serialization for Archive and BookRecommendation models.
-"""
 from rest_framework import serializers
-from archives.models import Archive, Category
-from books.models import BookRecommendation
+from django.contrib.auth import get_user_model
+from archives.models import Archive, ArchiveItem, Category, Author
+from books.models import BookRecommendation, UserBookRating
+from insights.models import InsightPost
 
+User = get_user_model()
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'get_display_name', 'profile_picture', 'bio']
+        read_only_fields = ['id']
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Serializer for archive categories."""
-    
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug', 'description']
-        read_only_fields = ['id', 'slug']
 
+class AuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Author
+        fields = ['id', 'name', 'slug', 'description', 'image']
+
+class ArchiveItemSerializer(serializers.ModelSerializer):
+    """Serializer for individual items within an archive."""
+    file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ArchiveItem
+        fields = [
+            'id', 'item_number', 'item_type', 
+            'file_url',  # Unified URL for whatever file type exists
+            'image', 'video', 'audio', 'document',
+            'caption', 'alt_text', 'description'
+        ]
+    
+    def get_file_url(self, obj):
+        file = obj.get_file()
+        if file:
+            return file.url
+        return None
+
+class ArchiveSerializer(serializers.ModelSerializer):
+    """
+    Read-Serializer for Archive Detail.
+    Includes the 'items' list for the new gallery feature.
+    """
+    category = CategorySerializer(read_only=True)
+    author = AuthorSerializer(read_only=True)
+    uploaded_by = UserSerializer(read_only=True)
+    items = ArchiveItemSerializer(many=True, read_only=True)
+    tags = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Archive
+        fields = [
+            'id', 'title', 'slug', 'archive_type', 
+            'description', 'caption', 'alt_text',
+            'circa_date', 'date_created', 'location',
+            'copyright_holder', 'original_url', 'original_identity_number',
+            'item_count',
+            'image', 'video', 'audio', 'document', 'featured_image',
+            'category', 'author', 'original_author', 'uploaded_by',
+            'tags', 'items',  # Added items here
+            'views_count', 'is_featured', 'created_at', 'updated_at'
+        ]
+
+    def get_tags(self, obj):
+        return [tag.name for tag in obj.tags.all()]
 
 class ArchiveListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for archive listings."""
-    category = serializers.StringRelatedField()
-    uploaded_by = serializers.StringRelatedField()
-    archive_type_display = serializers.CharField(source='get_archive_type_display', read_only=True)
-    
+    """Lightweight serializer for list views."""
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    author_name = serializers.CharField(source='author.name', read_only=True)
+    uploaded_by_name = serializers.CharField(source='uploaded_by.get_display_name', read_only=True)
+    thumbnail = serializers.SerializerMethodField()
+
     class Meta:
         model = Archive
         fields = [
-            'id', 'title', 'slug', 'archive_type', 'archive_type_display',
-            'category', 'uploaded_by', 'caption', 'circa_date', 'location',
-            'image', 'created_at'
+            'id', 'title', 'slug', 'archive_type',
+            'category_name', 'author_name', 'uploaded_by_name',
+            'caption', 'circa_date', 'location',
+            'thumbnail', 'created_at'
         ]
-        read_only_fields = fields
 
-
-class ArchiveDetailSerializer(serializers.ModelSerializer):
-    """Full serializer for archive details."""
-    category = CategorySerializer(read_only=True)
-    uploaded_by = serializers.StringRelatedField()
-    tags = serializers.StringRelatedField(many=True)
-    archive_type_display = serializers.CharField(source='get_archive_type_display', read_only=True)
-    
-    class Meta:
-        model = Archive
-        fields = [
-            'id', 'title', 'slug', 'archive_type', 'archive_type_display',
-            'description', 'caption', 'alt_text', 'circa_date', 'location',
-            'copyright_holder', 'original_url', 'original_identity_number',
-            'category', 'uploaded_by', 'tags',
-            'image', 'video', 'audio', 'document',
-            'is_approved', 'created_at', 'updated_at'
-        ]
-        read_only_fields = ['id', 'slug', 'uploaded_by', 'created_at', 'updated_at']
-
+    def get_thumbnail(self, obj):
+        if obj.featured_image:
+            return obj.featured_image.url
+        if obj.archive_type == 'image' and obj.image:
+            return obj.image.url
+        return None
 
 class ArchiveCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating archives via API."""
+    """
+    Write-Serializer for creating Archives.
+    Handles the backward-compatibility logic:
+    Accepts flat file fields (image, video) and automatically creates 
+    both the Parent Archive and the first ArchiveItem.
+    """
     category_id = serializers.IntegerField(required=False, allow_null=True)
-    tags = serializers.CharField(required=False, allow_blank=True)
-    
+    tags = serializers.CharField(required=False, write_only=True)
+
     class Meta:
         model = Archive
         fields = [
-            'title', 'archive_type', 'description', 'caption', 'alt_text',
-            'circa_date', 'location', 'copyright_holder', 'original_url',
-            'original_identity_number', 'category_id', 'tags',
-            'image', 'video', 'audio', 'document'
+            'title', 'archive_type', 'category_id',
+            'description', 'caption', 'alt_text',
+            'circa_date', 'date_created', 'location',
+            'copyright_holder', 'original_url', 'original_identity_number',
+            'original_author',
+            'image', 'video', 'audio', 'document', 'featured_image',
+            'tags', 'item_count'
         ]
-    
+
     def create(self, validated_data):
-        # Handle category
-        category_id = validated_data.pop('category_id', None)
-        tags_str = validated_data.pop('tags', '')
+        from django.db import transaction
         
-        archive = Archive.objects.create(**validated_data)
-        
-        if category_id:
-            try:
-                archive.category = Category.objects.get(id=category_id)
-                archive.save()
-            except Category.DoesNotExist:
-                pass
-        
-        # Handle tags
-        if tags_str:
-            from taggit.models import Tag
-            tag_names = [t.strip() for t in tags_str.split(',') if t.strip()]
-            archive.tags.add(*tag_names)
-        
+        tags_data = validated_data.pop('tags', '')
+        # Extract file data to handle Item creation manually
+        image = validated_data.get('image')
+        video = validated_data.get('video')
+        audio = validated_data.get('audio')
+        document = validated_data.get('document')
+        archive_type = validated_data.get('archive_type')
+        caption = validated_data.get('caption', '')
+        alt_text = validated_data.get('alt_text', '')
+        description = validated_data.get('description', '')
+
+        with transaction.atomic():
+            # 1. Create the Parent Archive
+            archive = Archive.objects.create(**validated_data)
+            
+            # Handle Tags
+            if tags_data:
+                tag_list = [t.strip() for t in tags_data.split(',') if t.strip()]
+                archive.tags.add(*tag_list)
+
+            # 2. Automatically Create Item #1 (The Missing Link Fix)
+            # This ensures archives created via API still have editable items in the dashboard
+            item = ArchiveItem(
+                archive=archive,
+                item_number=1,
+                item_type=archive_type,
+                caption=caption,
+                alt_text=alt_text,
+                description=description # Use main description for item 1 if provided
+            )
+
+            # Assign the correct file to the item based on type
+            if archive_type == 'image' and image:
+                item.image = image
+            elif archive_type == 'video' and video:
+                item.video = video
+            elif archive_type == 'audio' and audio:
+                item.audio = audio
+            elif archive_type == 'document' and document:
+                item.document = document
+            
+            item.save()
+
         return archive
 
-
-class BookRecommendationListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for book listings."""
-    added_by = serializers.StringRelatedField()
-    avg_rating = serializers.FloatField(read_only=True)
+class BookRecommendationSerializer(serializers.ModelSerializer):
+    author_user = UserSerializer(read_only=True)
     
     class Meta:
         model = BookRecommendation
         fields = [
-            'id', 'book_title', 'author', 'slug', 'title',
-            'added_by', 'cover_image', 'publication_year',
-            'avg_rating', 'created_at'
+            'id', 'book_title', 'author', 'slug',
+            'review_title', 'review_content', 'rating',
+            'cover_image', 'amazon_link', 'publication_year',
+            'author_user', 'average_rating', 'created_at'
         ]
-        read_only_fields = fields
 
-
-class BookRecommendationDetailSerializer(serializers.ModelSerializer):
-    """Full serializer for book recommendation details."""
-    added_by = serializers.StringRelatedField()
-    tags = serializers.StringRelatedField(many=True)
-    avg_rating = serializers.FloatField(read_only=True)
-    num_ratings = serializers.IntegerField(read_only=True)
+class InsightPostSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
     
     class Meta:
-        model = BookRecommendation
+        model = InsightPost
         fields = [
-            'id', 'book_title', 'author', 'slug', 'title',
-            'added_by', 'publisher', 'publication_year', 'isbn',
-            'cover_image', 'cover_image_back', 'alternate_cover',
-            'content_json', 'tags',
-            'avg_rating', 'num_ratings',
-            'is_published', 'is_approved',
-            'created_at', 'updated_at'
+            'id', 'title', 'slug', 'content', 'excerpt',
+            'featured_image', 'author', 'views_count',
+            'created_at'
         ]
-        read_only_fields = ['id', 'slug', 'added_by', 'created_at', 'updated_at']

@@ -6,6 +6,7 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 
 ### 📸 Cultural Archives
 - **Multi-format Support**: Images, videos, audio recordings, and documents
+- **Multi-item Collections**: Upload up to 5 items (photos/videos) per archive entry
 - **Rich Metadata**: Location, date, original author, and cultural context
 - **Community Uploads**: User-contributed content with moderation workflow
 - **Smart Tagging**: Category-based organization with tag system
@@ -48,7 +49,9 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 
 ## 🏗️ Architecture
 
+
 ```
+
 ┌─────────────────────────────────────────────────────────┐
 │                   CLIENT SIDE (Browser)                 │
 │ 🎨 UI & Interactivity                                   │
@@ -57,7 +60,7 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 │ └─ Editor.js for rich content                           │
 │ └─ Service Worker for offline/push                      │
 └───────────────────────────┬─────────────────────────────┘
-                            │
+│
 ┌───────────────────────────▼─────────────────────────────┐
 │                   SERVER SIDE (Django)                  │
 ├─────────────────────────────────────────────────────────┤
@@ -79,6 +82,7 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 │ ⏰ Background Tasks                                     │
 │ └─ Huey (SQLite backend) for async jobs                 │
 └─────────────────────────────────────────────────────────┘
+
 ```
 
 ## 🛠️ Technology Stack
@@ -97,7 +101,9 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 
 ## 📁 Project Structure
 
+
 ```
+
 igbo-archives-platform/
 ├── igbo_archives/          # Django project settings
 │   ├── settings.py         # Main configuration
@@ -119,6 +125,7 @@ igbo-archives-platform/
 ├── static/                 # Global static files
 ├── media/                  # User uploads
 └── LICENSE                 # Copyright & Licensing terms
+
 ```
 
 ## 🔧 Installation & Setup
@@ -133,55 +140,75 @@ igbo-archives-platform/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Nwokike/igbo-archives-platform.git
+   git clone [https://github.com/Nwokike/igbo-archives-platform.git](https://github.com/Nwokike/igbo-archives-platform.git)
    cd igbo-archives-platform
-   ```
+
+```
 
 2. **Install dependencies and setup environment**
-   ```bash
-   uv sync
-   ```
+```bash
+uv sync
+
+```
+
 
 3. **Install Node dependencies (for Tailwind)**
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+
+```
+
 
 4. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your values
-   ```
+```bash
+cp .env.example .env
+# Edit .env with your values
+
+```
+
 
 5. **Run migrations**
-   ```bash
-   uv run python manage.py migrate
-   ```
+```bash
+uv run python manage.py migrate
+
+```
+
 
 6. **Create cache table**
-   ```bash
-   uv run python manage.py createcachetable
-   ```
+```bash
+uv run python manage.py createcachetable
+
+```
+
 
 7. **Create superuser**
-   ```bash
-   uv run python manage.py createsuperuser
-   ```
+```bash
+uv run python manage.py createsuperuser
+
+```
+
 
 8. **Build Tailwind CSS**
-   ```bash
-   npm run build:css
-   ```
+```bash
+npm run build:css
+
+```
+
 
 9. **Start development server**
-   ```bash
-   uv run python manage.py runserver
-   ```
+```bash
+uv run python manage.py runserver
 
-11. **Start Huey worker**
-    ```bash
-    uv run python manage.py run_huey
-    ```
+```
+
+
+10. **Start Huey worker**
+```bash
+uv run python manage.py run_huey
+
+```
+
+
 
 ## 🌍 Environment Variables
 
@@ -189,17 +216,19 @@ Copy the example environment file and configure your keys:
 
 ```bash
 cp .env.example .env
+
 ```
 
 ## 🚀 Deployment
 
 This project is optimized for deployment on low-memory VMs (1GB RAM) using a `uv`-based workflow:
-- **Dependency Management**: `uv` for fast, deterministic builds.
-- **WSGI**: Gunicorn (2 workers max).
-- **Static Files**: Whitenoise for efficient serving.
-- **Database**: SQLite with WAL mode (optimized concurrency).
-- **Background Tasks**: Huey (single worker).
-- **Automated Cleanup**: GitHub Actions automatically prunes `uv` cache and vacuums system logs.
+
+* **Dependency Management**: `uv` for fast, deterministic builds.
+* **WSGI**: Gunicorn (2 workers max).
+* **Static Files**: Whitenoise for efficient serving.
+* **Database**: SQLite with WAL mode (optimized concurrency).
+* **Background Tasks**: Huey (single worker).
+* **Automated Cleanup**: GitHub Actions automatically prunes `uv` cache and vacuums system logs.
 
 For detailed deployment instructions, please refer to the internal documentation.
 
@@ -207,21 +236,21 @@ For detailed deployment instructions, please refer to the internal documentation
 
 This platform is optimized for deployment on a 1GB RAM VM:
 
-- **SQLite WAL mode**: Reduced cache (32MB) and mmap (64MB)
-- **Database cache**: Uses database instead of memory cache
-- **Huey workers**: Single worker for background tasks
-- **Gunicorn workers**: 2 workers maximum
-- **File uploads**: Disk-based, not memory-based
-- **Efficient queries**: `select_related`, `prefetch_related`, `only()`
+* **SQLite WAL mode**: Reduced cache (32MB) and mmap (64MB)
+* **Database cache**: Uses database instead of memory cache
+* **Huey workers**: Single worker for background tasks
+* **Gunicorn workers**: 2 workers maximum
+* **File uploads**: Disk-based, not memory-based
+* **Efficient queries**: `select_related`, `prefetch_related`, `only()`
 
 ## 🔒 Security Features
 
-- **CSRF Protection**: All forms and APIs protected
-- **Cloudflare Turnstile**: Spam protection on public forms
-- **SQL Injection Prevention**: Parameterized queries via ORM
-- **HTTPS**: Enforced in production with HSTS
-- **Secure Cookies**: HttpOnly, Secure, SameSite
-- **Rate Limiting**: On uploads, suggestions, and REST API endpoints
+* **CSRF Protection**: All forms and APIs protected
+* **Cloudflare Turnstile**: Spam protection on public forms
+* **SQL Injection Prevention**: Parameterized queries via ORM
+* **HTTPS**: Enforced in production with HSTS
+* **Secure Cookies**: HttpOnly, Secure, SameSite
+* **Rate Limiting**: On uploads, suggestions, and REST API endpoints
 
 ## 🤝 Contributing
 
@@ -235,7 +264,7 @@ This platform is optimized for deployment on a 1GB RAM VM:
 
 Copyright © 2025–2026 **Kiri Research Labs**. All Rights Reserved.
 
-**Igbo Archives Platform** is a proprietary cultural preservation initiative. For the full licensing terms, please see the [LICENSE](file:///c:/Users/nwoki/Desktop/igbo-archives-platform/LICENSE) file.
+**Igbo Archives Platform** is a proprietary cultural preservation initiative. For the full licensing terms, please see the [LICENSE](https://www.google.com/search?q=file:///c:/Users/nwoki/Desktop/igbo-archives-platform/LICENSE) file.
 
 Operated by Kiri Research Labs.
 [Contact Us](mailto:hello@kiriresearch.com) for inquiries.

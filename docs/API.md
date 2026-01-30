@@ -1,8 +1,11 @@
 # Igbo Archives REST API Documentation
 
 ## Base URL
+
 ```
+
 /api/v1/
+
 ```
 
 ## Authentication
@@ -11,16 +14,21 @@ The API supports two authentication methods:
 
 ### Token Authentication
 Include the token in the Authorization header:
+
 ```
+
 Authorization: Token YOUR_API_TOKEN
+
 ```
 
 To get a token, use Django admin or run:
 ```bash
 python manage.py drf_create_token <username>
+
 ```
 
 ### Session Authentication
+
 For browser-based clients with active Django session.
 
 ---
@@ -30,8 +38,10 @@ For browser-based clients with active Django session.
 ### Archives
 
 #### List Archives
+
 ```http
 GET /api/v1/archives/
+
 ```
 
 **Query Parameters:**
@@ -42,6 +52,7 @@ GET /api/v1/archives/
 | `category` | string | Filter by category slug |
 
 **Response:**
+
 ```json
 [
   {
@@ -59,14 +70,18 @@ GET /api/v1/archives/
     "created_at": "2026-01-29T12:00:00Z"
   }
 ]
+
 ```
 
 #### Get Archive Detail
+
 ```http
 GET /api/v1/archives/{slug}/
+
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -80,7 +95,7 @@ GET /api/v1/archives/{slug}/
   "circa_date": "1920s",
   "location": "Anambra, Nigeria",
   "copyright_holder": "National Museum",
-  "original_url": "https://source.org/artifact/123",
+  "original_url": "[https://source.org/artifact/123](https://source.org/artifact/123)",
   "original_identity_number": "NM-2024-001",
   "category": {
     "id": 1,
@@ -92,24 +107,47 @@ GET /api/v1/archives/{slug}/
   "tags": ["mask", "igbo", "traditional"],
   "image": "/media/archives/mask.jpg",
   "thumbnail": "/media/archives/thumbnails/mask.jpg",
+  "items": [
+    {
+        "id": 101,
+        "item_number": 1,
+        "item_type": "image",
+        "file_url": "/media/archives/items/mask_front.jpg",
+        "caption": "Front view of the mask",
+        "description": "Detailed carving on the forehead."
+    },
+    {
+        "id": 102,
+        "item_number": 2,
+        "item_type": "video",
+        "file_url": "/media/archives/items/mask_dance.mp4",
+        "caption": "Video of the masquerade performance",
+        "description": ""
+    }
+  ],
   "views_count": 150,
   "is_featured": true,
   "is_approved": true,
   "created_at": "2026-01-29T12:00:00Z",
   "updated_at": "2026-01-29T14:30:00Z"
 }
+
 ```
 
 #### Create Archive (Auth Required)
+
 ```http
 POST /api/v1/archives/
 Authorization: Token YOUR_TOKEN
 Content-Type: multipart/form-data
+
 ```
 
 **Body:**
+*Note: Currently creates a single-item archive (Item 1). Multi-item upload support coming in v2.*
+
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
+| --- | --- | --- | --- |
 | `title` | string | Yes | Archive title |
 | `archive_type` | string | Yes | image, video, audio, document |
 | `image` | file | * | Image file (for image type) |
@@ -117,7 +155,7 @@ Content-Type: multipart/form-data
 | `audio` | file | * | Audio file (for audio type) |
 | `document` | file | * | Document file (for document type) |
 | `description` | string | No | Full description |
-| `caption` | string | No | Short caption with source |
+| `caption` | string | No | Short caption for Item 1 |
 | `alt_text` | string | No | Accessibility text |
 | `circa_date` | string | No | Approximate date |
 | `location` | string | No | Location info |
@@ -127,13 +165,17 @@ Content-Type: multipart/form-data
 | `tags` | string | No | Comma-separated tags |
 
 #### Featured Archives
+
 ```http
 GET /api/v1/archives/featured/
+
 ```
 
 #### Recent Archives
+
 ```http
 GET /api/v1/archives/recent/
+
 ```
 
 ---
@@ -141,8 +183,10 @@ GET /api/v1/archives/recent/
 ### Books
 
 #### List Book Recommendations
+
 ```http
 GET /api/v1/books/
+
 ```
 
 **Query Parameters:**
@@ -151,6 +195,7 @@ GET /api/v1/books/
 | `search` | string | Search in title, author, review |
 
 **Response:**
+
 ```json
 [
   {
@@ -166,16 +211,21 @@ GET /api/v1/books/
     "created_at": "2026-01-29T12:00:00Z"
   }
 ]
+
 ```
 
 #### Get Book Detail
+
 ```http
 GET /api/v1/books/{slug}/
+
 ```
 
 #### Top-Rated Books
+
 ```http
 GET /api/v1/books/top_rated/
+
 ```
 
 ---
@@ -183,11 +233,14 @@ GET /api/v1/books/top_rated/
 ### Categories
 
 #### List Categories
+
 ```http
 GET /api/v1/categories/
+
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -197,11 +250,14 @@ GET /api/v1/categories/
     "description": "Traditional objects and artifacts"
   }
 ]
+
 ```
 
 #### Get Category Detail
+
 ```http
 GET /api/v1/categories/{slug}/
+
 ```
 
 ---
@@ -209,39 +265,48 @@ GET /api/v1/categories/{slug}/
 ## Error Responses
 
 ### 400 Bad Request
+
 ```json
 {
   "field_name": ["Error message"]
 }
+
 ```
 
 ### 401 Unauthorized
+
 ```json
 {
   "detail": "Authentication credentials were not provided."
 }
+
 ```
 
 ### 403 Forbidden
+
 ```json
 {
   "detail": "You do not have permission to perform this action."
 }
+
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "detail": "Not found."
 }
+
 ```
 
 ---
 
 ## Rate Limits
 
-Currently no rate limits on API endpoints. This may change in future versions.
+Currently limited to 1 request per hour per user and 5 requests per day per user.
 
 ## Versioning
 
 The API is versioned via URL path (`/api/v1/`). Future versions will be released at `/api/v2/`, etc.
+

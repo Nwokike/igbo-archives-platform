@@ -1,11 +1,7 @@
-"""
-Django settings for Igbo Archives platform.
-Optimized for Google Cloud 1GB RAM VM deployment.
-"""
-
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from huey import SqliteHuey
 
 load_dotenv()
 
@@ -18,18 +14,15 @@ if not SECRET_KEY:
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ADMINS = [('Admin', os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng'))]
 
-# ALLOWED_HOSTS configuration
 if DEBUG:
     ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
 else:
-    # Production: use actual domains
     allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'igboarchives.com.ng,www.igboarchives.com.ng')
     ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
     if not ALLOWED_HOSTS:
         ALLOWED_HOSTS = ['igboarchives.com.ng', 'www.igboarchives.com.ng']
 
-CSRF_TRUSTED_ORIGINS = [f"https://{os.getenv('REPLIT_DEV_DOMAIN')}", "https://*.replit.dev"] if os.getenv('REPLIT_DEV_DOMAIN') else os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng').split(',')
-
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng').split(',')
 SITE_URL = os.getenv('SITE_URL', 'https://igboarchives.com.ng')
 
 INSTALLED_APPS = [
@@ -42,26 +35,22 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     'django.contrib.sites',
     'django.contrib.sitemaps',
-    
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    
     'django_comments',
     'threadedcomments',
     'taggit',
     'django_htmx',
     'pwa',
     'meta',
-
     'dbbackup',
     'webpush',
     'huey.contrib.djhuey',
     'csp',
     'rest_framework',
     'rest_framework.authtoken',
-    
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
     'archives.apps.ArchivesConfig',
@@ -72,7 +61,6 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
 ]
 
-# Django REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
@@ -128,8 +116,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'igbo_archives.wsgi.application'
 
-# Database - SQLite with WAL mode for 1GB RAM constraint
-# Note: WAL pragmas are set via sqlite_wal.py which is called in wsgi.py/asgi.py
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -141,9 +127,8 @@ DATABASES = {
 CONN_MAX_AGE = 600
 CONN_HEALTH_CHECKS = True
 
-# Memory constraints for 1GB RAM
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 FILE_UPLOAD_HANDLERS = [
     'django.core.files.uploadhandler.TemporaryFileUploadHandler',
@@ -162,30 +147,64 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cloudflare R2 Storage configuration
-R2_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID', '')
-R2_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY', '')
-R2_BUCKET_NAME = os.getenv('R2_BUCKET_NAME', '')
-R2_ENDPOINT_URL = os.getenv('R2_ENDPOINT_URL', '')
-R2_CUSTOM_DOMAIN = os.getenv('R2_CUSTOM_DOMAIN', '')
+# Storage Configuration
+if DEBUG:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    
+    DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR / 'backups'}
 
-# Update MEDIA_URL for R2 if configured
-if R2_CUSTOM_DOMAIN:
-    MEDIA_URL = f'https://{R2_CUSTOM_DOMAIN}/'
+else:
+    R2_CUSTOM_DOMAIN = os.getenv('R2_CUSTOM_DOMAIN', '')
+    if R2_CUSTOM_DOMAIN:
+        MEDIA_URL = f'https://{R2_CUSTOM_DOMAIN}/'
 
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "access_key": os.getenv("R2_ACCESS_KEY_ID", ""),
+                "secret_key": os.getenv("R2_SECRET_ACCESS_KEY", ""),
+                "bucket_name": os.getenv("R2_BUCKET_NAME", ""),
+                "endpoint_url": os.getenv("R2_ENDPOINT_URL", ""),
+                "custom_domain": R2_CUSTOM_DOMAIN,
+                "default_acl": "public-read",
+                "querystring_auth": False,
+                "file_overwrite": False,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+
+    DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    DBBACKUP_STORAGE_OPTIONS = {
+        'access_key': os.getenv('R2_ACCESS_KEY_ID', ''),
+        'secret_key': os.getenv('R2_SECRET_ACCESS_KEY', ''),
+        'bucket_name': 'igboarchives-backup',
+        'endpoint_url': os.getenv('R2_ENDPOINT_URL', ''),
+        'default_acl': 'private',
+        'location': 'backups',
+        'addressing_style': 'path',
+        'signature_version': 's3v4',
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 AUTH_USER_MODEL = 'users.CustomUser'
-
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
@@ -201,7 +220,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_LOGOUT_ON_GET = True 
+ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_FORMS = {
     'signup': 'users.forms.CustomSignupForm',
@@ -220,13 +239,12 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-SOCIALACCOUNT_AUTO_SIGNUP = True 
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none' 
-SOCIALACCOUNT_LOGIN_ON_GET = True 
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_EMAIL_REQUIRED = False
 SOCIALACCOUNT_QUERY_EMAIL = False
 
-# PWA Configuration
 PWA_APP_NAME = 'Igbo Archives'
 PWA_APP_DESCRIPTION = 'Preserving the Past, Inspiring the Future'
 PWA_APP_THEME_COLOR = '#3D2817'
@@ -248,11 +266,9 @@ PWA_APP_DIR = 'ltr'
 PWA_APP_LANG = 'en-US'
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
 
-# Cloudflare Turnstile
 TURNSTILE_SITE_KEY = os.getenv('TURNSTILE_SITE_KEY', '')
 TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')
 
-# Web Push Notifications
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": os.getenv('VAPID_PUBLIC_KEY', ''),
     "VAPID_PRIVATE_KEY": os.getenv('VAPID_PRIVATE_KEY', ''),
@@ -261,14 +277,12 @@ WEBPUSH_SETTINGS = {
 
 COMMENTS_APP = 'threadedcomments'
 
-# AI Integration
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 GEMINI_API_KEYS = os.getenv('GEMINI_API_KEYS', '')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')
-YARNGPT_API_KEY = os.getenv('YARNGPT_API_KEY', '')  # YarnGPT TTS for Igbo
+YARNGPT_API_KEY = os.getenv('YARNGPT_API_KEY', '')
 
-# Email Configuration
 if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_SMTP_KEY'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = 'smtp-relay.brevo.com'
@@ -282,7 +296,6 @@ else:
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@igboarchives.com.ng')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng')
 
-# SEO Meta Tags
 META_SITE_PROTOCOL = 'https'
 META_USE_OG_PROPERTIES = True
 META_USE_TWITTER_PROPERTIES = True
@@ -296,38 +309,6 @@ META_IMAGE_URL = '/static/images/logos/og-image.png'
 META_USE_SITES = True
 META_OG_NAMESPACES = ['og', 'fb']
 
-# Database Backup - Stored in R2 igboarchives-backup bucket
-STORAGES = {
-    'default': {
-        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
-        'OPTIONS': {
-            'access_key': os.getenv('R2_ACCESS_KEY_ID', ''),
-            'secret_key': os.getenv('R2_SECRET_ACCESS_KEY', ''),
-            'bucket_name': os.getenv('R2_BUCKET_NAME', ''),
-            'endpoint_url': os.getenv('R2_ENDPOINT_URL', ''),
-            'custom_domain': os.getenv('R2_CUSTOM_DOMAIN', ''),
-            'default_acl': 'public-read',
-            'querystring_auth': False,
-            'file_overwrite': False,
-        },
-    },
-    'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
-    },
-}
-
-# Database Backup settings (Direct configuration for django-dbbackup)
-DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-DBBACKUP_STORAGE_OPTIONS = {
-    'access_key': os.getenv('R2_ACCESS_KEY_ID', ''),
-    'secret_key': os.getenv('R2_SECRET_ACCESS_KEY', ''),
-    'bucket_name': 'igboarchives-backup',
-    'endpoint_url': os.getenv('R2_ENDPOINT_URL', ''),
-    'default_acl': 'private',
-    'location': 'backups',
-    'addressing_style': 'path',
-    'signature_version': 's3v4',
-}
 DBBACKUP_CLEANUP_KEEP = 3
 DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
 DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
@@ -338,37 +319,29 @@ DBBACKUP_CONNECTORS = {
     }
 }
 
-# Monetization
 GOOGLE_ADSENSE_CLIENT_ID = os.getenv('GOOGLE_ADSENSE_CLIENT_ID', '')
 ENABLE_ADSENSE = bool(GOOGLE_ADSENSE_CLIENT_ID)
 
-# Donations
 PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
 ENABLE_DONATIONS = bool(PAYSTACK_SECRET_KEY)
 
-# Analytics
 GOOGLE_ANALYTICS_ID = os.getenv('GOOGLE_ANALYTICS_ID', '')
 ENABLE_ANALYTICS = bool(GOOGLE_ANALYTICS_ID)
 
-# IndexNow SEO
 INDEXNOW_API_KEY = os.getenv('INDEXNOW_API_KEY', '')
 INDEXNOW_API_URL = "https://api.indexnow.org/indexnow"
 
-# Caching
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'cache_table',
         'OPTIONS': {
-            'MAX_ENTRIES': 1000,  # Increased from 500 for scaling
-            'CULL_FREQUENCY': 3,  # Delete 1/3 when full
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 3,
         }
     }
 }
-
-# Huey Task Queue
-from huey import SqliteHuey
 
 HUEY = SqliteHuey(
     filename=str(BASE_DIR / 'huey.db'),
@@ -378,14 +351,12 @@ HUEY = SqliteHuey(
     utc=True,
 )
 
-# Session Configuration
-SESSION_COOKIE_AGE = 86400 * 7  # 7 days
+SESSION_COOKIE_AGE = 86400 * 7
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-# Security Settings for Production
 if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
@@ -397,39 +368,36 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Content Security Policy
-# Note: unsafe-inline required for inline event handlers, unsafe-eval for Editor.js
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = (
-    "'self'", 
-    "'unsafe-inline'",  # Required for inline event handlers in templates
-    "'unsafe-eval'",    # Required for Editor.js block rendering 
-    "https://www.google.com", 
-    "https://www.gstatic.com", 
-    "https://www.googletagmanager.com", 
-    "https://pagead2.googlesyndication.com", 
+    "'self'",
+    "'unsafe-inline'",
+    "'unsafe-eval'",
+    "https://www.google.com",
+    "https://www.gstatic.com",
+    "https://www.googletagmanager.com",
+    "https://pagead2.googlesyndication.com",
     "https://challenges.cloudflare.com",
-    "https://*.adtrafficquality.google"  # Added wildcard to fix ad script blocking
+    "https://*.adtrafficquality.google"
 )
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
 CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
 CSP_CONNECT_SRC = (
-    "'self'", 
-    "https://www.google-analytics.com", 
-    "https://api.indexnow.org", 
-    "https://challenges.cloudflare.com", 
-    "https://www.googletagmanager.com", 
+    "'self'",
+    "https://www.google-analytics.com",
+    "https://api.indexnow.org",
+    "https://challenges.cloudflare.com",
+    "https://www.googletagmanager.com",
     "https://pagead2.googlesyndication.com",
-    "https://*.adtrafficquality.google"  # Added wildcard to fix ad traffic blocking
+    "https://*.adtrafficquality.google"
 )
 CSP_FRAME_SRC = (
-    "'self'", 
+    "'self'",
     "https://challenges.cloudflare.com",
-    "https://googleads.g.doubleclick.net" 
+    "https://googleads.g.doubleclick.net"
 )
 
-# Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

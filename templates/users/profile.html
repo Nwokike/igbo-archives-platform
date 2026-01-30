@@ -2,16 +2,27 @@
 
 {% block title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
 
-{% block meta_description %}{{ profile_user.get_display_name }}'s profile on Igbo Archives. {{
-profile_user.bio|truncatewords:25 }}{% endblock %}
+{% block meta_description %}{{ profile_user.get_display_name }}'s profile on Igbo Archives. {{ profile_user.bio|truncatewords:25 }}{% endblock %}
 
 {% block og_title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ profile_user.bio|truncatewords:50 }}{% endblock %}
-{% if profile_user.profile_picture %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}{% endblock %}
-{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}{% endblock
-%}
-{% endif %}
+
+{% block og_image %}
+    {% if profile_user.profile_picture %}
+        {{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+
+{% block twitter_image %}
+    {% if profile_user.profile_picture %}
+        {{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+
 {% block og_type %}profile{% endblock %}
 
 {% block twitter_title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
@@ -19,15 +30,12 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
 
 {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <!-- Sidebar: Profile Info -->
     <aside class="lg:col-span-4 lg:sticky lg:top-24 h-fit">
         <div class="card overflow-hidden">
-            <!-- Cover Photo / Header Gradient -->
             <div class="h-32 bg-gradient-to-r from-accent/20 to-accent/5 relative">
             </div>
 
             <div class="card-body -mt-12 relative">
-                <!-- Avatar -->
                 <div class="avatar avatar-xl border-4 border-white shadow-lg mb-4">
                     {% if profile_user.profile_picture %}
                     <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.get_display_name }}">
@@ -36,18 +44,15 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                     {% endif %}
                 </div>
 
-                <!-- Display Name & Username -->
                 <div class="mb-6">
                     <h1 class="text-2xl font-serif font-bold mb-1">{{ profile_user.get_display_name }}</h1>
                     <p class="text-text-muted">@{{ profile_user.username }}</p>
                 </div>
 
-                <!-- Bio -->
                 {% if profile_user.bio %}
                 <p class="text-text text-sm leading-relaxed mb-6">{{ profile_user.bio }}</p>
                 {% endif %}
 
-                <!-- Action Buttons -->
                 <div class="flex flex-col gap-2 mb-6">
                     {% if user.is_authenticated and user == profile_user %}
                     <a href="{% url 'users:profile_edit' user.username %}" class="btn-primary w-full">
@@ -63,7 +68,6 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                     </button>
                 </div>
 
-                <!-- Metadata (Website, Joined) -->
                 <div class="space-y-3 text-sm text-text-muted mb-6">
                     {% if profile_user.social_links.website %}
                     <div class="flex items-center gap-2">
@@ -80,7 +84,6 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                     </div>
                 </div>
 
-                <!-- Social Links -->
                 {% if profile_user.social_links %}
                 <div class="pt-6 border-t border-border">
                     <h5 class="text-xs font-bold uppercase tracking-wider text-text-muted mb-4">Connect</h5>
@@ -140,7 +143,6 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
         </div>
     </aside>
 
-    <!-- Main Content: Tabs -->
     <main class="lg:col-span-8 tab-container">
         <div class="mb-6">
             <div class="flex gap-1 border-b border-border" role="tablist">
@@ -160,7 +162,6 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
         </div>
 
         <div class="tab-content">
-            <!-- Insights Tab -->
             <div id="insights" class="tab-panel active">
                 {% if user_insights %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -190,7 +191,6 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                 {% endif %}
             </div>
 
-            <!-- Reviews Tab -->
             <div id="reviews" class="tab-panel">
                 {% if user_book_reviews %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -226,7 +226,6 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                 {% endif %}
             </div>
 
-            <!-- Archives Tab -->
             <div id="archives" class="tab-panel">
                 {% if user_archives %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

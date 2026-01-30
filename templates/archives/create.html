@@ -4,13 +4,18 @@
 {% block title %}Upload Archive - Igbo Archives{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <h1 class="font-serif text-display-lg text-dark-brown mb-6">Upload Cultural Archive</h1>
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="font-serif text-3xl font-bold text-dark-brown mb-2">Upload Cultural Archive</h1>
+        <p class="text-text-muted">Share photos, videos, or documents. You can upload up to 5 items in a single archive entry.</p>
+    </div>
 
     <div id="uploadError" class="alert alert-danger hidden mb-6"></div>
 
-    <form method="post" enctype="multipart/form-data" id="archiveForm" class="space-y-6">
+    <form method="post" enctype="multipart/form-data" id="archiveForm" class="space-y-8">
         {% csrf_token %}
+        
+        {{ formset.management_form }}
 
         {% if form.non_field_errors %}
         <div class="alert alert-error mb-4">
@@ -19,237 +24,188 @@
             {% endfor %}
         </div>
         {% endif %}
-
-        <div class="form-group">
-            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}{% if form.title.field.required %} *{% endif %}</label>
-            {{ form.title }}
-            {% if form.title.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.title.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
+        {% if formset.non_form_errors %}
+        <div class="alert alert-error mb-4">
+            {% for error in formset.non_form_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
         </div>
+        {% endif %}
 
-        <div class="form-group">
-            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}{% if form.description.field.required %} *{% endif %}</label>
-            {{ form.description }}
-            {% if form.description.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.description.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Plain text description, no formatting</p>
-        </div>
+        <div class="card p-6 bg-white shadow-sm border border-border/50 rounded-xl">
+            <h2 class="text-xl font-serif font-bold mb-4 pb-2 border-b border-border">1. Archive Details</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="form-group col-span-full">
+                    <label for="{{ form.title.id_for_label }}" class="form-label font-medium">Title *</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<div class="text-red-600 text-sm mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+                </div>
 
-        <div class="form-group">
-            <label for="{{ form.archive_type.id_for_label }}" class="form-label">{{ form.archive_type.label }}{% if form.archive_type.field.required %} *{% endif %}</label>
-            {{ form.archive_type }}
-            {% if form.archive_type.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.archive_type.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
-            {{ form.category }}
-            {% if form.category.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.category.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-        </div>
-
-        <div id="imageUploadSection" class="form-group hidden">
-            <label for="{{ form.image.id_for_label }}" class="form-label">Image File *</label>
-            {{ form.image }}
-            {% if form.image.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.image.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Accepted: JPG, JPEG, PNG, WEBP (Max 5MB)</p>
-        </div>
-
-        <div id="videoUploadSection" class="form-group hidden">
-            <label for="{{ form.video.id_for_label }}" class="form-label">Video File *</label>
-            {{ form.video }}
-            {% if form.video.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.video.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Accepted: MP4, WEBM, OGG, MOV (Max 50MB)</p>
-        </div>
-
-        <div id="documentUploadSection" class="form-group hidden">
-            <label for="{{ form.document.id_for_label }}" class="form-label">Document File *</label>
-            {{ form.document }}
-            {% if form.document.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.document.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Accepted: PDF, DOC, DOCX, TXT (Max 10MB)</p>
-        </div>
-
-        <div id="audioUploadSection" class="form-group hidden">
-            <label for="{{ form.audio.id_for_label }}" class="form-label">Audio File *</label>
-            {{ form.audio }}
-            {% if form.audio.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.audio.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Accepted: MP3, WAV, OGG, M4A (Max 10MB)</p>
-        </div>
-
-        <div id="featuredImageSection" class="form-group hidden">
-            <label for="{{ form.featured_image.id_for_label }}" class="form-label">Featured Image/Thumbnail
-                (Optional)</label>
-            {{ form.featured_image }}
-            {% if form.featured_image.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.featured_image.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Thumbnail for videos/audio (optional, Max 5MB)</p>
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.caption.id_for_label }}" class="form-label">{{ form.caption.label }}{% if form.caption.field.required %} *{% endif %}</label>
-            {{ form.caption }}
-            {% if form.caption.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.caption.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Must include copyright or image source information</p>
-        </div>
-
-        <div id="altTextSection" class="form-group">
-            <label for="{{ form.alt_text.id_for_label }}" class="form-label">{{ form.alt_text.label }}{% if form.alt_text.field.required %} *{% endif %}</label>
-            {{ form.alt_text }}
-            {% if form.alt_text.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.alt_text.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Describe the image for accessibility and SEO</p>
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.original_author.id_for_label }}"
-                class="form-label">{{form.original_author.label}}</label>
-            {{ form.original_author }}
-            {% if form.original_author.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.original_author.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
-            {{ form.location }}
-            {% if form.location.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.location.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.date_created.id_for_label }}" class="form-label">{{ form.date_created.label }}</label>
-            {{ form.date_created }}
-            {% if form.date_created.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.date_created.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.circa_date.id_for_label }}" class="form-label">{{ form.circa_date.label }}</label>
-            {{ form.circa_date }}
-            {% if form.circa_date.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.circa_date.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Use if exact date is unknown (e.g., c1910, around 1910s)</p>
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.tags.id_for_label }}" class="form-label">{{ form.tags.label }}</label>
-            {{ form.tags }}
-            {% if form.tags.errors %}
-            <div class="text-red-600 text-sm mt-1">
-                {% for error in form.tags.errors %}{{ error }}{% endfor %}
-            </div>
-            {% endif %}
-            <p class="form-help">Comma-separated tags for discoverability (max 20)</p>
-        </div>
-
-        <!-- Advanced Archive Options -->
-        <details class="border border-border rounded-lg">
-            <summary
-                class="px-4 py-3 cursor-pointer font-medium text-text-secondary hover:text-text-primary transition-colors">
-                Advanced Options (Copyright, Source, etc.)
-            </summary>
-            <div class="px-4 pb-4 space-y-4">
-                <div class="form-group">
-                    <label for="{{ form.item_count.id_for_label }}" class="form-label">{{ form.item_count.label }}</label>
-                    {{ form.item_count }}
-                    {% if form.item_count.errors %}
-                    <div class="text-red-600 text-sm mt-1">
-                        {% for error in form.item_count.errors %}{{ error }}{% endfor %}
-                    </div>
-                    {% endif %}
-                    <p class="form-help">Number of items in this archive (1-5)</p>
+                <div class="form-group col-span-full">
+                    <label for="{{ form.description.id_for_label }}" class="form-label font-medium">Description *</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<div class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                    <p class="text-xs text-text-muted mt-1">Provide context, history, or significance.</p>
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.copyright_holder.id_for_label }}" class="form-label">{{
-                        form.copyright_holder.label }}</label>
+                    <label for="{{ form.category.id_for_label }}" class="form-label font-medium">Category</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}<div class="text-red-600 text-sm mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.tags.id_for_label }}" class="form-label font-medium">Tags</label>
+                    {{ form.tags }}
+                    {% if form.tags.errors %}<div class="text-red-600 text-sm mt-1">{{ form.tags.errors.0 }}</div>{% endif %}
+                    <p class="text-xs text-text-muted mt-1">Comma-separated (e.g., mask, festival, 1920s)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6 bg-white shadow-sm border border-border/50 rounded-xl">
+            <h2 class="text-xl font-serif font-bold mb-4 pb-2 border-b border-border">2. Source & Origin</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="form-group">
+                    <label for="{{ form.original_author.id_for_label }}" class="form-label font-medium">Original Author/Creator</label>
+                    {{ form.original_author }}
+                    {% if form.original_author.errors %}<div class="text-red-600 text-sm mt-1">{{ form.original_author.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.copyright_holder.id_for_label }}" class="form-label font-medium">Copyright Holder</label>
                     {{ form.copyright_holder }}
-                    {% if form.copyright_holder.errors %}
-                    <div class="text-red-600 text-sm mt-1">
-                        {% for error in form.copyright_holder.errors %}{{ error }}{% endfor %}
-                    </div>
-                    {% endif %}
-                    <p class="form-help">Person or organization that holds copyright</p>
+                    {% if form.copyright_holder.errors %}<div class="text-red-600 text-sm mt-1">{{ form.copyright_holder.errors.0 }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.original_url.id_for_label }}" class="form-label">{{ form.original_url.label }}</label>
-                    {{ form.original_url }}
-                    {% if form.original_url.errors %}
-                    <div class="text-red-600 text-sm mt-1">
-                        {% for error in form.original_url.errors %}{{ error }}{% endfor %}
-                    </div>
-                    {% endif %}
-                    <p class="form-help">Link to original source (if available)</p>
+                    <label for="{{ form.circa_date.id_for_label }}" class="form-label font-medium">Date (Approximate)</label>
+                    {{ form.circa_date }}
+                    {% if form.circa_date.errors %}<div class="text-red-600 text-sm mt-1">{{ form.circa_date.errors.0 }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.original_identity_number.id_for_label }}" class="form-label">{{
-                        form.original_identity_number.label }}</label>
+                    <label for="{{ form.date_created.id_for_label }}" class="form-label font-medium">Exact Date (if known)</label>
+                    {{ form.date_created }}
+                    {% if form.date_created.errors %}<div class="text-red-600 text-sm mt-1">{{ form.date_created.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.location.id_for_label }}" class="form-label font-medium">Location</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}<div class="text-red-600 text-sm mt-1">{{ form.location.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.original_identity_number.id_for_label }}" class="form-label font-medium">Catalog/Ref Number</label>
                     {{ form.original_identity_number }}
-                    {% if form.original_identity_number.errors %}
-                    <div class="text-red-600 text-sm mt-1">
-                        {% for error in form.original_identity_number.errors %}{{ error }}{% endfor %}
-                    </div>
-                    {% endif %}
-                    <p class="form-help">Original catalog/reference number from source archive</p>
+                    {% if form.original_identity_number.errors %}<div class="text-red-600 text-sm mt-1">{{ form.original_identity_number.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="form-group col-span-full">
+                    <label for="{{ form.original_url.id_for_label }}" class="form-label font-medium">Original Source URL</label>
+                    {{ form.original_url }}
+                    {% if form.original_url.errors %}<div class="text-red-600 text-sm mt-1">{{ form.original_url.errors.0 }}</div>{% endif %}
                 </div>
             </div>
-        </details>
+        </div>
 
-        <div class="flex flex-col sm:flex-row gap-3 pt-4">
-            <button type="submit" class="btn-primary flex-1">Upload Archive</button>
-            <a href="{% url 'archives:list' %}" class="btn-secondary text-center">Cancel</a>
+        <div class="card p-6 bg-accent/5 border border-accent/20 rounded-xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-accent/20">
+                <div>
+                    <h2 class="text-xl font-serif font-bold text-dark-brown">3. Upload Items</h2>
+                    <p class="text-sm text-text-muted">Add photos, videos, or audio files.</p>
+                </div>
+                <div class="mt-4 sm:mt-0">
+                    <label for="{{ form.item_count.id_for_label }}" class="font-medium mr-2">How many items?</label>
+                    {{ form.item_count }}
+                </div>
+            </div>
+
+            <div id="items-container" class="space-y-6">
+                {% for item_form in formset %}
+                <div class="item-row bg-white p-5 rounded-lg border border-border shadow-sm transition-all duration-300 {% if forloop.counter > 1 %}hidden{% endif %}" 
+                     data-index="{{ forloop.counter0 }}">
+                    
+                    {{ item_form.id }} <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold text-lg text-accent">Item #{{ forloop.counter }}</h4>
+                        {% if item_form.instance.pk %}
+                            <span class="badge badge-secondary">Editing Existing</span>
+                        {% endif %}
+                    </div>
+
+                    {% if item_form.non_field_errors %}
+                    <div class="text-red-600 text-sm mb-3">
+                        {{ item_form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-5 space-y-4">
+                            <div class="form-group">
+                                <label class="form-label text-sm font-medium">Type *</label>
+                                {{ item_form.item_type }}
+                                {% if item_form.item_type.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.item_type.errors.0 }}</div>{% endif %}
+                            </div>
+
+                            <div class="file-inputs-container min-h-[80px]">
+                                <div class="file-group type-image {% if item_form.item_type.value != 'image' and item_form.item_type.value %}hidden{% endif %}">
+                                    <label class="form-label text-sm font-medium">Image File *</label>
+                                    {{ item_form.image }}
+                                    <p class="text-xs text-text-muted mt-1">JPG, PNG, WEBP (Max 5MB)</p>
+                                    {% if item_form.image.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.image.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="file-group type-video {% if item_form.item_type.value != 'video' %}hidden{% endif %}">
+                                    <label class="form-label text-sm font-medium">Video File *</label>
+                                    {{ item_form.video }}
+                                    <p class="text-xs text-text-muted mt-1">MP4, WEBM (Max 50MB)</p>
+                                    {% if item_form.video.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.video.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="file-group type-audio {% if item_form.item_type.value != 'audio' %}hidden{% endif %}">
+                                    <label class="form-label text-sm font-medium">Audio File *</label>
+                                    {{ item_form.audio }}
+                                    <p class="text-xs text-text-muted mt-1">MP3, WAV (Max 10MB)</p>
+                                    {% if item_form.audio.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.audio.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="file-group type-document {% if item_form.item_type.value != 'document' %}hidden{% endif %}">
+                                    <label class="form-label text-sm font-medium">Document File *</label>
+                                    {{ item_form.document }}
+                                    <p class="text-xs text-text-muted mt-1">PDF, DOCX (Max 10MB)</p>
+                                    {% if item_form.document.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.document.errors.0 }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-7 space-y-4">
+                            <div class="form-group">
+                                <label class="form-label text-sm font-medium">Caption</label>
+                                {{ item_form.caption }}
+                                {% if item_form.caption.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.caption.errors.0 }}</div>{% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label text-sm font-medium">Alt Text (Accessibility)</label>
+                                {{ item_form.alt_text }}
+                                {% if item_form.alt_text.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.alt_text.errors.0 }}</div>{% endif %}
+                                <p class="text-xs text-text-muted mt-1">Describe what is seen/heard in this item.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 pt-6">
+            <button type="submit" class="btn-primary flex-1 py-3 text-lg shadow-md">
+                <i class="fas fa-cloud-upload-alt mr-2"></i> Upload Archive
+            </button>
+            <a href="{% url 'archives:list' %}" class="btn-secondary text-center py-3">Cancel</a>
         </div>
     </form>
 
@@ -261,4 +217,3 @@
 {% block extra_js %}
 <script src="{% static 'js/archives/archives_create.js' %}"></script>
 {% endblock %}
-

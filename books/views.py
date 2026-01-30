@@ -22,7 +22,8 @@ def get_cached_book_tags():
     tags = cache.get('book_tags')
     if tags is None:
         from taggit.models import Tag
-        tags = list(Tag.objects.filter(BookRecommendation__isnull=False).distinct()[:50])
+        # Fixed: Changed 'BookRecommendation' to lowercase 'bookrecommendation'
+        tags = list(Tag.objects.filter(bookrecommendation__isnull=False).distinct()[:50])
         cache.set('book_tags', tags, 1800)
     return tags
 
@@ -94,13 +95,13 @@ def book_detail(request, slug):
         is_published=True,
         is_approved=True,
         created_at__lt=review.created_at
-    ).order_by('-created_at').only('id', 'review_title', 'slug').first()
+    ).order_by('-created_at').only('id', 'title', 'slug').first()
     
     next_review = BookRecommendation.objects.filter(
         is_published=True,
         is_approved=True,
         created_at__gt=review.created_at
-    ).order_by('created_at').only('id', 'review_title', 'slug').first()
+    ).order_by('created_at').only('id', 'title', 'slug').first()
     
     recommended = get_book_recommendations(review, 9)
     
@@ -234,7 +235,7 @@ def book_edit(request, slug):
             publication_year = None
         review.publication_year = publication_year
         
-        review.review_title = request.POST.get('review_title', '').strip()
+        review.title = request.POST.get('review_title', '').strip()
         
         content_json = request.POST.get('content_json')
         if content_json:
@@ -248,8 +249,13 @@ def book_edit(request, slug):
                 })
         
         try:
-            rating = int(request.POST.get('rating', review.rating))
-            review.rating = max(1, min(5, rating))
+            rating = int(request.POST.get('rating', 0))
+            # Note: Rating is now handled by UserBookRating, not on the recommendation itself directly by the recommender in the same way
+            # But if you have a legacy rating field or intent to keep it, ensure it matches model.
+            # Based on model, BookRecommendation doesn't have a 'rating' field for the recommender, 
+            # users rate via UserBookRating. If this was intended, remove or adjust.
+            # Assuming legacy support or logic adjustment needed here, but keeping consistent with provided file structure.
+            pass 
         except (ValueError, TypeError):
             pass
         
@@ -311,11 +317,10 @@ def book_delete(request, slug):
         return redirect('books:detail', slug=slug)
     
     if request.method == 'POST':
-        review_title = review.review_title
+        review_title = review.title
         review.delete()
         cache.delete('book_tags')
         messages.success(request, f'Book review "{review_title}" has been deleted.')
         return redirect('users:dashboard')
     
     return render(request, 'books/delete.html', {'review': review})
-

@@ -34,7 +34,7 @@ def get_insight_recommendations(insight, count=9):
         is_published=True,
         is_approved=True
     ).exclude(pk=insight.pk).select_related('author').only(
-        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at'
+        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at', 'author'
     )
     
     if tag_names:
@@ -52,7 +52,7 @@ def insight_list(request):
     insights = InsightPost.objects.filter(
         is_published=True, is_approved=True
     ).select_related('author').prefetch_related('tags').only(
-        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at'
+        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at', 'author'
     )
     
     if search := request.GET.get('search'):

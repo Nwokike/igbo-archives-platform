@@ -15,10 +15,15 @@ class AuthorAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-class ArchiveItemInline(admin.TabularInline):
+class ArchiveItemInline(admin.StackedInline):
+    """
+    Allows editing multiple items directly inside the Parent Archive page.
+    Using StackedInline because file upload fields need horizontal space.
+    """
     model = ArchiveItem
     extra = 0
-    fields = ['item_number', 'item_type', 'image', 'video', 'audio', 'document', 'caption', 'alt_text']
+    fields = ['item_number', 'item_type', 'image', 'video', 'audio', 'document', 'caption', 'alt_text', 'description']
+    ordering = ['item_number']
 
 
 @admin.action(description='✅ Approve selected archives')
@@ -38,14 +43,15 @@ class ArchiveAdmin(admin.ModelAdmin):
     list_display = ['title', 'archive_type', 'category', 'item_count', 'uploaded_by', 'created_at', 'is_approved']
     list_filter = ['archive_type', 'category', 'is_approved', 'item_count']
     search_fields = ['title', 'description', 'original_author']
-    list_editable = ['category']  # Removed is_approved - use actions instead
+    list_editable = ['category']
     actions = [approve_archives, reject_archives]
     inlines = [ArchiveItemInline]
+    
     fieldsets = (
         ('Basic Info', {
             'fields': ('title', 'description', 'archive_type', 'category', 'item_count')
         }),
-        ('Primary Media', {
+        ('Primary Media (Cover)', {
             'fields': ('image', 'video', 'audio', 'document', 'featured_image')
         }),
         ('Caption & Copyright', {

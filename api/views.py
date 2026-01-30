@@ -7,7 +7,8 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from archives.models import Archive, Category
+from django.db import transaction
+from archives.models import Archive, ArchiveItem, Category
 
 
 def get_cached_api_categories():
@@ -56,7 +57,7 @@ def archive_media_browser(request):
     for archive in archives_page:
         archive_data = {
             'id': archive.id,
-            'slug': getattr(archive, 'slug', None),  # Use getattr for safety
+            'slug': getattr(archive, 'slug', None),
             'title': archive.title,
             'description': archive.description,
             'archive_type': archive.archive_type,
@@ -64,7 +65,7 @@ def archive_media_browser(request):
             'alt_text': archive.alt_text,
         }
         
-        # Set media URL and thumbnail based on archive type
+        # Set media URL based on archive type
         if archive.archive_type == 'image' and archive.image:
             archive_data['url'] = archive.image.url
             archive_data['thumbnail'] = archive.image.url
@@ -78,7 +79,7 @@ def archive_media_browser(request):
             archive_data['url'] = archive.document.url
             archive_data['thumbnail'] = ''
         else:
-            continue  # Skip archives without valid media
+            continue
         
         data['archives'].append(archive_data)
     
@@ -109,44 +110,57 @@ def upload_image(request):
     file_size = image_file.size
     if file_size > 5 * 1024 * 1024:
         return JsonResponse({'success': 0, 'error': 'Maximum file size is 5MB'})
-    if file_size < 1024:
-        return JsonResponse({'success': 0, 'error': 'File too small'})
     
     allowed_extensions = ['jpg', 'jpeg', 'png', 'webp']
     file_extension = os.path.splitext(image_file.name)[1][1:].lower()
     if file_extension not in allowed_extensions:
         return JsonResponse({'success': 0, 'error': f'Only {", ".join(allowed_extensions)} files are allowed'})
     
-    archive = Archive.objects.create(
-        title=caption[:255],
-        description=description,
-        caption=caption,
-        alt_text=description[:255],
-        archive_type='image',
-        image=image_file,
-        uploaded_by=request.user,
-        is_approved=False
-    )
-    
-    cache.set(rate_key, upload_count + 1, 3600)
-    
-    file_url = request.build_absolute_uri(archive.image.url)
-    
-    return JsonResponse({
-        'success': 1,
-        'file': {
-            'url': file_url,
-            'size': file_size,
-            'name': image_file.name,
-        },
-        'archive_id': archive.id
-    })
+    # Atomic creation of Archive + Item
+    try:
+        with transaction.atomic():
+            # 1. Parent Archive
+            archive = Archive.objects.create(
+                title=caption[:255],
+                description=description,
+                caption=caption,
+                alt_text=description[:255],
+                archive_type='image',
+                image=image_file, # Kept for sync
+                uploaded_by=request.user,
+                is_approved=False
+            )
+            
+            # 2. Archive Item (The missing link fix)
+            ArchiveItem.objects.create(
+                archive=archive,
+                item_number=1,
+                item_type='image',
+                image=image_file,
+                caption=caption,
+                alt_text=description[:255]
+            )
+            
+            cache.set(rate_key, upload_count + 1, 3600)
+            
+            return JsonResponse({
+                'success': 1,
+                'file': {
+                    'url': request.build_absolute_uri(archive.image.url),
+                    'size': file_size,
+                    'name': image_file.name,
+                },
+                'archive_id': archive.id
+            })
+            
+    except Exception as e:
+        return JsonResponse({'success': 0, 'error': str(e)})
 
 
 @login_required
 @require_POST
 def upload_media(request):
-    """Handle multi-media uploads (image/video/audio) with full archive fields."""
+    """Handle multi-media uploads with full archive fields."""
     rate_key = f'upload_rate_{request.user.id}'
     upload_count = cache.get(rate_key, 0)
     if upload_count >= 20:
@@ -169,104 +183,89 @@ def upload_media(request):
     original_url = request.POST.get('original_url', '').strip()
     tags = request.POST.get('tags', '').strip()
     
-    # Validate required fields
-    if not title:
-        return JsonResponse({'success': 0, 'error': 'Title is required'})
-    if not caption:
-        return JsonResponse({'success': 0, 'error': 'Caption with copyright/source info is required'})
-    if not description:
-        return JsonResponse({'success': 0, 'error': 'Description (alt text) is required'})
+    if not title or not caption or not description:
+        return JsonResponse({'success': 0, 'error': 'Title, Caption, and Description are required'})
     
-    # Media type configuration
+    # Config for types
     media_config = {
-        'image': {
-            'max_size': 5 * 1024 * 1024,
-            'extensions': ['jpg', 'jpeg', 'png', 'webp'],
-            'field': 'image'
-        },
-        'video': {
-            'max_size': 50 * 1024 * 1024,
-            'extensions': ['mp4', 'webm', 'ogg', 'mov'],
-            'field': 'video'
-        },
-        'audio': {
-            'max_size': 10 * 1024 * 1024,
-            'extensions': ['mp3', 'wav', 'ogg', 'm4a'],
-            'field': 'audio'
-        }
+        'image': {'max_size': 5*1024*1024, 'ext': ['jpg', 'jpeg', 'png', 'webp'], 'field': 'image'},
+        'video': {'max_size': 50*1024*1024, 'ext': ['mp4', 'webm', 'ogg', 'mov'], 'field': 'video'},
+        'audio': {'max_size': 10*1024*1024, 'ext': ['mp3', 'wav', 'ogg', 'm4a'], 'field': 'audio'}
     }
     
     if media_type not in media_config:
         return JsonResponse({'success': 0, 'error': 'Invalid media type'})
     
     config = media_config[media_type]
-    file_size = uploaded_file.size
     
-    if file_size > config['max_size']:
-        max_mb = config['max_size'] // (1024 * 1024)
-        return JsonResponse({'success': 0, 'error': f'Maximum file size is {max_mb}MB'})
-    if file_size < 1024:
-        return JsonResponse({'success': 0, 'error': 'File too small'})
+    if uploaded_file.size > config['max_size']:
+        return JsonResponse({'success': 0, 'error': 'File too large'})
+        
+    ext = os.path.splitext(uploaded_file.name)[1][1:].lower()
+    if ext not in config['ext']:
+        return JsonResponse({'success': 0, 'error': 'Invalid file type'})
     
-    file_extension = os.path.splitext(uploaded_file.name)[1][1:].lower()
-    if file_extension not in config['extensions']:
-        return JsonResponse({'success': 0, 'error': f'Only {", ".join(config["extensions"])} files are allowed'})
-    
-    # Create archive
-    archive_data = {
-        'title': title[:255],
-        'description': description,
-        'caption': caption,
-        'alt_text': description[:255],
-        'archive_type': media_type,
-        'uploaded_by': request.user,
-        'is_approved': False,
-        config['field']: uploaded_file
-    }
-    
-    # Optional fields
-    if location:
-        archive_data['location'] = location[:255]
-    if circa_date:
-        archive_data['circa_date'] = circa_date[:50]
-    if copyright_holder:
-        archive_data['copyright_holder'] = copyright_holder[:255]
-    if original_url:
-        archive_data['original_url'] = original_url
-    
-    archive = Archive.objects.create(**archive_data)
-    
-    # Handle category
-    if category_id:
-        try:
-            category = Category.objects.get(id=int(category_id))
-            archive.category = category
-            archive.save(update_fields=['category'])
-        except (ValueError, Category.DoesNotExist):
-            pass
-    
-    # Handle tags
-    if tags:
-        from taggit.utils import parse_tags
-        tag_list = parse_tags(tags)
-        if tag_list:
-            archive.tags.add(*tag_list[:20])  # Max 20 tags
-    
-    cache.set(rate_key, upload_count + 1, 3600)
-    
-    # Get file URL based on media type
-    media_field = getattr(archive, config['field'])
-    file_url = request.build_absolute_uri(media_field.url)
-    
-    return JsonResponse({
-        'success': 1,
-        'file': {
-            'url': file_url,
-            'size': file_size,
-            'name': uploaded_file.name,
-        },
-        'archive_id': archive.id
-    })
+    try:
+        with transaction.atomic():
+            # 1. Create Parent Archive
+            archive_data = {
+                'title': title[:255],
+                'description': description,
+                'caption': caption,
+                'alt_text': description[:255],
+                'archive_type': media_type,
+                'uploaded_by': request.user,
+                'is_approved': False,
+                'location': location[:255],
+                'circa_date': circa_date[:50],
+                'copyright_holder': copyright_holder[:255],
+                'original_url': original_url,
+                config['field']: uploaded_file # Save file to parent for sync
+            }
+            
+            archive = Archive.objects.create(**archive_data)
+            
+            # Handle category
+            if category_id:
+                try:
+                    archive.category = Category.objects.get(id=int(category_id))
+                    archive.save(update_fields=['category'])
+                except: pass
+            
+            # Handle tags
+            if tags:
+                from taggit.utils import parse_tags
+                tag_list = parse_tags(tags)
+                if tag_list:
+                    archive.tags.add(*tag_list[:20])
+
+            # 2. Create Archive Item (Sync)
+            item_data = {
+                'archive': archive,
+                'item_number': 1,
+                'item_type': media_type,
+                'caption': caption,
+                'alt_text': description[:255],
+                config['field']: uploaded_file # Save file to item
+            }
+            ArchiveItem.objects.create(**item_data)
+            
+            cache.set(rate_key, upload_count + 1, 3600)
+            
+            media_field = getattr(archive, config['field'])
+            
+            return JsonResponse({
+                'success': 1,
+                'file': {
+                    'url': request.build_absolute_uri(media_field.url),
+                    'size': uploaded_file.size,
+                    'name': uploaded_file.name,
+                },
+                'archive_id': archive.id
+            })
+            
+    except Exception as e:
+        return JsonResponse({'success': 0, 'error': str(e)})
 
 
 @login_required
