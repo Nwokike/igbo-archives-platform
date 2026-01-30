@@ -378,7 +378,9 @@ CSP_SCRIPT_SRC = (
     "https://www.googletagmanager.com",
     "https://pagead2.googlesyndication.com",
     "https://challenges.cloudflare.com",
-    "https://*.adtrafficquality.google"
+    "https://googleads.g.doubleclick.net",
+    "https://ep2.adtrafficquality.google",
+    "https://*.adtrafficquality.google",
 )
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")

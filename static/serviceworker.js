@@ -13,7 +13,7 @@ const staticAssets = [
     '/offline/',
     '/static/css/tailwind.output.css',
     '/static/css/style.css',
-    '/static/js/main.js',
+    '/static/js/common/main.js',
     '/static/images/logos/logo-dark.png',
     '/static/images/logos/logo-light.png',
 ];
