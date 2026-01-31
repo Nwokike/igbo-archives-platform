@@ -189,76 +189,80 @@ class MediaCleanupTests(TestCase):
             content_type='image/jpeg'
         )
 
-    @patch('storages.backends.s3.S3Storage.delete')
-    def test_archive_deletion_cleans_media(self, mock_delete):
+    def test_archive_deletion_cleans_media(self):
         """Test that deleting an Archive record deletes its files from storage."""
-        archive = Archive.objects.create(
-            title='Test Archive',
-            description='Test description',
-            archive_type='image',
-            image=self.test_image,
-            uploaded_by=self.user
-        )
-        file_name = archive.image.name
-        
-        # Delete the archive within a commit capture block
-        with self.captureOnCommitCallbacks(execute=True):
-            archive.delete()
-        
-        # Verify storage.delete was called
-        self.assertTrue(mock_delete.called, f"storage.delete not called for {file_name}")
-        mock_delete.assert_called_with(file_name)
+        # Dynamically patch whatever storage backend is configured (likely FileSystemStorage in tests)
+        backend = settings.STORAGES['default']['BACKEND']
+        with patch(f"{backend}.delete") as mock_delete:
+            archive = Archive.objects.create(
+                title='Test Archive',
+                description='Test description',
+                archive_type='image',
+                image=self.test_image,
+                uploaded_by=self.user
+            )
+            file_name = archive.image.name
+            
+            # Delete the archive within a commit capture block
+            with self.captureOnCommitCallbacks(execute=True):
+                archive.delete()
+            
+            # Verify storage.delete was called
+            self.assertTrue(mock_delete.called, f"storage.delete not called for {file_name}")
+            mock_delete.assert_called_with(file_name)
 
-    @patch('storages.backends.s3.S3Storage.delete')
-    def test_profile_picture_update_cleans_old_media(self, mock_delete):
+    def test_profile_picture_update_cleans_old_media(self):
         """Test that updating a profile picture deletes the old one."""
-        user = User.objects.create_user(username='testcleanupuser2', password='password')
-        
-        # Set initial profile picture
-        user.profile_picture = SimpleUploadedFile(
-            name='old_pfp.jpg',
-            content=b'old_content',
-            content_type='image/jpeg'
-        )
-        user.save()
-        old_file_name = user.profile_picture.name
-        
-        # Update profile picture within a commit capture block
-        with self.captureOnCommitCallbacks(execute=True):
+        backend = settings.STORAGES['default']['BACKEND']
+        with patch(f"{backend}.delete") as mock_delete:
+            user = User.objects.create_user(username='testcleanupuser2', password='password')
+            
+            # Set initial profile picture
             user.profile_picture = SimpleUploadedFile(
-                name='new_pfp.jpg',
-                content=b'new_content',
+                name='old_pfp.jpg',
+                content=b'old_content',
                 content_type='image/jpeg'
             )
             user.save()
-        
-        # Verify old file was deleted
-        self.assertTrue(mock_delete.called, f"storage.delete not called for old pfp: {old_file_name}")
-        mock_delete.assert_called_with(old_file_name)
+            old_file_name = user.profile_picture.name
+            
+            # Update profile picture within a commit capture block
+            with self.captureOnCommitCallbacks(execute=True):
+                user.profile_picture = SimpleUploadedFile(
+                    name='new_pfp.jpg',
+                    content=b'new_content',
+                    content_type='image/jpeg'
+                )
+                user.save()
+            
+            # Verify old file was deleted
+            self.assertTrue(mock_delete.called, f"storage.delete not called for old pfp: {old_file_name}")
+            mock_delete.assert_called_with(old_file_name)
 
-    @patch('storages.backends.s3.S3Storage.delete')
-    def test_bulk_deletion_cleans_media(self, mock_delete):
+    def test_bulk_deletion_cleans_media(self):
         """Test that bulk deletion also triggers cleanup."""
-        # Create multiple archives
-        a1 = Archive.objects.create(
-            title='A1', description='D', archive_type='image',
-            image=SimpleUploadedFile('a1.jpg', b'c'), uploaded_by=self.user
-        )
-        a2 = Archive.objects.create(
-            title='A2', description='D', archive_type='image',
-            image=SimpleUploadedFile('a2.jpg', b'c'), uploaded_by=self.user
-        )
-        
-        names = [a1.image.name, a2.image.name]
-        
-        # Bulk delete within a commit capture block
-        with self.captureOnCommitCallbacks(execute=True):
-            Archive.objects.filter(title__in=['A1', 'A2']).delete()
-        
-        # Verify all were deleted
-        self.assertEqual(mock_delete.call_count, 2)
-        for name in names:
-            mock_delete.assert_any_call(name)
+        backend = settings.STORAGES['default']['BACKEND']
+        with patch(f"{backend}.delete") as mock_delete:
+            # Create multiple archives
+            a1 = Archive.objects.create(
+                title='A1', description='D', archive_type='image',
+                image=SimpleUploadedFile('a1.jpg', b'c'), uploaded_by=self.user
+            )
+            a2 = Archive.objects.create(
+                title='A2', description='D', archive_type='image',
+                image=SimpleUploadedFile('a2.jpg', b'c'), uploaded_by=self.user
+            )
+            
+            names = [a1.image.name, a2.image.name]
+            
+            # Bulk delete within a commit capture block
+            with self.captureOnCommitCallbacks(execute=True):
+                Archive.objects.filter(title__in=['A1', 'A2']).delete()
+            
+            # Verify all were deleted
+            self.assertEqual(mock_delete.call_count, 2)
+            for name in names:
+                mock_delete.assert_any_call(name)
 
 
 class HueyTaskTests(TestCase):
@@ -269,8 +273,8 @@ class HueyTaskTests(TestCase):
         """Test the send_email_async task."""
         from core.tasks import send_email_async
         
-        # Test calling directly (synchronously for test)
-        result = send_email_async(
+        # Test calling directly using .call_local() to bypass Huey queue
+        result = send_email_async.call_local(
             subject='Test Subject',
             message='Test Message',
             recipient_list=['test@example.com']
@@ -289,7 +293,8 @@ class HueyTaskTests(TestCase):
         
         user = User.objects.create_user(username='pushtest', password='password')
         
-        result = send_push_notification_async(
+        # Test calling directly using .call_local() to bypass Huey queue
+        result = send_push_notification_async.call_local(
             user_id=user.id,
             title='Test Push',
             body='Test Body',
@@ -298,4 +303,3 @@ class HueyTaskTests(TestCase):
         
         self.assertTrue(result)
         mock_send_push.assert_called_once()
-

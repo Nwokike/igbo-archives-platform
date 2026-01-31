@@ -13,8 +13,7 @@
                     hx-push-url="true">
                     <option value="">All Categories</option>
                     {% for cat in categories %}
-                    <option value="{{ cat.slug }}" {% if request.GET.category==cat.slug %}selected{% endif %}>{{
-                        cat.name }}</option>
+                    <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>{{cat.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -22,11 +21,10 @@
             <div class="flex-1 min-w-[90px] sm:flex-none sm:w-28">
                 <select class="form-select text-xs" id="sortFilter" name="sort" hx-get="{% url 'insights:list' %}"
                     hx-target="#insightsGrid" hx-include="#categoryFilter,#searchInput" hx-push-url="true">
-                    <option value="-created_at" {% if request.GET.sort=='-created_at' or not request.GET.sort
-                        %}selected{% endif %}>Newest</option>
-                    <option value="created_at" {% if request.GET.sort=='created_at' %}selected{% endif %}>Oldest
+                    <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Newest</option>
+                    <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest
                     </option>
-                    <option value="-views_count" {% if request.GET.sort=='-views_count' %}selected{% endif %}>Most
+                    <option value="-views_count" {% if request.GET.sort == '-views_count' %}selected{% endif %}>Most
                         Viewed</option>
                 </select>
             </div>
