@@ -2,6 +2,7 @@
 API views for Editor.js integration and image uploads.
 """
 import os
+import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib.auth.decorators import login_required
@@ -9,6 +10,8 @@ from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db import transaction
 from archives.models import Archive, ArchiveItem, Category
+
+logger = logging.getLogger(__name__)
 
 
 def get_cached_api_categories():
@@ -29,8 +32,10 @@ def archive_media_browser(request):
     category = request.GET.get('category', '')
     page = request.GET.get('page', 1)
     
+    # UPDATED: Added 'copyright_holder' and 'original_author' to only()
     archives = Archive.objects.filter(is_approved=True).select_related('category').only(
         'id', 'title', 'description', 'archive_type', 'caption', 'alt_text',
+        'copyright_holder', 'original_author', 
         'image', 'video', 'audio', 'document', 'featured_image', 'category__id', 'category__name', 'category__slug'
     )
     
@@ -63,6 +68,9 @@ def archive_media_browser(request):
             'archive_type': archive.archive_type,
             'caption': archive.caption,
             'alt_text': archive.alt_text,
+            # UPDATED: Return these fields
+            'copyright_holder': archive.copyright_holder,
+            'original_author': archive.original_author,
         }
         
         # Set media URL based on archive type
@@ -89,7 +97,10 @@ def archive_media_browser(request):
 @login_required
 @require_POST
 def upload_image(request):
-    """Handle image uploads from Editor.js with CSRF protection."""
+    """
+    Handle simple image uploads from Editor.js (Drag & Drop / Paste).
+    This creates a basic Archive entry with minimal metadata.
+    """
     rate_key = f'upload_rate_{request.user.id}'
     upload_count = cache.get(rate_key, 0)
     if upload_count >= 20:
@@ -100,12 +111,14 @@ def upload_image(request):
     
     image_file = request.FILES['image']
     caption = request.POST.get('caption', '').strip()
-    description = request.POST.get('description', '').strip()
     
+    # In simple drag & drop, description might not be provided, so we default
+    description = request.POST.get('description', '').strip() or "Uploaded via editor"
+    
+    # Basic validation for simple upload
     if not caption:
-        return JsonResponse({'success': 0, 'error': 'Caption with copyright/source info is required'})
-    if not description:
-        return JsonResponse({'success': 0, 'error': 'Image description (alt text) is required'})
+        # Fallback for drag/drop where no caption is prompted immediately
+        caption = "Untitled Image" 
     
     file_size = image_file.size
     if file_size > 5 * 1024 * 1024:
@@ -131,7 +144,7 @@ def upload_image(request):
                 is_approved=False
             )
             
-            # 2. Archive Item (The missing link fix)
+            # 2. Archive Item
             ArchiveItem.objects.create(
                 archive=archive,
                 item_number=1,
@@ -160,7 +173,10 @@ def upload_image(request):
 @login_required
 @require_POST
 def upload_media(request):
-    """Handle multi-media uploads with full archive fields."""
+    """
+    Handle multi-media uploads from the Modal with FULL archive fields.
+    Updates: Captures Authors, Dates, ID Numbers, and separates Alt Text from Description.
+    """
     rate_key = f'upload_rate_{request.user.id}'
     upload_count = cache.get(rate_key, 0)
     if upload_count >= 20:
@@ -171,20 +187,35 @@ def upload_media(request):
     
     uploaded_file = request.FILES['file']
     media_type = request.POST.get('media_type', 'image')
-    title = request.POST.get('title', '').strip()
-    caption = request.POST.get('caption', '').strip()
-    description = request.POST.get('description', '').strip()
     
-    # Optional fields
+    # --- 1. Archive Details ---
+    title = request.POST.get('title', '').strip()
+    description = request.POST.get('description', '').strip() # This is now the Archive Description
     category_id = request.POST.get('category', '').strip()
-    location = request.POST.get('location', '').strip()
-    circa_date = request.POST.get('circa_date', '').strip()
-    copyright_holder = request.POST.get('copyright_holder', '').strip()
-    original_url = request.POST.get('original_url', '').strip()
     tags = request.POST.get('tags', '').strip()
     
-    if not title or not caption or not description:
-        return JsonResponse({'success': 0, 'error': 'Title, Caption, and Description are required'})
+    # --- 2. Source & Origin ---
+    original_author = request.POST.get('original_author', '').strip()
+    copyright_holder = request.POST.get('copyright_holder', '').strip()
+    circa_date = request.POST.get('circa_date', '').strip()
+    date_created = request.POST.get('date_created', '').strip() or None # Handle empty string for DateField
+    location = request.POST.get('location', '').strip()
+    original_identity_number = request.POST.get('original_identity_number', '').strip()
+    original_url = request.POST.get('original_url', '').strip()
+    
+    # --- 3. Media Item ---
+    caption = request.POST.get('caption', '').strip()
+    alt_text = request.POST.get('alt_text', '').strip() # This is the Item Alt Text
+    
+    # Validation
+    if not title:
+        return JsonResponse({'success': 0, 'error': 'Archive Title is required'})
+    if not description:
+        return JsonResponse({'success': 0, 'error': 'Archive Description is required'})
+    if not caption:
+        return JsonResponse({'success': 0, 'error': 'Item Caption is required'})
+    if not alt_text and media_type == 'image':
+        return JsonResponse({'success': 0, 'error': 'Alt Text is required for images'})
     
     # Config for types
     media_config = {
@@ -210,17 +241,27 @@ def upload_media(request):
             # 1. Create Parent Archive
             archive_data = {
                 'title': title[:255],
-                'description': description,
-                'caption': caption,
-                'alt_text': description[:255],
+                'description': description, # Full archive description
+                
+                # Metadata
                 'archive_type': media_type,
                 'uploaded_by': request.user,
                 'is_approved': False,
-                'location': location[:255],
-                'circa_date': circa_date[:50],
+                
+                # Source & Origin
+                'original_author': original_author[:255],
                 'copyright_holder': copyright_holder[:255],
+                'circa_date': circa_date[:100],
+                'date_created': date_created,
+                'location': location[:255],
+                'original_identity_number': original_identity_number[:100],
                 'original_url': original_url,
-                config['field']: uploaded_file # Save file to parent for sync
+                
+                # Defaults from the first item (for list view compatibility)
+                'caption': caption[:500], 
+                'alt_text': alt_text[:255],
+                
+                config['field']: uploaded_file # Save file to parent for legacy sync
             }
             
             archive = Archive.objects.create(**archive_data)
@@ -230,7 +271,8 @@ def upload_media(request):
                 try:
                     archive.category = Category.objects.get(id=int(category_id))
                     archive.save(update_fields=['category'])
-                except: pass
+                except Exception:
+                    pass
             
             # Handle tags
             if tags:
@@ -239,13 +281,14 @@ def upload_media(request):
                 if tag_list:
                     archive.tags.add(*tag_list[:20])
 
-            # 2. Create Archive Item (Sync)
+            # 2. Create Archive Item (The specific media file)
             item_data = {
                 'archive': archive,
                 'item_number': 1,
                 'item_type': media_type,
-                'caption': caption,
-                'alt_text': description[:255],
+                'caption': caption[:500],
+                'alt_text': alt_text[:255],
+                'description': '', # Optional specific item description, leaving blank for now
                 config['field']: uploaded_file # Save file to item
             }
             ArchiveItem.objects.create(**item_data)
@@ -260,11 +303,15 @@ def upload_media(request):
                     'url': request.build_absolute_uri(media_field.url),
                     'size': uploaded_file.size,
                     'name': uploaded_file.name,
+                    # Return captions for Editor.js to display immediately
+                    'caption': caption,
+                    'alt': alt_text
                 },
                 'archive_id': archive.id
             })
             
     except Exception as e:
+        logger.error(f"Media upload error: {e}", exc_info=True)
         return JsonResponse({'success': 0, 'error': str(e)})
 
 

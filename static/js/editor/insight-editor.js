@@ -26,14 +26,12 @@
     }
 
     function initTabs() {
-        // FIXED: Selector changed to avoid conflict with global tabs.js
         const tabButtons = document.querySelectorAll('.tab-button[data-img-tab]');
         const uploadBtn = document.getElementById('uploadBtn');
         const insertBtn = document.getElementById('insertArchiveBtn');
 
         tabButtons.forEach(function (btn) {
             btn.addEventListener('click', function () {
-                // FIXED: Using data-img-tab instead of data-tab
                 const tabId = this.dataset.imgTab;
 
                 tabButtons.forEach(function (b) { b.classList.remove('active'); });
@@ -163,9 +161,21 @@
         const fileInput = document.getElementById('mediaFileInput');
         if (fileInput) fileInput.value = '';
 
-        const fieldsToReset = ['mediaTitle', 'mediaCaption', 'mediaDescription',
-            'mediaLocation', 'mediaCircaDate', 'mediaCopyrightHolder',
-            'mediaOriginalUrl', 'mediaTags'];
+        const fieldsToReset = [
+            'mediaTitle',
+            'mediaArchiveDescription',
+            'mediaCategory',
+            'mediaOriginalAuthor',
+            'mediaCopyrightHolder',
+            'mediaCircaDate',
+            'mediaDateCreated',
+            'mediaLocation',
+            'mediaIdentityNumber',
+            'mediaOriginalUrl',
+            'mediaCaption',
+            'mediaAltText'
+        ];
+
         fieldsToReset.forEach(function (id) {
             const el = document.getElementById(id);
             if (el) el.value = '';
@@ -188,7 +198,6 @@
         document.getElementById('insertArchiveBtn').classList.add('hidden');
     };
 
-    // Update UI when media type changes
     window.updateMediaUploadUI = function () {
         const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
         const fileInput = document.getElementById('mediaFileInput');
@@ -219,58 +228,73 @@
         if (fileHelp) fileHelp.textContent = c.help;
     };
 
+    // --- NEW HELPER FUNCTION TO COMPOSITE CAPTION ---
+    function formatCaption(caption, author, copyright) {
+        let parts = [];
+        // 1. The main caption
+        if (caption && caption.trim()) parts.push(caption.trim());
+        
+        // 2. The metadata (Author / Copyright)
+        let meta = [];
+        if (author && author.trim()) meta.push('Photo by ' + author.trim());
+        if (copyright && copyright.trim()) meta.push('© ' + copyright.trim());
+        
+        if (meta.length > 0) {
+            // Add a separator if there was a caption
+            let separator = parts.length > 0 ? ' | ' : '';
+            parts.push(separator + meta.join(' '));
+        }
+        
+        return parts.join('');
+    }
+
     window.uploadAndInsertMedia = function () {
         const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
         const file = document.getElementById('mediaFileInput').files[0];
+        
         const title = document.getElementById('mediaTitle').value.trim();
-        const caption = document.getElementById('mediaCaption').value.trim();
-        const description = document.getElementById('mediaDescription').value.trim();
-
-        // Optional fields
+        const description = document.getElementById('mediaArchiveDescription').value.trim();
         const category = document.getElementById('mediaCategory').value;
-        const location = document.getElementById('mediaLocation').value.trim();
-        const circaDate = document.getElementById('mediaCircaDate').value.trim();
-        const copyrightHolder = document.getElementById('mediaCopyrightHolder').value.trim();
-        const originalUrl = document.getElementById('mediaOriginalUrl').value.trim();
-        const tags = document.getElementById('mediaTags').value.trim();
+        // Tags removed
 
-        // Validation
-        if (!file) {
-            showToast('Please select a file', 'error');
-            return;
-        }
-        if (!title) {
-            showToast('Title is required', 'error');
-            return;
-        }
-        if (!caption) {
-            showToast('Caption with copyright/source info is required', 'error');
-            return;
-        }
-        if (!description) {
-            showToast('Description (alt text) is required', 'error');
-            return;
-        }
+        const originalAuthor = document.getElementById('mediaOriginalAuthor').value.trim();
+        const copyrightHolder = document.getElementById('mediaCopyrightHolder').value.trim();
+        const circaDate = document.getElementById('mediaCircaDate').value.trim();
+        const dateCreated = document.getElementById('mediaDateCreated').value;
+        const location = document.getElementById('mediaLocation').value.trim();
+        const identityNumber = document.getElementById('mediaIdentityNumber').value.trim();
+        const originalUrl = document.getElementById('mediaOriginalUrl').value.trim();
+
+        const caption = document.getElementById('mediaCaption').value.trim();
+        const altText = document.getElementById('mediaAltText').value.trim();
+
+        if (!file) { showToast('Please select a file', 'error'); return; }
+        if (!title) { showToast('Archive Title is required', 'error'); return; }
+        if (!description) { showToast('Archive Description is required', 'error'); return; }
+        if (!caption) { showToast('Item Caption is required', 'error'); return; }
+        if (!altText) { showToast('Item Alt Text is required', 'error'); return; }
 
         const formData = new FormData();
         formData.append('file', file);
         formData.append('media_type', mediaType);
         formData.append('title', title);
-        formData.append('caption', caption);
         formData.append('description', description);
-
-        // Optional fields
         if (category) formData.append('category', category);
-        if (location) formData.append('location', location);
-        if (circaDate) formData.append('circa_date', circaDate);
+        // Tags removed
+        
+        if (originalAuthor) formData.append('original_author', originalAuthor);
         if (copyrightHolder) formData.append('copyright_holder', copyrightHolder);
+        if (circaDate) formData.append('circa_date', circaDate);
+        if (dateCreated) formData.append('date_created', dateCreated);
+        if (location) formData.append('location', location);
+        if (identityNumber) formData.append('original_identity_number', identityNumber);
         if (originalUrl) formData.append('original_url', originalUrl);
-        if (tags) formData.append('tags', tags);
+
+        formData.append('caption', caption);
+        formData.append('alt_text', altText);
 
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-        if (csrfToken) {
-            formData.append('csrfmiddlewaretoken', csrfToken.value);
-        }
+        if (csrfToken) formData.append('csrfmiddlewaretoken', csrfToken.value);
 
         const uploadBtn = document.getElementById('uploadBtn');
         const originalText = uploadBtn.innerHTML;
@@ -285,24 +309,22 @@
             .then(function (response) { return response.json(); })
             .then(function (data) {
                 if (data.success === 1) {
-                    // Insert appropriate block based on media type
-                    const blockType = mediaType === 'image' ? 'image' :
-                        (mediaType === 'video' ? 'embed' : 'embed');
+                    // Create the COMPOSITE CAPTION for display
+                    const finalDisplayCaption = formatCaption(caption, originalAuthor, copyrightHolder);
 
                     if (mediaType === 'image') {
                         editor.blocks.insert('image', {
                             file: { url: data.file.url },
-                            caption: caption,
-                            alt: description,
+                            caption: finalDisplayCaption, // Use the composite caption
+                            alt: altText,
                             archive_id: data.archive_id,
                             withBorder: false,
                             stretched: false,
                             withBackground: true
                         }, {}, openingBlockIndex, true, true);
                     } else {
-                        // For video/audio, insert as embed or raw HTML
                         editor.blocks.insert('paragraph', {
-                            text: '<a href="' + data.file.url + '" target="_blank">' + title + '</a> - ' + caption
+                            text: `<a href="${data.file.url}" target="_blank">View ${mediaType}: ${title}</a> - ${finalDisplayCaption}`
                         }, {}, openingBlockIndex, true, true);
                     }
 
@@ -324,17 +346,25 @@
 
     window.insertSelectedArchive = function () {
         if (selectedArchive) {
-            // Insert image with archive metadata for linking
+            // Create the COMPOSITE CAPTION for existing archives
+            // Note: API now returns original_author and copyright_holder
+            const finalDisplayCaption = formatCaption(
+                selectedArchive.caption || selectedArchive.title, 
+                selectedArchive.original_author, 
+                selectedArchive.copyright_holder
+            );
+
             editor.blocks.insert('image', {
                 file: { url: selectedArchive.thumbnail || selectedArchive.url || '' },
-                caption: selectedArchive.caption || selectedArchive.title || '',
+                caption: finalDisplayCaption, // Use the composite caption
                 alt: selectedArchive.alt_text || selectedArchive.title || '',
-                archive_id: selectedArchive.id,  // For linking to archive detail
+                archive_id: selectedArchive.id,
                 archive_slug: selectedArchive.slug || null,
                 withBorder: false,
                 stretched: false,
                 withBackground: true
             }, {}, openingBlockIndex, true, true);
+            
             closeImageModal();
             showToast('Image inserted successfully', 'success');
             IgboEditor.updateFeaturedImageOptions();

@@ -140,18 +140,6 @@ class BookRecommendationModelTests(TestCase):
         
         self.assertTrue(recommendation.pending_approval)
         self.assertIsNotNone(recommendation.submitted_at)
-    
-    def test_book_recommendation_tags(self):
-        """Test tags support."""
-        recommendation = BookRecommendation.objects.create(
-            book_title='Tagged', author='Author', title='Tagged Recommendation',
-            slug='tagged', added_by=self.user
-        )
-        
-        recommendation.tags.add('fiction', 'african-literature', 'classic')
-        
-        self.assertEqual(recommendation.tags.count(), 3)
-        self.assertTrue(recommendation.tags.filter(name='fiction').exists())
 
 
 class UserBookRatingTests(TestCase):

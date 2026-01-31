@@ -8,7 +8,8 @@
     </div>
     {% endif %}
     <div class="card-body">
-        <h3 class="font-serif text-lg font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">{{post.title }}</h3>
+        <h3 class="font-serif text-lg font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">
+            {{post.title }}</h3>
         <p class="text-sm text-text-muted mb-3 flex items-center gap-2">
             <i class="fas fa-user text-xs"></i>
             <span>{{ post.author.full_name|default:post.author.username }}</span>
@@ -25,7 +26,8 @@
     <nav class="pagination">
         {% if posts.has_previous %}
         <a class="page-link"
-            href="?page={{ posts.previous_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            hx-get="{% url 'insights:list' %}?page={{ posts.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+            hx-target="#insightsGrid" hx-push-url="true">
             <i class="fas fa-chevron-left text-xs"></i>
         </a>
         {% endif %}
@@ -34,14 +36,15 @@
         {% if posts.number == num %}
         <span class="page-link active">{{ num }}</span>
         {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %} <a class="page-link"
-            href="?page={{ num }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-            {{ num }}</a>
+            hx-get="{% url 'insights:list' %}?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+            hx-target="#insightsGrid" hx-push-url="true">{{ num }}</a>
             {% endif %}
             {% endfor %}
 
             {% if posts.has_next %}
             <a class="page-link"
-                href="?page={{ posts.next_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                hx-get="{% url 'insights:list' %}?page={{ posts.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                hx-target="#insightsGrid" hx-push-url="true">
                 <i class="fas fa-chevron-right text-xs"></i>
             </a>
             {% endif %}

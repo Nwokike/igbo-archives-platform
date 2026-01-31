@@ -335,3 +335,42 @@ class ArchiveFileSizeValidationTests(TestCase):
             validate_video_size(mock_file)
         
         self.assertIn('50MB', str(context.exception))
+
+
+class ArchiveItemModelTests(TestCase):
+    """Tests for the ArchiveItem model."""
+    
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser2', password='password')
+        self.archive = Archive.objects.create(
+            title='Parent Archive',
+            description='Description',
+            archive_type='image',
+            uploaded_by=self.user
+        )
+
+    def test_create_archive_item(self):
+        """Test creating an archive item attached to an archive."""
+        from archives.models import ArchiveItem
+        item = ArchiveItem.objects.create(
+            archive=self.archive,
+            item_type='image',
+            caption='Test Caption',
+            item_number=1,
+            image='test.jpg' 
+        )
+        self.assertEqual(item.archive, self.archive)
+        self.assertEqual(item.caption, 'Test Caption')
+        # Check string representation contains item number and parent title
+        self.assertIn('Item 1', str(item))
+        self.assertIn('Parent Archive', str(item))
+
+    def test_item_number_ordering(self):
+        """Test items are ordered by item_number."""
+        from archives.models import ArchiveItem
+        item2 = ArchiveItem.objects.create(archive=self.archive, item_type='image', item_number=2)
+        item1 = ArchiveItem.objects.create(archive=self.archive, item_type='image', item_number=1)
+        
+        items = list(ArchiveItem.objects.filter(archive=self.archive).order_by('item_number'))
+        self.assertEqual(items[0], item1)
+        self.assertEqual(items[1], item2)

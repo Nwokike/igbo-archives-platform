@@ -2,6 +2,7 @@
 Insight views for browsing and managing community articles.
 """
 import json
+import ast
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,37 +11,43 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.core.mail import send_mail  # Added
+from django.conf import settings        # Added
+from django.contrib.auth import get_user_model # Added
+
 from .models import InsightPost, EditSuggestion
 from archives.models import Archive, Category
 from core.validators import ALLOWED_INSIGHT_SORTS, get_safe_sort
-from core.editorjs_helpers import parse_editorjs_content, parse_tags, generate_unique_slug, get_workflow_flags, download_and_save_image_from_url
+from core.editorjs_helpers import parse_editorjs_content, generate_unique_slug, get_workflow_flags, download_and_save_image_from_url
 
+User = get_user_model()
 
-def get_cached_insight_tags():
-    """Cache tags for 30 minutes."""
-    tags = cache.get('insight_tags')
-    if tags is None:
-        from taggit.models import Tag
-        tags = list(Tag.objects.filter(insightpost__isnull=False).distinct()[:50])
-        cache.set('insight_tags', tags, 1800)
-    return tags
+def get_cached_insight_categories():
+    """Cache insight categories for 30 minutes."""
+    categories = cache.get('insight_categories')
+    if categories is None:
+        # Only fetch categories marked for 'insight'
+        categories = list(Category.objects.filter(type='insight').annotate(
+            post_count=Count('insights', filter=Q(insights__is_published=True))
+        ).order_by('name'))
+        cache.set('insight_categories', categories, 1800)
+    return categories
 
 
 def get_insight_recommendations(insight, count=9):
-    """Efficient recommendation fetching based on shared tags."""
-    tag_names = list(insight.tags.values_list('name', flat=True))
-    
+    """Efficient recommendation fetching based on shared category."""
     recommendations = InsightPost.objects.filter(
         is_published=True,
         is_approved=True
-    ).exclude(pk=insight.pk).select_related('author').only(
-        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at', 'author'
+    ).exclude(pk=insight.pk).select_related('author', 'category').only(
+        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at', 'author', 'category'
     )
     
-    if tag_names:
-        recommendations = recommendations.annotate(
-            tag_matches=Count('tags', filter=Q(tags__name__in=tag_names))
-        ).order_by('-tag_matches', '-created_at')
+    if insight.category:
+        recommendations = recommendations.order_by(
+            '-category', # Prioritize same category
+            '-created_at'
+        )
     else:
         recommendations = recommendations.order_by('-created_at')
     
@@ -51,15 +58,16 @@ def insight_list(request):
     """List all published insights with filtering and pagination."""
     insights = InsightPost.objects.filter(
         is_published=True, is_approved=True
-    ).select_related('author').prefetch_related('tags').only(
-        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at', 'author'
+    ).select_related('author', 'category').only(
+        'id', 'title', 'slug', 'excerpt', 'featured_image', 'created_at', 'author', 'category'
     )
     
     if search := request.GET.get('search'):
         insights = insights.filter(title__icontains=search)
     
-    if tag := request.GET.get('tag'):
-        insights = insights.filter(tags__name=tag)
+    # FILTER BY CATEGORY (Instead of Tag)
+    if category_slug := request.GET.get('category'):
+        insights = insights.filter(category__slug=category_slug)
     
     sort = get_safe_sort(request.GET.get('sort', '-created_at'), ALLOWED_INSIGHT_SORTS)
     insights = insights.order_by(sort)
@@ -69,7 +77,7 @@ def insight_list(request):
     
     context = {
         'posts': posts,
-        'tags': get_cached_insight_tags()
+        'categories': get_cached_insight_categories()
     }
     
     if request.htmx:
@@ -81,7 +89,7 @@ def insight_list(request):
 def insight_detail(request, slug):
     """Display a single insight with recommendations."""
     insight = get_object_or_404(
-        InsightPost.objects.select_related('author'),
+        InsightPost.objects.select_related('author', 'category'),
         slug=slug, is_published=True, is_approved=True
     )
     
@@ -150,15 +158,19 @@ def insight_create(request):
         title = request.POST.get('title', '').strip()
         content_json = request.POST.get('content_json')
         excerpt = request.POST.get('excerpt', '').strip()
+        category_id = request.POST.get('category')
         action = request.POST.get('action')
         
         if not title or not content_json:
             messages.error(request, 'Please fill in all required fields.')
+            # Pass categories back to context on error
+            categories = Category.objects.filter(type='insight').order_by('name')
             context = {
                 'archive_title': archive_title,
                 'initial_title': title or initial_title,
                 'initial_content': content_json or initial_content,
                 'initial_excerpt': excerpt or initial_excerpt,
+                'categories': categories,
             }
             return render(request, 'insights/create.html', context)
         
@@ -166,11 +178,13 @@ def insight_create(request):
             content_data = parse_editorjs_content(content_json)
         except ValidationError as e:
             messages.error(request, str(e))
+            categories = Category.objects.filter(type='insight').order_by('name')
             context = {
                 'archive_title': archive_title,
                 'initial_title': title,
                 'initial_content': content_json,
                 'initial_excerpt': excerpt,
+                'categories': categories,
             }
             return render(request, 'insights/create.html', context)
         
@@ -191,31 +205,57 @@ def insight_create(request):
             **workflow_flags
         )
         
-        # Handle featured image - prioritize file upload, fallback to URL
+        # SAVE CATEGORY
+        if category_id:
+            try:
+                insight.category = Category.objects.get(id=category_id, type='insight')
+            except Category.DoesNotExist:
+                pass
+        
+        # Handle featured image
         featured_url = request.POST.get('featured_image_url', '').strip()
         if request.FILES.get('featured_image'):
             insight.featured_image = request.FILES['featured_image']
             insight.alt_text = request.POST.get('alt_text', '')
         elif featured_url:
-            # Download and save featured image from URL (auto-creates featured_image)
             if download_and_save_image_from_url(insight, 'featured_image', featured_url):
                 insight.alt_text = request.POST.get('alt_text', '')
         
-        tags = parse_tags(request.POST.get('tags', ''))
-        if tags:
-            insight.tags.add(*tags)
-        
         insight.save()
-        cache.delete('insight_tags')
+        cache.delete('insight_categories')
+        
+        # --- PHASE 4: EMAIL NOTIFICATION ---
+        if action == 'submit':
+            try:
+                staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
+                if staff_emails:
+                    send_mail(
+                        subject=f"New Insight Submitted: {insight.title}",
+                        message=f"""
+                        A new insight has been submitted by {request.user.get_full_name() or request.user.username}.
+                        
+                        Title: {insight.title}
+                        Excerpt: {insight.excerpt}
+                        
+                        Review it here: {request.scheme}://{request.get_host()}/users/admin/moderation/
+                        """,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=staff_emails,
+                        fail_silently=True
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to send notification email: {e}")
+        # -----------------------------------
         
         return redirect('users:dashboard')
     
+    # Context for GET request
     context = {
         'archive_title': archive_title,
         'initial_title': initial_title,
         'initial_content': initial_content,
         'initial_excerpt': initial_excerpt,
-        'categories': Category.objects.all(),
+        'categories': Category.objects.filter(type='insight').order_by('name'),
     }
     return render(request, 'insights/create.html', context)
 
@@ -228,6 +268,7 @@ def insight_edit(request, slug):
     if request.method == 'POST':
         insight.title = request.POST.get('title', '').strip()[:255]
         insight.excerpt = request.POST.get('excerpt', '').strip()[:500]
+        category_id = request.POST.get('category')
         content_json = request.POST.get('content_json')
         
         if content_json:
@@ -238,13 +279,12 @@ def insight_edit(request, slug):
                 messages.error(request, f'Invalid content format: {e}')
                 return render(request, 'insights/edit.html', {
                     'insight': insight,
-                    'initial_content': content_json
+                    'initial_content': content_json,
+                    'categories': Category.objects.filter(type='insight').order_by('name')
                 })
         
         action = request.POST.get('action')
         
-        # Publishing is purely admin-controlled via moderation workflow
-        # Users can only submit for approval, not self-publish
         if action == 'submit':
             insight.pending_approval = True
             insight.submitted_at = timezone.now()
@@ -252,50 +292,80 @@ def insight_edit(request, slug):
             insight.is_approved = False
             messages.success(request, 'Your insight has been submitted for approval!')
         else:
-            # Save as draft - preserve existing approval status
-            # Only reset if it was previously published/approved and user is making changes
             if insight.is_published and insight.is_approved:
-                # Changes to approved content require re-approval
                 insight.pending_approval = True
                 insight.is_published = False
                 insight.is_approved = False
             messages.success(request, 'Your insight has been saved!')
         
-        # Handle featured image update - prioritize file upload, fallback to URL
+        # Handle featured image
         featured_url = request.POST.get('featured_image_url', '').strip()
         current_featured_url = insight.featured_image.url if insight.featured_image else ''
         
         if request.FILES.get('featured_image'):
             insight.featured_image = request.FILES['featured_image']
         elif featured_url and featured_url != current_featured_url:
-            # Download and save featured image from URL if changed
             download_and_save_image_from_url(insight, 'featured_image', featured_url)
         
-        insight.tags.clear()
-        tags = [t.strip()[:50] for t in request.POST.get('tags', '').split(',') if t.strip()][:20]
-        if tags:
-            insight.tags.add(*tags)
+        # UPDATE CATEGORY
+        if category_id:
+            try:
+                insight.category = Category.objects.get(id=category_id, type='insight')
+            except Category.DoesNotExist:
+                pass
+        else:
+            insight.category = None
+            
+        # Tags removed
         
         insight.save()
-        cache.delete('insight_tags')
+        cache.delete('insight_categories')
+        
+        # --- PHASE 4: EMAIL NOTIFICATION ON RESUBMIT ---
+        if action == 'submit':
+            try:
+                staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
+                if staff_emails:
+                    send_mail(
+                        subject=f"Insight Updated (Review Needed): {insight.title}",
+                        message=f"User {request.user.username} updated an insight. Please re-review.",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=staff_emails,
+                        fail_silently=True
+                    )
+            except Exception:
+                pass
+        # -----------------------------------------------
         
         return redirect('users:dashboard')
     
-    initial_content = ''
+    # Robust JSON parsing for the editor
+    initial_content = '{}'
     if insight.content_json:
-        initial_content = json.dumps(insight.content_json) if isinstance(insight.content_json, dict) else insight.content_json
+        if isinstance(insight.content_json, dict):
+            initial_content = json.dumps(insight.content_json)
+        elif isinstance(insight.content_json, str):
+            content_str = insight.content_json.strip()
+            try:
+                json.loads(content_str)
+                initial_content = content_str
+            except json.JSONDecodeError:
+                try:
+                    cleaned_data = ast.literal_eval(content_str)
+                    initial_content = json.dumps(cleaned_data)
+                except (ValueError, SyntaxError):
+                    initial_content = content_str
     
     return render(request, 'insights/edit.html', {
         'insight': insight,
-        'initial_content': initial_content
+        'initial_content': initial_content,
+        'categories': Category.objects.filter(type='insight').order_by('name')
     })
 
 
 @login_required
 def suggest_edit(request, slug):
     """Submit an edit suggestion for an insight."""
-    from core.notifications_utils import send_edit_suggestion_notification
-    
     insight = get_object_or_404(InsightPost, slug=slug)
     
     rate_key = f'suggestion_rate_{request.user.id}'
@@ -317,8 +387,6 @@ def suggest_edit(request, slug):
             suggestion_text=suggestion_text[:5000]
         )
         
-        # Note: Notification is sent by signal in signals.py
-        
         cache.set(rate_key, suggestion_count + 1, 86400)
         messages.success(request, 'Thank you! Your edit suggestion has been sent to the author.')
         return redirect('insights:detail', slug=slug)
@@ -331,7 +399,6 @@ def insight_delete(request, slug):
     """Delete an insight post (only for drafts/pending, or owner)."""
     insight = get_object_or_404(InsightPost, slug=slug, author=request.user)
     
-    # Only allow deletion if not approved (draft/pending) or if user is owner
     if insight.is_published and insight.is_approved and not request.user.is_staff:
         messages.error(request, 'Published insights cannot be deleted. Please contact an administrator.')
         return redirect('insights:detail', slug=slug)
@@ -339,7 +406,7 @@ def insight_delete(request, slug):
     if request.method == 'POST':
         insight_title = insight.title
         insight.delete()
-        cache.delete('insight_tags')
+        cache.delete('insight_categories')
         messages.success(request, f'Insight "{insight_title}" has been deleted.')
         return redirect('users:dashboard')
     

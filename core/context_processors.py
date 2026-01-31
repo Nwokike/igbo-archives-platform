@@ -1,13 +1,14 @@
 """
 Context processors for template variables.
 """
+import logging
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def pwa_settings(request):
     """Expose PWA, push notification, and Turnstile settings to templates."""
-    import logging
-    logger = logging.getLogger(__name__)
     
     webpush_settings = getattr(settings, 'WEBPUSH_SETTINGS', {})
     turnstile_site_key = getattr(settings, 'TURNSTILE_SITE_KEY', '')

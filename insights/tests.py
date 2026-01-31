@@ -265,16 +265,3 @@ class InsightContentTests(TestCase):
         
         insight.refresh_from_db()
         self.assertEqual(insight.content_json, content)
-    
-    def test_tags_support(self):
-        """Test that tags work correctly."""
-        insight = InsightPost.objects.create(
-            title='Tagged',
-            slug='tagged',
-            author=self.user
-        )
-        
-        insight.tags.add('igbo', 'culture', 'history')
-        
-        self.assertEqual(insight.tags.count(), 3)
-        self.assertTrue(insight.tags.filter(name='igbo').exists())

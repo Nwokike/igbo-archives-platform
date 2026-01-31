@@ -34,7 +34,7 @@
             <label class="form-label">Content <span class="text-red-500">*</span></label>
             <div id="editor" class="editor-container"></div>
             <input type="hidden" id="content_json" name="content_json" required>
-            <input type="hidden" id="existing_content" value="{{ insight.content_json|escapejs }}">
+            <input type="hidden" id="existing_content" value="{{ initial_content|escapejs }}">
         </div>
 
         <div class="form-group hidden" id="featuredImageSection">
@@ -52,10 +52,15 @@
         </div>
 
         <div class="form-group">
-            <label for="tags" class="form-label">Tags</label>
-            <input type="text" class="form-input" id="tags" name="tags"
-                value="{% for tag in insight.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}"
-                placeholder="Enter tags separated by commas">
+            <label for="category" class="form-label">Category</label>
+            <select class="form-input" id="category" name="category">
+                <option value="">Select a category...</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if insight.category and category.id == insight.category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
         </div>
 
         {% if insight.is_published and insight.is_approved %}
@@ -73,7 +78,7 @@
         {% endif %}
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4">
-            <button type="submit" class="btn-primary btn-lg flex-1">
+            <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
                 <i class="fas fa-save"></i> Update Post
             </button>
             <a href="{% url 'insights:detail' insight.slug %}" class="btn-secondary btn-lg flex-1 text-center">
@@ -91,11 +96,11 @@
 </div>
 
 <div id="imageModal" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content modal-lg">
         <div class="modal-header">
             <div>
-                <h3 class="modal-title">Add Image to Content</h3>
-                <p class="modal-subtitle">Choose to upload a new image or select from existing archives</p>
+                <h3 class="modal-title"><i class="fas fa-photo-video text-accent mr-2"></i>Add Media to Content</h3>
+                <p class="modal-subtitle">Select from archives or upload new media</p>
             </div>
             <button type="button" class="modal-close" onclick="closeImageModal()">
                 <i class="fas fa-times"></i>
@@ -105,45 +110,149 @@
         <div class="modal-body">
             <div class="tabs-container">
                 <div class="tabs-list">
-                    <button type="button" class="tab-button active" data-tab="upload">Upload New Image</button>
-                    <button type="button" class="tab-button" data-tab="archive">Select from Archives</button>
+                    <button type="button" class="tab-button active" data-img-tab="archive">
+                        <i class="fas fa-archive mr-1"></i> From Archives
+                    </button>
+                    <button type="button" class="tab-button" data-img-tab="upload">
+                        <i class="fas fa-upload mr-1"></i> Upload New
+                    </button>
                 </div>
             </div>
 
-            <div id="upload-panel" class="tab-panel active">
-                <div class="form-group">
-                    <label class="form-label form-label-required">Select Image File</label>
-                    <input type="file" class="form-input" id="imageFileInput" accept="image/*">
-                </div>
-                <div class="form-group">
-                    <label class="form-label form-label-required">Caption (with copyright/source info)</label>
-                    <input type="text" class="form-input" id="imageCaption"
-                        placeholder="e.g., Photo by Northcote Thomas, 1910. Public Domain">
-                </div>
-                <div class="form-group">
-                    <label class="form-label form-label-required">Description (Alt Text)</label>
-                    <input type="text" class="form-input" id="imageDescription"
-                        placeholder="Describe the image for accessibility">
-                </div>
-            </div>
-
-            <div id="archive-panel" class="tab-panel">
-                <div class="search-input-container">
-                    <i class="fas fa-search search-input-icon"></i>
-                    <input type="text" class="form-input" id="archiveSearch" placeholder="Search archives...">
+            <div id="archive-panel" class="tab-panel active">
+                <div class="flex gap-2 mb-3">
+                    <div class="search-input-container flex-1">
+                        <i class="fas fa-search search-input-icon"></i>
+                        <input type="text" class="form-input" id="archiveSearch" placeholder="Search archives...">
+                    </div>
+                    <select id="archiveTypeFilter" class="form-input w-auto">
+                        <option value="image">Images</option>
+                        <option value="video">Videos</option>
+                        <option value="audio">Audio</option>
+                    </select>
                 </div>
                 <div id="archiveGrid" class="archive-grid">
                     <p class="text-center text-vintage-beaver py-8">Loading archives...</p>
+                </div>
+            </div>
+
+            <div id="upload-panel" class="tab-panel hidden space-y-6">
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h4 class="text-md font-serif font-bold text-dark-brown mb-3 pb-2 border-b border-gray-200">1. Archive Details</h4>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="form-group">
+                            <label class="form-label form-label-required">Title</label>
+                            <input type="text" class="form-input" id="mediaTitle" placeholder="Enter archive title">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label form-label-required">Description</label>
+                            <textarea class="form-textarea" id="mediaArchiveDescription" rows="3" placeholder="Detailed description of the archive context, history, or significance"></textarea>
+                            <p class="form-help">Provide context, history, or significance.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select class="form-input" id="mediaCategory">
+                                <option value="">Select category...</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h4 class="text-md font-serif font-bold text-dark-brown mb-3 pb-2 border-b border-gray-200">2. Source & Origin</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Original Author/Creator</label>
+                            <input type="text" class="form-input" id="mediaOriginalAuthor" placeholder="e.g., Northcote Thomas">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Copyright Holder</label>
+                            <input type="text" class="form-input" id="mediaCopyrightHolder" placeholder="e.g., British Museum, Public Domain">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Date (Approximate)</label>
+                            <input type="text" class="form-input" id="mediaCircaDate" placeholder="e.g., c1910, around 1910s">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Exact Date (if known)</label>
+                            <input type="date" class="form-input" id="mediaDateCreated">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-input" id="mediaLocation" placeholder="e.g., Onitsha, Anambra State">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Catalog/Ref Number</label>
+                            <input type="text" class="form-input" id="mediaIdentityNumber" placeholder="e.g., BM-1234, NT.001">
+                        </div>
+
+                        <div class="form-group col-span-full">
+                            <label class="form-label">Original Source URL</label>
+                            <input type="url" class="form-input" id="mediaOriginalUrl" placeholder="https://museum.org/collection/item123">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-accent/5 p-4 rounded-lg border border-accent/20">
+                    <h4 class="text-md font-serif font-bold text-dark-brown mb-3 pb-2 border-b border-accent/20">3. Media Item</h4>
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label form-label-required">Media Type</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="mediaType" value="image" checked class="form-radio" onchange="updateMediaUploadUI()">
+                                <span class="flex items-center gap-1"><i class="fas fa-image text-accent"></i> Image</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="mediaType" value="video" class="form-radio" onchange="updateMediaUploadUI()">
+                                <span class="flex items-center gap-1"><i class="fas fa-video text-blue-500"></i> Video</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="mediaType" value="audio" class="form-radio" onchange="updateMediaUploadUI()">
+                                <span class="flex items-center gap-1"><i class="fas fa-music text-green-500"></i> Audio</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label form-label-required" id="fileInputLabel">Select Image File</label>
+                        <input type="file" id="mediaFileInput" accept="image/*" class="w-full p-2 border border-border rounded bg-white">
+                        <p class="form-help" id="fileInputHelp">Accepted: JPG, PNG, WEBP (Max 5MB)</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="form-group">
+                            <label class="form-label form-label-required">Caption</label>
+                            <input type="text" class="form-input" id="mediaCaption" placeholder="Caption for this specific item">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label form-label-required">Alt Text (Accessibility)</label>
+                            <input type="text" class="form-input" id="mediaAltText" placeholder="Describe what is seen/heard in this item">
+                            <p class="form-help">Describe what is seen/heard in this item.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="modal-footer">
             <button type="button" class="btn-secondary" onclick="closeImageModal()">Cancel</button>
-            <button type="button" class="btn-primary" id="uploadBtn" onclick="uploadAndInsertImage()">
+            <button type="button" class="btn-primary hidden" id="uploadBtn" onclick="uploadAndInsertMedia()">
                 <i class="fas fa-upload"></i> Upload & Insert
             </button>
-            <button type="button" class="btn-primary hidden" id="insertArchiveBtn" onclick="insertSelectedArchive()">
+            <button type="button" class="btn-primary" id="insertArchiveBtn" onclick="insertSelectedArchive()">
                 <i class="fas fa-check"></i> Insert Selected
             </button>
         </div>

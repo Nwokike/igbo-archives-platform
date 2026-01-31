@@ -6,6 +6,9 @@ import logging
 # --- NEW IMPORT ---
 # Import the function we already built in the previous step
 from core.notifications_utils import send_edit_suggestion_notification
+from django.db.models.signals import post_delete
+from django.core.cache import cache
+from archives.models import Category
 
 logger = logging.getLogger(__name__)
 
@@ -40,3 +43,14 @@ def notify_author_of_suggestion(sender, instance, created, **kwargs):
             
         except Exception as e:
             logger.error(f"Error sending edit suggestion notification: {str(e)}")
+
+
+@receiver([post_save, post_delete], sender=Category)
+def handle_category_change(sender, instance, **kwargs):
+    """
+    Invalidate insight categories cache when a category is added/modified/deleted.
+    Only relevant if the category is of type 'insight', but checking type 
+    doesn't hurt performance significantly for this rate of change.
+    """
+    cache.delete('insight_categories')
+    logger.info(f"Invalidated insight_categories cache due to Category change: {instance.name}")

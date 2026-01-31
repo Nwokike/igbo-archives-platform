@@ -8,14 +8,23 @@
     
     <div class="alert alert-warning mb-6">
         <i class="fas fa-exclamation-triangle"></i>
-        <div>You are about to reject this {{ post_type }}. Please provide a reason for the rejection so the author can improve and resubmit.</div>
+        <div>You are about to reject this {{ post_type }}. Please provide a reason so the user can improve and resubmit.</div>
     </div>
 
     <div class="card mb-6">
         <div class="card-body">
-            <h3 class="font-serif text-lg font-semibold text-dark-brown mb-1">{{ post.title|default:post.review_title }}</h3>
+            <h3 class="font-serif text-lg font-semibold text-dark-brown mb-1">
+                {{ post.title }}
+            </h3>
             <p class="text-vintage-beaver text-sm">
-                By {{ post.author.full_name|default:post.author.get_display_name|default:post.reviewer.full_name|default:post.reviewer.get_display_name }}
+                By 
+                {% if post.author %}
+                    {{ post.author.get_display_name }}
+                {% elif post.added_by %}
+                    {{ post.added_by.get_display_name }}
+                {% elif post.uploaded_by %}
+                    {{ post.uploaded_by.get_display_name }}
+                {% endif %}
             </p>
         </div>
     </div>
@@ -25,13 +34,13 @@
         <div class="form-group">
             <label for="reason" class="form-label">Rejection Reason *</label>
             <textarea name="reason" id="reason" class="form-textarea" rows="4" required 
-                      placeholder="Please explain why this post is being rejected..."></textarea>
-            <p class="form-help">This will be sent to the author via email and in-app notification.</p>
+                      placeholder="Please explain why this content is being rejected (e.g. Low quality image, duplicate entry, violates guidelines)..."></textarea>
+            <p class="form-help">This reason will be sent to the user via notification.</p>
         </div>
 
         <div class="flex gap-3">
-            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors inline-flex items-center gap-2">
-                <i class="fas fa-times"></i> Confirm Rejection
+            <button type="submit" class="btn-primary bg-red-600 hover:bg-red-700 border-red-600 text-white">
+                <i class="fas fa-times mr-2"></i> Confirm Rejection
             </button>
             <a href="{% url 'users:moderation_dashboard' %}" class="btn-secondary">Cancel</a>
         </div>

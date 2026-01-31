@@ -92,11 +92,6 @@
         <!-- Input Area -->
         <div class="border-t border-sepia-pale/40 p-3 bg-heritage-cream/20">
             <form id="chatForm" class="flex gap-2">
-                <button type="button" id="voiceBtn"
-                    class="w-10 h-10 rounded-lg border border-sepia-pale/60 bg-white flex items-center justify-center text-vintage-beaver hover:text-vintage-gold hover:border-vintage-gold transition-all text-sm"
-                    title="Voice input (hold to record)">
-                    <i class="fas fa-microphone"></i>
-                </button>
                 <input type="text" id="messageInput" placeholder="Ask about Igbo culture, history, traditions..."
                     class="flex-1 px-3 py-2 text-sm rounded-lg border border-sepia-pale/60 focus:border-vintage-gold focus:ring-2 focus:ring-vintage-gold/20 transition-all"
                     maxlength="3000" autocomplete="off">
@@ -115,8 +110,7 @@
 
 <!-- Configuration for JavaScript (no inline JS) -->
 <div id="aiChatConfig" class="hidden" data-session-id="{{ session.id }}" data-send-url="{% url 'ai:chat_send' %}"
-    data-transcribe-url="{% url 'ai:transcribe_audio' %}" data-delete-url="{% url 'ai:delete_session' session.id %}"
-    data-home-url="{% url 'ai:home' %}">
+    data-delete-url="{% url 'ai:delete_session' session.id %}" data-home-url="{% url 'ai:home' %}">
 </div>
 {% endblock %}
 

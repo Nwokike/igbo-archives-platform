@@ -259,3 +259,43 @@ class MediaCleanupTests(TestCase):
         self.assertEqual(mock_delete.call_count, 2)
         for name in names:
             mock_delete.assert_any_call(name)
+
+
+class HueyTaskTests(TestCase):
+    """Tests for Huey background tasks."""
+
+    @patch('core.tasks.send_mail')
+    def test_send_email_async(self, mock_send_mail):
+        """Test the send_email_async task."""
+        from core.tasks import send_email_async
+        
+        # Test calling directly (synchronously for test)
+        result = send_email_async(
+            subject='Test Subject',
+            message='Test Message',
+            recipient_list=['test@example.com']
+        )
+        
+        self.assertTrue(result)
+        mock_send_mail.assert_called_once()
+        args, kwargs = mock_send_mail.call_args
+        self.assertEqual(kwargs['subject'], 'Test Subject')
+        self.assertEqual(kwargs['recipient_list'], ['test@example.com'])
+    
+    @patch('webpush.send_user_notification')
+    def test_send_push_notification_async(self, mock_send_push):
+        """Test the send_push_notification_async task."""
+        from core.tasks import send_push_notification_async
+        
+        user = User.objects.create_user(username='pushtest', password='password')
+        
+        result = send_push_notification_async(
+            user_id=user.id,
+            title='Test Push',
+            body='Test Body',
+            url='/test/'
+        )
+        
+        self.assertTrue(result)
+        mock_send_push.assert_called_once()
+

@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from taggit.managers import TaggableManager
 from django.core.validators import FileExtensionValidator
 
 from core.validators import validate_image_size as validate_file_size
+from archives.models import Category
 
 User = get_user_model()
 
@@ -49,7 +49,17 @@ class InsightPost(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True, help_text="When post was submitted for approval")
     
     posted_to_social = models.BooleanField(default=False)
-    tags = TaggableManager()
+    
+    # REPLACED TAGS WITH CATEGORY
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={'type': 'insight'},
+        related_name='insights',
+        help_text="Select a category for this insight"
+    )
     
     class Meta:
         ordering = ['-created_at']

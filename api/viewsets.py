@@ -132,10 +132,10 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(
                 Q(book_title__icontains=search) |
                 Q(author__icontains=search) |
-                Q(review_title__icontains=search)
+                Q(title__icontains=search)
             )
         
-        return queryset.select_related('added_by').prefetch_related('tags')
+        return queryset.select_related('added_by')
     
     @action(detail=False, methods=['get'])
     def top_rated(self, request):

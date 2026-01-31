@@ -27,7 +27,7 @@ def send_claim_profile_email(user, name=None, mode='commenter'):
         
         try:
             reset_url = reverse('account_reset_password_from_key', kwargs={'uidb36': uid, 'key': token})
-        except:
+        except Exception:
             uid_django = urlsafe_base64_encode(force_bytes(user.pk))
             reset_url = reverse('password_reset_confirm', kwargs={'uidb64': uid_django, 'token': token})
 

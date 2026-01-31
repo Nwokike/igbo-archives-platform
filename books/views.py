@@ -12,40 +12,27 @@ from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.text import slugify
-from .models import BookRecommendation
+from django.core.mail import send_mail  # Added
+from django.conf import settings        # Added
+from django.contrib.auth import get_user_model # Added
+
+from .models import BookRecommendation, UserBookRating
 from core.validators import ALLOWED_BOOK_SORTS, get_safe_sort
-from core.editorjs_helpers import parse_editorjs_content, parse_tags, generate_unique_slug, get_workflow_flags
+from core.editorjs_helpers import parse_editorjs_content, generate_unique_slug, get_workflow_flags
 
-
-def get_cached_book_tags():
-    """Cache tags for 30 minutes."""
-    tags = cache.get('book_tags')
-    if tags is None:
-        from taggit.models import Tag
-        # Fixed: Changed 'BookRecommendation' to lowercase 'bookrecommendation'
-        tags = list(Tag.objects.filter(bookrecommendation__isnull=False).distinct()[:50])
-        cache.set('book_tags', tags, 1800)
-    return tags
-
+User = get_user_model()
 
 def get_book_recommendations(review, count=9):
-    """Efficient recommendation fetching based on shared tags."""
-    tag_names = list(review.tags.values_list('name', flat=True))
-    
+    """
+    Recommendation strategy: Recent books.
+    """
     recommendations = BookRecommendation.objects.filter(
         is_published=True,
         is_approved=True
     ).exclude(pk=review.pk).select_related('added_by').only(
         'id', 'book_title', 'title', 'slug', 'cover_image',
         'created_at', 'added_by__full_name', 'added_by__username'
-    )
-    
-    if tag_names:
-        recommendations = recommendations.annotate(
-            tag_matches=Count('tags', filter=Q(tags__name__in=tag_names))
-        ).order_by('-tag_matches', '-created_at')
-    else:
-        recommendations = recommendations.order_by('-created_at')
+    ).order_by('-created_at')
     
     return recommendations[:count]
 
@@ -54,7 +41,7 @@ def book_list(request):
     """List all published book reviews with filtering and pagination."""
     reviews = BookRecommendation.objects.filter(
         is_published=True, is_approved=True
-    ).select_related('added_by').prefetch_related('tags').only(
+    ).select_related('added_by').only(
         'id', 'book_title', 'title', 'slug', 'cover_image',
         'created_at', 'added_by__full_name', 'added_by__username'
     )
@@ -64,18 +51,14 @@ def book_list(request):
             Q(book_title__icontains=search) | Q(title__icontains=search)
         )
     
-    if tag := request.GET.get('tag'):
-        reviews = reviews.filter(tags__name=tag)
-    
     sort = get_safe_sort(request.GET.get('sort', '-created_at'), ALLOWED_BOOK_SORTS)
     reviews = reviews.order_by(sort)
     
     paginator = Paginator(reviews, 12)
-    reviews = paginator.get_page(request.GET.get('page'))
+    reviews_page = paginator.get_page(request.GET.get('page'))
     
     context = {
-        'reviews': reviews,
-        'tags': get_cached_book_tags()
+        'reviews': reviews_page,
     }
     
     if request.htmx:
@@ -157,12 +140,6 @@ def book_create(request):
             messages.success(request, 'Your book review has been saved as a draft!')
         
         try:
-            rating = int(request.POST.get('rating', 3))
-            rating = max(1, min(5, rating))
-        except (ValueError, TypeError):
-            rating = 3
-        
-        try:
             publication_year = int(request.POST.get('publication_year'))
             if publication_year < 1000 or publication_year > timezone.now().year + 1:
                 publication_year = None
@@ -192,8 +169,7 @@ def book_create(request):
         if request.FILES.get('alternate_cover'):
             review.alternate_cover = request.FILES['alternate_cover']
         
-        # Validate file uploads through model validators before saving
-        from django.core.exceptions import ValidationError
+        # Validate file uploads through model validators
         try:
             review.full_clean()
         except ValidationError as e:
@@ -202,14 +178,30 @@ def book_create(request):
                     messages.error(request, f'{field}: {error}')
             return render(request, 'books/create.html')
         
-        # Save after successful validation
         review.save()
         
-        tags = [t.strip()[:50] for t in request.POST.get('tags', '').split(',') if t.strip()][:20]
-        if tags:
-            review.tags.add(*tags)
-        
-        cache.delete('book_tags')
+        # --- PHASE 4: EMAIL NOTIFICATION ---
+        if action == 'submit':
+            try:
+                staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
+                if staff_emails:
+                    send_mail(
+                        subject=f"New Book Review Submitted: {review.title}",
+                        message=f"""
+                        A new book review has been submitted by {request.user.get_full_name() or request.user.username}.
+                        
+                        Book: {review.book_title}
+                        Title: {review.title}
+                        
+                        Review it here: {request.scheme}://{request.get_host()}/users/admin/moderation/
+                        """,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=staff_emails,
+                        fail_silently=True
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to send notification email: {e}")
+        # -----------------------------------
         
         return redirect('users:dashboard')
     
@@ -248,20 +240,7 @@ def book_edit(request, slug):
                     'initial_content': content_json
                 })
         
-        try:
-            rating = int(request.POST.get('rating', 0))
-            # Note: Rating is now handled by UserBookRating, not on the recommendation itself directly by the recommender in the same way
-            # But if you have a legacy rating field or intent to keep it, ensure it matches model.
-            # Based on model, BookRecommendation doesn't have a 'rating' field for the recommender, 
-            # users rate via UserBookRating. If this was intended, remove or adjust.
-            # Assuming legacy support or logic adjustment needed here, but keeping consistent with provided file structure.
-            pass 
-        except (ValueError, TypeError):
-            pass
-        
         action = request.POST.get('action')
-        # Publishing is purely admin-controlled via moderation workflow
-        # Users can only submit for approval, not self-publish
         if action == 'submit':
             workflow_flags = get_workflow_flags(action, is_submit=True)
             review.pending_approval = workflow_flags['pending_approval']
@@ -270,10 +249,7 @@ def book_edit(request, slug):
             review.is_approved = workflow_flags['is_approved']
             messages.success(request, 'Your book review has been submitted for approval!')
         else:
-            # Save as draft - preserve existing approval status
-            # Only reset if it was previously published/approved and user is making changes
             if review.is_published and review.is_approved:
-                # Changes to approved content require re-approval
                 review.pending_approval = True
                 review.is_published = False
                 review.is_approved = False
@@ -286,13 +262,23 @@ def book_edit(request, slug):
         if request.FILES.get('alternate_cover'):
             review.alternate_cover = request.FILES['alternate_cover']
         
-        review.tags.clear()
-        tags = parse_tags(request.POST.get('tags', ''))
-        if tags:
-            review.tags.add(*tags)
-        
         review.save()
-        cache.delete('book_tags')
+        
+        # --- PHASE 4: EMAIL NOTIFICATION ON RESUBMIT ---
+        if action == 'submit':
+            try:
+                staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
+                if staff_emails:
+                    send_mail(
+                        subject=f"Book Review Updated (Review Needed): {review.title}",
+                        message=f"User {request.user.username} updated a book review. Please re-review.",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=staff_emails,
+                        fail_silently=True
+                    )
+            except Exception:
+                pass
+        # -----------------------------------------------
         
         return redirect('users:dashboard')
     
@@ -311,7 +297,6 @@ def book_delete(request, slug):
     """Delete a book review (only for drafts/pending, or owner)."""
     review = get_object_or_404(BookRecommendation, slug=slug, added_by=request.user)
     
-    # Only allow deletion if not approved (draft/pending) or if user is owner
     if review.is_published and review.is_approved and not request.user.is_staff:
         messages.error(request, 'Published book reviews cannot be deleted. Please contact an administrator.')
         return redirect('books:detail', slug=slug)
@@ -319,7 +304,6 @@ def book_delete(request, slug):
     if request.method == 'POST':
         review_title = review.title
         review.delete()
-        cache.delete('book_tags')
         messages.success(request, f'Book review "{review_title}" has been deleted.')
         return redirect('users:dashboard')
     

@@ -1,6 +1,13 @@
 """
 Huey background tasks for the Igbo Archives platform.
 Memory-efficient async tasks for 1GB RAM constraint.
+
+Task Schedule:
+- 02:30 AM: Cleanup old chat sessions
+- 03:00 AM: Daily database and media backup
+- 04:00 AM: Cleanup old notifications (1st of month)
+- 04:30 AM: Cleanup old messages (1st of month)
+- 05:00 AM: Cleanup TTS audio files
 """
 
 from huey.contrib.djhuey import task, periodic_task, db_task

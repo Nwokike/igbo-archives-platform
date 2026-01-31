@@ -53,8 +53,15 @@ def send_guest_invitation_email(sender, comment, request, **kwargs):
             if existing_user:
                 # Security: DO NOT link the comment to the existing user automatically.
                 # This prevents spoofing (someone posting as admin@example.com).
-                # We can optionally send them a "Was this you?" email, but for now
-                # we just treat it as a guest comment.
+                #
+                # Shadow Account Pattern:
+                # 1. Guest comments use email to lookup user.
+                # 2. If user exists, we ignore the linkage (treat as guest) to prevent
+                #    unverified comments appearing on verified profiles.
+                # 3. If user doesn't exist, we create a 'shadow' account with unusable password.
+                # 4. We send an "Invite" email. If they claim it (reset password), they take over the account.
+                
+                # Check if this user has no usable password (incomplete profile)
                 
                 # Check if this user has no usable password (incomplete profile)
                 if not existing_user.has_usable_password():

@@ -30,3 +30,10 @@ function showToast(message) {
         setTimeout(function() { toast.remove(); }, 300);
     }, 2000);
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var shareBtn = document.getElementById('share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', shareProfile);
+    }
+});

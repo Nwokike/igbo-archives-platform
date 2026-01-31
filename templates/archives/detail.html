@@ -31,9 +31,14 @@
 
             <div class="flex flex-wrap items-center gap-2 mb-4">
                 <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
+                
                 {% if archive.category %}
-                <span class="badge badge-primary">{{ archive.category.name }}</span>
+                <a href="{% url 'archives:list' %}?category={{ archive.category.slug }}" 
+                   class="badge badge-primary hover:bg-accent hover:text-white transition-colors no-underline">
+                    {{ archive.category.name }}
+                </a>
                 {% endif %}
+                
                 {% if archive.item_count > 1 %}
                 <span class="badge badge-outline"><i class="fas fa-layer-group mr-1"></i> {{ archive.item_count }} Items</span>
                 {% endif %}
@@ -99,15 +104,6 @@
         <div class="prose prose-lg max-w-none mb-8">
             <p class="whitespace-pre-wrap">{{ archive.description }}</p>
         </div>
-
-        {% if archive.tags.all %}
-        <div class="flex flex-wrap items-center gap-2 mb-8">
-            <span class="text-sm font-medium">Tags:</span>
-            {% for tag in archive.tags.all %}
-            <a href="{% url 'archives:list' %}?tag={{ tag.name }}" class="badge badge-secondary">{{ tag.name }}</a>
-            {% endfor %}
-        </div>
-        {% endif %}
 
         <div class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/50 dark:bg-surface-dark-alt/50 rounded-xl border border-border/50">
             {% if user == archive.uploaded_by %}

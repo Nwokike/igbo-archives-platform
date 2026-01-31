@@ -1,7 +1,4 @@
 from django.urls import path
-from django.http import HttpResponse
-from django.template.loader import render_to_string
-from django.views.decorators.http import require_GET
 from . import views
 
 app_name = 'core'
@@ -16,16 +13,5 @@ urlpatterns = [
     path('donate/', views.donate, name='donate'),
     path('offline/', views.offline, name='offline'),
     path('health/', views.health_check, name='health'),
-]
-
-
-@require_GET
-def robots_txt(request):
-    """Serve robots.txt"""
-    content = render_to_string('robots.txt', request=request)
-    return HttpResponse(content, content_type='text/plain')
-
-
-urlpatterns += [
-    path('robots.txt', robots_txt, name='robots_txt'),
+    path('robots.txt', views.robots_txt, name='robots_txt'),
 ]

@@ -184,7 +184,7 @@ class TTSService:
                 try:
                     error_data = response.json()
                     error_msg = error_data.get('error', f"HTTP {response.status_code}")
-                except:
+                except Exception:
                     error_msg = response.text[:200] if response.text else f"HTTP {response.status_code}"
                 
                 return {
@@ -292,8 +292,8 @@ class TTSService:
             now = time.time()
             max_age_seconds = max_age_hours * 3600
             
-            for filepath in self.output_dir.glob('*.mp3'):
-                if now - filepath.stat().st_mtime > max_age_seconds:
+            for filepath in self.output_dir.glob('*.*'):
+                if filepath.suffix in ('.mp3', '.wav') and now - filepath.stat().st_mtime > max_age_seconds:
                     filepath.unlink()
                     logger.info(f"Cleaned up old TTS file: {filepath.name}")
         except Exception as e:

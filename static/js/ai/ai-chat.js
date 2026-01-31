@@ -1,15 +1,12 @@
 /**
  * AI Chat JavaScript
- * Handles chat messaging, voice input (STT), text-to-speech (TTS), and session management
+ * Handles chat messaging and text-to-speech (TTS)
  */
 
 class AIChat {
     constructor(sessionId, endpoints) {
         this.sessionId = sessionId;
         this.endpoints = endpoints;
-        this.isRecording = false;
-        this.mediaRecorder = null;
-        this.audioChunks = [];
         this.isSpeaking = false;
         this.speechSynthesis = window.speechSynthesis;
 
@@ -18,7 +15,6 @@ class AIChat {
             chatForm: document.getElementById('chatForm'),
             messageInput: document.getElementById('messageInput'),
             sendBtn: document.getElementById('sendBtn'),
-            voiceBtn: document.getElementById('voiceBtn'),
             typingIndicator: document.getElementById('typingIndicator'),
             emptyState: document.getElementById('emptyState'),
             sessionTitle: document.getElementById('sessionTitle'),
@@ -29,7 +25,6 @@ class AIChat {
 
     init() {
         this.elements.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
-        this.elements.voiceBtn.addEventListener('click', () => this.toggleRecording());
         this.scrollToBottom();
         this.elements.messageInput.focus();
 
@@ -179,72 +174,6 @@ class AIChat {
         this.elements.messageInput.focus();
     }
 
-    async toggleRecording() {
-        if (this.isRecording) {
-            this.stopRecording();
-        } else {
-            this.startRecording();
-        }
-    }
-
-    async startRecording() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.mediaRecorder = new MediaRecorder(stream);
-            this.audioChunks = [];
-
-            this.mediaRecorder.ondataavailable = (e) => this.audioChunks.push(e.data);
-            this.mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-                await this.transcribeAudio(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            this.mediaRecorder.start();
-            this.isRecording = true;
-            this.elements.voiceBtn.classList.add('recording', 'text-red-500', 'border-red-500');
-            this.elements.voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
-        } catch (err) {
-            alert('Could not access microphone. Please allow microphone access.');
-        }
-    }
-
-    stopRecording() {
-        if (this.mediaRecorder && this.isRecording) {
-            this.mediaRecorder.stop();
-            this.isRecording = false;
-            this.elements.voiceBtn.classList.remove('recording', 'text-red-500', 'border-red-500');
-            this.elements.voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-        }
-    }
-
-    async transcribeAudio(audioBlob) {
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.webm');
-
-        this.elements.voiceBtn.disabled = true;
-        this.elements.voiceBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-        try {
-            const response = await fetch(this.endpoints.transcribe, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': this.getCsrfToken() },
-                body: formData
-            });
-
-            const data = await response.json();
-            if (data.success && data.text) {
-                this.elements.messageInput.value = data.text;
-                this.elements.messageInput.focus();
-            }
-        } catch (err) {
-            console.error('Transcription error:', err);
-        }
-
-        this.elements.voiceBtn.disabled = false;
-        this.elements.voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-    }
-
     async deleteSession() {
         if (!confirm('Delete this conversation?')) return;
 
@@ -268,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sessionId = parseInt(config.dataset.sessionId, 10);
     const endpoints = {
         send: config.dataset.sendUrl,
-        transcribe: config.dataset.transcribeUrl,
         delete: config.dataset.deleteUrl,
         home: config.dataset.homeUrl
     };
@@ -283,4 +211,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for backward compatibility
 window.AIChat = AIChat;
-

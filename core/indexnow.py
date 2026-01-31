@@ -4,6 +4,7 @@ Instantly notify search engines (Bing, Yandex, etc.) when content is published o
 """
 import requests
 import uuid
+import os
 from django.conf import settings
 from django.urls import reverse
 import logging

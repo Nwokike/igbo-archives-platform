@@ -152,11 +152,15 @@ def render_code(data):
 
 
 def render_image(data):
-    """Render image block."""
+    """Render image block with proper Alt Text support."""
     from django.urls import reverse
     
     url = data.get('file', {}).get('url', '') or data.get('url', '')
     caption = sanitize_html(data.get('caption', ''))
+    
+    # UPDATED: Prioritize explicit alt text, then description, then fall back to caption
+    alt_text = sanitize_html(data.get('alt', '')) or sanitize_html(data.get('description', '')) or caption
+    
     with_border = data.get('withBorder', False)
     stretched = data.get('stretched', False)
     with_background = data.get('withBackground', False)
@@ -180,8 +184,8 @@ def render_image(data):
     if not stretched:
         wrapper_classes.append('text-center')
     
-    # Build image tag with clickable link
-    img_tag = f'<img src="{safe_url}" alt="{escape(caption)}" class="{" ".join(img_classes)}" loading="lazy">'
+    # Build image tag with proper alt text and clickable link
+    img_tag = f'<img src="{safe_url}" alt="{alt_text}" class="{" ".join(img_classes)}" loading="lazy">'
     
     # Determine link URL: archive detail if from archive, otherwise full-size image
     if archive_slug:

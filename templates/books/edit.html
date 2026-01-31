@@ -68,11 +68,11 @@
                 <div class="form-group">
                     <label for="rating" class="form-label">Rating <span class="text-red-500">*</span></label>
                     <select class="form-select" id="rating" name="rating" required>
-                        <option value="5" {% if review.rating==5 %}selected{% endif %}> - Excellent</option>
-                        <option value="4" {% if review.rating==4 %}selected{% endif %}> - Very Good</option>
-                        <option value="3" {% if review.rating==3 %}selected{% endif %}> - Good</option>
-                        <option value="2" {% if review.rating==2 %}selected{% endif %}> - Fair</option>
-                        <option value="1" {% if review.rating==1 %}selected{% endif %}> - Poor</option>
+                        <option value="5" {% if review.rating == 5 %}selected{% endif %}>★★★★★ - Excellent</option>
+                        <option value="4" {% if review.rating == 4 %}selected{% endif %}>★★★★☆ - Very Good</option>
+                        <option value="3" {% if review.rating == 3 %}selected{% endif %}>★★★☆☆ - Good</option>
+                        <option value="2" {% if review.rating == 2 %}selected{% endif %}>★★☆☆☆ - Fair</option>
+                        <option value="1" {% if review.rating == 1 %}selected{% endif %}>★☆☆☆☆ - Poor</option>
                     </select>
                 </div>
 
@@ -130,13 +130,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="form-group">
-            <label for="tags" class="form-label">Tags</label>
-            <input type="text" class="form-input" id="tags" name="tags"
-                value="{% for tag in review.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}"
-                placeholder="Enter tags separated by commas">
         </div>
 
         {% if review.is_published and review.is_approved %}

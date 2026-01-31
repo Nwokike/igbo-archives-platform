@@ -64,6 +64,6 @@ class ArchiveAdmin(admin.ModelAdmin):
             'fields': ('date_created', 'circa_date', 'location')
         }),
         ('Status', {
-            'fields': ('uploaded_by', 'is_approved', 'tags')
+            'fields': ('uploaded_by', 'is_approved')
         }),
     )

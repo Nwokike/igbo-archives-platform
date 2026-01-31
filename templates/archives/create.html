@@ -54,13 +54,6 @@
                     {{ form.category }}
                     {% if form.category.errors %}<div class="text-red-600 text-sm mt-1">{{ form.category.errors.0 }}</div>{% endif %}
                 </div>
-
-                <div class="form-group">
-                    <label for="{{ form.tags.id_for_label }}" class="form-label font-medium">Tags</label>
-                    {{ form.tags }}
-                    {% if form.tags.errors %}<div class="text-red-600 text-sm mt-1">{{ form.tags.errors.0 }}</div>{% endif %}
-                    <p class="text-xs text-text-muted mt-1">Comma-separated (e.g., mask, festival, 1920s)</p>
-                </div>
             </div>
         </div>
 

@@ -62,12 +62,10 @@ class ArchiveSerializer(serializers.ModelSerializer):
             'item_count',
             'image', 'video', 'audio', 'document', 'featured_image',
             'category', 'author', 'original_author', 'uploaded_by',
-            'tags', 'items',  # Added items here
+            'category', 'author', 'original_author', 'uploaded_by',
+            'items',  # Added items here
             'views_count', 'is_featured', 'created_at', 'updated_at'
         ]
-
-    def get_tags(self, obj):
-        return [tag.name for tag in obj.tags.all()]
 
 class ArchiveListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views."""
@@ -100,8 +98,6 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
     both the Parent Archive and the first ArchiveItem.
     """
     category_id = serializers.IntegerField(required=False, allow_null=True)
-    tags = serializers.CharField(required=False, write_only=True)
-
     class Meta:
         model = Archive
         fields = [
@@ -111,13 +107,12 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
             'copyright_holder', 'original_url', 'original_identity_number',
             'original_author',
             'image', 'video', 'audio', 'document', 'featured_image',
-            'tags', 'item_count'
+            'item_count'
         ]
 
     def create(self, validated_data):
         from django.db import transaction
         
-        tags_data = validated_data.pop('tags', '')
         # Extract file data to handle Item creation manually
         image = validated_data.get('image')
         video = validated_data.get('video')
@@ -131,11 +126,6 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             # 1. Create the Parent Archive
             archive = Archive.objects.create(**validated_data)
-            
-            # Handle Tags
-            if tags_data:
-                tag_list = [t.strip() for t in tags_data.split(',') if t.strip()]
-                archive.tags.add(*tag_list)
 
             # 2. Automatically Create Item #1 (The Missing Link Fix)
             # This ensures archives created via API still have editable items in the dashboard
@@ -163,15 +153,14 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
         return archive
 
 class BookRecommendationSerializer(serializers.ModelSerializer):
-    author_user = UserSerializer(read_only=True)
+    added_by = UserSerializer(read_only=True)
     
     class Meta:
         model = BookRecommendation
         fields = [
             'id', 'book_title', 'author', 'slug',
-            'review_title', 'review_content', 'rating',
-            'cover_image', 'amazon_link', 'publication_year',
-            'author_user', 'average_rating', 'created_at'
+            'title', 'cover_image', 'publication_year',
+            'added_by', 'average_rating', 'rating_count', 'created_at'
         ]
 
 class InsightPostSerializer(serializers.ModelSerializer):

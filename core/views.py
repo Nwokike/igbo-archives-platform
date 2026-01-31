@@ -173,3 +173,11 @@ def page_not_found_handler(request, exception):
 def server_error_handler(request):
     """500 Internal Server Error handler."""
     return render(request, '500.html', status=500)
+
+
+def robots_txt(request):
+    """Serve robots.txt"""
+    from django.http import HttpResponse
+    from django.template.loader import render_to_string
+    content = render_to_string('robots.txt', request=request)
+    return HttpResponse(content, content_type='text/plain')

@@ -1,7 +1,8 @@
 """
 Archive views for browsing and managing cultural archives.
 """
-import random
+import random  # Non-cryptographic use for content recommendations
+import logging
 import bleach
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -9,21 +10,34 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.db import transaction
-from django.utils.text import slugify
-from .models import Archive, Category, ArchiveItem
+from django.db.models import Q
+from django.core.mail import send_mail  # Added for email notifications
+from django.conf import settings        # Added for email settings
+from django.contrib.auth import get_user_model # Added to find staff
+
+from .models import Archive, Category, ArchiveItem, Author
 from .forms import ArchiveForm, ArchiveItemFormSet
 from core.validators import ALLOWED_ARCHIVE_SORTS, get_safe_sort
 from core.views import get_all_approved_archive_ids
 from core.editorjs_helpers import generate_unique_slug
 
+User = get_user_model()
+logger = logging.getLogger(__name__)
 
 def get_cached_categories():
-    """Cache categories for 1 hour."""
+    """Cache categories for 1 hour (Archives only)."""
     categories = cache.get('archive_categories')
     if categories is None:
-        categories = list(Category.objects.all())
+        # STRICT FILTER: Only show categories meant for Archives
+        # Annotate with count for template usage
+        from django.db.models import Count
+        categories = list(
+            Category.objects.filter(type='archive')
+            .annotate(count=Count('archive', filter=Q(archive__is_approved=True)))
+            .order_by('name')
+        )
         cache.set('archive_categories', categories, 3600)
     return categories
 
@@ -44,9 +58,10 @@ def get_random_recommendations(exclude_pk, count=9):
 
 def archive_list(request):
     """List all approved archives with filtering and pagination."""
+    # REMOVED: prefetch_related('tags')
     archives = Archive.objects.filter(is_approved=True).select_related(
         'uploaded_by', 'category', 'author'
-    ).prefetch_related('tags').only(
+    ).only(
         'id', 'title', 'archive_type', 'image', 'featured_image',
         'alt_text', 'description', 'created_at', 'uploaded_by_id', 'category_id',
         'author_id', 'uploaded_by__full_name', 'uploaded_by__username',
@@ -63,7 +78,6 @@ def archive_list(request):
         archives = archives.filter(circa_date__icontains=circa_date)
     
     if search := request.GET.get('search'):
-        from django.db.models import Q
         archives = archives.filter(
             Q(title__icontains=search) | 
             Q(description__icontains=search) |
@@ -77,10 +91,10 @@ def archive_list(request):
     archives = archives.order_by(sort)
     
     paginator = Paginator(archives, 12)
-    archives = paginator.get_page(request.GET.get('page'))
+    archives_page = paginator.get_page(request.GET.get('page'))
     
     context = {
-        'archives': archives,
+        'archives': archives_page,
         'categories': get_cached_categories(),
     }
     
@@ -108,7 +122,7 @@ def archive_detail(request, pk=None, slug=None):
         raise Http404("Archive not found")
     
     if not archive.is_approved:
-        if request.user.is_authenticated and archive.uploaded_by == request.user:
+        if request.user.is_authenticated and (archive.uploaded_by == request.user or request.user.is_staff):
             if archive.slug:
                 return redirect('archives:edit', slug=archive.slug)
             return redirect('archives:edit', pk=archive.pk)
@@ -129,7 +143,6 @@ def archive_detail(request, pk=None, slug=None):
     
     recommended = get_random_recommendations(archive.pk, count=9)
     
-    # Get all items for the carousel
     archive_items = archive.items.all().order_by('item_number')
     
     context = {
@@ -145,7 +158,6 @@ def archive_detail(request, pk=None, slug=None):
 
 
 def author_detail(request, slug):
-    from .models import Author
     author = get_object_or_404(Author, slug=slug)
     
     archives_list = Archive.objects.filter(
@@ -164,9 +176,7 @@ def author_detail(request, slug):
 
 
 def metadata_suggestions(request):
-    from django.http import JsonResponse
-    from .models import Author
-    
+    """Suggestions for autocomplete (Authors, Dates)."""
     query = request.GET.get('q', '')
     field = request.GET.get('field', 'author')
     results = []
@@ -192,12 +202,7 @@ def metadata_suggestions(request):
 
 
 def sync_parent_archive_with_first_item(archive):
-    """
-    Performance Optimization:
-    Copies the media from Item #1 to the Parent Archive.
-    This allows list views/APIs to query the 'Archive' table directly
-    without needing JOINs to the 'ArchiveItem' table.
-    """
+    """Sync logic: item #1 -> parent archive."""
     first_item = archive.items.order_by('item_number').first()
     
     if first_item:
@@ -205,13 +210,11 @@ def sync_parent_archive_with_first_item(archive):
         archive.caption = first_item.caption
         archive.alt_text = first_item.alt_text
         
-        # Clear existing fields to avoid confusion
         archive.image = None
         archive.video = None
         archive.audio = None
         archive.document = None
         
-        # Copy the file
         if first_item.item_type == 'image':
             archive.image = first_item.image
         elif first_item.item_type == 'video':
@@ -226,14 +229,13 @@ def sync_parent_archive_with_first_item(archive):
 
 @login_required
 def archive_create(request):
-    """Create a new archive with multiple items."""
+    """Create a new archive."""
     if request.method == 'POST':
         form = ArchiveForm(request.POST)
         formset = ArchiveItemFormSet(request.POST, request.FILES)
         
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
-                # 1. Save Parent Archive (Metadata)
                 archive = form.save(commit=False)
                 archive.uploaded_by = request.user
                 archive.is_approved = False
@@ -244,14 +246,10 @@ def archive_create(request):
                 archive.description = bleach.clean(archive.description, strip=True)
                 archive.save()
                 
-                # Save Tags
-                form.save_m2m()
+                # REMOVED: form.save_m2m() (Tags are gone)
                 
-                # 2. Save Items
                 items = formset.save(commit=False)
-                
                 if not items:
-                    # Fallback protection: Require at least one item
                     messages.error(request, 'You must upload at least one item.')
                     raise ValidationError("At least one item is required")
 
@@ -260,8 +258,29 @@ def archive_create(request):
                     item.item_number = i + 1
                     item.save()
                 
-                # 3. Sync Logic (Item #1 -> Parent)
                 sync_parent_archive_with_first_item(archive)
+                
+                # --- PHASE 4: EMAIL NOTIFICATION ---
+                try:
+                    staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
+                    if staff_emails:
+                        send_mail(
+                            subject=f"New Archive Submitted: {archive.title}",
+                            message=f"""
+                            A new archive has been submitted by {request.user.get_full_name() or request.user.username}.
+                            
+                            Title: {archive.title}
+                            Description: {archive.description[:200]}...
+                            
+                            Review it here: {request.scheme}://{request.get_host()}/users/admin/moderation/
+                            """,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=staff_emails,
+                            fail_silently=False
+                        )
+                except Exception as e:
+                    logger.warning(f"Failed to send notification email: {e}")
+                # -----------------------------------
                 
                 messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
                 if archive.slug:
@@ -283,7 +302,7 @@ def archive_create(request):
 
 @login_required
 def archive_edit(request, pk=None, slug=None):
-    """Edit an existing archive and its items."""
+    """Edit an existing archive."""
     if slug:
         archive = get_object_or_404(Archive, slug=slug, uploaded_by=request.user)
     elif pk:
@@ -306,30 +325,41 @@ def archive_edit(request, pk=None, slug=None):
                 archive.description = bleach.clean(archive.description, strip=True)
                 archive.save()
                 
-                # Save Tags
-                form.save_m2m()
+                # REMOVED: form.save_m2m() (Tags are gone)
                 
-                # Save Items (handles updates and deletions)
                 items = formset.save(commit=False)
                 
-                # Handle deletions first
                 for obj in formset.deleted_objects:
                     obj.delete()
                 
-                # Save new/updated items
                 for i, item in enumerate(items):
                     item.archive = archive
-                    # If item_number not set, append it
                     if not item.item_number:
                         max_num = archive.items.aggregate(models.Max('item_number'))['item_number__max'] or 0
                         item.item_number = max_num + 1
                     item.save()
                 
-                # Re-Sync Logic (In case Item #1 changed)
                 sync_parent_archive_with_first_item(archive)
                 
                 if archive.is_approved:
+                    # Reset approval if edited
+                    archive.is_approved = False
+                    archive.save(update_fields=['is_approved'])
                     cache.delete('all_approved_archive_ids')
+                    
+                    # Notify admin of re-submission (Optional, re-using logic)
+                    try:
+                        staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
+                        if staff_emails:
+                            send_mail(
+                                subject=f"Archive Updated (Review Needed): {archive.title}",
+                                message=f"User {request.user.username} updated an archive. Please re-review.",
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=staff_emails,
+                                fail_silently=True
+                            )
+                    except Exception:
+                        pass
                 
                 messages.success(request, 'Archive updated successfully!')
                 if archive.slug:
@@ -338,8 +368,8 @@ def archive_edit(request, pk=None, slug=None):
         else:
             messages.error(request, 'Please check the form for errors.')
     else:
-        initial_tags = ', '.join([tag.name for tag in archive.tags.all()])
-        form = ArchiveForm(instance=archive, initial={'tags': initial_tags})
+        # REMOVED: initial tag parsing logic
+        form = ArchiveForm(instance=archive)
         formset = ArchiveItemFormSet(instance=archive)
     
     context = {
@@ -353,7 +383,7 @@ def archive_edit(request, pk=None, slug=None):
 
 @login_required
 def archive_delete(request, pk=None, slug=None):
-    """Delete an archive (only for drafts/pending, or owner)."""
+    """Delete an archive."""
     if slug:
         archive = get_object_or_404(Archive, slug=slug, uploaded_by=request.user)
     elif pk:

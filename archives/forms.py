@@ -10,18 +10,8 @@ from .models import Archive, ArchiveItem, Category
 class ArchiveForm(forms.ModelForm):
     """
     Form for the 'Parent' Archive container.
-    Handles metadata like Title, Category, Source, and Tags.
-    Does NOT handle file uploads directly anymore (handled by ArchiveItemForm).
+    Handles metadata like Title, Category, Source.
     """
-    
-    tags = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'mask, ceremony, traditional'
-        }),
-        help_text='Comma-separated tags (max 20)'
-    )
     
     date_created = forms.DateField(
         required=False,
@@ -86,26 +76,19 @@ class ArchiveForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['category'].queryset = Category.objects.all()
+        # FILTER: Only show 'archive' type categories in the dropdown
+        self.fields['category'].queryset = Category.objects.filter(type='archive')
         self.fields['category'].empty_label = 'Select category...'
-    
-    def clean_tags(self):
-        tags_str = self.cleaned_data.get('tags', '')
-        if tags_str:
-            tag_list = [t.strip()[:50] for t in tags_str.split(',') if t.strip()][:20]
-            return tag_list
-        return []
-    
-    def save(self, commit=True):
-        archive = super().save(commit=False)
-        if commit:
-            archive.save()
-            # Handle tags
-            tags = self.cleaned_data.get('tags', [])
-            if tags:
-                archive.tags.clear()
-                archive.tags.add(*tags)
-        return archive
+        
+        # Apply utility classes to all fields
+        for field_name, field in self.fields.items():
+            current_class = field.widget.attrs.get('class', '')
+            if isinstance(field.widget, (forms.TextInput, forms.URLInput, forms.DateInput)):
+                field.widget.attrs['class'] = f'form-input {current_class}'.strip()
+            elif isinstance(field.widget, forms.Textarea):
+                field.widget.attrs['class'] = f'form-textarea {current_class}'.strip()
+            elif isinstance(field.widget, forms.Select):
+                field.widget.attrs['class'] = f'form-select {current_class}'.strip()
 
 
 class ArchiveItemForm(forms.ModelForm):

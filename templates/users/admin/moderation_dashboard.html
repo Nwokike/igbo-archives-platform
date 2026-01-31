@@ -3,37 +3,54 @@
 {% block title %}Moderation Dashboard{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <h1 class="font-serif text-display-lg text-dark-brown mb-2">Moderation Dashboard</h1>
-    <p class="text-vintage-beaver mb-8">Review and approve pending posts</p>
+<div class="max-w-5xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="font-serif text-display-lg text-dark-brown mb-2">Moderation Dashboard</h1>
+            <p class="text-vintage-beaver">Review and approve pending content.</p>
+        </div>
+        <a href="{% url 'users:dashboard' %}" class="btn-secondary btn-sm">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+        </a>
+    </div>
 
     <section class="mb-10">
-        <h2 class="font-serif text-xl font-semibold text-vintage-gold mb-4 flex items-center gap-2">
-            <i class="fas fa-lightbulb"></i> Pending Insights ({{ pending_insights.count }})
+        <h2 class="font-serif text-xl font-semibold text-dark-brown mb-4 flex items-center gap-2 p-3 bg-heritage-cream/50 rounded-lg">
+            <i class="fas fa-archive text-accent"></i> Pending Archives ({{ pending_archives.count }})
         </h2>
         
-        {% if pending_insights %}
-        <div class="space-y-4">
-            {% for post in pending_insights %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                        <div class="flex-1">
-                            <h3 class="font-serif font-semibold text-dark-brown mb-1">{{ post.title }}</h3>
-                            <p class="text-sm text-vintage-beaver mb-2">
-                                By {{ post.author.full_name|default:post.author.get_display_name }} • {{ post.submitted_at|date:"M d, Y g:i A" }}
-                            </p>
-                            <p class="text-sm text-dark-umber line-clamp-2">{{ post.excerpt|default:"No excerpt available"|truncatewords:30 }}</p>
+        {% if pending_archives %}
+        <div class="grid grid-cols-1 gap-4">
+            {% for archive in pending_archives %}
+            <div class="card p-4 border-l-4 border-l-accent">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div class="w-full sm:w-32 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        {% if archive.image %}
+                            <img src="{{ archive.image.url }}" class="w-full h-full object-cover">
+                        {% elif archive.featured_image %}
+                            <img src="{{ archive.featured_image.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-box"></i></div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-lg text-dark-brown">{{ archive.title }}</h3>
+                            <span class="badge badge-secondary text-xs">{{ archive.get_archive_type_display }}</span>
                         </div>
-                        <div class="flex gap-2 flex-shrink-0">
-                            <a href="/insights/{{ post.slug }}/" class="btn-secondary btn-sm" target="_blank">
-                                <i class="fas fa-eye"></i> Preview
+                        <p class="text-sm text-text-muted mb-2">
+                            Uploaded by <strong>{{ archive.uploaded_by.get_display_name }}</strong> • {{ archive.created_at|date:"M d, Y" }}
+                        </p>
+                        <p class="text-sm text-dark-umber line-clamp-2 mb-3">{{ archive.description }}</p>
+                        
+                        <div class="flex gap-2">
+                            <a href="{% url 'archives:detail' archive.pk %}" class="btn-secondary btn-sm" target="_blank">Review</a>
+                            <a href="{% url 'users:approve_archive' archive.pk %}" class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">
+                                <i class="fas fa-check mr-1"></i> Approve
                             </a>
-                            <a href="{% url 'users:approve_insight' post.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-1">
-                                <i class="fas fa-check"></i> Approve
-                            </a>
-                            <a href="{% url 'users:reject_insight' post.pk %}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-1">
-                                <i class="fas fa-times"></i> Reject
+                            <a href="{% url 'users:reject_archive' archive.pk %}" class="btn-secondary btn-sm text-red-600 hover:bg-red-50">
+                                <i class="fas fa-times mr-1"></i> Reject
                             </a>
                         </div>
                     </div>
@@ -42,44 +59,31 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-vintage-beaver">No pending insights</p>
+        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-text-muted">
+            No pending archives.
+        </div>
         {% endif %}
     </section>
 
-    <hr class="border-sepia-pale/50 mb-10">
-
     <section class="mb-10">
-        <h2 class="font-serif text-xl font-semibold text-vintage-gold mb-4 flex items-center gap-2">
-            <i class="fas fa-book"></i> Pending Book Reviews ({{ pending_books.count }})
+        <h2 class="font-serif text-xl font-semibold text-dark-brown mb-4 flex items-center gap-2 p-3 bg-heritage-cream/50 rounded-lg">
+            <i class="fas fa-lightbulb text-vintage-gold"></i> Pending Insights ({{ pending_insights.count }})
         </h2>
         
-        {% if pending_books %}
-        <div class="space-y-4">
-            {% for review in pending_books %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                        <div class="flex-1">
-                            <h3 class="font-serif font-semibold text-dark-brown mb-1">{{ review.review_title }}</h3>
-                            <p class="text-sm text-vintage-beaver mb-2">
-                                Book: {{ review.book_title }} • By {{ review.reviewer.full_name|default:review.reviewer.get_display_name }} • {{ review.submitted_at|date:"M d, Y g:i A" }}
-                            </p>
-                            <p class="text-vintage-gold">
-                                {% for i in "12345"|make_list %}
-                                    {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
-                                {% endfor %}
-                            </p>
-                        </div>
-                        <div class="flex gap-2 flex-shrink-0">
-                            <a href="/books/{{ review.slug }}/" class="btn-secondary btn-sm" target="_blank">
-                                <i class="fas fa-eye"></i> Preview
-                            </a>
-                            <a href="{% url 'users:approve_book_review' review.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-1">
-                                <i class="fas fa-check"></i> Approve
-                            </a>
-                            <a href="{% url 'users:reject_book_review' review.pk %}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-1">
-                                <i class="fas fa-times"></i> Reject
-                            </a>
+        {% if pending_insights %}
+        <div class="grid grid-cols-1 gap-4">
+            {% for post in pending_insights %}
+            <div class="card p-4 border-l-4 border-l-vintage-gold">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-lg text-dark-brown">{{ post.title }}</h3>
+                        <p class="text-sm text-text-muted mb-2">
+                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d, Y" }}
+                        </p>
+                        <div class="flex gap-2 mt-3">
+                            <a href="{% url 'insights:detail' post.slug %}" class="btn-secondary btn-sm" target="_blank">Review</a>
+                            <a href="{% url 'users:approve_insight' post.pk %}" class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">Approve</a>
+                            <a href="{% url 'users:reject_insight' post.pk %}" class="btn-secondary btn-sm text-red-600 hover:bg-red-50">Reject</a>
                         </div>
                     </div>
                 </div>
@@ -87,7 +91,40 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-vintage-beaver">No pending book reviews</p>
+        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-text-muted">
+            No pending insights.
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="mb-10">
+        <h2 class="font-serif text-xl font-semibold text-dark-brown mb-4 flex items-center gap-2 p-3 bg-heritage-cream/50 rounded-lg">
+            <i class="fas fa-book text-accent"></i> Pending Reviews ({{ pending_books.count }})
+        </h2>
+        
+        {% if pending_books %}
+        <div class="grid grid-cols-1 gap-4">
+            {% for review in pending_books %}
+            <div class="card p-4">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-lg text-dark-brown">{{ review.review_title }}</h3>
+                        <p class="text-sm text-text-muted">Book: {{ review.book_title }}</p>
+                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name }}</strong></p>
+                        <div class="flex gap-2 mt-3">
+                            <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm" target="_blank">Review</a>
+                            <a href="{% url 'users:approve_book_review' review.pk %}" class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">Approve</a>
+                            <a href="{% url 'users:reject_book_review' review.pk %}" class="btn-secondary btn-sm text-red-600 hover:bg-red-50">Reject</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-text-muted">
+            No pending reviews.
+        </div>
         {% endif %}
     </section>
 </div>

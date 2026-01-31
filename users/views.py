@@ -126,8 +126,6 @@ def message_inbox(request):
 @login_required
 def message_thread(request, thread_id):
     """View and reply to a message thread."""
-    import bleach
-    from django.core.cache import cache
     
     thread = get_object_or_404(
         Thread.objects.prefetch_related('messages', 'participants'),
@@ -158,11 +156,12 @@ def message_thread(request, thread_id):
     return render(request, 'users/thread.html', {'thread': thread})
 
 
+import bleach
+from django.core.cache import cache
+
 @login_required
 def compose_message(request, username):
     """Compose a new message to a user."""
-    import bleach
-    from django.core.cache import cache
     
     recipient = get_object_or_404(User, username=username)
     

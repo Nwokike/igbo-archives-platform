@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from taggit.managers import TaggableManager
 from django.core.validators import FileExtensionValidator
 
 from core.validators import (
@@ -15,15 +14,27 @@ User = get_user_model()
 
 
 class Category(models.Model):
+    CATEGORY_TYPES = [
+        ('archive', 'Archive'),
+        ('insight', 'Insight'),
+    ]
+    
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
+    type = models.CharField(
+        max_length=20, 
+        choices=CATEGORY_TYPES, 
+        default='archive',
+        help_text="Is this for Archives or Insights?"
+    )
     
     class Meta:
         verbose_name_plural = 'Categories'
+        ordering = ['name']
     
     def __str__(self):
-        return self.name
+        return f"{self.name}"
 
 
 class Author(models.Model):
@@ -57,7 +68,14 @@ class Archive(models.Model):
     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True, help_text="URL-friendly version of title")
     description = models.TextField(help_text="Required: Detailed description (plain text)")
     archive_type = models.CharField(max_length=20, choices=ARCHIVE_TYPES, help_text="Required: Type of archive")
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    category = models.ForeignKey(
+        Category, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        limit_choices_to={'type': 'archive'}
+    )
     
     image = models.ImageField(
         upload_to='archives/',
@@ -179,8 +197,6 @@ class Archive(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_approved = models.BooleanField(default=False, help_text="Admin approval status")
     
-    tags = TaggableManager(blank=True)
-    
     class Meta:
         ordering = ['-created_at']
         verbose_name_plural = 'Archives'
@@ -189,6 +205,8 @@ class Archive(models.Model):
             models.Index(fields=['archive_type', 'is_approved'], name='arch_type_approved_idx'),
             models.Index(fields=['category', 'is_approved'], name='arch_cat_approved_idx'),
             models.Index(fields=['slug'], name='arch_slug_idx'),
+            models.Index(fields=['circa_date'], name='arch_circa_date_idx'),
+            models.Index(fields=['location'], name='arch_location_idx'),
         ]
     
     def __str__(self):
@@ -218,13 +236,11 @@ class Archive(models.Model):
             self.slug = slug
 
         # Auto-link logic:
-        # 1. If Author FK is empty but text exists, try to find an Author match
         if self.original_author and not self.author:
             match = Author.objects.filter(name__iexact=self.original_author.strip()).first()
             if match:
                 self.author = match
         
-        # 2. If Author FK is set but text is empty, auto-fill text for display consistency
         if self.author and not self.original_author:
             self.original_author = self.author.name
             

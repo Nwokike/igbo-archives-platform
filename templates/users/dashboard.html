@@ -9,9 +9,18 @@
             <h1 class="font-serif text-2xl lg:text-3xl font-bold mb-2">Welcome, {{ user.get_display_name }}!</h1>
             <p class="text-text-muted">Manage your content and interactions on Igbo Archives.</p>
         </div>
-        <a href="{% url 'users:profile' user.username %}" class="btn-secondary btn-sm">
-            <i class="fas fa-user-circle"></i> View Public Profile
-        </a>
+        
+        <div class="flex gap-3">
+            {% if user.is_staff %}
+            <a href="{% url 'users:moderation_dashboard' %}" class="btn-primary btn-sm bg-dark-brown border-dark-brown hover:bg-dark-umber shadow-lg">
+                <i class="fas fa-shield-alt mr-2"></i> Moderation Dashboard
+            </a>
+            {% endif %}
+            
+            <a href="{% url 'users:profile' user.username %}" class="btn-secondary btn-sm">
+                <i class="fas fa-user-circle"></i> View Public Profile
+            </a>
+        </div>
     </div>
 </div>
 

@@ -1,11 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+import logging
 from insights.models import InsightPost
 from books.models import BookRecommendation
+from archives.models import Archive
 from core.notifications_utils import send_post_approved_notification, send_post_rejected_notification
-from django.utils import timezone
 
+logger = logging.getLogger(__name__)
 
 @staff_member_required
 def moderation_dashboard(request):
@@ -17,83 +21,94 @@ def moderation_dashboard(request):
     pending_books = BookRecommendation.objects.filter(
         pending_approval=True, is_approved=False
     ).select_related('added_by').order_by('-submitted_at')
+
+    # ADDED: Pending Archives
+    pending_archives = Archive.objects.filter(
+        is_approved=False
+    ).select_related('uploaded_by', 'category').order_by('-created_at')
     
     context = {
         'pending_insights': pending_insights,
         'pending_books': pending_books,
+        'pending_archives': pending_archives,
     }
     
     return render(request, 'users/admin/moderation_dashboard.html', context)
 
-
 @staff_member_required
 def approve_insight(request, pk):
-    """Approve an insight post"""
-    post = get_object_or_404(InsightPost.objects.select_related('author'), pk=pk)
-    
+    post = get_object_or_404(InsightPost, pk=pk)
     post.is_published = True
     post.is_approved = True
     post.pending_approval = False
-    post.save(update_fields=['is_published', 'is_approved', 'pending_approval'])
-    
+    post.save()
     send_post_approved_notification(post, 'insight')
-    
-    messages.success(request, f'Insight "{post.title}" has been approved and published.')
+    messages.success(request, f'Insight "{post.title}" approved.')
     return redirect('users:moderation_dashboard')
-
 
 @staff_member_required
 def reject_insight(request, pk):
-    """Reject an insight post"""
-    post = get_object_or_404(InsightPost.objects.select_related('author'), pk=pk)
-    
+    post = get_object_or_404(InsightPost, pk=pk)
     if request.method == 'POST':
         reason = request.POST.get('reason', '')
-        
         post.pending_approval = False
         post.is_approved = False
-        post.save(update_fields=['pending_approval', 'is_approved'])
-        
+        post.save()
         send_post_rejected_notification(post, reason, 'insight')
-        
-        messages.info(request, f'Insight "{post.title}" has been rejected.')
+        messages.info(request, f'Insight "{post.title}" rejected.')
         return redirect('users:moderation_dashboard')
-    
     return render(request, 'users/admin/reject_post.html', {'post': post, 'post_type': 'insight'})
-
 
 @staff_member_required
 def approve_book_review(request, pk):
-    """Approve a book review"""
-    review = get_object_or_404(BookRecommendation.objects.select_related('added_by'), pk=pk)
-    
+    review = get_object_or_404(BookRecommendation, pk=pk)
     review.is_published = True
     review.is_approved = True
     review.pending_approval = False
-    review.save(update_fields=['is_published', 'is_approved', 'pending_approval'])
-    
+    review.save()
     send_post_approved_notification(review, 'book review')
-    
-    messages.success(request, f'Book review "{review.review_title}" has been approved and published.')
+    messages.success(request, f'Review "{review.title}" approved.')
     return redirect('users:moderation_dashboard')
-
 
 @staff_member_required
 def reject_book_review(request, pk):
-    """Reject a book review"""
-    review = get_object_or_404(BookRecommendation.objects.select_related('added_by'), pk=pk)
-    
+    review = get_object_or_404(BookRecommendation, pk=pk)
     if request.method == 'POST':
         reason = request.POST.get('reason', '')
-        
         review.pending_approval = False
         review.is_approved = False
-        review.save(update_fields=['pending_approval', 'is_approved'])
-        
+        review.save()
         send_post_rejected_notification(review, reason, 'book review')
-        
-        messages.info(request, f'Book review "{review.review_title}" has been rejected.')
+        messages.info(request, f'Review "{review.title}" rejected.')
         return redirect('users:moderation_dashboard')
-    
     return render(request, 'users/admin/reject_post.html', {'post': review, 'post_type': 'book review'})
 
+# --- NEW: Archive Actions ---
+@staff_member_required
+def approve_archive(request, pk):
+    archive = get_object_or_404(Archive, pk=pk)
+    archive.is_approved = True
+    archive.save()
+    # Notify user (You may need to ensure notifications_utils handles 'archive')
+    try:
+        send_post_approved_notification(archive, 'archive')
+    except Exception:
+        logger.warning("Failed to send archive approval notification")
+        
+    messages.success(request, f'Archive "{archive.title}" approved.')
+    return redirect('users:moderation_dashboard')
+
+@staff_member_required
+def reject_archive(request, pk):
+    archive = get_object_or_404(Archive, pk=pk)
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        # For archives, rejection leaves it unapproved but allows user to edit/resubmit
+        # We do NOT delete it automatically to prevent data loss.
+        try:
+            send_post_rejected_notification(archive, reason, 'archive')
+        except Exception:
+            logger.warning("Failed to send archive rejection notification")
+        messages.info(request, f'Archive "{archive.title}" rejected.')
+        return redirect('users:moderation_dashboard')
+    return render(request, 'users/admin/reject_post.html', {'post': archive, 'post_type': 'archive'})

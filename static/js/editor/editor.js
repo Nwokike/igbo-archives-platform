@@ -6,6 +6,26 @@
         selectedArchive: null,
         selectedFeaturedImage: null,
 
+        // Helper to generate consistent captions (Title | Author | Copyright)
+        formatCaption: function(caption, author, copyright) {
+            let parts = [];
+            // 1. The main caption
+            if (caption && caption.trim()) parts.push(caption.trim());
+            
+            // 2. The metadata (Author / Copyright)
+            let meta = [];
+            if (author && author.trim()) meta.push('Photo by ' + author.trim());
+            if (copyright && copyright.trim()) meta.push('© ' + copyright.trim());
+            
+            if (meta.length > 0) {
+                // Add a separator if there was a caption
+                let separator = parts.length > 0 ? ' | ' : '';
+                parts.push(separator + meta.join(' '));
+            }
+            
+            return parts.join('');
+        },
+
         init: function (holderId, options) {
             const self = this;
             options = options || {};
@@ -105,8 +125,7 @@
                                     img.classList.add('image-tool__image-picture');
                                     img.src = this.data.file.url;
 
-                                    // UPDATED: Use description/alt as the actual HTML alt attribute
-                                    // It will NOT be shown as text in the editor
+                                    // Use description/alt as the actual HTML alt attribute
                                     const altText = this.data.alt || this.data.description || '';
                                     img.alt = altText;
 
@@ -128,7 +147,7 @@
                                         this.data.caption = caption.innerHTML;
                                     });
 
-                                    // Append caption AFTER imgWrapper, not after img
+                                    // Append caption AFTER imgWrapper
                                     imgContainer.appendChild(caption);
                                     this.wrapper.appendChild(imgContainer);
 
@@ -153,7 +172,6 @@
                                 return {
                                     file: { url: (this.data.file && this.data.file.url) ? this.data.file.url : '' },
                                     caption: this.data.caption || '',
-                                    // UPDATED: Explicitly save the description as 'alt'
                                     alt: this.data.alt || this.data.description || '',
                                     archive_id: this.data.archive_id || null,  // Preserve archive ID
                                     archive_slug: this.data.archive_slug || null,  // Preserve archive slug
@@ -165,7 +183,7 @@
                         }
                     },
                     paragraph: {
-                        class: window.Paragraph,
+                        // FIXED: Removed 'class: window.Paragraph' to prevent Editor crash
                         inlineToolbar: true
                     },
                     header: {

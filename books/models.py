@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from taggit.managers import TaggableManager
 from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 
 from core.validators import validate_image_size as validate_file_size
@@ -76,7 +75,7 @@ class BookRecommendation(models.Model):
     pending_approval = models.BooleanField(default=False, help_text="Pending admin approval")
     submitted_at = models.DateTimeField(null=True, blank=True, help_text="When submitted for approval")
     
-    tags = TaggableManager()
+    # tags field REMOVED
     
     class Meta:
         ordering = ['-created_at']

@@ -257,75 +257,7 @@ def generate_tts(request):
     return JsonResponse(result)
 
 
-@login_required
-@require_POST
-def transcribe_audio(request):
-    """Transcribe audio to text using NaijaLingo ASR (Nigerian languages)."""
-    from .services.stt_service import stt_service
-    
-    if 'audio' not in request.FILES:
-        return JsonResponse({'error': 'No audio file'}, status=400)
-    
-    audio_file = request.FILES['audio']
-    language = request.POST.get('language', 'ig')  # Default to Igbo
-    
-    # Validate language
-    if language not in stt_service.SUPPORTED_LANGUAGES:
-        return JsonResponse({
-            'error': f"Unsupported language. Use: {', '.join(stt_service.SUPPORTED_LANGUAGES.keys())}"
-        }, status=400)
-    
-    # Check if STT is available
-    if not stt_service.is_available:
-        return JsonResponse({
-            'error': 'Speech recognition not available. Install: pip install naijalingo-asr[audio]'
-        }, status=503)
-    
-    # Size limit (10MB)
-    if audio_file.size > 10 * 1024 * 1024:
-        return JsonResponse({'error': 'File too large (max 10MB)'}, status=400)
-    
-    # Rate limiting
-    rate_key = f'ai_stt_{request.user.id}'
-    count = cache.get(rate_key, 0)
-    if count >= 50:  # More generous limit since it's local
-        return JsonResponse({'error': 'Transcription limit reached'}, status=429)
-    
-    # Save temp file
-    import tempfile
-    import os
-    
-    # Determine file extension from content type
-    content_type = audio_file.content_type or ''
-    if 'webm' in content_type:
-        suffix = '.webm'
-    elif 'mp3' in content_type or 'mpeg' in content_type:
-        suffix = '.mp3'
-    elif 'wav' in content_type:
-        suffix = '.wav'
-    else:
-        suffix = '.webm'  # Default for browser recordings
-    
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        for chunk in audio_file.chunks():
-            tmp.write(chunk)
-        tmp_path = tmp.name
-    
-    try:
-        result = stt_service.transcribe(tmp_path, language=language)
-        
-        if result['success']:
-            cache.set(rate_key, count + 1, 3600)
-        
-        return JsonResponse({
-            'success': result['success'],
-            'text': result.get('text', ''),
-            'language': result.get('language', language),
-            'language_name': result.get('language_name', ''),
-            'error': result.get('error', '')
-        })
-    finally:
-        os.unlink(tmp_path)
+
 
 
 @login_required
