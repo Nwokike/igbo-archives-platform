@@ -181,3 +181,13 @@ def robots_txt(request):
     from django.template.loader import render_to_string
     content = render_to_string('robots.txt', request=request)
     return HttpResponse(content, content_type='text/plain')
+
+
+def chrome_devtools_association(request):
+    """
+    Serve the chrome devtools association file to silence 404s.
+    Returns:
+        JsonResponse: Empty JSON object
+    """
+    from django.http import JsonResponse
+    return JsonResponse({})

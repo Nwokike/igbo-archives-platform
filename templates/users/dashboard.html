@@ -40,7 +40,7 @@
         </button>
         <button type="button" class="tab" data-tab="reviews">
             <i class="fas fa-book"></i> Reviews
-            <span class="badge badge-primary ml-1">{{ my_book_reviews.count }}</span>
+            <span class="badge badge-primary ml-1">{{ my_book_recommendations.count }}</span>
         </button>
         <button type="button" class="tab" data-tab="archives">
             <i class="fas fa-archive"></i> Archives
@@ -158,38 +158,49 @@
 
     <div id="reviews" class="tab-panel hidden">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="font-serif text-xl font-bold">My Book Reviews</h3>
+            <h3 class="font-serif text-xl font-bold">My Book Recommendations</h3>
             <a href="{% url 'books:create' %}" class="btn-primary btn-sm">
-                <i class="fas fa-plus"></i> New Review
+                <i class="fas fa-plus"></i> Recommend a Book
             </a>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {% for review in my_book_reviews %}
+            {% for book in my_book_recommendations %}
             <div class="card card-hover">
-                {% if review.cover_image %}
-                <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" class="w-full h-40 object-cover">
+                {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}" class="w-full h-40 object-cover">
                 {% endif %}
                 <div class="card-body">
                     <h4 class="font-serif font-semibold mb-2">
-                        <a href="{% url 'books:detail' review.slug %}" class="hover:text-accent transition-colors">
-                            {{ review.review_title }}
+                        <a href="{% url 'books:detail' book.slug %}" class="hover:text-accent transition-colors">
+                            {{ book.title }}
                         </a>
                     </h4>
-                    <p class="text-sm text-text-muted mb-2">{{ review.book_title }} by {{ review.author }}</p>
+                    <p class="text-sm text-text-muted mb-2">{{ book.book_title }} by {{ book.author }}</p>
+                    {% if book.average_rating %}
                     <div class="text-accent mb-3">
                         {% for i in "12345"|make_list %}
-                        {% if forloop.counter <= review.rating %}<i class="fas fa-star"></i>{% else %}<i
-                                class="far fa-star"></i>{% endif %}
-                            {% endfor %}
+                        {% if forloop.counter <= book.average_rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                        {% endfor %}
                     </div>
-                    <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm">View Review</a>
+                    {% endif %}
+                    <p class="text-xs text-text-muted mb-3">
+                        Status: 
+                        {% if book.is_approved %}
+                        <span class="text-success">Approved</span>
+                        {% elif book.pending_approval %}
+                        <span class="text-warning">Pending Approval</span>
+                        {% else %}
+                        <span class="text-muted">Draft</span>
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'books:detail' book.slug %}" class="btn-secondary btn-sm">View Page</a>
                 </div>
             </div>
             {% empty %}
             <div class="col-span-full text-center py-12 text-text-muted">
                 <i class="fas fa-book text-4xl mb-4 opacity-30"></i>
-                <p class="mb-4">You haven't written any book reviews yet.</p>
-                <a href="{% url 'books:create' %}" class="btn-primary">Write a Book Review</a>
+                <p class="mb-4">You haven't recommended any books yet.</p>
+                <a href="{% url 'books:create' %}" class="btn-primary">Recommend a Book</a>
             </div>
             {% endfor %}
         </div>

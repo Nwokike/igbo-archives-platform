@@ -137,7 +137,7 @@
                             <label class="form-label">Category</label>
                             <select class="form-input" id="mediaCategory">
                                 <option value="">Select category...</option>
-                                {% for category in categories %}
+                                {% for category in archive_categories %}
                                 <option value="{{ category.id }}">{{ category.name }}</option>
                                 {% endfor %}
                             </select>

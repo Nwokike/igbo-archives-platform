@@ -5,6 +5,7 @@ Converts Editor.js JSON block format to HTML for display on detail pages.
 Includes XSS protection via bleach sanitization.
 """
 import json
+import ast
 from django import template
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -50,18 +51,39 @@ def render_editorjs(content):
     if not content:
         return ''
     
-    if isinstance(content, str):
+    # 1. Handle if it's already a Dict (JSONField)
+    if isinstance(content, dict):
+        pass # It's already good
+    
+    # 2. Handle if it's a String (TextField or malformed JSON)
+    elif isinstance(content, str):
         content = content.strip()
-        if content.startswith('<'):
-            return mark_safe(sanitize_html(content))
+        
+        # FIX: Handle specific case of escaped quotes like {\u0022time...
+        if '\\u0022' in content:
+            content = content.replace('\\u0022', '"')
+        
         try:
             content = json.loads(content)
         except (json.JSONDecodeError, ValueError):
-            return mark_safe(sanitize_html(content))
+            # Fallback: Try ast.literal_eval for python-dict-as-string
+            try:
+                content = ast.literal_eval(content)
+            except (ValueError, SyntaxError):
+                 # Fallback: Double encoded string?
+                 try:
+                     content = json.loads(json.loads(content))
+                 except:
+                     # If all parsing fails, do NOT show raw JSON. Return empty or warning.
+                     return '' 
+    else:
+        # Unknown type
+        return ''
     
+    # Ensure we now have a dict
     if not isinstance(content, dict):
-        return mark_safe(sanitize_html(str(content)))
-    
+        return ''
+
     blocks = content.get('blocks', [])
     if not blocks:
         return ''

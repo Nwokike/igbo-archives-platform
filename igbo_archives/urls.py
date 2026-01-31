@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.views.defaults import page_not_found, server_error, bad_request, permission_denied
 from core.sitemaps import StaticPagesSitemap, ArchiveSitemap, InsightSitemap, BookSitemap, UserProfileSitemap
+from core.views import chrome_devtools_association
 
 sitemaps = {
     'static': StaticPagesSitemap,
@@ -38,3 +39,7 @@ handler500 = 'core.views.server_error_handler'
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += [
+    path('.well-known/appspecific/com.chrome.devtools.json', chrome_devtools_association),
+]

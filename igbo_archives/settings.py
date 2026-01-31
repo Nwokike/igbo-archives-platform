@@ -391,12 +391,16 @@ CSP_CONNECT_SRC = (
     "https://challenges.cloudflare.com",
     "https://www.googletagmanager.com",
     "https://pagead2.googlesyndication.com",
-    "https://*.adtrafficquality.google"
+    "https://pagead2.googlesyndication.com",
+    "https://*.adtrafficquality.google",
+    "https://csi.gstatic.com",
 )
 CSP_FRAME_SRC = (
     "'self'",
     "https://challenges.cloudflare.com",
-    "https://googleads.g.doubleclick.net"
+    "https://googleads.g.doubleclick.net",
+    "https://*.google.com",
+    "https://*.adtrafficquality.google",
 )
 
 LOGGING = {

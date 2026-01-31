@@ -1,9 +1,9 @@
 {% if reviews %}
-{% for review in reviews %}
-<a href="{% url 'books:detail' review.slug %}" class="card card-hover group block">
-    {% if review.cover_image %}
+{% for book in reviews %}
+<a href="{% url 'books:detail' book.slug %}" class="card card-hover group block">
+    {% if book.cover_image %}
     <div class="overflow-hidden">
-        <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}" loading="lazy" decoding="async"
+        <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}" loading="lazy" decoding="async"
             class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300">
     </div>
     {% else %}
@@ -12,16 +12,18 @@
     </div>
     {% endif %}
     <div class="card-body">
-        <h3 class="font-serif text-lg font-semibold mb-1 group-hover:text-accent transition-colors line-clamp-2">{{review.book_title }}</h3>
-        <p class="text-sm text-text-muted mb-2">by {{ review.author }}</p>
+        <h3 class="font-serif text-lg font-semibold mb-1 group-hover:text-accent transition-colors line-clamp-2">{{ book.book_title }}</h3>
+        <p class="text-sm text-text-muted mb-2">by {{ book.author }}</p>
         <div class="text-accent mb-2">
+            {% with avg=book.average_rating|default:0 %}
             {% for i in "12345"|make_list %}
-            {% if forloop.counter <= review.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{%endif %}
-                {% endfor %}
+            {% if forloop.counter <= avg %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{%endif %}
+            {% endfor %}
+            {% endwith %}
         </div>
-        <h4 class="text-sm font-medium mb-2 line-clamp-1">{{ review.review_title }}</h4>
+        <h4 class="text-sm font-medium mb-2 line-clamp-1">{{ book.title }}</h4>
         <p class="text-xs text-text-muted">
-            <i class="fas fa-user"></i> {{ review.reviewer.full_name|default:review.reviewer.username }}
+            <i class="fas fa-user"></i> {{ book.added_by.get_full_name|default:book.added_by.username }}
         </p>
     </div>
 </a>
@@ -60,9 +62,9 @@
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i>
         <div>
-            <h4 class="font-semibold mb-1">No book reviews found</h4>
-            <p>Be the first to review a book! <a href="{% url 'books:create' %}"
-                    class="text-accent hover:underline font-medium">Write a review</a></p>
+            <h4 class="font-semibold mb-1">No book recommendations found</h4>
+            <p>Be the first to recommend a book! <a href="{% url 'books:create' %}"
+                    class="text-accent hover:underline font-medium">Add a recommendation</a></p>
         </div>
     </div>
 </div>

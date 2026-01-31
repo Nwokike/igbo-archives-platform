@@ -70,18 +70,6 @@
             </div>
         </header>
 
-        {% if insight.featured_image %}
-        <div class="w-full h-[400px] relative bg-gray-100">
-            <img src="{{ insight.featured_image.url }}" alt="{{ insight.alt_text|default:insight.title }}" 
-                 class="w-full h-full object-cover">
-            {% if insight.image_caption %}
-            <div class="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-2 text-xs text-center backdrop-blur-sm">
-                {{ insight.image_caption }}
-            </div>
-            {% endif %}
-        </div>
-        {% endif %}
-
         <div class="p-6 md:p-8 prose prose-lg prose-headings:font-serif prose-headings:text-dark-brown prose-a:text-accent max-w-none">
             {% if insight.content_json %}
                 {{ insight.content_json|render_editorjs }}

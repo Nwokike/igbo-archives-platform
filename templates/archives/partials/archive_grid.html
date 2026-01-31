@@ -28,7 +28,13 @@
         </div>
     </div>
     <div class="px-5 pb-4 flex items-center justify-between text-sm">
-        <span class="text-text-muted">{{ archive.created_at|date:"M d, Y" }}</span>
+        <span class="text-text-muted">
+            {% if archive.date_created %}
+                {{ archive.date_created|date:"Y" }}
+            {% elif archive.circa_date %}
+                {{ archive.circa_date }}
+            {% endif %}
+        </span>
         <span class="text-accent font-medium group-hover:translate-x-1 transition-transform">
             View <i class="fas fa-arrow-right text-xs ml-1"></i>
         </span>
@@ -41,7 +47,7 @@
     <nav class="pagination">
         {% if archives.has_previous %}
         <a class="page-link"
-            hx-get="{% url 'archives:list' %}?page={{ archives.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+            hx-get="{% url 'archives:list' %}?page={{ archives.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}"
             hx-target="#archiveGrid" hx-push-url="true">
             <i class="fas fa-chevron-left text-xs"></i>
         </a>
@@ -51,14 +57,14 @@
         {% if archives.number == num %}
         <span class="page-link active">{{ num }}</span>
         {% elif num > archives.number|add:'-3' and num < archives.number|add:'3' %} <a class="page-link"
-            hx-get="{% url 'archives:list' %}?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+            hx-get="{% url 'archives:list' %}?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}"
             hx-target="#archiveGrid" hx-push-url="true">{{ num }}</a>
             {% endif %}
             {% endfor %}
 
             {% if archives.has_next %}
             <a class="page-link"
-                hx-get="{% url 'archives:list' %}?page={{ archives.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                hx-get="{% url 'archives:list' %}?page={{ archives.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}"
                 hx-target="#archiveGrid" hx-push-url="true">
                 <i class="fas fa-chevron-right text-xs"></i>
             </a>

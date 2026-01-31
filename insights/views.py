@@ -11,9 +11,9 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
-from django.core.mail import send_mail  # Added
-from django.conf import settings        # Added
-from django.contrib.auth import get_user_model # Added
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from .models import InsightPost, EditSuggestion
 from archives.models import Archive, Category
@@ -161,16 +161,19 @@ def insight_create(request):
         category_id = request.POST.get('category')
         action = request.POST.get('action')
         
+        # Prepare context for potential error re-render
+        categories = Category.objects.filter(type='insight').order_by('name')
+        archive_categories = Category.objects.filter(type='archive').order_by('name')
+
         if not title or not content_json:
             messages.error(request, 'Please fill in all required fields.')
-            # Pass categories back to context on error
-            categories = Category.objects.filter(type='insight').order_by('name')
             context = {
                 'archive_title': archive_title,
                 'initial_title': title or initial_title,
                 'initial_content': content_json or initial_content,
                 'initial_excerpt': excerpt or initial_excerpt,
                 'categories': categories,
+                'archive_categories': archive_categories, # ADDED
             }
             return render(request, 'insights/create.html', context)
         
@@ -178,13 +181,13 @@ def insight_create(request):
             content_data = parse_editorjs_content(content_json)
         except ValidationError as e:
             messages.error(request, str(e))
-            categories = Category.objects.filter(type='insight').order_by('name')
             context = {
                 'archive_title': archive_title,
                 'initial_title': title,
                 'initial_content': content_json,
                 'initial_excerpt': excerpt,
                 'categories': categories,
+                'archive_categories': archive_categories, # ADDED
             }
             return render(request, 'insights/create.html', context)
         
@@ -244,7 +247,7 @@ def insight_create(request):
                         fail_silently=True
                     )
             except Exception as e:
-                logger.warning(f"Failed to send notification email: {e}")
+                pass # logger.warning(f"Failed to send notification email: {e}")
         # -----------------------------------
         
         return redirect('users:dashboard')
@@ -256,6 +259,8 @@ def insight_create(request):
         'initial_content': initial_content,
         'initial_excerpt': initial_excerpt,
         'categories': Category.objects.filter(type='insight').order_by('name'),
+        # ADDED: Archive categories for the media upload modal
+        'archive_categories': Category.objects.filter(type='archive').order_by('name'),
     }
     return render(request, 'insights/create.html', context)
 
@@ -280,7 +285,8 @@ def insight_edit(request, slug):
                 return render(request, 'insights/edit.html', {
                     'insight': insight,
                     'initial_content': content_json,
-                    'categories': Category.objects.filter(type='insight').order_by('name')
+                    'categories': Category.objects.filter(type='insight').order_by('name'),
+                    'archive_categories': Category.objects.filter(type='archive').order_by('name'), # ADDED
                 })
         
         action = request.POST.get('action')
@@ -316,8 +322,6 @@ def insight_edit(request, slug):
         else:
             insight.category = None
             
-        # Tags removed
-        
         insight.save()
         cache.delete('insight_categories')
         
@@ -359,7 +363,9 @@ def insight_edit(request, slug):
     return render(request, 'insights/edit.html', {
         'insight': insight,
         'initial_content': initial_content,
-        'categories': Category.objects.filter(type='insight').order_by('name')
+        'categories': Category.objects.filter(type='insight').order_by('name'),
+        # ADDED: Archive categories for the media upload modal
+        'archive_categories': Category.objects.filter(type='archive').order_by('name'),
     })
 
 
