@@ -114,7 +114,12 @@
                         <span class="badge badge-success ml-2">Published</span>
                         {% endif %}
                     </p>
-                    <a href="{% url 'insights:detail' insight.slug %}" class="btn-secondary btn-sm">View Post</a>
+                    <div class="flex gap-2">
+                        <a href="{% url 'insights:detail' insight.slug %}" class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                        <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary btn-sm flex-1 justify-center">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </div>
                 </div>
             </div>
             {% empty %}
@@ -143,7 +148,9 @@
                         Last edited: {{ draft.updated_at|date:"M d, Y" }}
                     </p>
                     <div class="flex gap-2">
-                        <a href="{% url 'insights:edit' draft.slug %}" class="btn-primary btn-sm">Continue Editing</a>
+                        <a href="{% url 'insights:edit' draft.slug %}" class="btn-primary btn-sm w-full justify-center">
+                            <i class="fas fa-pen mr-2"></i> Continue Editing
+                        </a>
                     </div>
                 </div>
             </div>
@@ -193,7 +200,13 @@
                         <span class="text-muted">Draft</span>
                         {% endif %}
                     </p>
-                    <a href="{% url 'books:detail' book.slug %}" class="btn-secondary btn-sm">View Page</a>
+                    
+                    <div class="flex gap-2">
+                        <a href="{% url 'books:detail' book.slug %}" class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                        <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex-1 justify-center">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </div>
                 </div>
             </div>
             {% empty %}

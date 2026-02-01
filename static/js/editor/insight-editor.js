@@ -4,6 +4,8 @@
     let editor = null;
     let selectedArchive = null;
     let openingBlockIndex = null;
+    // FIXED: Variable to track which button was clicked
+    let submitAction = null;
 
     document.addEventListener('DOMContentLoaded', function () {
         initEditor();
@@ -255,8 +257,7 @@
         const title = document.getElementById('mediaTitle').value.trim();
         const description = document.getElementById('mediaArchiveDescription').value.trim();
         const category = document.getElementById('mediaCategory').value;
-        // Tags removed
-
+        
         const originalAuthor = document.getElementById('mediaOriginalAuthor').value.trim();
         const copyrightHolder = document.getElementById('mediaCopyrightHolder').value.trim();
         const circaDate = document.getElementById('mediaCircaDate').value.trim();
@@ -280,7 +281,6 @@
         formData.append('title', title);
         formData.append('description', description);
         if (category) formData.append('category', category);
-        // Tags removed
         
         if (originalAuthor) formData.append('original_author', originalAuthor);
         if (copyrightHolder) formData.append('copyright_holder', copyrightHolder);
@@ -309,13 +309,12 @@
             .then(function (response) { return response.json(); })
             .then(function (data) {
                 if (data.success === 1) {
-                    // Create the COMPOSITE CAPTION for display
                     const finalDisplayCaption = formatCaption(caption, originalAuthor, copyrightHolder);
 
                     if (mediaType === 'image') {
                         editor.blocks.insert('image', {
                             file: { url: data.file.url },
-                            caption: finalDisplayCaption, // Use the composite caption
+                            caption: finalDisplayCaption,
                             alt: altText,
                             archive_id: data.archive_id,
                             withBorder: false,
@@ -346,8 +345,6 @@
 
     window.insertSelectedArchive = function () {
         if (selectedArchive) {
-            // Create the COMPOSITE CAPTION for existing archives
-            // Note: API now returns original_author and copyright_holder
             const finalDisplayCaption = formatCaption(
                 selectedArchive.caption || selectedArchive.title, 
                 selectedArchive.original_author, 
@@ -356,7 +353,7 @@
 
             editor.blocks.insert('image', {
                 file: { url: selectedArchive.thumbnail || selectedArchive.url || '' },
-                caption: finalDisplayCaption, // Use the composite caption
+                caption: finalDisplayCaption,
                 alt: selectedArchive.alt_text || selectedArchive.title || '',
                 archive_id: selectedArchive.id,
                 archive_slug: selectedArchive.slug || null,
@@ -374,8 +371,19 @@
     function initFormSubmission() {
         const form = document.getElementById('insightForm');
         if (form) {
+            // FIXED: Listen for specific button clicks to capture intent
+            const submitButtons = form.querySelectorAll('button[name="action"]');
+            submitButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    submitAction = this.value; // Store 'submit' or 'save'
+                });
+            });
+
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
+
+                // Default to 'save' if undefined
+                if (!submitAction) submitAction = 'save';
 
                 editor.save().then(function (outputData) {
                     if (!outputData.blocks || outputData.blocks.length === 0) {
@@ -402,6 +410,16 @@
                     if (images.length > 0 && !featuredInput.value) {
                         featuredInput.value = images[0].data.file.url;
                     }
+
+                    // FIXED: Inject the captured action into the form before submitting
+                    let actionInput = form.querySelector('input[name="action"]');
+                    if (!actionInput) {
+                        actionInput = document.createElement('input');
+                        actionInput.type = 'hidden';
+                        actionInput.name = 'action';
+                        form.appendChild(actionInput);
+                    }
+                    actionInput.value = submitAction;
 
                     form.submit();
                 }).catch(function (error) {

@@ -43,7 +43,7 @@ When citing sources, use FULL URLs:
 - For web: [Source](URL)
 
 Format archive links as styled cards when appropriate:
-📚 **Archive:** [Title]({SITE_URL}/archives/slug/) - Brief description
+答 **Archive:** [Title]({SITE_URL}/archives/slug/) - Brief description
 
 Be helpful, accurate, and celebrate Igbo culture."""
 
@@ -69,7 +69,7 @@ def get_database_context(query: str, max_results: int = 5) -> str:
             for a in archives:
                 full_url = f"{SITE_URL}/archives/{a.slug}/"
                 desc = a.description[:200] + '...' if len(a.description) > 200 else a.description
-                context_parts.append(f"- 📚 [{a.title}]({full_url}): {desc}")
+                context_parts.append(f"- 答 [{a.title}]({full_url}): {desc}")
         
         # Search insights
         from insights.models import InsightPost
@@ -85,7 +85,7 @@ def get_database_context(query: str, max_results: int = 5) -> str:
             for i in insights:
                 full_url = f"{SITE_URL}/insights/{i.slug}/"
                 excerpt_text = i.excerpt[:200] if i.excerpt else ''
-                context_parts.append(f"- 💡 [{i.title}]({full_url}): {excerpt_text}")
+                context_parts.append(f"- 庁 [{i.title}]({full_url}): {excerpt_text}")
         
         # Search books
         from books.models import BookRecommendation
@@ -101,7 +101,7 @@ def get_database_context(query: str, max_results: int = 5) -> str:
             context_parts.append("\n**Relevant Book Recommendations:**")
             for b in books:
                 full_url = f"{SITE_URL}/books/{b.slug}/"
-                context_parts.append(f"- 📚 [{b.book_title}]({full_url}) by {b.author}")
+                context_parts.append(f"- 答 [{b.book_title}]({full_url}) by {b.author}")
     
     except Exception as e:
         logger.error(f"Database context error: {e}")
@@ -114,8 +114,15 @@ def web_search(query: str, max_results: int = 3) -> str:
     try:
         from duckduckgo_search import DDGS
         
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
+        # Try default backend (api) first
+        try:
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, max_results=max_results))
+        except Exception as e:
+            logger.warning(f"DDG search default backend failed: {e}. Retrying with 'html' backend.")
+            # Fallback to 'html' backend which is more robust against API parsing errors
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, max_results=max_results, backend='html'))
         
         if not results:
             return ""
@@ -133,6 +140,7 @@ def web_search(query: str, max_results: int = 3) -> str:
         logger.warning("duckduckgo_search not installed")
         return ""
     except Exception as e:
+        # Final catch-all to ensure we never crash the chat
         logger.error(f"Web search error: {e}")
         return ""
 
@@ -326,7 +334,7 @@ class ChatService:
         return {'success': False, 'content': ''}
     
     def _gemini_chat(self, messages: list, context: str) -> dict:
-        """Chat with Gemini using fallback chain (2.5 Flash → 3 Flash)."""
+        """Chat with Gemini using fallback chain (2.5 Flash 竊3 Flash)."""
         
         for model_name in self.GEMINI_FALLBACK_CHAIN:
             for _ in range(len(key_manager.gemini_keys) if key_manager.has_gemini else 0):
@@ -388,4 +396,3 @@ class ChatService:
 
 
 chat_service = ChatService()
-

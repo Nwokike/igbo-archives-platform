@@ -380,10 +380,31 @@ CSP_SCRIPT_SRC = (
     "https://*.googlesyndication.com",
     "https://*.cloudflare.com",
     "https://*.adtrafficquality.google",
+    "https://paystack.co",
+    "https://paystack.com",
+    "https://*.paystack.co",
+    "https://*.paystack.com",
 )
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
+CSP_STYLE_SRC = (
+    "'self'",
+    "'unsafe-inline'",
+    "https://fonts.googleapis.com",
+    "https://paystack.co",
+    "https://paystack.com",
+    "https://*.paystack.co",
+    "https://*.paystack.com",
+)
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
-CSP_IMG_SRC = ("'self'", "data:", "blob:", "https:")
+CSP_IMG_SRC = (
+    "'self'",
+    "data:",
+    "blob:",
+    "https:",
+    "https://paystack.co",
+    "https://paystack.com",
+    "https://*.paystack.co",
+    "https://*.paystack.com",
+)
 CSP_CONNECT_SRC = (
     "'self'",
     "https://www.google-analytics.com",
@@ -394,6 +415,10 @@ CSP_CONNECT_SRC = (
     "https://pagead2.googlesyndication.com",
     "https://*.adtrafficquality.google",
     "https://csi.gstatic.com",
+    "https://paystack.co",
+    "https://paystack.com",
+    "https://*.paystack.co",
+    "https://*.paystack.com",
 )
 CSP_FRAME_SRC = (
     "'self'",
@@ -401,6 +426,10 @@ CSP_FRAME_SRC = (
     "https://googleads.g.doubleclick.net",
     "https://*.google.com",
     "https://*.adtrafficquality.google",
+    "https://paystack.co",
+    "https://paystack.com",
+    "https://*.paystack.co",
+    "https://*.paystack.com",
 )
 
 LOGGING = {

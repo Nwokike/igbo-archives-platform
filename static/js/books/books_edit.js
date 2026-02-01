@@ -2,6 +2,8 @@
     'use strict';
 
     var editor = null;
+    // FIXED: Variable to track which button was clicked
+    var submitAction = null;
 
     document.addEventListener('DOMContentLoaded', function () {
         editor = IgboEditor.init('editor', {
@@ -36,8 +38,22 @@
             }
         }
 
-        document.getElementById('bookForm').addEventListener('submit', function (e) {
+        const form = document.getElementById('bookForm');
+        if (!form) return;
+
+        // FIXED: Listen for specific button clicks to capture intent
+        const submitButtons = form.querySelectorAll('button[name="action"]');
+        submitButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                submitAction = this.value; // Store 'submit' or 'save'
+            });
+        });
+
+        form.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            // Default to 'save' (or whatever default behavior implies) if undefined
+            if (!submitAction) submitAction = 'save';
 
             editor.save().then(function (outputData) {
                 if (!outputData.blocks || outputData.blocks.length === 0) {
@@ -46,7 +62,18 @@
                 }
 
                 document.getElementById('content_json').value = JSON.stringify(outputData);
-                e.target.submit();
+                
+                // FIXED: Inject the captured action into the form before submitting
+                let actionInput = form.querySelector('input[name="action"]');
+                if (!actionInput) {
+                    actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    form.appendChild(actionInput);
+                }
+                actionInput.value = submitAction;
+
+                form.submit();
             }).catch(function (error) {
                 console.error('Error saving editor content:', error);
                 showToast('Error saving content. Please try again.', 'error');

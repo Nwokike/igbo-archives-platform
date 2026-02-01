@@ -1,14 +1,14 @@
 /**
  * AI Chat JavaScript
- * Handles chat messaging and text-to-speech (TTS)
+ * Handles chat messaging and Server-Side Text-to-Speech (YarnGPT/Gemini)
  */
 
 class AIChat {
     constructor(sessionId, endpoints) {
         this.sessionId = sessionId;
         this.endpoints = endpoints;
-        this.isSpeaking = false;
-        this.speechSynthesis = window.speechSynthesis;
+        this.currentAudio = null; // Store current audio object
+        this.isLoadingAudio = false;
 
         this.elements = {
             chatMessages: document.getElementById('chatMessages'),
@@ -32,7 +32,7 @@ class AIChat {
         this.elements.chatMessages.addEventListener('click', (e) => {
             const ttsBtn = e.target.closest('.tts-btn');
             if (ttsBtn) {
-                this.speakText(ttsBtn);
+                this.handleTTSClick(ttsBtn);
             }
         });
     }
@@ -50,9 +50,11 @@ class AIChat {
         const div = document.createElement('div');
         div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
 
-        const ttsButton = role === 'assistant' && this.speechSynthesis ?
-            `<button class="tts-btn mt-2 text-xs text-vintage-beaver hover:text-vintage-gold transition-colors" data-msg-id="${messageId}" title="Listen">
-                <i class="fas fa-volume-up"></i> Listen
+        // Only show Listen button for assistant
+        // FIXED: Added <span> around text to prevent "setting properties of null" error
+        const ttsButton = role === 'assistant' ?
+            `<button class="tts-btn mt-2 text-xs text-vintage-beaver hover:text-vintage-gold transition-colors flex items-center gap-1" data-msg-id="${messageId}" title="Listen to response">
+                <i class="fas fa-volume-up"></i> <span>Listen</span>
             </button>` : '';
 
         div.innerHTML = `
@@ -90,42 +92,115 @@ class AIChat {
         this.elements.typingIndicator.classList.remove('flex');
     }
 
-    // Text-to-Speech using Web Speech API (client-side, no storage)
-    speakText(button) {
-        if (this.isSpeaking) {
-            this.speechSynthesis.cancel();
-            this.isSpeaking = false;
-            button.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+    // New Server-Side TTS Logic (Replaces old speakText)
+    async handleTTSClick(button) {
+        const icon = button.querySelector('i');
+        const textSpan = button.querySelector('span');
+        const messageDiv = button.closest('.flex');
+        
+        // 1. If currently playing this exact message, stop it.
+        if (this.currentAudio && this.currentAudio.dataset.btnId === button.dataset.msgId) {
+            this.stopAudio();
             return;
         }
 
-        const messageDiv = button.closest('.flex');
+        // 2. If playing something else, stop that first.
+        if (this.currentAudio) {
+            this.stopAudio();
+        }
+
+        // 3. Get text content
         const rawContent = messageDiv?.dataset.rawContent ||
             button.parentElement.querySelector('.message-content')?.textContent || '';
 
-        if (!rawContent) return;
+        if (!rawContent || this.isLoadingAudio) return;
 
-        const utterance = new SpeechSynthesisUtterance(rawContent);
-        utterance.lang = 'en-NG'; // Nigerian English (closest to Igbo region)
-        utterance.rate = 0.9;
-        utterance.pitch = 1;
+        // 4. Loading State
+        this.isLoadingAudio = true;
+        const originalIconClass = icon.className;
+        icon.className = 'fas fa-spinner fa-spin';
+        if (textSpan) textSpan.textContent = 'Loading...';
+        button.disabled = true;
 
-        utterance.onstart = () => {
-            this.isSpeaking = true;
-            button.innerHTML = '<i class="fas fa-stop"></i> Stop';
-        };
+        try {
+            // 5. Call Server TTS Endpoint
+            const response = await fetch('/ai/tts/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    text: rawContent,
+                    language: 'default' // This tells backend to use default YarnGPT voice
+                }),
+            });
 
-        utterance.onend = () => {
-            this.isSpeaking = false;
-            button.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
-        };
+            const data = await response.json();
 
-        utterance.onerror = () => {
-            this.isSpeaking = false;
-            button.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
-        };
+            if (!data.success) {
+                throw new Error(data.error || 'TTS generation failed');
+            }
 
-        this.speechSynthesis.speak(utterance);
+            // 6. Play Audio
+            this.currentAudio = new Audio(data.url);
+            this.currentAudio.dataset.btnId = button.dataset.msgId;
+            
+            // UI updates during playback
+            this.currentAudio.addEventListener('play', () => {
+                icon.className = 'fas fa-stop';
+                if (textSpan) textSpan.textContent = 'Stop';
+                button.disabled = false;
+                this.isLoadingAudio = false;
+            });
+
+            this.currentAudio.addEventListener('ended', () => {
+                this.resetButton(button);
+                this.currentAudio = null;
+            });
+
+            this.currentAudio.addEventListener('error', () => {
+                console.error('Audio playback error');
+                this.resetButton(button);
+                this.currentAudio = null;
+                alert('Could not play audio.');
+            });
+
+            await this.currentAudio.play();
+
+        } catch (error) {
+            console.error('TTS Error:', error);
+            this.resetButton(button, originalIconClass);
+            this.isLoadingAudio = false;
+            // Simple notification if global toast isn't available
+            if (window.showToast) {
+                window.showToast('Audio generation failed', 'error');
+            } else {
+                alert('Failed to generate audio. Please try again.');
+            }
+        }
+    }
+
+    stopAudio() {
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio.currentTime = 0;
+            
+            // Find the button associated with this audio and reset it
+            const btnId = this.currentAudio.dataset.btnId;
+            const btn = document.querySelector(`.tts-btn[data-msg-id="${btnId}"]`);
+            if (btn) this.resetButton(btn);
+            
+            this.currentAudio = null;
+        }
+    }
+
+    resetButton(button, iconClass = 'fas fa-volume-up') {
+        const icon = button.querySelector('i');
+        const textSpan = button.querySelector('span');
+        if (icon) icon.className = iconClass;
+        if (textSpan) textSpan.textContent = 'Listen';
+        button.disabled = false;
     }
 
     async handleSubmit(e) {

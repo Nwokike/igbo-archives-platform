@@ -194,10 +194,9 @@
         {% include 'partials/prev_next_navigation.html' with previous=previous_archive next=next_archive %}
 
         {% include 'partials/recommended_carousel.html' with recommended=recommended %}
-
-        <hr class="divider">
-
+        
         <section class="mt-8">
+            <hr class="divider mb-8">
             <h3 class="font-serif text-xl font-semibold mb-6">Discussion</h3>
             {% render_comment_list for archive %}
             {% render_comment_form for archive %}
@@ -206,78 +205,7 @@
 
     <aside class="lg:col-span-4">
         <div class="sticky top-32 space-y-6">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="font-serif font-semibold mb-3">About the Uploader</h4>
-                    <div class="flex items-center gap-3 mb-3">
-                        {% if archive.uploaded_by.profile_picture %}
-                        <img src="{{ archive.uploaded_by.profile_picture.url }}"
-                            alt="{{ archive.uploaded_by.get_display_name }}"
-                            class="w-12 h-12 rounded-full object-cover">
-                        {% else %}
-                        <div class="avatar avatar-lg">
-                            {{ archive.uploaded_by.get_display_name|slice:":1"|upper }}
-                        </div>
-                        {% endif %}
-                        <div>
-                            <a href="{% url 'users:profile' archive.uploaded_by.username %}"
-                                class="hover:text-accent font-medium transition-colors">
-                                {{ archive.uploaded_by.get_display_name }}
-                            </a>
-                        </div>
-                    </div>
-                    {% if archive.uploaded_by.bio %}
-                    <p class="text-sm text-text-muted">{{ archive.uploaded_by.bio|truncatewords:30 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            {% if similar_archives %}
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="font-serif font-semibold mb-4">Similar Archives</h4>
-                    <div class="space-y-4">
-                        {% for item in similar_archives %}
-                        <a href="{{ item.get_absolute_url }}" class="flex gap-3 group">
-                            <div class="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden relative bg-secondary/10">
-                                {% if item.image or item.featured_image %}
-                                <img src="{% if item.image %}{{ item.image.url }}{% else %}{{ item.featured_image.url }}{% endif %}"
-                                    alt="{{ item.title }}"
-                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                    loading="lazy">
-                                {% else %}
-                                <div
-                                    class="w-full h-full flex items-center justify-center text-secondary group-hover:text-accent transition-colors">
-                                    {% if item.archive_type == 'audio' %}
-                                    <i class="fas fa-music"></i>
-                                    {% elif item.archive_type == 'video' %}
-                                    <i class="fas fa-video"></i>
-                                    {% elif item.archive_type == 'document' %}
-                                    <i class="fas fa-file-alt"></i>
-                                    {% else %}
-                                    <i class="fas fa-image"></i>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="flex-1 min-w-0 py-0.5">
-                                <h5
-                                    class="font-medium text-sm text-text group-hover:text-accent transition-colors line-clamp-2 leading-snug mb-1">
-                                    {{ item.title }}
-                                </h5>
-                                <div class="flex items-center text-xs text-text-muted">
-                                    <i class="far fa-calendar mr-1.5 opacity-70"></i>
-                                    {{ item.created_at|date:"M Y" }}
-                                </div>
-                            </div>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
+            
             {% if archive.original_author or archive.author or archive.circa_date or archive.date_created or archive.copyright_holder or archive.original_url or archive.original_identity_number %}
             <div class="card">
                 <div class="card-body">
@@ -359,6 +287,78 @@
                         </div>
                         {% endif %}
                     </dl>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold mb-3">About the Uploader</h4>
+                    <div class="flex items-center gap-3 mb-3">
+                        {% if archive.uploaded_by.profile_picture %}
+                        <img src="{{ archive.uploaded_by.profile_picture.url }}"
+                            alt="{{ archive.uploaded_by.get_display_name }}"
+                            class="w-12 h-12 rounded-full object-cover">
+                        {% else %}
+                        <div class="avatar avatar-lg">
+                            {{ archive.uploaded_by.get_display_name|slice:":1"|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'users:profile' archive.uploaded_by.username %}"
+                                class="hover:text-accent font-medium transition-colors">
+                                {{ archive.uploaded_by.get_display_name }}
+                            </a>
+                        </div>
+                    </div>
+                    {% if archive.uploaded_by.bio %}
+                    <p class="text-sm text-text-muted">{{ archive.uploaded_by.bio|truncatewords:30 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if similar_archives %}
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold mb-4">Similar Archives</h4>
+                    <div class="space-y-4">
+                        {% for item in similar_archives %}
+                        <a href="{{ item.get_absolute_url }}" class="flex gap-3 group">
+                            <div class="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden relative bg-secondary/10">
+                                {% if item.image or item.featured_image %}
+                                <img src="{% if item.image %}{{ item.image.url }}{% else %}{{ item.featured_image.url }}{% endif %}"
+                                    alt="{{ item.title }}"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    loading="lazy">
+                                {% else %}
+                                <div
+                                    class="w-full h-full flex items-center justify-center text-secondary group-hover:text-accent transition-colors">
+                                    {% if item.archive_type == 'audio' %}
+                                    <i class="fas fa-music"></i>
+                                    {% elif item.archive_type == 'video' %}
+                                    <i class="fas fa-video"></i>
+                                    {% elif item.archive_type == 'document' %}
+                                    <i class="fas fa-file-alt"></i>
+                                    {% else %}
+                                    <i class="fas fa-image"></i>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex-1 min-w-0 py-0.5">
+                                <h5
+                                    class="font-medium text-sm text-text group-hover:text-accent transition-colors line-clamp-2 leading-snug mb-1">
+                                    {{ item.title }}
+                                </h5>
+                                <div class="flex items-center text-xs text-text-muted">
+                                    <i class="far fa-calendar mr-1.5 opacity-70"></i>
+                                    {{ item.created_at|date:"M Y" }}
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
             {% endif %}

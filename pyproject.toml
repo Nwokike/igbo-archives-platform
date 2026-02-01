@@ -28,11 +28,10 @@ dependencies = [
     "google-genai>=1.0.0",
     "groq>=1.0.0",
     "gtts==2.5.1",
-    "duckduckgo-search==5.3.1",
+    "duckduckgo-search>=6.3.0",  
     "requests==2.31.0",
     "django-csp==3.8",
     "django-cleanup>=9.0.0",
-    "naijalingo-asr[audio]>=0.1.2",
     "djangorestframework>=3.15.0",
 ]
 

@@ -78,12 +78,23 @@
         {% endif %}
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4">
-            <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
-                <i class="fas fa-save"></i> Update Post
-            </button>
+            {% if not insight.is_approved and not insight.pending_approval %}
+                <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                    <i class="fas fa-paper-plane"></i> Submit for Approval
+                </button>
+                <button type="submit" name="action" value="save" class="btn-secondary btn-lg flex-1">
+                    <i class="fas fa-save"></i> Save Draft
+                </button>
+            {% else %}
+                <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                    <i class="fas fa-save"></i> Update Post
+                </button>
+            {% endif %}
+
             <a href="{% url 'insights:detail' insight.slug %}" class="btn-secondary btn-lg flex-1 text-center">
                 Cancel
             </a>
+            
             {% if not insight.is_approved or not insight.is_published %}
             <a href="{% url 'insights:delete' insight.slug %}"
                 class="btn-secondary btn-lg text-red-600 hover:bg-red-50 flex-1 text-center"
@@ -139,19 +150,16 @@
             <div id="upload-panel" class="tab-panel hidden space-y-6">
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <h4 class="text-md font-serif font-bold text-dark-brown mb-3 pb-2 border-b border-gray-200">1. Archive Details</h4>
-                    
                     <div class="grid grid-cols-1 gap-4">
                         <div class="form-group">
                             <label class="form-label form-label-required">Title</label>
                             <input type="text" class="form-input" id="mediaTitle" placeholder="Enter archive title">
                         </div>
-
                         <div class="form-group">
                             <label class="form-label form-label-required">Description</label>
                             <textarea class="form-textarea" id="mediaArchiveDescription" rows="3" placeholder="Detailed description of the archive context, history, or significance"></textarea>
                             <p class="form-help">Provide context, history, or significance.</p>
                         </div>
-
                         <div class="form-group">
                             <label class="form-label">Category</label>
                             <select class="form-input" id="mediaCategory">
@@ -166,38 +174,31 @@
 
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <h4 class="text-md font-serif font-bold text-dark-brown mb-3 pb-2 border-b border-gray-200">2. Source & Origin</h4>
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="form-group">
                             <label class="form-label">Original Author/Creator</label>
                             <input type="text" class="form-input" id="mediaOriginalAuthor" placeholder="e.g., Northcote Thomas">
                         </div>
-
                         <div class="form-group">
                             <label class="form-label">Copyright Holder</label>
                             <input type="text" class="form-input" id="mediaCopyrightHolder" placeholder="e.g., British Museum, Public Domain">
                         </div>
-
                         <div class="form-group">
                             <label class="form-label">Date (Approximate)</label>
                             <input type="text" class="form-input" id="mediaCircaDate" placeholder="e.g., c1910, around 1910s">
                         </div>
-
                         <div class="form-group">
                             <label class="form-label">Exact Date (if known)</label>
                             <input type="date" class="form-input" id="mediaDateCreated">
                         </div>
-
                         <div class="form-group">
                             <label class="form-label">Location</label>
                             <input type="text" class="form-input" id="mediaLocation" placeholder="e.g., Onitsha, Anambra State">
                         </div>
-
                         <div class="form-group">
                             <label class="form-label">Catalog/Ref Number</label>
                             <input type="text" class="form-input" id="mediaIdentityNumber" placeholder="e.g., BM-1234, NT.001">
                         </div>
-
                         <div class="form-group col-span-full">
                             <label class="form-label">Original Source URL</label>
                             <input type="url" class="form-input" id="mediaOriginalUrl" placeholder="https://museum.org/collection/item123">
@@ -207,7 +208,6 @@
 
                 <div class="bg-accent/5 p-4 rounded-lg border border-accent/20">
                     <h4 class="text-md font-serif font-bold text-dark-brown mb-3 pb-2 border-b border-accent/20">3. Media Item</h4>
-                    
                     <div class="form-group mb-4">
                         <label class="form-label form-label-required">Media Type</label>
                         <div class="flex gap-4">
@@ -225,13 +225,11 @@
                             </label>
                         </div>
                     </div>
-
                     <div class="form-group mb-4">
                         <label class="form-label form-label-required" id="fileInputLabel">Select Image File</label>
                         <input type="file" id="mediaFileInput" accept="image/*" class="w-full p-2 border border-border rounded bg-white">
                         <p class="form-help" id="fileInputHelp">Accepted: JPG, PNG, WEBP (Max 5MB)</p>
                     </div>
-
                     <div class="grid grid-cols-1 gap-4">
                         <div class="form-group">
                             <label class="form-label form-label-required">Caption</label>

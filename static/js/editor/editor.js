@@ -247,43 +247,62 @@
             const self = this;
             options = options || {};
 
+            // Dynamically build tools to prevent crashes if scripts are missing
+            const tools = {
+                paragraph: {
+                    inlineToolbar: true
+                }
+            };
+
+            if (window.Header) {
+                tools.header = {
+                    class: window.Header,
+                    inlineToolbar: true,
+                    config: {
+                        placeholder: 'Enter a heading',
+                        levels: [2, 3, 4],
+                        defaultLevel: 2
+                    }
+                };
+            }
+
+            if (window.List) {
+                tools.list = {
+                    class: window.List,
+                    inlineToolbar: true,
+                    config: {
+                        defaultStyle: 'unordered'
+                    }
+                };
+            }
+
+            if (window.Quote) {
+                tools.quote = {
+                    class: window.Quote,
+                    inlineToolbar: true,
+                    config: {
+                        quotePlaceholder: 'Enter a quote',
+                        captionPlaceholder: 'Quote author',
+                    },
+                };
+            }
+
+            if (window.LinkTool) {
+                tools.link = {
+                    class: window.LinkTool,
+                    config: { endpoint: '/api/fetch-url-meta/' }
+                };
+            }
+
+            if (window.Delimiter) tools.delimiter = { class: window.Delimiter };
+            if (window.Marker) tools.marker = { class: window.Marker, shortcut: 'CMD+SHIFT+M' };
+            if (window.CodeTool) tools.code = { class: window.CodeTool };
+
             const editorConfig = {
                 holder: holderId,
                 placeholder: options.placeholder || 'Start writing your content...',
                 autofocus: options.autofocus !== false,
-                tools: {
-                    header: {
-                        class: window.Header,
-                        inlineToolbar: true,
-                        config: {
-                            placeholder: 'Enter a heading',
-                            levels: [2, 3, 4],
-                            defaultLevel: 2
-                        }
-                    },
-                    list: {
-                        class: window.List,
-                        inlineToolbar: true,
-                        config: {
-                            defaultStyle: 'unordered'
-                        }
-                    },
-                    quote: {
-                        class: window.Quote,
-                        inlineToolbar: true,
-                        config: {
-                            quotePlaceholder: 'Enter a quote',
-                            captionPlaceholder: 'Quote author',
-                        },
-                    },
-                    link: {
-                        class: window.LinkTool,
-                        config: { endpoint: '/api/fetch-url-meta/' }
-                    },
-                    delimiter: { class: window.Delimiter },
-                    marker: { class: window.Marker, shortcut: 'CMD+SHIFT+M' },
-                    code: { class: window.CodeTool }
-                },
+                tools: tools,
                 data: options.data || {},
                 onChange: function (api, event) {
                     if (options.onChange) options.onChange(api, event);

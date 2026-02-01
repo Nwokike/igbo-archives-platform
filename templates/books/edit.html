@@ -147,12 +147,23 @@
         {% endif %}
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4">
-            <button type="submit" class="btn-primary btn-lg flex-1">
-                <i class="fas fa-save"></i> Update Review
-            </button>
+            {% if not review.is_approved and not review.pending_approval %}
+                <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                    <i class="fas fa-paper-plane"></i> Submit for Approval
+                </button>
+                <button type="submit" name="action" value="save" class="btn-secondary btn-lg flex-1">
+                    <i class="fas fa-save"></i> Save Draft
+                </button>
+            {% else %}
+                <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                    <i class="fas fa-save"></i> Update Review
+                </button>
+            {% endif %}
+
             <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-lg flex-1 text-center">
                 Cancel
             </a>
+            
             {% if not review.is_approved or not review.is_published %}
             <a href="{% url 'books:delete' review.slug %}"
                 class="btn-secondary btn-lg text-red-600 hover:bg-red-50 flex-1 text-center"
