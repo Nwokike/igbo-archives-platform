@@ -70,7 +70,8 @@ function markAllRead() {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
     })
         .then(function (response) { return response.json(); })

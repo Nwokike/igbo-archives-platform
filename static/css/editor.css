@@ -2,6 +2,130 @@
    EDITOR.JS CUSTOM STYLES
    ============================================ */
 
+/* ---- Custom Editor Toolbar ---- */
+.editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 10px 12px;
+    background: linear-gradient(to bottom, #fafafa, #f5f5f5);
+    border: 1px solid #E3CEB9;
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    align-items: center;
+}
+
+.dark .editor-toolbar {
+    background: linear-gradient(to bottom, #3D2817, #352315);
+    border-color: #6A2D01;
+}
+
+.editor-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #E3CEB9;
+    border-radius: 6px;
+    color: #3D2817;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.editor-toolbar-btn:hover {
+    background: #F0F0DA;
+    border-color: #B8974F;
+    color: #B8974F;
+    transform: translateY(-1px);
+}
+
+.editor-toolbar-btn:active {
+    transform: translateY(0);
+}
+
+.dark .editor-toolbar-btn {
+    background: #2A201A;
+    border-color: #6A2D01;
+    color: #EFE5D7;
+}
+
+.dark .editor-toolbar-btn:hover {
+    background: #3D2817;
+    border-color: #B8974F;
+    color: #B8974F;
+}
+
+.editor-toolbar-btn-primary {
+    background: #B8974F;
+    border-color: #B8974F;
+    color: white;
+}
+
+.editor-toolbar-btn-primary:hover {
+    background: #9D7A3E;
+    border-color: #9D7A3E;
+    color: white;
+}
+
+.dark .editor-toolbar-btn-primary {
+    background: #B8974F;
+    border-color: #B8974F;
+    color: white;
+}
+
+.editor-toolbar-btn-small {
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+.editor-toolbar-btn-small .editor-toolbar-label {
+    font-weight: 600;
+}
+
+.editor-toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: #E3CEB9;
+    margin: 0 6px;
+}
+
+.dark .editor-toolbar-divider {
+    background: #6A2D01;
+}
+
+.editor-toolbar-label {
+    font-weight: 500;
+}
+
+@media (max-width: 640px) {
+    .editor-toolbar {
+        gap: 3px;
+        padding: 8px;
+    }
+    
+    .editor-toolbar-btn {
+        padding: 6px 8px;
+        font-size: 13px;
+    }
+    
+    .editor-toolbar-label {
+        display: none;
+    }
+    
+    .editor-toolbar-divider {
+        margin: 0 4px;
+        height: 20px;
+    }
+}
+
+/* Update editor container to connect with toolbar */
+.editor-container {
+    border-radius: 0 0 12px 12px;
+}
+
 .editor-container {
     min-height: 400px;
     background: white;

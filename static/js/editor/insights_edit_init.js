@@ -1,9 +1,9 @@
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
-        var existingContent = document.getElementById('existing_content');
-        if (existingContent && existingContent.value) {
+        var existingContentScript = document.getElementById('existing_content');
+        if (existingContentScript && existingContentScript.textContent.trim()) {
             try {
-                var data = JSON.parse(existingContent.value);
+                var data = JSON.parse(existingContentScript.textContent);
                 if (data && data.blocks) {
                     setTimeout(function () {
                         if (window.IgboEditor && window.IgboEditor.instance) {
@@ -16,7 +16,7 @@
                 }
             } catch (e) {
                 console.log('Could not parse existing content as JSON, converting from HTML');
-                var htmlContent = existingContent.value;
+                var htmlContent = existingContentScript.textContent;
                 if (htmlContent && window.IgboEditor) {
                     var converted = window.IgboEditor.convertHtmlToEditorJS(htmlContent);
                     setTimeout(function () {

@@ -11,10 +11,17 @@
             autofocus: false
         });
 
-        var existingContent = document.getElementById('existing_content');
-        if (existingContent && existingContent.value) {
+        // Initialize the custom toolbar
+        setTimeout(function () {
+            if (window.EditorToolbar && editor) {
+                window.EditorToolbar.init(editor, 'editor', { hasImageTool: false });
+            }
+        }, 300);
+
+        var existingContentScript = document.getElementById('existing_content');
+        if (existingContentScript && existingContentScript.textContent.trim()) {
             try {
-                var data = JSON.parse(existingContent.value);
+                var data = JSON.parse(existingContentScript.textContent);
                 if (data && data.blocks) {
                     setTimeout(function () {
                         if (editor) {
@@ -26,7 +33,7 @@
                 }
             } catch (e) {
                 console.log('Converting HTML content');
-                var htmlContent = existingContent.value;
+                var htmlContent = existingContentScript.textContent;
                 if (htmlContent && window.IgboEditor) {
                     var converted = window.IgboEditor.convertHtmlToEditorJS(htmlContent);
                     setTimeout(function () {
@@ -44,7 +51,7 @@
         // FIXED: Listen for specific button clicks to capture intent
         const submitButtons = form.querySelectorAll('button[name="action"]');
         submitButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 submitAction = this.value; // Store 'submit' or 'save'
             });
         });
@@ -62,7 +69,7 @@
                 }
 
                 document.getElementById('content_json').value = JSON.stringify(outputData);
-                
+
                 // FIXED: Inject the captured action into the form before submitting
                 let actionInput = form.querySelector('input[name="action"]');
                 if (!actionInput) {

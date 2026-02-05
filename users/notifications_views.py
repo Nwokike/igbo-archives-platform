@@ -48,7 +48,15 @@ def notification_mark_all_read(request: HttpRequest):
     """Mark all notifications as read"""
     request.user.notifications.filter(unread=True).update(unread=False)
     
-    if request.htmx or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    # Check for AJAX/JSON request more robustly
+    is_ajax = (
+        request.htmx or
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
+        request.content_type == 'application/json' or
+        'application/json' in request.headers.get('Accept', '')
+    )
+    
+    if is_ajax:
         return JsonResponse({'status': 'success'})
     
     return redirect('users:notifications')

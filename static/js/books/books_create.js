@@ -12,13 +12,20 @@
             autofocus: false
         });
 
+        // Initialize the custom toolbar (without image tool for books)
+        setTimeout(function () {
+            if (window.EditorToolbar && editor) {
+                window.EditorToolbar.init(editor, 'editor', { hasImageTool: false });
+            }
+        }, 300);
+
         const form = document.getElementById('bookForm');
         if (!form) return;
 
         // FIXED: Listen for specific button clicks to capture intent
         const submitButtons = form.querySelectorAll('button[name="action"]');
         submitButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 submitAction = this.value; // Store 'submit' or 'save'
             });
         });

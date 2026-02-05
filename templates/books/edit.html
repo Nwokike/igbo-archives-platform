@@ -68,11 +68,11 @@
                 <div class="form-group">
                     <label for="rating" class="form-label">Rating <span class="text-red-500">*</span></label>
                     <select class="form-select" id="rating" name="rating" required>
-                        <option value="5" {% if review.rating == 5 %}selected{% endif %}>★★★★★ - Excellent</option>
-                        <option value="4" {% if review.rating == 4 %}selected{% endif %}>★★★★☆ - Very Good</option>
-                        <option value="3" {% if review.rating == 3 %}selected{% endif %}>★★★☆☆ - Good</option>
-                        <option value="2" {% if review.rating == 2 %}selected{% endif %}>★★☆☆☆ - Fair</option>
-                        <option value="1" {% if review.rating == 1 %}selected{% endif %}>★☆☆☆☆ - Poor</option>
+                        <option value="5" {% if review.rating==5 %}selected{% endif %}>★★★★★ - Excellent</option>
+                        <option value="4" {% if review.rating==4 %}selected{% endif %}>★★★★☆ - Very Good</option>
+                        <option value="3" {% if review.rating==3 %}selected{% endif %}>★★★☆☆ - Good</option>
+                        <option value="2" {% if review.rating==2 %}selected{% endif %}>★★☆☆☆ - Fair</option>
+                        <option value="1" {% if review.rating==1 %}selected{% endif %}>★☆☆☆☆ - Poor</option>
                     </select>
                 </div>
 
@@ -80,7 +80,7 @@
                     <label class="form-label">Review Content <span class="text-red-500">*</span></label>
                     <div id="editor" class="editor-container"></div>
                     <input type="hidden" id="content_json" name="content_json" required>
-                    <input type="hidden" id="existing_content" value="{{ review.content_json|escapejs }}">
+                    <script id="existing_content" type="application/json">{{ initial_content|safe }}</script>
                 </div>
             </div>
         </div>
@@ -148,22 +148,22 @@
 
         <div class="flex flex-col sm:flex-row gap-3 pt-4">
             {% if not review.is_approved and not review.pending_approval %}
-                <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
-                    <i class="fas fa-paper-plane"></i> Submit for Approval
-                </button>
-                <button type="submit" name="action" value="save" class="btn-secondary btn-lg flex-1">
-                    <i class="fas fa-save"></i> Save Draft
-                </button>
+            <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                <i class="fas fa-paper-plane"></i> Submit for Approval
+            </button>
+            <button type="submit" name="action" value="save" class="btn-secondary btn-lg flex-1">
+                <i class="fas fa-save"></i> Save Draft
+            </button>
             {% else %}
-                <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
-                    <i class="fas fa-save"></i> Update Review
-                </button>
+            <button type="submit" name="action" value="submit" class="btn-primary btn-lg flex-1">
+                <i class="fas fa-save"></i> Update Review
+            </button>
             {% endif %}
 
             <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-lg flex-1 text-center">
                 Cancel
             </a>
-            
+
             {% if not review.is_approved or not review.is_published %}
             <a href="{% url 'books:delete' review.slug %}"
                 class="btn-secondary btn-lg text-red-600 hover:bg-red-50 flex-1 text-center"
@@ -184,5 +184,6 @@
 <script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
 <script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
 <script src="{% static 'js/editor/editor.js' %}"></script>
+<script src="{% static 'js/editor/editor-toolbar.js' %}"></script>
 <script src="{% static 'js/books/books_edit.js' %}"></script>
 {% endblock %}

@@ -23,6 +23,10 @@
             },
             onReady: function () {
                 console.log('Insight editor ready');
+                // Initialize the custom toolbar
+                if (window.EditorToolbar && editor) {
+                    window.EditorToolbar.init(editor, 'editor', { hasImageTool: true });
+                }
             }
         });
     }
@@ -235,29 +239,29 @@
         let parts = [];
         // 1. The main caption
         if (caption && caption.trim()) parts.push(caption.trim());
-        
+
         // 2. The metadata (Author / Copyright)
         let meta = [];
         if (author && author.trim()) meta.push('Photo by ' + author.trim());
         if (copyright && copyright.trim()) meta.push('© ' + copyright.trim());
-        
+
         if (meta.length > 0) {
             // Add a separator if there was a caption
             let separator = parts.length > 0 ? ' | ' : '';
             parts.push(separator + meta.join(' '));
         }
-        
+
         return parts.join('');
     }
 
     window.uploadAndInsertMedia = function () {
         const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
         const file = document.getElementById('mediaFileInput').files[0];
-        
+
         const title = document.getElementById('mediaTitle').value.trim();
         const description = document.getElementById('mediaArchiveDescription').value.trim();
         const category = document.getElementById('mediaCategory').value;
-        
+
         const originalAuthor = document.getElementById('mediaOriginalAuthor').value.trim();
         const copyrightHolder = document.getElementById('mediaCopyrightHolder').value.trim();
         const circaDate = document.getElementById('mediaCircaDate').value.trim();
@@ -281,7 +285,7 @@
         formData.append('title', title);
         formData.append('description', description);
         if (category) formData.append('category', category);
-        
+
         if (originalAuthor) formData.append('original_author', originalAuthor);
         if (copyrightHolder) formData.append('copyright_holder', copyrightHolder);
         if (circaDate) formData.append('circa_date', circaDate);
@@ -346,8 +350,8 @@
     window.insertSelectedArchive = function () {
         if (selectedArchive) {
             const finalDisplayCaption = formatCaption(
-                selectedArchive.caption || selectedArchive.title, 
-                selectedArchive.original_author, 
+                selectedArchive.caption || selectedArchive.title,
+                selectedArchive.original_author,
                 selectedArchive.copyright_holder
             );
 
@@ -361,7 +365,7 @@
                 stretched: false,
                 withBackground: true
             }, {}, openingBlockIndex, true, true);
-            
+
             closeImageModal();
             showToast('Image inserted successfully', 'success');
             IgboEditor.updateFeaturedImageOptions();
@@ -374,7 +378,7 @@
             // FIXED: Listen for specific button clicks to capture intent
             const submitButtons = form.querySelectorAll('button[name="action"]');
             submitButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     submitAction = this.value; // Store 'submit' or 'save'
                 });
             });
