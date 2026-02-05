@@ -355,12 +355,12 @@ wheels = [
 
 [[package]]
 name = "django-allauth"
-version = "0.63.6"
+version = "0.63.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/6f/3ccc016b901d7e5a1178e78671048f889d967091586cdce2cd9d590da407/django_allauth-0.63.6.tar.gz", hash = "sha256:f15f49defb09e0604dad5214e53a69a1f723cb03176bb115c8930bcd19b91749", size = 1082450, upload-time = "2024-07-12T20:49:32.229Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e2/aa/74fc60d53f89670b16b843eb659312e805d74d3967968145d6e46dec51c7/django-allauth-0.63.0.tar.gz", hash = "sha256:fbe0148c6258eac44e701a8f36e0950b5d0b1c60bde3e178683a4239f49311fc", size = 1074929, upload-time = "2024-05-14T17:05:54.336Z" }
 
 [[package]]
 name = "django-cleanup"
@@ -717,7 +717,7 @@ requires-dist = [
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.4.0" },
     { name = "cryptography", specifier = "==42.0.5" },
     { name = "django", specifier = ">=5.2,<6.0" },
-    { name = "django-allauth", specifier = "==0.63.6" },
+    { name = "django-allauth", specifier = "==0.63.0" },
     { name = "django-cleanup", specifier = ">=9.0.0" },
     { name = "django-csp", specifier = "==3.8" },
     { name = "django-dbbackup", specifier = "==4.1.0" },

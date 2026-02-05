@@ -36,7 +36,7 @@ class TTSService:
     
     # Nigerian voices available in YarnGPT
     YARNGPT_VOICES = {
-        'default': 'Idera',   
+        'default': 'Adaora',   
         'female_igbo': 'Chinenye',
         'female_warm': 'Adaora', 
         'female_melodic': 'Idera',
