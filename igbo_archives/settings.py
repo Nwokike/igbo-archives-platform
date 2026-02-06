@@ -120,10 +120,24 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-        'ATOMIC_REQUESTS': True,
+        # NOTE: ATOMIC_REQUESTS removed - conflicts with IMMEDIATE transaction mode
         'OPTIONS': {
-            'timeout': 20,
-            'init_command': 'PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=5000;',
+            # Wait up to 30 seconds for database lock to release
+            'timeout': 30,
+            # Django 5.1+: IMMEDIATE mode acquires write lock at transaction start,
+            # ensuring timeout is respected instead of failing instantly
+            'transaction_mode': 'IMMEDIATE',
+            # PRAGMAs executed on every new connection:
+            # - journal_mode=WAL: Allows concurrent reads during writes (persists in DB file)
+            # - synchronous=NORMAL: Faster writes, safe with WAL (per-connection)
+            # - cache_size: 64MB cache for faster queries (per-connection)
+            # - foreign_keys: Enforce referential integrity (per-connection)
+            'init_command': (
+                "PRAGMA journal_mode=WAL;"
+                "PRAGMA synchronous=NORMAL;"
+                "PRAGMA cache_size=-64000;"
+                "PRAGMA foreign_keys=ON;"
+            ),
         }
     }
 }

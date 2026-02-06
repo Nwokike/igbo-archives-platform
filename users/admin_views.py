@@ -86,10 +86,21 @@ def reject_book_review(request, pk):
 # --- NEW: Archive Actions ---
 @staff_member_required
 def approve_archive(request, pk):
-    archive = get_object_or_404(Archive, pk=pk)
-    archive.is_approved = True
-    archive.save()
-    # Notify user (You may need to ensure notifications_utils handles 'archive')
+    # Use update() to avoid triggering the full save() method which includes
+    # image compression that can hold database locks for too long
+    from django.utils import timezone
+    updated = Archive.objects.filter(pk=pk, is_approved=False).update(
+        is_approved=True,
+        updated_at=timezone.now()
+    )
+    
+    if not updated:
+        messages.warning(request, 'Archive not found or already approved.')
+        return redirect('users:moderation_dashboard')
+    
+    # Fetch for notification after the update completes
+    archive = Archive.objects.get(pk=pk)
+    
     try:
         send_post_approved_notification(archive, 'archive')
     except Exception:
