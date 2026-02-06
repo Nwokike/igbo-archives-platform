@@ -62,10 +62,13 @@ class ArchiveSerializer(serializers.ModelSerializer):
             'item_count',
             'image', 'video', 'audio', 'document', 'featured_image',
             'category', 'author', 'original_author', 'uploaded_by',
-            'category', 'author', 'original_author', 'uploaded_by',
-            'items',  # Added items here
+            'items',
+            'tags',
             'views_count', 'is_featured', 'created_at', 'updated_at'
         ]
+
+    def get_tags(self, obj):
+        return list(obj.tags.names()) if hasattr(obj, 'tags') else []
 
 class ArchiveListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views."""
@@ -152,16 +155,87 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
 
         return archive
 
+
+# Book Recommendation Serializers
+class BookRecommendationListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for book list views."""
+    added_by_name = serializers.CharField(source='added_by.get_display_name', read_only=True)
+    
+    class Meta:
+        model = BookRecommendation
+        fields = [
+            'id', 'book_title', 'author', 'slug', 'title',
+            'cover_image', 'publication_year', 'external_url',
+            'added_by_name', 'average_rating', 'rating_count', 'created_at'
+        ]
+
+
 class BookRecommendationSerializer(serializers.ModelSerializer):
+    """Full serializer for book detail views."""
     added_by = UserSerializer(read_only=True)
     
     class Meta:
         model = BookRecommendation
         fields = [
-            'id', 'book_title', 'author', 'slug',
-            'title', 'cover_image', 'publication_year',
-            'added_by', 'average_rating', 'rating_count', 'created_at'
+            'id', 'book_title', 'author', 'isbn', 'slug',
+            'title', 'content_json', 'external_url',
+            'cover_image', 'cover_image_back', 'alternate_cover',
+            'publisher', 'publication_year',
+            'added_by', 'average_rating', 'rating_count',
+            'is_published', 'is_approved', 'pending_approval',
+            'created_at', 'updated_at'
         ]
+
+
+class BookRecommendationCreateSerializer(serializers.ModelSerializer):
+    """Write-serializer for creating/updating book recommendations."""
+    
+    class Meta:
+        model = BookRecommendation
+        fields = [
+            'book_title', 'author', 'isbn', 'external_url',
+            'title', 'content_json',
+            'cover_image', 'cover_image_back', 'alternate_cover',
+            'publisher', 'publication_year'
+        ]
+    
+    def create(self, validated_data):
+        from django.utils.text import slugify
+        import uuid
+        
+        # Generate unique slug
+        title = validated_data.get('title', validated_data.get('book_title', ''))
+        base_slug = slugify(title)[:200]
+        slug = base_slug
+        counter = 1
+        while BookRecommendation.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+            if counter > 100:
+                slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+                break
+        
+        validated_data['slug'] = slug
+        return super().create(validated_data)
+
+
+class UserBookRatingSerializer(serializers.ModelSerializer):
+    """Serializer for user book ratings."""
+    user = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = UserBookRating
+        fields = ['id', 'user', 'rating', 'review_text', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+
+
+class UserBookRatingCreateSerializer(serializers.ModelSerializer):
+    """Write-serializer for creating/updating ratings."""
+    
+    class Meta:
+        model = UserBookRating
+        fields = ['rating', 'review_text']
+
 
 class InsightPostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)

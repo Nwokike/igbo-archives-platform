@@ -3,13 +3,13 @@
  * Handles caching, offline support, and push notifications
  */
 
-const CACHE_VERSION = 'v1.5.0';
+const CACHE_VERSION = 'v1.6.0';
 const STATIC_CACHE_NAME = 'static-cache-' + CACHE_VERSION;
 const DYNAMIC_CACHE_NAME = 'dynamic-cache-' + CACHE_VERSION;
 const MAX_DYNAMIC_CACHE_ITEMS = 50;
 
+// Only cache static assets - NO HTML pages
 const staticAssets = [
-    '/',
     '/offline/',
     '/static/css/tailwind.output.css',
     '/static/css/style.css',
@@ -28,10 +28,15 @@ const EXCLUDE_FROM_CACHE = [
 ];
 
 function shouldCache(url) {
-    // Never cache HTML pages - they contain user-specific content
-    if (!url.includes('/static/') && !url.includes('.css') && !url.includes('.js') && !url.includes('.png') && !url.includes('.jpg') && !url.includes('.woff')) {
-        return false;
-    }
+    // Only cache static assets - never HTML pages
+    const isStatic = url.includes('/static/') ||
+        url.includes('.css') ||
+        url.includes('.js') ||
+        url.includes('.png') ||
+        url.includes('.jpg') ||
+        url.includes('.woff') ||
+        url.includes('.woff2');
+    if (!isStatic) return false;
     return !EXCLUDE_FROM_CACHE.some(pattern => url.includes(pattern));
 }
 

@@ -89,6 +89,33 @@ class ArchiveForm(forms.ModelForm):
                 field.widget.attrs['class'] = f'form-textarea {current_class}'.strip()
             elif isinstance(field.widget, forms.Select):
                 field.widget.attrs['class'] = f'form-select {current_class}'.strip()
+    
+    def clean_original_identity_number(self):
+        """Validate that IDNO is unique, with graceful error message."""
+        idno = self.cleaned_data.get('original_identity_number', '').strip()
+        
+        if not idno:
+            return idno
+        
+        # Find existing archive with same IDNO
+        existing = Archive.objects.filter(original_identity_number__iexact=idno)
+        
+        # Exclude current instance if editing
+        if self.instance and self.instance.pk:
+            existing = existing.exclude(pk=self.instance.pk)
+        
+        existing = existing.first()
+        
+        if existing:
+            # Get URL for existing archive
+            from django.urls import reverse
+            url = existing.get_absolute_url()
+            raise ValidationError(
+                f'An archive with ID Number "{idno}" already exists. '
+                f'<a href="{url}" target="_blank" class="text-accent underline">View existing archive</a>'
+            )
+        
+        return idno
 
 
 class ArchiveItemForm(forms.ModelForm):

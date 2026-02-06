@@ -9,11 +9,12 @@ from rest_framework.authentication import TokenAuthentication, SessionAuthentica
 from django.db.models import Q, Avg, Count
 
 from archives.models import Archive, Category
-from books.models import BookRecommendation
+from books.models import BookRecommendation, UserBookRating
 from .serializers import (
     CategorySerializer,
     ArchiveListSerializer, ArchiveSerializer, ArchiveCreateSerializer,
-    BookRecommendationSerializer
+    BookRecommendationListSerializer, BookRecommendationSerializer, BookRecommendationCreateSerializer,
+    UserBookRatingSerializer, UserBookRatingCreateSerializer
 )
 
 
@@ -35,7 +36,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for archive categories.
     GET /api/v1/categories/ - List all categories
-    GET /api/v1/categories/{id}/ - Category detail
+    GET /api/v1/categories/{slug}/ - Category detail
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -113,10 +114,18 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
     
     GET /api/v1/books/ - List approved books
     GET /api/v1/books/{slug}/ - Book detail
+    POST /api/v1/books/ - Create book recommendation (auth required)
+    PUT/PATCH /api/v1/books/{slug}/ - Update book (owner only)
+    DELETE /api/v1/books/{slug}/ - Delete book (owner only)
+    
+    Special endpoints:
+    GET /api/v1/books/top_rated/ - Top rated books
+    POST /api/v1/books/{slug}/rate/ - Rate a book (auth required)
+    GET /api/v1/books/{slug}/ratings/ - Get book ratings
     """
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     lookup_field = 'slug'
-    serializer_class = BookRecommendationSerializer
     
     def get_queryset(self):
         queryset = BookRecommendation.objects.filter(
@@ -137,9 +146,51 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
         
         return queryset.select_related('added_by')
     
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return BookRecommendationListSerializer
+        if self.action in ['create', 'update', 'partial_update']:
+            return BookRecommendationCreateSerializer
+        return BookRecommendationSerializer
+    
+    def perform_create(self, serializer):
+        """Create with pending approval status."""
+        serializer.save(
+            added_by=self.request.user,
+            is_published=False,
+            is_approved=False,
+            pending_approval=True
+        )
+    
     @action(detail=False, methods=['get'])
     def top_rated(self, request):
         """Get top-rated books."""
-        top = self.get_queryset().order_by('-average_rating')[:10]
-        serializer = self.get_serializer(top, many=True)
+        top = self.get_queryset().order_by('-avg_rating')[:10]
+        serializer = BookRecommendationListSerializer(top, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def rate(self, request, slug=None):
+        """Rate a book (create or update rating)."""
+        book = self.get_object()
+        serializer = UserBookRatingCreateSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            rating, created = UserBookRating.objects.update_or_create(
+                book=book,
+                user=request.user,
+                defaults=serializer.validated_data
+            )
+            response_serializer = UserBookRatingSerializer(rating)
+            status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            return Response(response_serializer.data, status=status_code)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['get'])
+    def ratings(self, request, slug=None):
+        """Get all ratings for a book."""
+        book = self.get_object()
+        ratings = book.ratings.select_related('user').order_by('-created_at')
+        serializer = UserBookRatingSerializer(ratings, many=True)
         return Response(serializer.data)

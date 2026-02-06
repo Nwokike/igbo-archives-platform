@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Create Book Review - Igbo Archives{% endblock %}
+{% block title %}Recommend a Book - Igbo Archives{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editor.css' %}">
@@ -10,8 +10,8 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="mb-8">
-        <h1 class="font-serif text-display-lg text-dark-brown mb-2">Create Book Review</h1>
-        <p class="text-vintage-beaver">Share your review of a book related to Igbo culture and history.</p>
+        <h1 class="font-serif text-display-lg text-dark-brown mb-2">Recommend a Book</h1>
+        <p class="text-vintage-beaver">Share a book related to Igbo culture, history, or heritage.</p>
     </div>
 
     <form method="post" enctype="multipart/form-data" id="bookForm" class="space-y-6">
@@ -34,7 +34,7 @@
                         placeholder="Book author name">
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="form-group">
                         <label for="publisher" class="form-label">Publisher</label>
                         <input type="text" class="form-input" id="publisher" name="publisher"
@@ -45,9 +45,18 @@
                         <input type="number" class="form-input" id="publication_year" name="publication_year" min="1000"
                             max="2100" placeholder="Publication year">
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="form-group">
-                        <label for="isbn" class="form-label">ISBN</label>
-                        <input type="text" class="form-input" id="isbn" name="isbn" placeholder="ISBN number">
+                        <label for="isbn" class="form-label">ISBN/ASIN</label>
+                        <input type="text" class="form-input" id="isbn" name="isbn" placeholder="ISBN or ASIN number">
+                    </div>
+                    <div class="form-group">
+                        <label for="external_url" class="form-label">Book URL</label>
+                        <input type="url" class="form-input" id="external_url" name="external_url"
+                            placeholder="https://amazon.com/...">
+                        <p class="form-help">Link to book info or purchase page</p>
                     </div>
                 </div>
             </div>
@@ -55,30 +64,18 @@
 
         <div class="card">
             <div class="card-header">
-                <h2 class="font-serif text-lg font-semibold">Your Review</h2>
+                <h2 class="font-serif text-lg font-semibold">Your Recommendation</h2>
             </div>
             <div class="card-body space-y-4">
                 <div class="form-group">
-                    <label for="review_title" class="form-label">Review Title <span
+                    <label for="recommendation_title" class="form-label">Recommendation Title <span
                             class="text-red-500">*</span></label>
-                    <input type="text" class="form-input" id="review_title" name="review_title" required
-                        placeholder="A catchy title for your review">
+                    <input type="text" class="form-input" id="recommendation_title" name="recommendation_title" required
+                        placeholder="A catchy title for your recommendation">
                 </div>
 
                 <div class="form-group">
-                    <label for="rating" class="form-label">Rating <span class="text-red-500">*</span></label>
-                    <select class="form-select" id="rating" name="rating" required>
-                        <option value="">Select rating...</option>
-                        <option value="5">★★★★★ - Excellent</option>
-                        <option value="4">★★★★☆ - Very Good</option>
-                        <option value="3">★★★☆☆ - Good</option>
-                        <option value="2">★★☆☆☆ - Fair</option>
-                        <option value="1">★☆☆☆☆ - Poor</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Review Content <span class="text-red-500">*</span></label>
+                    <label class="form-label">Why You Recommend This Book <span class="text-red-500">*</span></label>
                     <div id="editor" class="editor-container"></div>
                     <input type="hidden" id="content_json" name="content_json" required>
                 </div>
@@ -102,14 +99,14 @@
                         <label for="cover_image_back" class="form-label">Back Cover</label>
                         <input type="file" class="form-input" id="cover_image_back" name="cover_image_back"
                             accept=".jpg,.jpeg,.png,.webp">
-                        <p class="form-help">Max 5MB</p>
+                        <p class="form-help">Optional, max 5MB</p>
                     </div>
 
                     <div class="form-group">
                         <label for="alternate_cover" class="form-label">Alternate Edition</label>
                         <input type="file" class="form-input" id="alternate_cover" name="alternate_cover"
                             accept=".jpg,.jpeg,.png,.webp">
-                        <p class="form-help">Max 5MB</p>
+                        <p class="form-help">Optional, max 5MB</p>
                     </div>
                 </div>
             </div>

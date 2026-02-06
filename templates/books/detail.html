@@ -3,20 +3,21 @@
 {% load threadedcomments_tags %}
 {% load editorjs_renderer %}
 
-{% block title %}{{ review.title }} - Book Reviews{% endblock %}
+{% block title %}{{ book.book_title }} - Recommended Books{% endblock %}
 
-{% block meta_description %}{{ review.book_title }} - {{ review.content|striptags|truncatewords:25 }}{% endblock %}
+{% block meta_description %}{{ book.book_title }} by {{ book.author }} - {{ book.content|striptags|truncatewords:25 }}{%
+endblock %}
 
-{% block og_title %}{{ review.title }} | Igbo Archives{% endblock %}
-{% block og_description %}{{ review.content|striptags|truncatewords:50 }}{% endblock %}
-{% if review.cover_image %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ review.cover_image.url }}{% endblock %}
-{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ review.cover_image.url }}{% endblock %}
+{% block og_title %}{{ book.book_title }} | Igbo Archives{% endblock %}
+{% block og_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
+{% if book.cover_image %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}{% endblock %}
 {% endif %}
 {% block og_type %}article{% endblock %}
 
-{% block twitter_title %}{{ review.title }} | Igbo Archives{% endblock %}
-{% block twitter_description %}{{ review.content|striptags|truncatewords:50 }}{% endblock %}
+{% block twitter_title %}{{ book.book_title }} | Igbo Archives{% endblock %}
+{% block twitter_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editor.css' %}">
@@ -26,32 +27,35 @@
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <article class="lg:col-span-8">
         <header class="mb-6">
-            <h1 class="font-serif text-display-lg text-dark-brown mb-2">{{ review.title }}</h1>
-            <h2 class="text-xl text-vintage-beaver mb-4">{{ review.book_title }}</h2>
+            <h1 class="font-serif text-display-lg text-dark-brown mb-2">{{ book.book_title }}</h1>
+            <p class="text-xl text-vintage-beaver mb-4">by {{ book.author }}</p>
 
+            {% if book.average_rating %}
             <div class="flex items-center gap-4 mb-4">
                 <div class="text-vintage-gold text-xl">
-                    {% with avg=review.average_rating|default:0 %}
+                    {% with avg=book.average_rating %}
                     {% for i in "12345"|make_list %}
                     {% if forloop.counter <= avg %}★{% else %}☆{% endif %} {% endfor %} <span
-                        class="text-sm text-vintage-beaver ml-1">({{ avg|floatformat:1 }}/5)</span>
+                        class="text-sm text-vintage-beaver ml-1">({{ avg|floatformat:1 }}/5 from {{ book.rating_count }}
+                        rating{{ book.rating_count|pluralize }})</span>
                         {% endwith %}
                 </div>
             </div>
+            {% endif %}
 
             <div class="text-sm text-vintage-beaver">
-                Reviewed by
-                <a href="{% url 'users:profile' review.added_by.username %}"
-                    class="text-vintage-gold hover:underline font-medium">{{ review.added_by.get_display_name }}</a>
-                on {{ review.created_at|date:"F d, Y" }}
+                Recommended by
+                <a href="{% url 'users:profile' book.added_by.username %}"
+                    class="text-vintage-gold hover:underline font-medium">{{ book.added_by.get_display_name }}</a>
+                on {{ book.created_at|date:"F d, Y" }}
             </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {% if review.cover_image %}
+            {% if book.cover_image %}
             <div class="md:col-span-1">
-                <a href="{{ review.cover_image.url }}" target="_blank" rel="noopener noreferrer" class="block">
-                    <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}"
+                <a href="{{ book.cover_image.url }}" target="_blank" rel="noopener noreferrer" class="block">
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}"
                         class="w-full rounded-lg shadow-soft cursor-pointer hover:opacity-90 transition-opacity">
                 </a>
             </div>
@@ -65,61 +69,102 @@
                             <dl class="space-y-2 text-sm">
                                 <div class="flex gap-2">
                                     <dt class="font-medium text-dark-brown w-24">Author:</dt>
-                                    <dd class="text-dark-umber">{{ review.author }}</dd>
+                                    <dd class="text-dark-umber">{{ book.author }}</dd>
                                 </div>
-                                {% if review.publisher %}
+                                {% if book.publisher %}
                                 <div class="flex gap-2">
                                     <dt class="font-medium text-dark-brown w-24">Publisher:</dt>
-                                    <dd class="text-dark-umber">{{ review.publisher }}</dd>
+                                    <dd class="text-dark-umber">{{ book.publisher }}</dd>
                                 </div>
                                 {% endif %}
-                                {% if review.publication_year %}
+                                {% if book.publication_year %}
                                 <div class="flex gap-2">
                                     <dt class="font-medium text-dark-brown w-24">Year:</dt>
-                                    <dd class="text-dark-umber">{{ review.publication_year }}</dd>
+                                    <dd class="text-dark-umber">{{ book.publication_year }}</dd>
                                 </div>
                                 {% endif %}
-                                {% if review.isbn %}
+                                {% if book.isbn %}
                                 <div class="flex gap-2">
                                     <dt class="font-medium text-dark-brown w-24">ISBN:</dt>
-                                    <dd class="text-dark-umber">{{ review.isbn }}</dd>
+                                    <dd class="text-dark-umber">{{ book.isbn }}</dd>
                                 </div>
                                 {% endif %}
                             </dl>
+
+                            {% if book.external_url %}
+                            <a href="{{ book.external_url }}" target="_blank" rel="noopener noreferrer"
+                                class="btn-primary mt-4 inline-flex items-center gap-2">
+                                <i class="fas fa-external-link-alt"></i>
+                                View Book
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
-                {{ review.content|render_editorjs }}
+                {{ book.content|render_editorjs }}
             </div>
 
             <div
                 class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/50 dark:bg-surface-dark-alt/50 rounded-xl border border-border/50">
-                {% if user == review.added_by %}
-                <a href="{% url 'books:edit' review.slug %}" class="btn-primary btn-sm flex items-center gap-2">
+                {% if user == book.added_by %}
+                <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex items-center gap-2">
                     <i class="fas fa-edit"></i> <span class="hidden sm:inline">Edit</span>
                 </a>
                 {% endif %}
 
                 <div class="ml-auto">
-                    {% include 'partials/share_buttons.html' with title=review.title %}
+                    {% include 'partials/share_buttons.html' with title=book.book_title %}
                 </div>
             </div>
 
             <hr class="border-sepia-pale/50 my-8">
 
-            {% include 'partials/prev_next_navigation.html' with previous=previous_review next=next_review %}
+            {% include 'partials/prev_next_navigation.html' with previous=previous_book next=next_book %}
 
-            {% include 'partials/recommended_carousel.html' with recommended=recommended %}
+            {% include 'partials/recommended_carousel.html' with recommended=related_books %}
 
             <hr class="border-sepia-pale/50 my-8">
 
+            <!-- User Rating Section -->
+            {% if user.is_authenticated %}
+            <section class="mb-8">
+                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-4">Rate This Book</h3>
+                <form action="{% url 'books:rate' book.slug %}" method="post" class="card">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-dark-brown mb-2">Your Rating</label>
+                            <div class="flex gap-2">
+                                {% for i in "12345"|make_list %}
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="rating" value="{{ forloop.counter }}" class="sr-only peer"
+                                        {% if user_rating and user_rating.rating==forloop.counter %}checked{% endif %}>
+                                    <span
+                                        class="text-2xl peer-checked:text-vintage-gold text-gray-300 hover:text-vintage-gold transition-colors">★</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-dark-brown mb-2">Your Review (optional)</label>
+                            <textarea name="review_text" rows="3" class="form-input w-full"
+                                placeholder="Share your thoughts about this book...">{% if user_rating %}{{ user_rating.review_text }}{% endif %}</textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            {% if user_rating %}Update Rating{% else %}Submit Rating{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </section>
+            {% endif %}
+
             <section class="mt-8">
                 <h3 class="font-serif text-xl font-semibold text-dark-brown mb-6">Discussion</h3>
-                {% render_comment_list for review %}
-                {% render_comment_form for review %}
+                {% render_comment_list for book %}
+                {% render_comment_form for book %}
             </section>
     </article>
 
@@ -127,26 +172,26 @@
         <div class="sticky top-32 space-y-6">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold text-dark-brown mb-3">About the Reviewer</h4>
+                    <h4 class="font-serif font-semibold text-dark-brown mb-3">Recommended By</h4>
                     <div class="flex items-center gap-3 mb-3">
-                        {% if review.added_by.profile_picture %}
-                        <img src="{{ review.added_by.profile_picture.url }}"
-                            alt="{{ review.added_by.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
+                        {% if book.added_by.profile_picture %}
+                        <img src="{{ book.added_by.profile_picture.url }}" alt="{{ book.added_by.get_display_name }}"
+                            class="w-12 h-12 rounded-full object-cover">
                         {% else %}
                         <div
                             class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
-                            {{ review.added_by.get_display_name|slice:":1"|upper }}
+                            {{ book.added_by.get_display_name|slice:":1"|upper }}
                         </div>
                         {% endif %}
                         <div>
-                            <a href="{% url 'users:profile' review.added_by.username %}"
+                            <a href="{% url 'users:profile' book.added_by.username %}"
                                 class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
-                                {{ review.added_by.get_display_name }}
+                                {{ book.added_by.get_display_name }}
                             </a>
                         </div>
                     </div>
-                    {% if review.added_by.bio %}
-                    <p class="text-sm text-vintage-beaver">{{ review.added_by.bio|truncatewords:30 }}</p>
+                    {% if book.added_by.bio %}
+                    <p class="text-sm text-vintage-beaver">{{ book.added_by.bio|truncatewords:30 }}</p>
                     {% endif %}
                 </div>
             </div>

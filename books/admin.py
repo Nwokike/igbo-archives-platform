@@ -13,10 +13,14 @@ class BookRecommendationAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Book Info', {
-            'fields': ('book_title', 'author', 'publisher', 'publication_year', 'isbn')
+            'fields': ('book_title', 'author', 'publisher', 'publication_year', 'isbn', 'external_url')
         }),
-        ('Review', {
-            'fields': ('title', 'slug', 'rating', 'added_by')
+        ('Recommendation', {
+            'fields': ('title', 'slug', 'added_by')
+        }),
+        ('Cover Images', {
+            'fields': ('cover_image', 'cover_image_back', 'alternate_cover'),
+            'classes': ('collapse',)
         }),
         ('Content', {
             'fields': ('content_preview',),

@@ -243,6 +243,13 @@ class Archive(models.Model):
         
         if self.author and not self.original_author:
             self.original_author = self.author.name
+        
+        # Auto-compress images before saving (max 1.5MB)
+        try:
+            from core.image_utils import compress_model_images
+            compress_model_images(self, 'image', 'featured_image', max_size_mb=1.5)
+        except Exception:
+            pass  # Continue saving even if compression fails
             
         super().save(*args, **kwargs)
     

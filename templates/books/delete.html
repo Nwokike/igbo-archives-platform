@@ -1,37 +1,39 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Delete {{ review.review_title }} - Igbo Archives{% endblock %}
+{% block title %}Delete {{ book.book_title }} - Igbo Archives{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto">
-    <h1 class="font-serif text-display-lg text-red-600 mb-6">Delete Book Review</h1>
-    
+    <h1 class="font-serif text-display-lg text-red-600 mb-6">Delete Book Recommendation</h1>
+
     <div class="card">
         <div class="card-body">
             <div class="alert alert-warning mb-6">
-                <strong>Warning!</strong> This action cannot be undone. The review will be permanently deleted.
+                <strong>Warning!</strong> This action cannot be undone. The book recommendation will be permanently
+                deleted.
             </div>
-            
+
             <div class="mb-6">
-                <h3 class="font-serif font-semibold mb-2">Review Details:</h3>
-                <p class="text-text-muted"><strong>Review Title:</strong> {{ review.review_title }}</p>
-                <p class="text-text-muted"><strong>Book:</strong> {{ review.book_title }}</p>
-                <p class="text-text-muted"><strong>Status:</strong> 
-                    {% if review.is_published and review.is_approved %}Published
-                    {% elif review.pending_approval %}Pending Approval
+                <h3 class="font-serif font-semibold mb-2">Book Details:</h3>
+                <p class="text-text-muted"><strong>Book:</strong> {{ book.book_title }}</p>
+                <p class="text-text-muted"><strong>Author:</strong> {{ book.author }}</p>
+                <p class="text-text-muted"><strong>Title:</strong> {{ book.title }}</p>
+                <p class="text-text-muted"><strong>Status:</strong>
+                    {% if book.is_published and book.is_approved %}Published
+                    {% elif book.pending_approval %}Pending Approval
                     {% else %}Draft
                     {% endif %}
                 </p>
             </div>
-            
+
             <form method="post" class="space-y-4">
                 {% csrf_token %}
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button type="submit" class="btn-primary bg-red-600 hover:bg-red-700 flex-1">
-                        <i class="fas fa-trash"></i> Delete Review
+                        <i class="fas fa-trash"></i> Delete Recommendation
                     </button>
-                    <a href="{% url 'books:edit' review.slug %}" class="btn-secondary text-center">Cancel</a>
+                    <a href="{% url 'books:edit' book.slug %}" class="btn-secondary text-center">Cancel</a>
                 </div>
             </form>
         </div>

@@ -32,7 +32,8 @@
 
             // Define toolbar buttons
             var buttons = [
-                { icon: 'fa-heading', title: 'Add Header (H2)', action: this.insertHeader.bind(this, 2), label: 'H2' },
+                { icon: 'fa-heading', title: 'Add Title (H1)', action: this.insertHeader.bind(this, 1), label: 'H1' },
+                { icon: 'fa-heading', title: 'Add Header (H2)', action: this.insertHeader.bind(this, 2), label: 'H2', small: true },
                 { icon: 'fa-heading', title: 'Add Subheader (H3)', action: this.insertHeader.bind(this, 3), label: 'H3', small: true },
                 { type: 'divider' },
                 { icon: 'fa-paragraph', title: 'Add Paragraph', action: this.insertParagraph.bind(this) },

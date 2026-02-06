@@ -30,13 +30,10 @@
     <div class="px-5 pb-4 flex items-center justify-between text-sm">
         <span class="text-text-muted">
             {% if archive.date_created %}
-                {{ archive.date_created|date:"Y" }}
+            {{ archive.date_created|date:"Y" }}
             {% elif archive.circa_date %}
-                {{ archive.circa_date }}
+            {{ archive.circa_date }}
             {% endif %}
-        </span>
-        <span class="text-accent font-medium group-hover:translate-x-1 transition-transform">
-            View <i class="fas fa-arrow-right text-xs ml-1"></i>
         </span>
     </div>
 </a>

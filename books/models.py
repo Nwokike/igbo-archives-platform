@@ -17,6 +17,11 @@ class BookRecommendation(models.Model):
     book_title = models.CharField(max_length=255)
     author = models.CharField(max_length=255, help_text="Book author(s)")
     isbn = models.CharField(max_length=20, blank=True)
+    external_url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="URL to book information or purchase page"
+    )
     publisher = models.CharField(max_length=255, blank=True)
     publication_year = models.IntegerField(null=True, blank=True)
     
