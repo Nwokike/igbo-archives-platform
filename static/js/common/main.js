@@ -82,7 +82,11 @@
                     document.documentElement.classList.remove('dark');
                     body.classList.remove('dark-mode');
                 }
-                localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+                try {
+                    localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+                } catch (storageError) {
+                    // Silently fail if localStorage is blocked by tracking prevention
+                }
                 darkModeToggles.forEach(btn => {
                     const icon = btn.querySelector('i');
                     if (icon) {
@@ -92,7 +96,13 @@
                 });
             };
 
-            if (localStorage.getItem('darkMode') === 'enabled') {
+            let isDarkModeEnabled = false;
+            try {
+                isDarkModeEnabled = localStorage.getItem('darkMode') === 'enabled';
+            } catch (storageError) {
+                // Silently fail if localStorage is blocked by tracking prevention
+            }
+            if (isDarkModeEnabled) {
                 applyTheme(true);
             }
 
@@ -252,13 +262,22 @@
                 contentContainer.className = isGrid ? 'archive-view-grid' : 'archive-view-list';
                 gridViewBtn.classList.toggle('active', isGrid);
                 listViewBtn.classList.toggle('active', !isGrid);
-                localStorage.setItem(pageType + 'View', view);
+                try {
+                    localStorage.setItem(pageType + 'View', view);
+                } catch (storageError) {
+                    // Silently fail if localStorage is blocked by tracking prevention
+                }
             };
 
             gridViewBtn.addEventListener('click', () => toggleView('grid'));
             listViewBtn.addEventListener('click', () => toggleView('list'));
 
-            const savedView = localStorage.getItem(pageType + 'View') || 'grid';
+            let savedView = 'grid';
+            try {
+                savedView = localStorage.getItem(pageType + 'View') || 'grid';
+            } catch (storageError) {
+                // Silently fail if localStorage is blocked by tracking prevention
+            }
             toggleView(savedView);
         }
 

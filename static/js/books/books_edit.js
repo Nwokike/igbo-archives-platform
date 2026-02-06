@@ -6,7 +6,7 @@
     var submitAction = null;
 
     document.addEventListener('DOMContentLoaded', function () {
-        editor = IgboEditor.init('editor', {
+        editor = IgboEditor.initSimple('editor', {
             placeholder: 'Edit your book review...',
             autofocus: false
         });

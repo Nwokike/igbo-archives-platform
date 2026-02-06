@@ -109,7 +109,11 @@
             }
         } catch (error) {
             console.error('Error syncing push notification subscription:', error);
-            localStorage.setItem(PUSH_PROMPT_DISMISS_KEY, Date.now());
+            try {
+                localStorage.setItem(PUSH_PROMPT_DISMISS_KEY, Date.now());
+            } catch (storageError) {
+                console.warn('Could not save to localStorage (tracking prevention):', storageError);
+            }
         }
     }
 
@@ -163,13 +167,21 @@
             await syncSubscription();
         } else if (permission === 'denied') {
             console.warn('User explicitly denied notifications via browser prompt.');
-            localStorage.setItem(PUSH_PROMPT_DISMISS_KEY, Infinity);
+            try {
+                localStorage.setItem(PUSH_PROMPT_DISMISS_KEY, Infinity);
+            } catch (storageError) {
+                console.warn('Could not save to localStorage (tracking prevention):', storageError);
+            }
         }
     }
 
     function handleDismissPush() {
         hideSoftPrompt();
-        localStorage.setItem(PUSH_PROMPT_DISMISS_KEY, Date.now());
+        try {
+            localStorage.setItem(PUSH_PROMPT_DISMISS_KEY, Date.now());
+        } catch (storageError) {
+            console.warn('Could not save to localStorage (tracking prevention):', storageError);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -187,7 +199,12 @@
         if (Notification.permission === 'granted') {
             syncSubscription();
         } else if (Notification.permission === 'default') {
-            const dismissedAt = localStorage.getItem(PUSH_PROMPT_DISMISS_KEY);
+            let dismissedAt = null;
+            try {
+                dismissedAt = localStorage.getItem(PUSH_PROMPT_DISMISS_KEY);
+            } catch (storageError) {
+                console.warn('Could not read from localStorage (tracking prevention):', storageError);
+            }
             const now = Date.now();
             if (!dismissedAt || (now - dismissedAt > DISMISS_PERIOD_MS)) {
                 showSoftPrompt();

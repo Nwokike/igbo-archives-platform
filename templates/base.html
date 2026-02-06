@@ -128,7 +128,8 @@
                             <i class="fas fa-bell text-lg"></i>
                             {% if unread_notification_count > 0 %}
                             <span id="notificationBadge"
-                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{ unread_notification_count }}</span>
+                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{
+                                unread_notification_count }}</span>
                             {% endif %}
                         </button>
                         <div class="dropdown-menu w-80 right-0" id="notificationDropdown">
@@ -348,14 +349,13 @@
             <div
                 class="mt-8 pt-6 border-t border-border dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted dark:text-text-dark-muted">
                 <p>&copy; 2024 - {% now "Y" %} <a href="https://kiri.ng/about" target="_blank" rel="noopener noreferrer"
-                        class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research Labs</a></p>
+                        class="text-accent hover:text-text dark:hover:text-text-dark transition-colors">Kiri Research
+                        Labs</a></p>
             </div>
         </div>
     </footer>
 
-    <script src="{% static 'vendor/js/swiper-bundle.min.js' %}"
-        integrity="sha384-wtXd9wCC/NN1lN0UtqEaTsgSg4lyQoPV4/TjVue3fIYmIy590+oSU0PLVXwTJf92"
-        crossorigin="anonymous"></script>
+    <script src="{% static 'vendor/js/swiper-bundle.min.js' %}"></script>
     <script src="{% static 'vendor/js/htmx.min.js' %}"
         integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"
         defer></script>
