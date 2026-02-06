@@ -2,25 +2,26 @@
 
 {% block title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
 
-{% block meta_description %}{{ profile_user.get_display_name }}'s profile on Igbo Archives. {{ profile_user.bio|truncatewords:25 }}{% endblock %}
+{% block meta_description %}{{ profile_user.get_display_name }}'s profile on Igbo Archives. {{
+profile_user.bio|truncatewords:25 }}{% endblock %}
 
 {% block og_title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ profile_user.bio|truncatewords:50 }}{% endblock %}
 
 {% block og_image %}
-    {% if profile_user.profile_picture %}
-        {{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}
-    {% else %}
-        {{ block.super }}
-    {% endif %}
+{% if profile_user.profile_picture %}
+{{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}
+{% else %}
+{{ block.super }}
+{% endif %}
 {% endblock %}
 
 {% block twitter_image %}
-    {% if profile_user.profile_picture %}
-        {{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}
-    {% else %}
-        {{ block.super }}
-    {% endif %}
+{% if profile_user.profile_picture %}
+{{ request.scheme }}://{{ request.get_host }}{{ profile_user.profile_picture.url }}
+{% else %}
+{{ block.super }}
+{% endif %}
 {% endblock %}
 
 {% block og_type %}profile{% endblock %}
@@ -63,7 +64,9 @@
                         <i class="fas fa-envelope"></i> Send Message
                     </a>
                     {% endif %}
-                    <button onclick="shareProfile()" class="btn-secondary w-full">
+                    <button id="share-btn" data-share-title="{{ profile_user.get_display_name }} | Igbo Archives"
+                        data-share-text="Check out this profile on Igbo Archives"
+                        data-share-url="{{ request.build_absolute_uri }}" class="btn-secondary w-full">
                         <i class="fas fa-share-alt"></i> Share Profile
                     </button>
                 </div>
@@ -73,7 +76,8 @@
                     <div class="flex items-center gap-2">
                         <i class="fas fa-globe w-4 text-center"></i>
                         <a href="{{ profile_user.social_links.website }}" target="_blank" rel="noopener"
-                            class="text-accent hover:underline">{{ profile_user.social_links.website|truncatechars:30}}</a>
+                            class="text-accent hover:underline">{{
+                            profile_user.social_links.website|truncatechars:30}}</a>
                     </div>
                     {% endif %}
 

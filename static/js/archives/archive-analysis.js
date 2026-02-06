@@ -26,7 +26,11 @@ class ArchiveAnalysis {
         if (!this.analyzeBtn || !this.modal) return;
 
         this.analyzeBtn.addEventListener('click', () => this.openModal());
-        this.closeBtn.addEventListener('click', () => this.closeModal());
+
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', () => this.closeModal());
+        }
+
         this.modal.addEventListener('click', (e) => {
             if (e.target === this.modal) this.closeModal();
         });

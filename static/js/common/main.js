@@ -19,55 +19,10 @@
         return cookieValue;
     }
 
-    // --- PWA LOGIC (Global Scope) ---
-    // Defined outside DOMContentLoaded to catch early events
-    let deferredPrompt;
-
-    function showInstallButton() {
-        const installButton = document.getElementById('pwaInstallBtn');
-        if (installButton) {
-            installButton.style.display = 'flex';
-            installButton.classList.remove('hidden');
-        }
-    }
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent Chrome 67 and earlier from automatically showing the prompt
-        e.preventDefault();
-        // Stash the event so it can be triggered later
-        deferredPrompt = e;
-        // Update UI logic
-        showInstallButton();
-    });
-
-    window.addEventListener('appinstalled', () => {
-        const installButton = document.getElementById('pwaInstallBtn');
-        if (installButton) {
-            installButton.style.display = 'none';
-        }
-        deferredPrompt = null;
-    });
+    // --- PWA LOGIC (Moved to pwa-install.js) ---
+    // Redundant listeners removed to prevent conflicts and ensure reliable visibility.
 
     document.addEventListener('DOMContentLoaded', function () {
-
-        // --- PWA Button Click Handler ---
-        const installButton = document.getElementById('pwaInstallBtn');
-        if (installButton) {
-            // Check if the event fired *before* the DOM was ready
-            if (deferredPrompt) {
-                showInstallButton();
-            }
-
-            installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response to the install prompt: ${outcome}`);
-                    deferredPrompt = null;
-                    installButton.style.display = 'none';
-                }
-            });
-        }
 
         // --- Dark Mode Handler ---
         const darkModeToggles = document.querySelectorAll('#darkModeToggle, #darkModeToggleMobile');
@@ -332,50 +287,108 @@
             }
         }
 
-        // --- Recommended Carousel ---
-        const recommendedCarousel = document.querySelector('.recommended-carousel');
-        if (recommendedCarousel) {
-            const track = recommendedCarousel.querySelector('.carousel-track');
-            const prevButton = recommendedCarousel.querySelector('.prev-btn');
-            const nextButton = recommendedCarousel.querySelector('.next-btn');
+        // --- Share Dropdowns (Replaces inline script in share_buttons.html) ---
+        // Handles multiple dropdowns on a single page by using classes
+        const setupShareDropdowns = () => {
+            const dropdowns = document.querySelectorAll('.share-dropdown-container');
 
-            const scrollCarousel = (direction) => {
-                if (!track) return;
-                const card = track.querySelector('.recommended-card');
-                if (!card) return;
+            dropdowns.forEach(container => {
+                const toggleBtn = container.querySelector('.share-toggle-button');
+                const shareMenu = container.querySelector('.share-menu');
 
-                const cardWidth = card.offsetWidth;
-                const gap = 20;
-                const scrollAmount = (cardWidth + gap) * 2;
+                if (!toggleBtn || !shareMenu) return;
 
-                track.scrollBy({
-                    left: direction * scrollAmount,
-                    behavior: 'smooth'
+                toggleBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+
+                    // Close all other open dropdowns first
+                    document.querySelectorAll('.share-toggle-button').forEach(btn => {
+                        if (btn !== toggleBtn) {
+                            btn.setAttribute('aria-expanded', 'false');
+                            const parent = btn.closest('.share-dropdown-container');
+                            const menu = parent ? parent.querySelector('.share-menu') : null;
+                            if (menu) {
+                                menu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                                menu.classList.remove('opacity-100', 'scale-100');
+                            }
+                        }
+                    });
+
+                    if (isExpanded) {
+                        closeShareMenu(toggleBtn, shareMenu);
+                    } else {
+                        openShareMenu(toggleBtn, shareMenu);
+                    }
                 });
-            };
+            });
 
-            if (prevButton) {
-                prevButton.addEventListener('click', () => scrollCarousel(-1));
+            document.addEventListener('click', function (e) {
+                dropdowns.forEach(container => {
+                    const toggleBtn = container.querySelector('.share-toggle-button');
+                    const shareMenu = container.querySelector('.share-menu');
+                    if (toggleBtn && shareMenu && !container.contains(e.target)) {
+                        closeShareMenu(toggleBtn, shareMenu);
+                    }
+                });
+            });
+
+            function openShareMenu(btn, menu) {
+                btn.setAttribute('aria-expanded', 'true');
+                menu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                menu.classList.add('opacity-100', 'scale-100');
             }
 
-            if (nextButton) {
-                nextButton.addEventListener('click', () => scrollCarousel(1));
+            function closeShareMenu(btn, menu) {
+                btn.setAttribute('aria-expanded', 'false');
+                menu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                menu.classList.remove('opacity-100', 'scale-100');
             }
-        }
+        };
+        setupShareDropdowns();
     });
 
 })();
 
 /**
  * A function to copy text to the clipboard.
+ * Includes fallback for environments without Navigator Clipboard API.
  */
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast('Link copied to clipboard!', 'success');
-    }).catch(err => {
-        console.error('Could not copy text: ', err);
-        showToast('Failed to copy link', 'error');
-    });
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Link copied to clipboard!', 'success');
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+            fallbackCopyToClipboard(text);
+        });
+    } else {
+        fallbackCopyToClipboard(text);
+    }
+}
+
+function fallbackCopyToClipboard(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed'; // Avoid scrolling to bottom
+    textarea.style.opacity = '0';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showToast('Link copied to clipboard!', 'success');
+        } else {
+            showToast('Failed to copy link', 'error');
+        }
+    } catch (err) {
+        console.error('Fallback copy failed', err);
+        showToast('Press Ctrl+C to copy', 'info');
+    }
+    document.body.removeChild(textarea);
 }
 
 /**

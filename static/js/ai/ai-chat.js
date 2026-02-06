@@ -20,7 +20,9 @@ class AIChat {
             sessionTitle: document.getElementById('sessionTitle'),
         };
 
-        this.init();
+        if (this.elements.chatForm) {
+            this.init();
+        }
     }
 
     init() {
@@ -97,7 +99,7 @@ class AIChat {
         const icon = button.querySelector('i');
         const textSpan = button.querySelector('span');
         const messageDiv = button.closest('.flex');
-        
+
         // 1. If currently playing this exact message, stop it.
         if (this.currentAudio && this.currentAudio.dataset.btnId === button.dataset.msgId) {
             this.stopAudio();
@@ -145,7 +147,7 @@ class AIChat {
             // 6. Play Audio
             this.currentAudio = new Audio(data.url);
             this.currentAudio.dataset.btnId = button.dataset.msgId;
-            
+
             // UI updates during playback
             this.currentAudio.addEventListener('play', () => {
                 icon.className = 'fas fa-stop';
@@ -185,12 +187,12 @@ class AIChat {
         if (this.currentAudio) {
             this.currentAudio.pause();
             this.currentAudio.currentTime = 0;
-            
+
             // Find the button associated with this audio and reset it
             const btnId = this.currentAudio.dataset.btnId;
             const btn = document.querySelector(`.tts-btn[data-msg-id="${btnId}"]`);
             if (btn) this.resetButton(btn);
-            
+
             this.currentAudio = null;
         }
     }

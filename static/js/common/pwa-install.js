@@ -18,39 +18,52 @@
         // Stash the event so it can be triggered later
         deferredPrompt = e;
         // Show the install button
-        installBtn.classList.remove('hidden');
-        installBtn.classList.add('flex');
+        if (installBtn) {
+            installBtn.style.display = 'flex';
+            installBtn.classList.remove('hidden');
+        }
     });
 
     // Handle install button click
-    installBtn.addEventListener('click', async function () {
-        if (!deferredPrompt) {
-            console.log('Install prompt not available');
-            return;
-        }
+    if (installBtn) {
+        installBtn.addEventListener('click', async function () {
+            if (!deferredPrompt) {
+                console.log('Install prompt not available');
+                return;
+            }
 
-        // Show the install prompt
-        deferredPrompt.prompt();
+            // Show the install prompt
+            deferredPrompt.prompt();
 
-        // Wait for the user to respond to the prompt
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log('User choice:', outcome);
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('User choice:', outcome);
 
-        // Clear the deferredPrompt variable
-        deferredPrompt = null;
+            // Clear the deferredPrompt variable
+            deferredPrompt = null;
 
-        // Hide the install button
-        installBtn.classList.add('hidden');
-        installBtn.classList.remove('flex');
-    });
+            // Hide the install button
+            installBtn.style.display = 'none';
+            installBtn.classList.add('hidden');
+        });
+    }
 
     // Hide button if app is already installed
     window.addEventListener('appinstalled', function () {
         console.log('PWA was installed');
         deferredPrompt = null;
-        installBtn.classList.add('hidden');
-        installBtn.classList.remove('flex');
+        if (installBtn) {
+            installBtn.style.display = 'none';
+            installBtn.classList.add('hidden');
+        }
     });
+
+    // Initial check in case event fired before script load
+    if (window.deferredPrompt && installBtn) {
+        deferredPrompt = window.deferredPrompt;
+        installBtn.style.display = 'flex';
+        installBtn.classList.remove('hidden');
+    }
 
     // For iOS - check if running as standalone
     if (window.matchMedia('(display-mode: standalone)').matches) {

@@ -1,14 +1,14 @@
 {% load static %}
-<div class="relative inline-block text-left" id="shareDropdownContainer">
+<div class="relative inline-block text-left share-dropdown-container">
     <button type="button"
-        class="btn-secondary btn-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:bg-accent hover:border-accent hover:text-white transition-all duration-300"
-        id="shareToggleButton" aria-expanded="false" aria-haspopup="true">
+        class="share-toggle-button btn-secondary btn-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border hover:bg-accent hover:border-accent hover:text-white transition-all duration-300"
+        aria-expanded="false" aria-haspopup="true">
         <i class="fas fa-share-alt"></i>
         <span>Share</span>
     </button>
 
-    <div id="shareMenu"
-        class="absolute right-0 bottom-full mb-2 w-48 rounded-xl bg-white dark:bg-surface-dark shadow-2xl border border-border dark:border-border-dark opacity-0 scale-95 pointer-events-none transition-all duration-300 z-50 origin-bottom-right">
+    <div
+        class="share-menu absolute right-0 bottom-full mb-2 w-48 rounded-xl bg-white dark:bg-surface-dark shadow-2xl border border-border dark:border-border-dark opacity-0 scale-95 pointer-events-none transition-all duration-300 z-50 origin-bottom-right">
         <div class="p-2 grid grid-cols-1 gap-1">
             <!-- Facebook -->
             <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}"
@@ -45,91 +45,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    (function () {
-        'use strict';
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const toggleBtn = document.getElementById('shareToggleButton');
-            const shareMenu = document.getElementById('shareMenu');
-
-            if (toggleBtn && shareMenu) {
-                toggleBtn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
-
-                    if (isExpanded) {
-                        closeShareMenu();
-                    } else {
-                        openShareMenu();
-                    }
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (!shareMenu.contains(e.target) && !toggleBtn.contains(e.target)) {
-                        closeShareMenu();
-                    }
-                });
-            }
-
-            function openShareMenu() {
-                toggleBtn.setAttribute('aria-expanded', 'true');
-                shareMenu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                shareMenu.classList.add('opacity-100', 'scale-100');
-            }
-
-            function closeShareMenu() {
-                toggleBtn.setAttribute('aria-expanded', 'false');
-                shareMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-                shareMenu.classList.remove('opacity-100', 'scale-100');
-            }
-        });
-
-        window.copyToClipboard = function (text) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(function () {
-                    showShareToast('Link copied!');
-                }).catch(function () {
-                    fallbackCopyToClipboard(text);
-                });
-            } else {
-                fallbackCopyToClipboard(text);
-            }
-        };
-
-        function fallbackCopyToClipboard(text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            textarea.style.left = '-9999px';
-            document.body.appendChild(textarea);
-            textarea.focus();
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                showShareToast('Link copied!');
-            } catch (err) {
-                alert('Failed to copy. Please copy manually: ' + text);
-            }
-            document.body.removeChild(textarea);
-        }
-
-        function showShareToast(message) {
-            if (typeof showToast === 'function') {
-                showToast(message);
-                return;
-            }
-            const toast = document.createElement('div');
-            toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-accent text-white px-4 py-2 rounded-lg shadow-lg z-[100] transition-opacity duration-300';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-
-            setTimeout(function () {
-                toast.style.opacity = '0';
-                setTimeout(function () { toast.remove(); }, 300);
-            }, 2000);
-        }
-    })();
-</script>
