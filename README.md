@@ -140,7 +140,7 @@ igbo-archives-platform/
 
 1. **Clone the repository**
    ```bash
-   git clone [https://github.com/Nwokike/igbo-archives-platform.git](https://github.com/Nwokike/igbo-archives-platform.git)
+   git clone https://github.com/Nwokike/igbo-archives-platform.git
    cd igbo-archives-platform
 
 ```
@@ -264,10 +264,10 @@ This platform is optimized for deployment on a 1GB RAM VM:
 
 Copyright © 2025–2026 **Kiri Research Labs**. All Rights Reserved.
 
-**Igbo Archives Platform** is a proprietary cultural preservation initiative. For the full licensing terms, please see the [LICENSE](https://www.google.com/search?q=file:///c:/Users/nwoki/Desktop/igbo-archives-platform/LICENSE) file.
+**Igbo Archives Platform** is a proprietary cultural preservation initiative. For the full licensing terms, please see the [LICENSE](LICENSE) file.
 
 Operated by Kiri Research Labs.
-[Contact Us](mailto:hello@kiriresearch.com) for inquiries.
+[Contact Us](mailto:hello@kiri.ng) for inquiries.
 
 ---
 

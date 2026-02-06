@@ -5,8 +5,7 @@
 
 {% block title %}{{ book.book_title }} - Recommended Books{% endblock %}
 
-{% block meta_description %}{{ book.book_title }} by {{ book.author }} - {{ book.content|striptags|truncatewords:25 }}{%
-endblock %}
+{% block meta_description %}{{ book.book_title }} by {{ book.author }} - {{ book.content|striptags|truncatewords:25 }}{%endblock %}
 
 {% block og_title %}{{ book.book_title }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
@@ -141,7 +140,7 @@ endblock %}
                                 {% for i in "12345"|make_list %}
                                 <label class="cursor-pointer">
                                     <input type="radio" name="rating" value="{{ forloop.counter }}" class="sr-only peer"
-                                        {% if user_rating and user_rating.rating==forloop.counter %}checked{% endif %}>
+                                        {% if user_rating and user_rating.rating == forloop.counter %}checked{% endif %}>
                                     <span
                                         class="text-2xl peer-checked:text-vintage-gold text-gray-300 hover:text-vintage-gold transition-colors">★</span>
                                 </label>

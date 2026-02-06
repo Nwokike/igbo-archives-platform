@@ -11,12 +11,18 @@ logger = logging.getLogger(__name__)
 
 def _get_post_author(post):
     """Helper to get author from different post types."""
-    if hasattr(post, 'author'):
-        return post.author
-    if hasattr(post, 'reviewer'):
-        return post.reviewer
-    if hasattr(post, 'uploaded_by'):
+    # PRIORITY FIX: Check for specific user fields first.
+    # This prevents the system from grabbing a string field named 'author'
+    # (like in BookRecommendation) instead of the actual User object.
+    
+    if hasattr(post, 'added_by'): # For BookRecommendation
+        return post.added_by
+    if hasattr(post, 'uploaded_by'): # For Archive
         return post.uploaded_by
+    if hasattr(post, 'reviewer'): # For some review types
+        return post.reviewer
+    if hasattr(post, 'author'): # For InsightPost
+        return post.author
     return None
 
 def _get_post_title(post):
@@ -25,6 +31,8 @@ def _get_post_title(post):
         return post.title
     if hasattr(post, 'review_title'):
         return post.review_title
+    if hasattr(post, 'book_title'): # Fallback for BookRecommendation if title is empty
+        return post.book_title
     return "your post"
 
 def _get_absolute_url(obj):
@@ -75,10 +83,14 @@ def _send_notification_and_push(recipient, sender, verb, description, target_obj
         logger.warning(f"Error sending notification or push to {recipient.username}: {str(e)}")
 
 
-# --- YOUR REWRITTEN FUNCTIONS ---
+# --- NOTIFICATION FUNCTIONS ---
 
 def send_post_approved_notification(post, post_type='insight'):
     author = _get_post_author(post)
+    if not author:
+        logger.error(f"Could not determine author for approved {post_type} {post.id}")
+        return
+
     post_title = _get_post_title(post)
     description = f'Your {post_type} "{post_title}" has been approved and is now published!'
     
@@ -92,11 +104,17 @@ def send_post_approved_notification(post, post_type='insight'):
         push_body=description,
         push_url=_get_absolute_url(post)
     )
-    send_email_notification(author.email, f'Your {post_type.title()} has been approved!', description)
+    # Check if author has email before sending
+    if hasattr(author, 'email') and author.email:
+        send_email_notification(author.email, f'Your {post_type.title()} has been approved!', description)
 
 
 def send_post_rejected_notification(post, reason, post_type='insight'):
     author = _get_post_author(post)
+    if not author:
+        logger.error(f"Could not determine author for rejected {post_type} {post.id}")
+        return
+
     post_title = _get_post_title(post)
     description = f'Your {post_type} "{post_title}" was not approved. Reason: {reason}'
 
@@ -110,8 +128,10 @@ def send_post_rejected_notification(post, reason, post_type='insight'):
         push_body=f'Your {post_type} "{post_title}" was not approved.',
         push_url=reverse('users:dashboard')  # Link to their dashboard
     )
-    email_message = f'{description}\n\nYou can revise and resubmit it from your dashboard.'
-    send_email_notification(author.email, f'Your {post_type.title()} needs revision', email_message)
+    
+    if hasattr(author, 'email') and author.email:
+        email_message = f'{description}\n\nYou can revise and resubmit it from your dashboard.'
+        send_email_notification(author.email, f'Your {post_type.title()} needs revision', email_message)
 
 
 def send_new_comment_notification(comment, post):
@@ -173,7 +193,8 @@ def send_message_notification(message, recipient):
     subject = f'New message from {message.sender.full_name}'
     site_url = getattr(settings, "SITE_URL", "")
     email_message = f'{description}\n\nSubject: {message.thread.subject}\n\nLog in to read and reply: {site_url}{reverse("users:thread", args=[message.thread.id])}'
-    send_email_notification(recipient.email, subject, email_message)
+    if recipient.email:
+        send_email_notification(recipient.email, subject, email_message)
 
 
 def send_edit_suggestion_notification(suggestion):
@@ -196,8 +217,9 @@ def send_edit_suggestion_notification(suggestion):
         push_url=reverse('users:dashboard') # Or link to moderation
     )
     
-    email_message = f'{description}\n\nSuggestion: {suggestion.suggestion_text}\n\nReview from your dashboard.'
-    send_email_notification(post_author.email, 'Edit suggestion on your post', email_message)
+    if post_author.email:
+        email_message = f'{description}\n\nSuggestion: {suggestion.suggestion_text}\n\nReview from your dashboard.'
+        send_email_notification(post_author.email, 'Edit suggestion on your post', email_message)
 
 
 def send_edit_suggestion_approved_notification(suggestion):
@@ -229,7 +251,7 @@ def send_edit_suggestion_rejected_notification(suggestion, reason=''):
 
 
 def send_email_notification(to_email, subject, message):
-    """Helper function to send email notifications (Unchanged)"""
+    """Helper function to send email notifications"""
     if not settings.EMAIL_BACKEND or 'console' in settings.EMAIL_BACKEND:
         logger.info(f"Email (to: {to_email}) not sent: EMAIL_BACKEND not configured.")
         return

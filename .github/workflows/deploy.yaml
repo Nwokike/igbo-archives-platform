@@ -30,7 +30,7 @@ jobs:
 
           # 3. Sync Dependencies using uv
           export PATH="$HOME/.local/bin:$PATH"
-          export UV_PYTHON=python3.12
+          export UV_PYTHON=python3.13
           uv sync
 
           # 4. Run Database Migrations
