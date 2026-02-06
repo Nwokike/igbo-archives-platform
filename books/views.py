@@ -146,8 +146,7 @@ def book_create(request):
             if existing_book:
                 messages.error(
                     request, 
-                    f'A book with ISBN/ASIN "{isbn}" already exists. '
-                    f'<a href="{existing_book.get_absolute_url()}" target="_blank" class="text-accent underline">View existing book</a>'
+                    f'A book with ISBN/ASIN "{isbn}" already exists. Search for "{existing_book.book_title}" to view it.'
                 )
                 return render(request, 'books/create.html')
         
@@ -189,10 +188,6 @@ def book_create(request):
         
         if request.FILES.get('cover_image'):
             book.cover_image = request.FILES['cover_image']
-        if request.FILES.get('cover_image_back'):
-            book.cover_image_back = request.FILES['cover_image_back']
-        if request.FILES.get('alternate_cover'):
-            book.alternate_cover = request.FILES['alternate_cover']
         
         try:
             book.full_clean()
@@ -297,10 +292,6 @@ def book_edit(request, slug):
         
         if request.FILES.get('cover_image'):
             book.cover_image = request.FILES['cover_image']
-        if request.FILES.get('cover_image_back'):
-            book.cover_image_back = request.FILES['cover_image_back']
-        if request.FILES.get('alternate_cover'):
-            book.alternate_cover = request.FILES['alternate_cover']
         
         book.save()
         
@@ -316,8 +307,8 @@ def book_edit(request, slug):
                         recipient_list=staff_emails,
                         fail_silently=True
                     )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Failed to send notification email: {e}")
         
         return redirect('users:dashboard')
     

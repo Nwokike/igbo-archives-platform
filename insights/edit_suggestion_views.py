@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import InsightPost, EditSuggestion
-from core.notifications_utils import send_edit_suggestion_notification, send_edit_suggestion_approved_notification, send_edit_suggestion_rejected_notification
+from core.notifications_utils import send_edit_suggestion_approved_notification, send_edit_suggestion_rejected_notification
 
 # Note: suggest_edit view is now in views.py with rate limiting
 

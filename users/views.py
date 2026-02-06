@@ -7,8 +7,12 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages as django_messages
 from django.core.cache import cache
 from django.db.models import Q
+import bleach
+import logging
 from .models import Thread, Message
 from .forms import ProfileEditForm
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -141,13 +145,17 @@ def message_thread(request, thread_id):
             return redirect('users:thread', thread_id=thread_id)
         
         content = request.POST.get('content', '').strip()
-        if content and len(content) <= 10000:
+        if not content:
+            django_messages.error(request, 'Message cannot be empty.')
+        elif len(content) > 10000:
+            django_messages.error(request, 'Message is too long (max 10,000 characters).')
+        else:
             # Sanitize content with bleach to prevent XSS
             clean_content = bleach.clean(content, strip=True)
             Message.objects.create(
                 thread=thread,
                 sender=request.user,
-                content=clean_content  # Already validated above
+                content=clean_content
             )
             cache.set(rate_key, msg_count + 1, 3600)
             return redirect('users:thread', thread_id=thread_id)
@@ -155,9 +163,6 @@ def message_thread(request, thread_id):
     thread.messages.exclude(sender=request.user).filter(is_read=False).update(is_read=True)
     return render(request, 'users/thread.html', {'thread': thread})
 
-
-import bleach
-from django.core.cache import cache
 
 @login_required
 def compose_message(request, username):

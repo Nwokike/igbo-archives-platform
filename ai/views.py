@@ -199,6 +199,8 @@ def analyze_archive(request):
             image_file.close()
             tmp_path = tmp.name
         except Exception as e:
+            if os.path.exists(tmp.name):
+                os.unlink(tmp.name)
             return JsonResponse({'error': f'Error processing image: {str(e)}'}, status=500)
     
     try:
@@ -293,8 +295,6 @@ def delete_session(request, session_id):
 @require_POST
 def generate_insight_content(request):
     """Generate or refine insight content using AI."""
-    import json
-    from .services.chat_service import chat_service
     
     try:
         data = json.loads(request.body)

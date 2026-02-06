@@ -73,7 +73,7 @@ def render_editorjs(content):
                  # Fallback: Double encoded string?
                  try:
                      content = json.loads(json.loads(content))
-                 except:
+                 except (json.JSONDecodeError, ValueError, SyntaxError):
                      # If all parsing fails, do NOT show raw JSON. Return empty or warning.
                      return '' 
     else:

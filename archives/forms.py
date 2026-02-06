@@ -112,7 +112,7 @@ class ArchiveForm(forms.ModelForm):
             url = existing.get_absolute_url()
             raise ValidationError(
                 f'An archive with ID Number "{idno}" already exists. '
-                f'<a href="{url}" target="_blank" class="text-accent underline">View existing archive</a>'
+                f'View it at: {url}'
             )
         
         return idno

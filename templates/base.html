@@ -71,8 +71,8 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "Igbo Archives",
-      "url": "https://igboarchives.com.ng",
-      "logo": "https://igboarchives.com.ng{% static 'images/logos/logo-light.png' %}",
+      "url": "{{ request.scheme }}://{{ request.get_host }}",
+      "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}",
       "sameAs": [
         "https://www.facebook.com/IgboArchives/",
         "https://www.instagram.com/IgboArchives.com.ng/",

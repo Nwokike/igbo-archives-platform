@@ -247,7 +247,7 @@ def insight_create(request):
                         fail_silently=True
                     )
             except Exception as e:
-                pass # logger.warning(f"Failed to send notification email: {e}")
+                logger.warning(f"Failed to send notification email: {e}")
         # -----------------------------------
         
         return redirect('users:dashboard')

@@ -179,7 +179,7 @@ class BookRecommendationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'book_title', 'author', 'isbn', 'slug',
             'title', 'content_json', 'external_url',
-            'cover_image', 'cover_image_back', 'alternate_cover',
+            'cover_image',
             'publisher', 'publication_year',
             'added_by', 'average_rating', 'rating_count',
             'is_published', 'is_approved', 'pending_approval',
@@ -195,7 +195,7 @@ class BookRecommendationCreateSerializer(serializers.ModelSerializer):
         fields = [
             'book_title', 'author', 'isbn', 'external_url',
             'title', 'content_json',
-            'cover_image', 'cover_image_back', 'alternate_cover',
+            'cover_image',
             'publisher', 'publication_year'
         ]
     

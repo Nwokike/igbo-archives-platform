@@ -1,0 +1,292 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Igbo Archives - Weekly Update</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f1ed;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header img {
+            max-width: 120px;
+            height: auto;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 15px 0 5px;
+            font-size: 24px;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .header p {
+            color: #f0e6d8;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #8B4513;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0e6d8;
+        }
+
+        .item {
+            background-color: #faf8f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #8B4513;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-title a {
+            color: #8B4513;
+            text-decoration: none;
+        }
+
+        .item-title a:hover {
+            text-decoration: underline;
+        }
+
+        .item-meta {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .item-type {
+            display: inline-block;
+            background-color: #8B4513;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background-color: #faf8f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #8B4513;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .cta {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+            color: #ffffff !important;
+            padding: 14px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .footer {
+            background-color: #2d2520;
+            color: #b8a99a;
+            padding: 25px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: #d4c4b0;
+        }
+
+        .social-links {
+            margin: 15px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #d4c4b0;
+            text-decoration: none;
+        }
+
+        .unsubscribe {
+            font-size: 11px;
+            color: #8b7d70;
+            margin-top: 15px;
+        }
+
+        .unsubscribe a {
+            color: #8b7d70;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img src="{{ site_url }}{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives">
+            <h1>Weekly Update</h1>
+            <p>{{ week_start }} - {{ week_end }}</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">Ndewo {{ user_name }},</p>
+            <p>Here's what's new on Igbo Archives this week. Thank you for being part of our community</p>
+
+            <!-- Stats Summary -->
+            {% if new_archives_count or new_insights_count or new_books_count %}
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">{{ new_archives_count|default:0 }}</div>
+                    <div class="stat-label">New Archives</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">{{ new_insights_count|default:0 }}</div>
+                    <div class="stat-label">New Insights</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">{{ new_books_count|default:0 }}</div>
+                    <div class="stat-label">New Books</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- New Archives -->
+            {% if new_archives %}
+            <div class="section">
+                <h2 class="section-title">📸 New Archives</h2>
+                {% for item in new_archives %}
+                <div class="item">
+                    <div class="item-title">
+                        <span class="item-type">{{ item.archive_type }}</span>
+                        <a href="{{ site_url }}{{ item.url }}">{{ item.title }}</a>
+                    </div>
+                    <div class="item-meta">By {{ item.author_name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- New Insights -->
+            {% if new_insights %}
+            <div class="section">
+                <h2 class="section-title">✍️ New Insights</h2>
+                {% for item in new_insights %}
+                <div class="item">
+                    <div class="item-title">
+                        <a href="{{ site_url }}{{ item.url }}">{{ item.title }}</a>
+                    </div>
+                    <div class="item-meta">By {{ item.author_name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- New Books -->
+            {% if new_books %}
+            <div class="section">
+                <h2 class="section-title">📚 New Book Recommendations</h2>
+                {% for item in new_books %}
+                <div class="item">
+                    <div class="item-title">
+                        <a href="{{ site_url }}{{ item.url }}">{{ item.title }}</a>
+                    </div>
+                    <div class="item-meta">Reviewed by {{ item.author_name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- CTA -->
+            <div class="cta">
+                <a href="{{ site_url }}" class="cta-button">Explore Igbo Archives</a>
+            </div>
+
+            {% if not new_archives and not new_insights and not new_books %}
+            <p style="text-align: center; color: #666;">
+                No new content this week, but you can still explore our growing collection of Igbo heritage.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="social-links">
+                <a href="https://www.facebook.com/IgboArchives/">Facebook</a>
+                <a href="https://www.instagram.com/IgboArchives.com.ng/">Instagram</a>
+                <a href="https://x.com/IgboArchives">X (Twitter)</a>
+            </div>
+            <p>Igbo Archives - Preserving the Past, Inspiring the Future</p>
+            <p>© {{ year }} Igbo Archives. All rights reserved.</p>
+            <div class="unsubscribe">
+                <a href="{{ site_url }}/accounts/settings/">Manage email preferences</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

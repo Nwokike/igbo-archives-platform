@@ -208,7 +208,14 @@ html:not(.dark) .logo-dark {
 }
 
 .btn-sm {
-    @apply py-1.5 px-3 text-xs md:text-sm;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+    .btn-sm {
+        font-size: 0.875rem;
+    }
 }
 
 /* Ensure Share button and others stay responsive */

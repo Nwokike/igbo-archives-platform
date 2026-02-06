@@ -35,6 +35,9 @@ def submit_url_to_indexnow(url, host=None):
         host: Domain name (e.g., igboarchives.com)
     """
     api_key = get_indexnow_key()
+    if not api_key:
+        logger.warning("IndexNow API key not configured, skipping URL submission")
+        return False
     
     if not host:
         # Extract host from URL
@@ -80,6 +83,9 @@ def submit_urls_bulk(urls, host=None):
         host: Domain name
     """
     api_key = get_indexnow_key()
+    if not api_key:
+        logger.warning("IndexNow API key not configured, skipping bulk URL submission")
+        return False
     
     if not host and urls:
         from urllib.parse import urlparse

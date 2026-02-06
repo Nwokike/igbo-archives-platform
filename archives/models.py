@@ -248,8 +248,9 @@ class Archive(models.Model):
         try:
             from core.image_utils import compress_model_images
             compress_model_images(self, 'image', 'featured_image', max_size_mb=1.5)
-        except Exception:
-            pass  # Continue saving even if compression fails
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Image compression failed for Archive {self.pk}: {e}")
             
         super().save(*args, **kwargs)
     

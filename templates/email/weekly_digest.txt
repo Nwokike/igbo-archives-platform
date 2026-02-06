@@ -1,0 +1,39 @@
+Igbo Archives Weekly Update - {{ week_start }} to {{ week_end }}
+
+Ndewo {{ user_name }},
+
+Here's what's new on Igbo Archives this week:
+
+{% if new_archives %}
+NEW ARCHIVES ({{ new_archives_count }})
+{% for item in new_archives %}
+- {{ item.title }} by {{ item.author_name }}
+  {{ site_url }}{{ item.url }}
+{% endfor %}
+
+{% endif %}
+{% if new_insights %}
+NEW INSIGHTS ({{ new_insights_count }})
+{% for item in new_insights %}
+- {{ item.title }} by {{ item.author_name }}
+  {{ site_url }}{{ item.url }}
+{% endfor %}
+
+{% endif %}
+{% if new_books %}
+NEW BOOK RECOMMENDATIONS ({{ new_books_count }})
+{% for item in new_books %}
+- {{ item.title }} reviewed by {{ item.author_name }}
+  {{ site_url }}{{ item.url }}
+{% endfor %}
+
+{% endif %}
+{% if not new_archives and not new_insights and not new_books %}
+No new content this week, but you can still explore our growing collection of Igbo heritage.
+{% endif %}
+
+Visit Igbo Archives: {{ site_url }}
+
+---
+Igbo Archives - Preserving the Past, Inspiring the Future
+To manage your email preferences, visit: {{ site_url }}/accounts/settings/

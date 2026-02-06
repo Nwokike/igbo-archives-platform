@@ -4,7 +4,7 @@ module.exports = {
     './templates/**/*.html',
     './static/js/**/*.js',
   ],
-  darkMode: ['class', '.dark-mode'],  // Support both .dark and .dark-mode classes
+  darkMode: 'class',  // Uses .dark class from JS toggle
   theme: {
     extend: {
       colors: {

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.conf import settings
 import logging
 from insights.models import InsightPost

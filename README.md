@@ -89,7 +89,7 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 
 | Category | Technology |
 |----------|------------|
-| **Backend** | Django 5.2 LTS, Python 3.12 (uv), Django REST Framework |
+| **Backend** | Django 6.0, Python 3.13 (uv), Django REST Framework |
 | **Database** | SQLite with WAL mode |
 | **Task Queue** | Huey (SQLite backend) |
 | **Frontend** | Tailwind CSS, HTMX, Editor.js |
@@ -131,7 +131,7 @@ igbo-archives-platform/
 ## 🔧 Installation & Setup
 
 ### Prerequisites
-- Python 3.12+
+- Python 3.13+
 - `uv` (Fast Python package manager)
 - Node.js 18+ (for Tailwind CSS)
 - Git

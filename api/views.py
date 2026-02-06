@@ -4,6 +4,7 @@ API views for Editor.js integration and image uploads.
 import os
 import logging
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
@@ -12,6 +13,12 @@ from django.db import transaction
 from archives.models import Archive, ArchiveItem, Category
 
 logger = logging.getLogger(__name__)
+
+# Rate limiting constants
+UPLOAD_RATE_LIMIT = 20  # uploads per hour
+UPLOAD_RATE_WINDOW = 3600  # 1 hour in seconds
+NOTIFICATION_RATE_LIMIT = 60  # requests per minute
+NOTIFICATION_RATE_WINDOW = 60  # 1 minute in seconds
 
 
 def get_cached_api_categories():
@@ -103,7 +110,7 @@ def upload_image(request):
     """
     rate_key = f'upload_rate_{request.user.id}'
     upload_count = cache.get(rate_key, 0)
-    if upload_count >= 20:
+    if upload_count >= UPLOAD_RATE_LIMIT:
         return JsonResponse({'success': 0, 'error': 'Upload limit reached. Try again later.'})
     
     if 'image' not in request.FILES:
@@ -167,7 +174,8 @@ def upload_image(request):
             })
             
     except Exception as e:
-        return JsonResponse({'success': 0, 'error': str(e)})
+        logger.error(f"Image upload error: {e}", exc_info=True)
+        return JsonResponse({'success': 0, 'error': 'Upload failed. Please try again.'})
 
 
 @login_required
@@ -179,7 +187,7 @@ def upload_media(request):
     """
     rate_key = f'upload_rate_{request.user.id}'
     upload_count = cache.get(rate_key, 0)
-    if upload_count >= 20:
+    if upload_count >= UPLOAD_RATE_LIMIT:
         return JsonResponse({'success': 0, 'error': 'Upload limit reached. Try again later.'})
     
     if 'file' not in request.FILES:
@@ -312,13 +320,19 @@ def upload_media(request):
             
     except Exception as e:
         logger.error(f"Media upload error: {e}", exc_info=True)
-        return JsonResponse({'success': 0, 'error': str(e)})
+        return JsonResponse({'success': 0, 'error': 'Upload failed. Please try again.'})
 
 
 @login_required
 def notification_list_api(request):
     """Return top 5 unread notifications for the dropdown."""
-    from django.shortcuts import render
+    # Rate limiting to prevent spam
+    rate_key = f'notif_rate_{request.user.id}'
+    current_count = cache.get(rate_key, 0)
+    if current_count >= NOTIFICATION_RATE_LIMIT:
+        return JsonResponse({'error': 'Too many requests. Please wait.'}, status=429)
+    cache.set(rate_key, current_count + 1, NOTIFICATION_RATE_WINDOW)
+    
     notifications = request.user.notifications.filter(unread=True).order_by('-timestamp')[:5]
     return render(request, 'users/partials/notification_dropdown.html', {
         'notifications': notifications

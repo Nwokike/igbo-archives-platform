@@ -416,7 +416,6 @@ CSP_CONNECT_SRC = (
     "https://challenges.cloudflare.com",
     "https://www.googletagmanager.com",
     "https://pagead2.googlesyndication.com",
-    "https://pagead2.googlesyndication.com",
     "https://*.adtrafficquality.google",
     "https://csi.gstatic.com",
     "https://paystack.co",

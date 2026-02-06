@@ -8,7 +8,7 @@ Igbo Archives is a Django-based cultural preservation platform dedicated to docu
 ## System Architecture
 
 ### Backend Framework
-- **Django 5.1.4** with **Python 3.12+** as the core web framework (required)
+- **Django 6.0** with **Python 3.13+** as the core web framework (required)
 - **SQLite with WAL mode** for database storage, optimized for 1GB RAM constraints with custom configuration in `igbo_archives/sqlite_wal.py`
 - **Gunicorn** for production WSGI serving with memory-optimized settings (2 workers, max 500 requests before restart)
 

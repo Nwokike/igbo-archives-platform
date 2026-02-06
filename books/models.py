@@ -47,27 +47,7 @@ class BookRecommendation(models.Model):
             FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
             validate_file_size
         ],
-        help_text="Primary book cover (max 5MB)"
-    )
-    cover_image_back = models.ImageField(
-        upload_to='book_covers/', 
-        blank=True, 
-        null=True,
-        validators=[
-            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_file_size
-        ],
-        help_text="Back cover (optional, max 5MB)"
-    )
-    alternate_cover = models.ImageField(
-        upload_to='book_covers/', 
-        blank=True, 
-        null=True,
-        validators=[
-            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_file_size
-        ],
-        help_text="Alternate edition cover (optional, max 5MB)"
+        help_text="Book cover image (max 5MB)"
     )
     
     # Who added the recommendation
