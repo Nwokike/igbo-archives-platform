@@ -1,0 +1,180 @@
+{% load static %}
+
+<div id="reviews-sidebar-container" class="space-y-6">
+
+    <div class="card bg-surface-alt/50 dark:bg-surface-dark-alt/50 border-border/50">
+        <div class="card-body">
+            <h4 class="font-serif font-semibold text-dark-brown mb-3 text-sm uppercase tracking-wider">Recommended By</h4>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'users:profile' book.added_by.username %}" class="block shrink-0">
+                    {% if book.added_by.profile_picture %}
+                    <img src="{{ book.added_by.profile_picture.url }}" alt="{{ book.added_by.get_display_name }}"
+                        class="w-12 h-12 rounded-full object-cover border border-border">
+                    {% else %}
+                    <div class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown border border-border">
+                        {{ book.added_by.get_display_name|slice:":1"|upper }}
+                    </div>
+                    {% endif %}
+                </a>
+                <div class="overflow-hidden">
+                    <a href="{% url 'users:profile' book.added_by.username %}"
+                        class="text-dark-brown hover:text-vintage-gold font-medium transition-colors truncate block">
+                        {{ book.added_by.get_display_name }}
+                    </a>
+                    {% if book.added_by.bio %}
+                    <p class="text-xs text-vintage-beaver line-clamp-1">{{ book.added_by.bio }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-3 rounded-lg text-sm mb-2 shadow-sm flex items-center gap-2 {% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %}">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        
+        {% if user_rating %}
+        <div id="userReviewSummary" class="card bg-surface-alt dark:bg-surface-dark-alt border-accent/20 shadow-soft">
+            <div class="card-body text-center py-6">
+                <h4 class="font-serif font-semibold text-dark-brown mb-2">Your Review</h4>
+                
+                <div class="text-3xl text-vintage-gold mb-2 tracking-widest">
+                    {% for i in "12345"|make_list %}
+                    <span class="{% if forloop.counter <= user_rating.rating %}text-vintage-gold{% else %}text-gray-300 dark:text-gray-600{% endif %}">★</span>
+                    {% endfor %}
+                </div>
+                
+                <p class="text-xs text-vintage-beaver mb-4">You rated this book {{ user_rating.rating }}/5</p>
+
+                <button onclick="showReviewForm()" class="text-accent text-sm font-medium hover:underline flex items-center justify-center gap-2 w-full">
+                    <i class="fas fa-pencil-alt"></i> Edit Your Review
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="reviewFormContainer" class="card bg-surface-alt dark:bg-surface-dark-alt border-accent/20 shadow-soft {% if user_rating %}hidden{% endif %}">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="font-serif font-semibold text-dark-brown flex items-center gap-2">
+                        <i class="fas fa-star text-accent"></i> 
+                        {% if user_rating %}Update Review{% else %}Rate this Book{% endif %}
+                    </h4>
+                    {% if user_rating %}
+                    <button onclick="cancelEdit()" class="text-xs text-vintage-beaver hover:text-dark-brown">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    {% endif %}
+                </div>
+
+                <form hx-post="{% url 'books:rate' book.slug %}" 
+                      hx-target="#reviews-sidebar-container" 
+                      hx-swap="outerHTML"
+                      class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div class="text-center py-2 bg-surface dark:bg-surface-dark rounded-lg border border-border/50">
+                        <div class="star-rating-group">
+                            {% for i in "54321"|make_list %}
+                            <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" 
+                                   {% if user_rating and user_rating.rating == i|add:0 %}checked{% endif %} required>
+                            <label for="star{{ i }}" title="{{ i }} Stars">★</label>
+                            {% endfor %}
+                        </div>
+                        <p class="text-xs text-vintage-beaver mt-1">Tap a star to rate</p>
+                    </div>
+
+                    <div class="relative">
+                        <textarea name="review_text" rows="3" 
+                                class="form-input w-full text-sm bg-surface dark:bg-surface-dark resize-none"
+                                placeholder="Share your thoughts..."
+                                >{% if user_rating %}{{ user_rating.review_text }}{% endif %}</textarea>
+                    </div>
+                    
+                    <div class="flex justify-center scale-90 -my-2">
+                        <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
+                    </div>
+
+                    <button type="submit" id="reviewSubmitBtn" class="btn-primary w-full text-sm py-2 shadow-md">
+                        {% if user_rating %}Update Review{% else %}Post Review{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="card bg-surface-alt/50">
+            <div class="card-body text-center p-6">
+                <h4 class="font-serif font-semibold text-dark-brown mb-2">Have you read this?</h4>
+                <p class="text-sm text-vintage-beaver mb-4">Log in to rate this book and share your thoughts with the community.</p>
+                <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn-secondary w-full text-sm">Log In to Review</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header border-b border-border/50 p-4">
+            <h4 class="font-serif font-semibold text-dark-brown text-sm uppercase tracking-wider">
+                Community Reviews <span class="text-vintage-beaver ml-1">({{ reviews.count }})</span>
+            </h4>
+        </div>
+        
+        <div class="reviews-scroll-container p-4 space-y-4">
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="review-item group relative pb-4 border-b border-border/50 last:border-0 last:pb-0">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-heritage-cream flex items-center justify-center text-xs font-bold text-dark-brown">
+                                {{ review.user.get_display_name|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <span class="text-sm font-semibold text-dark-brown block leading-none">
+                                    {{ review.user.get_display_name }}
+                                </span>
+                                <span class="text-[10px] text-vintage-beaver">
+                                    {{ review.created_at|date:"M d, Y" }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-vintage-gold text-xs tracking-tighter" title="{{ review.rating }}/5">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {% if review.review_text %}
+                    <p class="text-sm text-dark-umber leading-relaxed pl-8">
+                        {{ review.review_text|linebreaksbr }}
+                    </p>
+                    {% endif %}
+
+                    {% if user.is_authenticated and review.user == user %}
+                    <div class="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="editReview({{ review.rating }}, '{{ review.review_text|escapejs }}')" 
+                                class="text-xs text-accent hover:underline bg-surface-alt px-2 py-1 rounded shadow-sm">
+                            Edit
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-8 text-vintage-beaver/60">
+                    <i class="fas fa-comment-slash text-2xl mb-2"></i>
+                    <p class="text-sm">No reviews yet.<br>Be the first!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

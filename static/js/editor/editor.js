@@ -7,22 +7,22 @@
         selectedFeaturedImage: null,
 
         // Helper to generate consistent captions (Title | Author | Copyright)
-        formatCaption: function(caption, author, copyright) {
+        formatCaption: function (caption, author, copyright) {
             let parts = [];
             // 1. The main caption
             if (caption && caption.trim()) parts.push(caption.trim());
-            
+
             // 2. The metadata (Author / Copyright)
             let meta = [];
             if (author && author.trim()) meta.push('Photo by ' + author.trim());
             if (copyright && copyright.trim()) meta.push('© ' + copyright.trim());
-            
+
             if (meta.length > 0) {
                 // Add a separator if there was a caption
                 let separator = parts.length > 0 ? ' | ' : '';
                 parts.push(separator + meta.join(' '));
             }
-            
+
             return parts.join('');
         },
 
@@ -182,10 +182,7 @@
                             }
                         }
                     },
-                    paragraph: {
-                        // FIXED: Removed 'class: window.Paragraph' to prevent Editor crash
-                        inlineToolbar: true
-                    },
+
                     header: {
                         class: window.Header,
                         inlineToolbar: true,

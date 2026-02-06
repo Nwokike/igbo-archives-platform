@@ -7,10 +7,9 @@ import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.text import slugify
 from django.core.mail import send_mail
@@ -20,7 +19,10 @@ import logging
 
 from .models import BookRecommendation, UserBookRating
 from core.validators import ALLOWED_BOOK_SORTS, get_safe_sort
-from core.editorjs_helpers import parse_editorjs_content, generate_unique_slug, get_workflow_flags
+from core.editorjs_helpers import parse_editorjs_content, get_workflow_flags
+from core.turnstile import verify_turnstile
+# IMPORT THE NOTIFICATION FUNCTION
+from core.notifications_utils import send_new_review_notification
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -99,12 +101,18 @@ def book_detail(request, slug):
     if request.user.is_authenticated:
         user_rating = UserBookRating.objects.filter(book=book, user=request.user).first()
     
+    # Get all reviews for this book
+    reviews = UserBookRating.objects.filter(book=book).select_related('user').order_by('-created_at')
+
     context = {
         'book': book,
         'previous_book': previous_book,
         'next_book': next_book,
         'related_books': related_books,
         'user_rating': user_rating,
+        'reviews': reviews,
+        # PASS KEY FOR INITIAL LOAD
+        'turnstile_site_key': getattr(settings, 'TURNSTILE_SITE_KEY', ''),
     }
     
     return render(request, 'books/detail.html', context)
@@ -344,8 +352,27 @@ def book_delete(request, slug):
 def book_rate(request, slug):
     """Rate a book (HTMX endpoint)."""
     book = get_object_or_404(BookRecommendation, slug=slug, is_published=True, is_approved=True)
+    turnstile_site_key = getattr(settings, 'TURNSTILE_SITE_KEY', '')
     
     if request.method == 'POST':
+        # Verify Turnstile
+        token = request.POST.get('cf-turnstile-response')
+        turnstile_result = verify_turnstile(token)
+        
+        if not turnstile_result.get('success', False):
+            messages.error(request, 'Security check failed. Please refresh and try again.')
+            if request.htmx:
+                # Return the sidebar partial even on error so messages show
+                user_rating = UserBookRating.objects.filter(book=book, user=request.user).first()
+                reviews = UserBookRating.objects.filter(book=book).select_related('user').order_by('-created_at')
+                return render(request, 'books/partials/reviews_sidebar.html', {
+                    'book': book, 
+                    'user_rating': user_rating, 
+                    'reviews': reviews,
+                    'turnstile_site_key': turnstile_site_key
+                })
+            return redirect('books:detail', slug=slug)
+
         try:
             rating = int(request.POST.get('rating', 0))
             if rating < 1 or rating > 5:
@@ -360,11 +387,26 @@ def book_rate(request, slug):
             )
             
             if created:
-                messages.success(request, 'Thank you for rating this book!')
+                messages.success(request, 'Review posted successfully!')
+                # FIX: Send the notification
+                send_new_review_notification(user_rating, book)
             else:
-                messages.success(request, 'Your rating has been updated!')
+                messages.success(request, 'Review updated successfully!')
                 
         except (ValueError, TypeError) as e:
             messages.error(request, str(e))
+            
+    # HTMX Response: Re-render ONLY the sidebar
+    if request.htmx:
+        # Refresh the context data
+        user_rating = UserBookRating.objects.filter(book=book, user=request.user).first()
+        reviews = UserBookRating.objects.filter(book=book).select_related('user').order_by('-created_at')
+        
+        return render(request, 'books/partials/reviews_sidebar.html', {
+            'book': book,
+            'user_rating': user_rating,
+            'reviews': reviews,
+            'turnstile_site_key': turnstile_site_key,
+        })
     
     return redirect('books:detail', slug=slug)

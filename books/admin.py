@@ -1,21 +1,36 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from django.utils.html import escape
 import bleach
 from .models import BookRecommendation, UserBookRating
 
-# Allowed tags for admin preview (for user-provided content, we only allow basic formatting)
+# Allowed tags for admin preview
 ADMIN_PREVIEW_ALLOWED_TAGS = ['b', 'i', 'u', 'strong', 'em', 'br']
 
+class UserBookRatingInline(admin.TabularInline):
+    """
+    NEW: Allows you to see and delete reviews directly inside the Book page.
+    """
+    model = UserBookRating
+    extra = 0
+    readonly_fields = ('created_at',)
+    fields = ('user', 'rating', 'review_text', 'created_at')
+    can_delete = True
+    show_change_link = True
 
 @admin.register(BookRecommendation)
 class BookRecommendationAdmin(admin.ModelAdmin):
-    list_display = ['book_title', 'author', 'added_by', 'is_published', 'created_at']
+    list_display = ['book_title', 'author', 'added_by', 'is_published', 'is_approved', 'created_at']
     list_filter = ['is_published', 'is_approved', 'created_at']
-    search_fields = ['book_title', 'author', 'title']
+    search_fields = ['book_title', 'author', 'title', 'added_by__username', 'added_by__email']
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ['content_preview']
     
+    # NEW: Add the reviews inline here
+    inlines = [UserBookRatingInline]
+    
+    # NEW: Bulk actions to save you time
+    actions = ['approve_books', 'publish_books', 'unpublish_books']
+
     fieldsets = (
         ('Book Info', {
             'fields': ('book_title', 'author', 'publisher', 'publication_year', 'isbn', 'external_url')
@@ -32,10 +47,23 @@ class BookRecommendationAdmin(admin.ModelAdmin):
             'classes': ('wide',)
         }),
         ('Status', {
-            'fields': ('is_published', 'is_approved', 'pending_approval')
+            'fields': ('is_published', 'is_approved', 'pending_approval', 'submitted_at')
         }),
     )
+
+    def approve_books(self, request, queryset):
+        queryset.update(is_approved=True)
+    approve_books.short_description = "Approve selected books"
+
+    def publish_books(self, request, queryset):
+        queryset.update(is_published=True)
+    publish_books.short_description = "Publish selected books"
+
+    def unpublish_books(self, request, queryset):
+        queryset.update(is_published=False)
+    unpublish_books.short_description = "Unpublish selected books"
     
+    # --- YOUR CUSTOM PREVIEW LOGIC (KEPT) ---
     def content_preview(self, obj):
         """Render EditorJS content as HTML for admin preview with XSS protection."""
         if not obj.content_json or not isinstance(obj.content_json, dict):
@@ -51,7 +79,7 @@ class BookRecommendationAdmin(admin.ModelAdmin):
             data = block.get('data', {})
             
             if block_type == 'header':
-                level = min(max(int(data.get('level', 2)), 1), 6)  # Sanitize level
+                level = min(max(int(data.get('level', 2)), 1), 6)
                 text = bleach.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
                 html_parts.append(f'<h{level} style="margin:0.5em 0">{text}</h{level}>')
             elif block_type == 'paragraph':
@@ -80,6 +108,11 @@ class BookRecommendationAdmin(admin.ModelAdmin):
 
 @admin.register(UserBookRating)
 class UserBookRatingAdmin(admin.ModelAdmin):
-    list_display = ['book', 'user', 'rating', 'created_at']
+    list_display = ['book', 'user', 'rating', 'short_review', 'created_at']
     list_filter = ['rating', 'created_at']
-    search_fields = ['book__book_title', 'user__email']
+    search_fields = ['book__book_title', 'user__username', 'user__email', 'review_text']
+    readonly_fields = ('created_at', 'updated_at')
+
+    def short_review(self, obj):
+        return obj.review_text[:50] + "..." if obj.review_text else ""
+    short_review.short_description = "Review Snippet"

@@ -4,7 +4,6 @@
     let editor = null;
     let selectedArchive = null;
     let openingBlockIndex = null;
-    // FIXED: Variable to track which button was clicked
     let submitAction = null;
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -15,11 +14,17 @@
     });
 
     function initEditor() {
+        console.log('Initializing Insight Editor...');
         editor = IgboEditor.init('editor', {
             placeholder: 'Start writing your insight... Use the + button to add images, headers, and more!',
             autofocus: true,
             onChange: function () {
-                IgboEditor.updateFeaturedImageOptions();
+                console.log('Editor content changed. Updating featured image options...');
+                try {
+                    IgboEditor.updateFeaturedImageOptions();
+                } catch (e) {
+                    console.error('Error in onChange listener:', e);
+                }
             },
             onReady: function () {
                 console.log('Insight editor ready');
@@ -43,7 +48,6 @@
                 tabButtons.forEach(function (b) { b.classList.remove('active'); });
                 this.classList.add('active');
 
-                // Explicitly manage hidden classes to override any global css conflicts
                 document.querySelectorAll('#imageModal .tab-panel').forEach(function (p) {
                     p.classList.remove('active');
                     p.classList.add('hidden');
@@ -56,11 +60,11 @@
                 }
 
                 if (tabId === 'upload') {
-                    uploadBtn.classList.remove('hidden');
-                    insertBtn.classList.add('hidden');
+                    if (uploadBtn) uploadBtn.classList.remove('hidden');
+                    if (insertBtn) insertBtn.classList.add('hidden');
                 } else {
-                    uploadBtn.classList.add('hidden');
-                    insertBtn.classList.remove('hidden');
+                    if (uploadBtn) uploadBtn.classList.add('hidden');
+                    if (insertBtn) insertBtn.classList.remove('hidden');
                     loadArchives();
                 }
             });
@@ -89,7 +93,8 @@
     }
 
     function loadArchives() {
-        const search = document.getElementById('archiveSearch').value || '';
+        const searchInput = document.getElementById('archiveSearch');
+        const search = searchInput ? searchInput.value : '';
         const typeFilter = document.getElementById('archiveTypeFilter');
         const mediaType = typeFilter ? typeFilter.value : 'image';
         const url = '/api/archive-media-browser/?search=' + encodeURIComponent(search) + '&type=' + mediaType;
@@ -105,14 +110,13 @@
             .then(function (data) {
                 grid.innerHTML = '';
                 selectedArchive = null;
-                insertBtn.classList.add('hidden');
+                if (insertBtn) insertBtn.classList.add('hidden');
 
                 if (data.archives && data.archives.length > 0) {
                     data.archives.forEach(function (archive) {
                         const item = document.createElement('div');
                         item.className = 'archive-item';
 
-                        // Different display based on media type
                         let mediaPreview = '';
                         if (mediaType === 'image') {
                             const imgUrl = archive.thumbnail || archive.url || '';
@@ -131,7 +135,7 @@
                             });
                             item.classList.add('selected');
                             selectedArchive = archive;
-                            insertBtn.classList.remove('hidden');
+                            if (insertBtn) insertBtn.classList.remove('hidden');
                         });
 
                         grid.appendChild(item);
@@ -147,6 +151,7 @@
     }
 
     window.openImageModal = function (index) {
+        console.log('Opening Image Modal at index:', index);
         const modal = document.getElementById('imageModal');
         openingBlockIndex = index;
         if (modal) {
@@ -190,22 +195,23 @@
         const categorySelect = document.getElementById('mediaCategory');
         if (categorySelect) categorySelect.selectedIndex = 0;
 
-        // Reset radio buttons to image
         const imageRadio = document.querySelector('input[name="mediaType"][value="image"]');
         if (imageRadio) {
             imageRadio.checked = true;
-            updateMediaUploadUI();
+            if (window.updateMediaUploadUI) window.updateMediaUploadUI();
         }
 
         selectedArchive = null;
         document.querySelectorAll('.archive-item').forEach(function (item) {
             item.classList.remove('selected');
         });
-        document.getElementById('insertArchiveBtn').classList.add('hidden');
+        const insertBtn = document.getElementById('insertArchiveBtn');
+        if (insertBtn) insertBtn.classList.add('hidden');
     };
 
     window.updateMediaUploadUI = function () {
-        const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
+        const typeEl = document.querySelector('input[name="mediaType"]:checked');
+        const mediaType = typeEl ? typeEl.value : 'image';
         const fileInput = document.getElementById('mediaFileInput');
         const fileLabel = document.getElementById('fileInputLabel');
         const fileHelp = document.getElementById('fileInputHelp');
@@ -234,19 +240,15 @@
         if (fileHelp) fileHelp.textContent = c.help;
     };
 
-    // --- NEW HELPER FUNCTION TO COMPOSITE CAPTION ---
     function formatCaption(caption, author, copyright) {
         let parts = [];
-        // 1. The main caption
         if (caption && caption.trim()) parts.push(caption.trim());
 
-        // 2. The metadata (Author / Copyright)
         let meta = [];
         if (author && author.trim()) meta.push('Photo by ' + author.trim());
         if (copyright && copyright.trim()) meta.push('© ' + copyright.trim());
 
         if (meta.length > 0) {
-            // Add a separator if there was a caption
             let separator = parts.length > 0 ? ' | ' : '';
             parts.push(separator + meta.join(' '));
         }
@@ -255,8 +257,10 @@
     }
 
     window.uploadAndInsertMedia = function () {
-        const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
-        const file = document.getElementById('mediaFileInput').files[0];
+        const typeEl = document.querySelector('input[name="mediaType"]:checked');
+        const mediaType = typeEl ? typeEl.value : 'image';
+        const fileInput = document.getElementById('mediaFileInput');
+        const file = fileInput ? fileInput.files[0] : null;
 
         const title = document.getElementById('mediaTitle').value.trim();
         const description = document.getElementById('mediaArchiveDescription').value.trim();
@@ -301,95 +305,127 @@
         if (csrfToken) formData.append('csrfmiddlewaretoken', csrfToken.value);
 
         const uploadBtn = document.getElementById('uploadBtn');
-        const originalText = uploadBtn.innerHTML;
-        uploadBtn.disabled = true;
-        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        const originalText = uploadBtn ? uploadBtn.innerHTML : '';
+        if (uploadBtn) {
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        }
+
+        console.log('Sending upload request to /api/upload-media/...');
 
         fetch('/api/upload-media/', {
             method: 'POST',
             body: formData,
             credentials: 'same-origin'
         })
-            .then(function (response) { return response.json(); })
+            .then(function (response) {
+                console.log('Upload HTTP Response:', response.status);
+                return response.json();
+            })
             .then(function (data) {
+                console.log('Received API JSON data:', data);
                 if (data.success === 1) {
                     const finalDisplayCaption = formatCaption(caption, originalAuthor, copyrightHolder);
+                    console.log('Preparing to insert block...', {
+                        mediaType,
+                        index: openingBlockIndex,
+                        url: data.file.url
+                    });
 
-                    if (mediaType === 'image') {
-                        editor.blocks.insert('image', {
-                            file: { url: data.file.url },
-                            caption: finalDisplayCaption,
-                            alt: altText,
-                            archive_id: data.archive_id,
-                            withBorder: false,
-                            stretched: false,
-                            withBackground: true
-                        }, {}, openingBlockIndex, true, true);
-                    } else {
-                        editor.blocks.insert('paragraph', {
-                            text: `<a href="${data.file.url}" target="_blank">View ${mediaType}: ${title}</a> - ${finalDisplayCaption}`
-                        }, {}, openingBlockIndex, true, true);
+                    try {
+                        if (mediaType === 'image') {
+                            const insertIndex = openingBlockIndex !== null ? openingBlockIndex : undefined;
+                            editor.blocks.insert('image', {
+                                file: { url: data.file.url },
+                                caption: finalDisplayCaption,
+                                alt: altText,
+                                archive_id: data.archive_id,
+                                withBorder: false,
+                                stretched: false,
+                                withBackground: true
+                            }, {}, insertIndex, true);
+                            console.log('Image block inserted successfully');
+                        } else {
+                            const insertIndex = openingBlockIndex !== null ? openingBlockIndex : undefined;
+                            editor.blocks.insert('paragraph', {
+                                text: `<a href="${data.file.url}" target="_blank">View ${mediaType}: ${title}</a> - ${finalDisplayCaption}`
+                            }, {}, insertIndex, true);
+                            console.log('Paragraph block (for media) inserted successfully');
+                        }
+                    } catch (insertErr) {
+                        console.error('CRITICAL: Error during editor.blocks.insert:', insertErr);
                     }
 
                     closeImageModal();
-                    showToast(mediaType.charAt(0).toUpperCase() + mediaType.slice(1) + ' uploaded successfully', 'success');
-                    IgboEditor.updateFeaturedImageOptions();
+                    showToast(mediaType.charAt(0).toUpperCase() + mediaType.slice(1) + ' uploaded and inserted successfully', 'success');
+                    if (IgboEditor.updateFeaturedImageOptions) IgboEditor.updateFeaturedImageOptions();
                 } else {
+                    console.error('API returned error success state:', data);
                     showToast('Upload failed: ' + (data.error || 'Unknown error'), 'error');
                 }
             })
             .catch(function (error) {
+                console.error('Fetch/JSON Error:', error);
                 showToast('Upload failed: ' + error.message, 'error');
             })
             .finally(function () {
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML = originalText;
+                if (uploadBtn) {
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = originalText;
+                }
             });
     };
 
     window.insertSelectedArchive = function () {
         if (selectedArchive) {
+            console.log('Inserting selected archive:', selectedArchive.id);
             const finalDisplayCaption = formatCaption(
                 selectedArchive.caption || selectedArchive.title,
                 selectedArchive.original_author,
                 selectedArchive.copyright_holder
             );
 
-            editor.blocks.insert('image', {
-                file: { url: selectedArchive.thumbnail || selectedArchive.url || '' },
-                caption: finalDisplayCaption,
-                alt: selectedArchive.alt_text || selectedArchive.title || '',
-                archive_id: selectedArchive.id,
-                archive_slug: selectedArchive.slug || null,
-                withBorder: false,
-                stretched: false,
-                withBackground: true
-            }, {}, openingBlockIndex, true, true);
+            try {
+                const insertIndex = openingBlockIndex !== null ? openingBlockIndex : undefined;
+                editor.blocks.insert('image', {
+                    file: { url: selectedArchive.thumbnail || selectedArchive.url || '' },
+                    caption: finalDisplayCaption,
+                    alt: selectedArchive.alt_text || selectedArchive.title || '',
+                    archive_id: selectedArchive.id,
+                    archive_slug: selectedArchive.slug || null,
+                    withBorder: false,
+                    stretched: false,
+                    withBackground: true
+                }, {}, insertIndex, true);
+                console.log('Archive image inserted successfully');
+            } catch (e) {
+                console.error('Error inserting archive block:', e);
+            }
 
             closeImageModal();
             showToast('Image inserted successfully', 'success');
-            IgboEditor.updateFeaturedImageOptions();
+            if (IgboEditor.updateFeaturedImageOptions) IgboEditor.updateFeaturedImageOptions();
         }
     };
 
     function initFormSubmission() {
         const form = document.getElementById('insightForm');
         if (form) {
-            // FIXED: Listen for specific button clicks to capture intent
             const submitButtons = form.querySelectorAll('button[name="action"]');
             submitButtons.forEach(btn => {
                 btn.addEventListener('click', function () {
-                    submitAction = this.value; // Store 'submit' or 'save'
+                    submitAction = this.value;
                 });
             });
 
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
 
-                // Default to 'save' if undefined
                 if (!submitAction) submitAction = 'save';
 
+                console.log('Saving editor content for form submission...');
                 editor.save().then(function (outputData) {
+                    console.log('Editor Save Output:', outputData);
                     if (!outputData.blocks || outputData.blocks.length === 0) {
                         showToast('Please add some content before submitting.', 'error');
                         return;
@@ -407,15 +443,15 @@
                         return;
                     }
 
-                    document.getElementById('content_json').value = JSON.stringify(outputData);
+                    const contentJsonInput = document.getElementById('content_json');
+                    if (contentJsonInput) contentJsonInput.value = JSON.stringify(outputData);
 
                     const images = outputData.blocks.filter(function (b) { return b.type === 'image'; });
                     const featuredInput = document.getElementById('featured_image_url');
-                    if (images.length > 0 && !featuredInput.value) {
+                    if (images.length > 0 && featuredInput && !featuredInput.value) {
                         featuredInput.value = images[0].data.file.url;
                     }
 
-                    // FIXED: Inject the captured action into the form before submitting
                     let actionInput = form.querySelector('input[name="action"]');
                     if (!actionInput) {
                         actionInput = document.createElement('input');
@@ -425,9 +461,10 @@
                     }
                     actionInput.value = submitAction;
 
+                    console.log('Submitting form with action:', submitAction);
                     form.submit();
                 }).catch(function (error) {
-                    console.error('Error saving editor content:', error);
+                    console.error('Error saving editor content during submit:', error);
                     showToast('Error saving content. Please try again.', 'error');
                 });
             });

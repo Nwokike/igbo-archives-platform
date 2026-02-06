@@ -1,199 +1,116 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load threadedcomments_tags %}
 {% load editorjs_renderer %}
 
 {% block title %}{{ book.book_title }} - Recommended Books{% endblock %}
 
-{% block meta_description %}{{ book.book_title }} by {{ book.author }} - {{ book.content|striptags|truncatewords:25 }}{%endblock %}
-
-{% block og_title %}{{ book.book_title }} | Igbo Archives{% endblock %}
-{% block og_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
-{% if book.cover_image %}
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}{% endblock %}
-{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}{% endblock %}
-{% endif %}
-{% block og_type %}article{% endblock %}
-
-{% block twitter_title %}{{ book.book_title }} | Igbo Archives{% endblock %}
-{% block twitter_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
+{% block meta_description %}{{ book.book_title }} by {{ book.author }} - {{ book.content|striptags|truncatewords:25 }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editor.css' %}">
+<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/reviews.js' %}" defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 
 {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
     <article class="lg:col-span-8">
         <header class="mb-6">
             <h1 class="font-serif text-display-lg text-dark-brown mb-2">{{ book.book_title }}</h1>
             <p class="text-xl text-vintage-beaver mb-4">by {{ book.author }}</p>
-
+            
             {% if book.average_rating %}
-            <div class="flex items-center gap-4 mb-4">
-                <div class="text-vintage-gold text-xl">
-                    {% with avg=book.average_rating %}
-                    {% for i in "12345"|make_list %}
-                    {% if forloop.counter <= avg %}★{% else %}☆{% endif %} {% endfor %} <span
-                        class="text-sm text-vintage-beaver ml-1">({{ avg|floatformat:1 }}/5 from {{ book.rating_count }}
-                        rating{{ book.rating_count|pluralize }})</span>
-                        {% endwith %}
-                </div>
+            <div class="lg:hidden flex items-center gap-2 mb-4 text-vintage-gold">
+                <span class="text-lg">★</span>
+                <span class="font-bold text-dark-brown">{{ book.average_rating|floatformat:1 }}</span>
+                <span class="text-sm text-vintage-beaver">({{ book.rating_count }} reviews)</span>
             </div>
             {% endif %}
-
-            <div class="text-sm text-vintage-beaver">
-                Recommended by
-                <a href="{% url 'users:profile' book.added_by.username %}"
-                    class="text-vintage-gold hover:underline font-medium">{{ book.added_by.get_display_name }}</a>
-                on {{ book.created_at|date:"F d, Y" }}
-            </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {% if book.cover_image %}
             <div class="md:col-span-1">
-                <a href="{{ book.cover_image.url }}" target="_blank" rel="noopener noreferrer" class="block">
+                <a href="{{ book.cover_image.url }}" target="_blank" class="block group">
                     <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}"
-                        class="w-full rounded-lg shadow-soft cursor-pointer hover:opacity-90 transition-opacity">
+                        class="w-full rounded-lg shadow-soft group-hover:scale-[1.02] transition-transform duration-300">
                 </a>
             </div>
             <div class="md:col-span-2">
-                {% else %}
-                <div class="md:col-span-3">
-                    {% endif %}
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="font-serif font-semibold text-dark-brown mb-3">Book Details</h4>
-                            <dl class="space-y-2 text-sm">
-                                <div class="flex gap-2">
-                                    <dt class="font-medium text-dark-brown w-24">Author:</dt>
-                                    <dd class="text-dark-umber">{{ book.author }}</dd>
-                                </div>
-                                {% if book.publisher %}
-                                <div class="flex gap-2">
-                                    <dt class="font-medium text-dark-brown w-24">Publisher:</dt>
-                                    <dd class="text-dark-umber">{{ book.publisher }}</dd>
-                                </div>
-                                {% endif %}
-                                {% if book.publication_year %}
-                                <div class="flex gap-2">
-                                    <dt class="font-medium text-dark-brown w-24">Year:</dt>
-                                    <dd class="text-dark-umber">{{ book.publication_year }}</dd>
-                                </div>
-                                {% endif %}
-                                {% if book.isbn %}
-                                <div class="flex gap-2">
-                                    <dt class="font-medium text-dark-brown w-24">ISBN:</dt>
-                                    <dd class="text-dark-umber">{{ book.isbn }}</dd>
-                                </div>
-                                {% endif %}
-                            </dl>
-
-                            {% if book.external_url %}
-                            <a href="{{ book.external_url }}" target="_blank" rel="noopener noreferrer"
-                                class="btn-primary mt-4 inline-flex items-center gap-2">
-                                <i class="fas fa-external-link-alt"></i>
-                                View Book
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
-                {{ book.content|render_editorjs }}
-            </div>
-
-            <div
-                class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/50 dark:bg-surface-dark-alt/50 rounded-xl border border-border/50">
-                {% if user == book.added_by %}
-                <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex items-center gap-2">
-                    <i class="fas fa-edit"></i> <span class="hidden sm:inline">Edit</span>
-                </a>
-                {% endif %}
-
-                <div class="ml-auto">
-                    {% include 'partials/share_buttons.html' with title=book.book_title %}
-                </div>
-            </div>
-
-            <hr class="border-sepia-pale/50 my-8">
-
-            {% include 'partials/prev_next_navigation.html' with previous=previous_book next=next_book %}
-
-            {% include 'partials/recommended_carousel.html' with recommended=related_books %}
-
-            <hr class="border-sepia-pale/50 my-8">
-
-            <!-- User Rating Section -->
-            {% if user.is_authenticated %}
-            <section class="mb-8">
-                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-4">Rate This Book</h3>
-                <form action="{% url 'books:rate' book.slug %}" method="post" class="card">
-                    {% csrf_token %}
+            {% else %}
+            <div class="md:col-span-3">
+            {% endif %}
+                <div class="card h-full">
                     <div class="card-body">
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-dark-brown mb-2">Your Rating</label>
-                            <div class="flex gap-2">
-                                {% for i in "12345"|make_list %}
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="rating" value="{{ forloop.counter }}" class="sr-only peer"
-                                        {% if user_rating and user_rating.rating == forloop.counter %}checked{% endif %}>
-                                    <span
-                                        class="text-2xl peer-checked:text-vintage-gold text-gray-300 hover:text-vintage-gold transition-colors">★</span>
-                                </label>
-                                {% endfor %}
+                        <h4 class="font-serif font-semibold text-dark-brown mb-3 border-b border-border/50 pb-2">Book Details</h4>
+                        <dl class="space-y-3 text-sm">
+                            <div class="grid grid-cols-3">
+                                <dt class="font-medium text-vintage-beaver">Author</dt>
+                                <dd class="col-span-2 text-dark-umber font-medium">{{ book.author }}</dd>
                             </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-dark-brown mb-2">Your Review (optional)</label>
-                            <textarea name="review_text" rows="3" class="form-input w-full"
-                                placeholder="Share your thoughts about this book...">{% if user_rating %}{{ user_rating.review_text }}{% endif %}</textarea>
-                        </div>
-                        <button type="submit" class="btn-primary">
-                            {% if user_rating %}Update Rating{% else %}Submit Rating{% endif %}
-                        </button>
+                            {% if book.publisher %}
+                            <div class="grid grid-cols-3">
+                                <dt class="font-medium text-vintage-beaver">Publisher</dt>
+                                <dd class="col-span-2 text-dark-umber">{{ book.publisher }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if book.publication_year %}
+                            <div class="grid grid-cols-3">
+                                <dt class="font-medium text-vintage-beaver">Year</dt>
+                                <dd class="col-span-2 text-dark-umber">{{ book.publication_year }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if book.isbn %}
+                            <div class="grid grid-cols-3">
+                                <dt class="font-medium text-vintage-beaver">ISBN</dt>
+                                <dd class="col-span-2 text-dark-umber font-mono">{{ book.isbn }}</dd>
+                            </div>
+                            {% endif %}
+                        </dl>
+
+                        {% if book.external_url %}
+                        <a href="{{ book.external_url }}" target="_blank" rel="noopener noreferrer"
+                            class="btn-primary mt-6 inline-flex items-center gap-2 w-full justify-center md:w-auto">
+                            <i class="fas fa-book-open"></i>
+                            View Book Source
+                        </a>
+                        {% endif %}
                     </div>
-                </form>
-            </section>
+                </div>
+            </div>
+        </div>
+
+        <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
+            {{ book.content|render_editorjs }}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/30 rounded-xl border border-border/50">
+            {% if user == book.added_by %}
+            <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex items-center gap-2">
+                <i class="fas fa-edit"></i> <span>Edit Recommendation</span>
+            </a>
             {% endif %}
 
-            <section class="mt-8">
-                <h3 class="font-serif text-xl font-semibold text-dark-brown mb-6">Discussion</h3>
-                {% render_comment_list for book %}
-                {% render_comment_form for book %}
-            </section>
+            <div class="ml-auto">
+                {% include 'partials/share_buttons.html' with title=book.book_title %}
+            </div>
+        </div>
+
+        <hr class="border-sepia-pale/50 my-8">
+
+        {% include 'partials/prev_next_navigation.html' with previous=previous_book next=next_book %}
+        {% include 'partials/recommended_carousel.html' with recommended=related_books %}
+
     </article>
 
     <aside class="lg:col-span-4">
-        <div class="sticky top-32 space-y-6">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="font-serif font-semibold text-dark-brown mb-3">Recommended By</h4>
-                    <div class="flex items-center gap-3 mb-3">
-                        {% if book.added_by.profile_picture %}
-                        <img src="{{ book.added_by.profile_picture.url }}" alt="{{ book.added_by.get_display_name }}"
-                            class="w-12 h-12 rounded-full object-cover">
-                        {% else %}
-                        <div
-                            class="w-12 h-12 rounded-full bg-heritage-cream flex items-center justify-center text-lg font-semibold text-dark-brown">
-                            {{ book.added_by.get_display_name|slice:":1"|upper }}
-                        </div>
-                        {% endif %}
-                        <div>
-                            <a href="{% url 'users:profile' book.added_by.username %}"
-                                class="text-dark-brown hover:text-vintage-gold font-medium transition-colors">
-                                {{ book.added_by.get_display_name }}
-                            </a>
-                        </div>
-                    </div>
-                    {% if book.added_by.bio %}
-                    <p class="text-sm text-vintage-beaver">{{ book.added_by.bio|truncatewords:30 }}</p>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="sticky top-24">
+            {% include 'books/partials/reviews_sidebar.html' %}
         </div>
     </aside>
 </div>

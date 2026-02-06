@@ -11,4 +11,3 @@ urlpatterns = [
     path('<slug:slug>/delete/', views.book_delete, name='delete'),
     path('<slug:slug>/rate/', views.book_rate, name='rate'),
 ]
-
