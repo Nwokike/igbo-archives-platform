@@ -76,7 +76,7 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                     <div class="flex items-center gap-2">
                         <i class="fas fa-globe w-4 text-center"></i>
                         <a href="{{ profile_user.social_links.website }}" target="_blank" rel="noopener"
-                            class="text-accent hover:underline">{{profile_user.social_links.website|truncatechars:30}}</a>
+                            class="text-accent hover:underline">{{profile_user.social_links.website}}</a>
                     </div>
                     {% endif %}
 
@@ -152,9 +152,9 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                     <i class="fas fa-lightbulb"></i> Insights
                     <span class="badge badge-primary ml-1">{{ user_insights.count }}</span>
                 </button>
-                <button type="button" class="tab" data-tab="reviews">
-                    <i class="fas fa-book"></i> Reviews
-                    <span class="badge badge-primary ml-1">{{ user_book_reviews.count }}</span>
+                <button type="button" class="tab" data-tab="recommendations">
+                    <i class="fas fa-book"></i> Recommendations
+                    <span class="badge badge-primary ml-1">{{ user_book_recommendations.count }}</span>
                 </button>
                 <button type="button" class="tab" data-tab="archives">
                     <i class="fas fa-archive"></i> Archives
@@ -193,26 +193,26 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                 {% endif %}
             </div>
 
-            <div id="reviews" class="tab-panel">
-                {% if user_book_reviews %}
+            <div id="recommendations" class="tab-panel">
+                {% if user_book_recommendations %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {% for review in user_book_reviews %}
-                    <a href="{% url 'books:detail' review.slug %}" class="card card-hover group block">
-                        {% if review.cover_image %}
+                    {% for recommendation in user_book_recommendations %}
+                    <a href="{% url 'books:detail' recommendation.slug %}" class="card card-hover group block">
+                        {% if recommendation.cover_image %}
                         <div class="h-40 overflow-hidden">
-                            <img src="{{ review.cover_image.url }}" alt="{{ review.book_title }}"
+                            <img src="{{ recommendation.cover_image.url }}" alt="{{ recommendation.book_title }}"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         </div>
                         {% endif %}
                         <div class="card-body">
                             <h4
                                 class="font-serif font-bold mb-1 line-clamp-2 group-hover:text-accent transition-colors">
-                                {{ review.review_title }}
+                                {{ recommendation.recommendation_title }}
                             </h4>
-                            <p class="text-sm text-text-muted mb-2">{{ review.book_title }}</p>
+                            <p class="text-sm text-text-muted mb-2">{{ recommendation.book_title }}</p>
                             <div class="text-accent text-sm">
                                 {% for i in "12345"|make_list %}
-                                {% if forloop.counter <= review.rating %}<i class="fas fa-star"></i>{% else %}<i
+                                {% if forloop.counter <= recommendation.rating %}<i class="fas fa-star"></i>{% else %}<i
                                         class="far fa-star"></i>{% endif %}
                                     {% endfor %}
                             </div>
@@ -223,7 +223,7 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                 {% else %}
                 <div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
                     <i class="fas fa-book text-3xl text-text-muted mb-3"></i>
-                    <p class="text-text-muted">No book reviews yet.</p>
+                    <p class="text-text-muted">No book recommendations yet.</p>
                 </div>
                 {% endif %}
             </div>
