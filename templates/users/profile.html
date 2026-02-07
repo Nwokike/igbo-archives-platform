@@ -76,8 +76,7 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
                     <div class="flex items-center gap-2">
                         <i class="fas fa-globe w-4 text-center"></i>
                         <a href="{{ profile_user.social_links.website }}" target="_blank" rel="noopener"
-                            class="text-accent hover:underline">{{
-                            profile_user.social_links.website|truncatechars:30}}</a>
+                            class="text-accent hover:underline">{{profile_user.social_links.website|truncatechars:30}}</a>
                     </div>
                     {% endif %}
 
