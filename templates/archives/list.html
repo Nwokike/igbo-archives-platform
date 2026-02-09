@@ -14,7 +14,8 @@
                     hx-include="#typeFilter,#sortFilter,#searchInput,#dateFilter,#authorFilter" hx-push-url="true">
                     <option value="">All Collections</option>
                     {% for cat in categories %}
-                    <option value="{{ cat.slug }}" {% if request.GET.category==cat.slug %}selected{% endif %}>{{cat.name}}</option>
+                    <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>
+                        {{cat.name}}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -24,10 +25,10 @@
                     hx-target="#archiveGrid"
                     hx-include="#categoryFilter,#sortFilter,#searchInput,#dateFilter,#authorFilter" hx-push-url="true">
                     <option value="">All Types</option>
-                    <option value="image" {% if request.GET.type=='image' %}selected{% endif %}>Images</option>
-                    <option value="video" {% if request.GET.type=='video' %}selected{% endif %}>Videos</option>
-                    <option value="audio" {% if request.GET.type=='audio' %}selected{% endif %}>Audio</option>
-                    <option value="document" {% if request.GET.type=='document' %}selected{% endif %}>Documents</option>
+                    <option value="image" {% if request.GET.type == 'image' %}selected{% endif %}>Images</option>
+                    <option value="video" {% if request.GET.type == 'video' %}selected{% endif %}>Videos</option>
+                    <option value="audio" {% if request.GET.type == 'audio' %}selected{% endif %}>Audio</option>
+                    <option value="document" {% if request.GET.type == 'document' %}selected{% endif %}>Documents</option>
                 </select>
             </div>
 
@@ -35,10 +36,10 @@
                 <select class="form-select text-xs" id="sortFilter" name="sort" hx-get="{% url 'archives:list' %}"
                     hx-target="#archiveGrid"
                     hx-include="#categoryFilter,#typeFilter,#searchInput,#dateFilter,#authorFilter" hx-push-url="true">
-                    <option value="-created_at" {% if request.GET.sort=='-created_at' or not request.GET.sort %}selected{% endif %}>Newest</option>
-                    <option value="created_at" {% if request.GET.sort=='created_at' %}selected{% endif %}>Oldest
+                    <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort%}selected{% endif %}>Newest</option>
+                    <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest
                     </option>
-                    <option value="title" {% if request.GET.sort=='title' %}selected{% endif %}>Title A-Z</option>
+                    <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Title A-Z</option>
                 </select>
             </div>
 

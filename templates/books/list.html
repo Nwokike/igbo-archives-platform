@@ -10,12 +10,12 @@
             <div class="flex-1 min-w-[80px] sm:flex-none sm:w-24">
                 <select class="form-select text-xs" id="sortFilter" name="sort" hx-get="{% url 'books:list' %}"
                     hx-target="#booksGrid" hx-include="#searchInput,#authorFilter,#yearFilter" hx-push-url="true">
-                    <option value="-publication_year" {% if request.GET.sort=='-publication_year' or not request.GET.sort %}selected{% endif %}>Newest</option>
-                    <option value="publication_year" {% if request.GET.sort=='publication_year' %}selected{% endif %}>
+                    <option value="-publication_year" {% if request.GET.sort == '-publication_year' or not request.GET.sort %}selected{% endif %}>Newest</option>
+                    <option value="publication_year" {% if request.GET.sort == 'publication_year' %}selected{% endif %}>
                         Oldest</option>
-                    <option value="book_title" {% if request.GET.sort=='book_title' %}selected{% endif %}>Title A-Z
+                    <option value="book_title" {% if request.GET.sort == 'book_title' %}selected{% endif %}>Title A-Z
                     </option>
-                    <option value="-created_at" {% if request.GET.sort=='-created_at' %}selected{% endif %}>Recently
+                    <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Recently
                         Added</option>
                 </select>
             </div>

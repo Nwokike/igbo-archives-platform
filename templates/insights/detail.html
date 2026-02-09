@@ -4,6 +4,19 @@
 
 {% block title %}{{ insight.title }} - Igbo Archives{% endblock %}
 
+{% block meta_description %}{{ insight.excerpt|default:insight.title|truncatewords:25 }}{% endblock %}
+
+{% block og_title %}{{ insight.title }} | Igbo Archives{% endblock %}
+{% block og_description %}{{ insight.excerpt|default:insight.title|truncatewords:50 }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_image %}{% if insight.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{
+insight.featured_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block twitter_title %}{{ insight.title }} | Igbo Archives{% endblock %}
+{% block twitter_description %}{{ insight.excerpt|default:insight.title|truncatewords:50 }}{% endblock %}
+{% block twitter_image %}{% if insight.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{
+insight.featured_image.url }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <nav class="flex text-sm text-text-muted mb-6" aria-label="Breadcrumb">
@@ -28,8 +41,8 @@
         <header class="p-6 md:p-8 border-b border-border">
             <div class="flex items-center gap-3 mb-4">
                 {% if insight.category %}
-                <a href="{% url 'insights:list' %}?category={{ insight.category.slug }}" 
-                   class="badge badge-primary no-underline hover:bg-accent hover:text-white transition-colors">
+                <a href="{% url 'insights:list' %}?category={{ insight.category.slug }}"
+                    class="badge badge-primary no-underline hover:bg-accent hover:text-white transition-colors">
                     {{ insight.category.name }}
                 </a>
                 {% endif %}
@@ -45,8 +58,8 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     {% if insight.author.profile.avatar %}
-                    <img src="{{ insight.author.profile.avatar.url }}" alt="{{ insight.author.get_full_name }}" 
-                         class="w-10 h-10 rounded-full object-cover border border-border">
+                    <img src="{{ insight.author.profile.avatar.url }}" alt="{{ insight.author.get_full_name }}"
+                        class="w-10 h-10 rounded-full object-cover border border-border">
                     {% else %}
                     <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                         <i class="fas fa-user"></i>
@@ -54,7 +67,8 @@
                     {% endif %}
                     <div>
                         <p class="font-medium text-dark-brown">
-                            By <a href="{% url 'users:profile' insight.author.username %}" class="hover:text-accent">{{ insight.author.get_full_name|default:insight.author.username }}</a>
+                            By <a href="{% url 'users:profile' insight.author.username %}" class="hover:text-accent">{{
+                                insight.author.get_full_name|default:insight.author.username }}</a>
                         </p>
                         <p class="text-xs text-text-muted">{{ insight.author.profile.bio|truncatechars:60 }}</p>
                     </div>
@@ -70,11 +84,12 @@
             </div>
         </header>
 
-        <div class="p-6 md:p-8 prose prose-lg prose-headings:font-serif prose-headings:text-dark-brown prose-a:text-accent max-w-none">
+        <div
+            class="p-6 md:p-8 prose prose-lg prose-headings:font-serif prose-headings:text-dark-brown prose-a:text-accent max-w-none">
             {% if insight.content_json %}
-                {{ insight.content_json|render_editorjs }}
+            {{ insight.content_json|render_editorjs }}
             {% else %}
-                {{ insight.legacy_content|safe }}
+            {{ insight.legacy_content|safe }}
             {% endif %}
         </div>
 
@@ -84,7 +99,7 @@
                     <h3 class="font-serif font-bold text-lg text-dark-brown mb-2">Share this insight</h3>
                     {% include 'partials/share_buttons.html' with title=insight.title %}
                 </div>
-                
+
                 {% if user.is_authenticated and user != insight.author %}
                 <div class="flex gap-3">
                     <a href="{% url 'insights:suggest_edit' insight.slug %}" class="btn-secondary btn-sm">
@@ -98,18 +113,21 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         {% if previous_insight %}
-        <a href="{% url 'insights:detail' previous_insight.slug %}" class="card p-4 hover:border-accent group transition-all">
+        <a href="{% url 'insights:detail' previous_insight.slug %}"
+            class="card p-4 hover:border-accent group transition-all">
             <span class="text-xs text-text-muted uppercase tracking-wider mb-1 block">Previous</span>
-            <h4 class="font-serif font-bold text-dark-brown group-hover:text-accent truncate">{{ previous_insight.title }}</h4>
+            <h4 class="font-serif font-bold text-dark-brown group-hover:text-accent truncate">{{ previous_insight.title}}</h4>
         </a>
         {% else %}
         <div></div>
         {% endif %}
 
         {% if next_insight %}
-        <a href="{% url 'insights:detail' next_insight.slug %}" class="card p-4 hover:border-accent group transition-all text-right">
+        <a href="{% url 'insights:detail' next_insight.slug %}"
+            class="card p-4 hover:border-accent group transition-all text-right">
             <span class="text-xs text-text-muted uppercase tracking-wider mb-1 block">Next</span>
-            <h4 class="font-serif font-bold text-dark-brown group-hover:text-accent truncate">{{ next_insight.title }}</h4>
+            <h4 class="font-serif font-bold text-dark-brown group-hover:text-accent truncate">{{ next_insight.title }}
+            </h4>
         </a>
         {% endif %}
     </div>
@@ -122,7 +140,8 @@
             <a href="{% url 'insights:detail' post.slug %}" class="card group h-full flex flex-col">
                 <div class="aspect-video bg-gray-100 relative overflow-hidden">
                     {% if post.featured_image %}
-                    <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <img src="{{ post.featured_image.url }}" alt="{{ post.title }}"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     {% else %}
                     <div class="w-full h-full flex items-center justify-center bg-heritage-cream text-vintage-gold">
                         <i class="fas fa-feather-alt text-3xl"></i>
@@ -132,11 +151,12 @@
                 <div class="p-4 flex-1 flex flex-col">
                     <div class="flex items-center gap-2 mb-2">
                         {% if post.category %}
-                        <span class="text-xs font-bold text-accent uppercase tracking-wide">{{ post.category.name }}</span>
+                        <span class="text-xs font-bold text-accent uppercase tracking-wide">{{ post.category.name}}</span>
                         {% endif %}
                         <span class="text-xs text-text-muted">{{ post.created_at|date:"M j" }}</span>
                     </div>
-                    <h3 class="font-serif font-bold text-lg text-dark-brown mb-2 line-clamp-2 group-hover:text-accent transition-colors">
+                    <h3
+                        class="font-serif font-bold text-lg text-dark-brown mb-2 line-clamp-2 group-hover:text-accent transition-colors">
                         {{ post.title }}
                     </h3>
                 </div>
