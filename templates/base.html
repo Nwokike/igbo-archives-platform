@@ -20,6 +20,15 @@
 
     {% progressive_web_app_meta %}
 
+    <script>
+        // Capture PWA install prompt event early to prevent missing it
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('Early beforeinstallprompt capture');
+            e.preventDefault();
+            window.deferredPrompt = e;
+        });
+    </script>
+
     {% if VAPID_PUBLIC_KEY %}
     <meta name="vapid-public-key" content="{{ VAPID_PUBLIC_KEY }}">
     {% endif %}

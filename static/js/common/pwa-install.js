@@ -13,18 +13,25 @@
 
     // Listen for the beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', function (e) {
-        console.log('beforeinstallprompt event fired');
+        console.log('beforeinstallprompt event fired inside pwa-install.js');
         // Prevent Chrome 67+ from automatically showing the prompt
         e.preventDefault();
         // Stash the event so it can be triggered later
         deferredPrompt = e;
+        // Also stash globally just in case
+        window.deferredPrompt = e;
+
         // Show the install button
+        showInstallButton();
+    });
+
+    function showInstallButton() {
         if (installBtn) {
             console.log('Showing PWA install button');
             installBtn.style.display = 'flex';
             installBtn.classList.remove('hidden');
         }
-    });
+    }
 
     // Handle install button click
     if (installBtn) {
@@ -62,9 +69,9 @@
 
     // Initial check in case event fired before script load
     if (window.deferredPrompt && installBtn) {
+        console.log('Found stashed deferredPrompt, showing button');
         deferredPrompt = window.deferredPrompt;
-        installBtn.style.display = 'flex';
-        installBtn.classList.remove('hidden');
+        showInstallButton();
     }
 
     // For iOS - check if running as standalone
