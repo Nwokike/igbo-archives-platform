@@ -9,14 +9,15 @@
             <h1 class="font-serif text-2xl lg:text-3xl font-bold mb-2">Welcome, {{ user.get_display_name }}!</h1>
             <p class="text-text-muted">Manage your content and interactions on Igbo Archives.</p>
         </div>
-        
+
         <div class="flex gap-3">
             {% if user.is_staff %}
-            <a href="{% url 'users:moderation_dashboard' %}" class="btn-primary btn-sm bg-dark-brown border-dark-brown hover:bg-dark-umber shadow-lg">
+            <a href="{% url 'users:moderation_dashboard' %}"
+                class="btn-primary btn-sm bg-dark-brown border-dark-brown hover:bg-dark-umber shadow-lg">
                 <i class="fas fa-shield-alt mr-2"></i> Moderation Dashboard
             </a>
             {% endif %}
-            
+
             <a href="{% url 'users:profile' user.username %}" class="btn-secondary btn-sm">
                 <i class="fas fa-user-circle"></i> View Public Profile
             </a>
@@ -64,8 +65,7 @@
                 <div class="card-body">
                     <div class="flex items-start justify-between gap-4">
                         <h4 class="font-serif font-semibold">{{ thread.subject }}</h4>
-                        <span class="text-sm text-text-muted whitespace-nowrap">{{ thread.updated_at|date:"M d, Y g:i A"
-                            }}</span>
+                        <span class="text-sm text-text-muted whitespace-nowrap">{{ thread.updated_at|date:"M d, Y g:i A"}}</span>
                     </div>
                     <p class="text-sm text-text-muted mt-1">
                         <strong>With:</strong>
@@ -115,8 +115,10 @@
                         {% endif %}
                     </p>
                     <div class="flex gap-2">
-                        <a href="{% url 'insights:detail' insight.slug %}" class="btn-secondary btn-sm flex-1 justify-center">View</a>
-                        <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary btn-sm flex-1 justify-center">
+                        <a href="{% url 'insights:detail' insight.slug %}"
+                            class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                        <a href="{% url 'insights:edit' insight.slug %}"
+                            class="btn-primary btn-sm flex-1 justify-center">
                             <i class="fas fa-edit"></i> Edit
                         </a>
                     </div>
@@ -130,6 +132,21 @@
             </div>
             {% endfor %}
         </div>
+        {% if my_insights.has_other_pages %}
+        <div class="flex justify-center mt-6">
+            <nav class="pagination">
+                {% if my_insights.has_previous %}
+                <a class="page-link" href="?insights_page={{ my_insights.previous_page_number }}"><i
+                        class="fas fa-chevron-left text-xs"></i></a>
+                {% endif %}
+                <span class="page-link active">{{ my_insights.number }} of {{ my_insights.paginator.num_pages }}</span>
+                {% if my_insights.has_next %}
+                <a class="page-link" href="?insights_page={{ my_insights.next_page_number }}"><i
+                        class="fas fa-chevron-right text-xs"></i></a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
     </div>
 
     <div id="drafts" class="tab-panel hidden">
@@ -186,12 +203,13 @@
                     {% if book.average_rating %}
                     <div class="text-accent mb-3">
                         {% for i in "12345"|make_list %}
-                        {% if forloop.counter <= book.average_rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
-                        {% endfor %}
+                        {% if forloop.counter <= book.average_rating %}<i class="fas fa-star"></i>{% else %}<i
+                                class="far fa-star"></i>{% endif %}
+                            {% endfor %}
                     </div>
                     {% endif %}
                     <p class="text-xs text-text-muted mb-3">
-                        Status: 
+                        Status:
                         {% if book.is_approved %}
                         <span class="text-success">Approved</span>
                         {% elif book.pending_approval %}
@@ -200,9 +218,10 @@
                         <span class="text-muted">Draft</span>
                         {% endif %}
                     </p>
-                    
+
                     <div class="flex gap-2">
-                        <a href="{% url 'books:detail' book.slug %}" class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                        <a href="{% url 'books:detail' book.slug %}"
+                            class="btn-secondary btn-sm flex-1 justify-center">View</a>
                         <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex-1 justify-center">
                             <i class="fas fa-edit"></i> Edit
                         </a>
@@ -248,6 +267,21 @@
             </div>
             {% endfor %}
         </div>
+        {% if my_archives.has_other_pages %}
+        <div class="flex justify-center mt-6">
+            <nav class="pagination">
+                {% if my_archives.has_previous %}
+                <a class="page-link" href="?archives_page={{ my_archives.previous_page_number }}"><i
+                        class="fas fa-chevron-left text-xs"></i></a>
+                {% endif %}
+                <span class="page-link active">{{ my_archives.number }} of {{ my_archives.paginator.num_pages }}</span>
+                {% if my_archives.has_next %}
+                <a class="page-link" href="?archives_page={{ my_archives.next_page_number }}"><i
+                        class="fas fa-chevron-right text-xs"></i></a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
     </div>
 
     <div id="suggestions" class="tab-panel">

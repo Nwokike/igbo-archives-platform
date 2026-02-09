@@ -1,32 +1,39 @@
 {% if books %}
 {% for book in books %}
-<a href="{% url 'books:detail' book.slug %}" class="card card-hover group block">
-    {% if book.cover_image %}
-    <div class="overflow-hidden">
-        <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}" loading="lazy" decoding="async"
-            class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300">
-    </div>
-    {% else %}
-    <div class="w-full h-56 bg-surface-alt flex items-center justify-center text-text-muted">
-        <i class="fas fa-book text-4xl"></i>
-    </div>
-    {% endif %}
-    <div class="card-body">
-        <h3 class="font-serif text-lg font-semibold mb-1 group-hover:text-accent transition-colors line-clamp-2">{{book.book_title }}</h3>
-        <p class="text-sm text-text-muted mb-2">by {{ book.author }}</p>
-        {% if book.average_rating %}
-        <div class="text-accent mb-2">
-            {% with avg=book.average_rating %}
-            {% for i in "12345"|make_list %}
-            {% if forloop.counter <= avg %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
-                {% endfor %}
-                <span class="text-xs text-text-muted">({{ book.rating_count }})</span>
-                {% endwith %}
+<a href="{% url 'books:detail' book.slug %}" class="card card-hover group block book-item">
+    <div class="book-card-inner flex flex-col [*[data-view='list']_&]:flex-row [*[data-view='list']_&]:h-28">
+        <!-- Cover Image section -->
+        <div
+            class="book-img-wrapper overflow-hidden [*[data-view='list']_&]:w-24 [*[data-view='list']_&]:flex-shrink-0 [*[data-view='list']_&]:order-2">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}" loading="lazy" decoding="async"
+                class="w-full h-56 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            {% else %}
+            <div
+                class="w-full h-56 [*[data-view='list']_&]:h-full bg-surface-alt flex items-center justify-center text-text-muted">
+                <i class="fas fa-book text-4xl [*[data-view='list']_&]:text-2xl"></i>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
-        <p class="text-xs text-text-muted">
-            <i class="fas fa-user"></i> {{ book.added_by.get_full_name|default:book.added_by.username }}
-        </p>
+        <!-- Content section -->
+        <div class="card-body flex-1 [*[data-view='list']_&]:py-2 [*[data-view='list']_&]:order-1">
+            <h3
+                class="font-serif text-lg [*[data-view='list']_&]:text-base font-semibold mb-1 group-hover:text-accent transition-colors line-clamp-2 [*[data-view='list']_&]:line-clamp-1">
+                {{ book.book_title }}</h3>
+            <p class="text-sm text-text-muted mb-2 [*[data-view='list']_&]:mb-1">
+                by {{ book.author }}{% if book.publication_year %} • {{ book.publication_year }}{% endif %}
+            </p>
+            {% if book.average_rating %}
+            <div class="text-accent mb-2 [*[data-view='list']_&]:mb-1 text-sm">
+                {% with avg=book.average_rating %}
+                {% for i in "12345"|make_list %}
+                {% if forloop.counter <= avg %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif%}
+                    {% endfor %}
+                    <span class="text-xs text-text-muted">({{ book.rating_count }})</span>
+                    {% endwith %}
+            </div>
+            {% endif %}
+        </div>
     </div>
 </a>
 {% endfor %}

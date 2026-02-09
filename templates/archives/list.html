@@ -7,49 +7,51 @@
 <nav class="border-b border-border bg-surface-alt/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
         <div class="flex flex-wrap items-center gap-2">
-            
+
             <div class="flex-1 min-w-[90px] sm:flex-none sm:w-32">
                 <select class="form-select text-xs" id="categoryFilter" name="category"
                     hx-get="{% url 'archives:list' %}" hx-target="#archiveGrid"
                     hx-include="#typeFilter,#sortFilter,#searchInput,#dateFilter,#authorFilter" hx-push-url="true">
                     <option value="">All Collections</option>
                     {% for cat in categories %}
-                    <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>{{cat.name }}</option>
+                    <option value="{{ cat.slug }}" {% if request.GET.category==cat.slug %}selected{% endif %}>{{cat.name}}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div class="flex-1 min-w-[90px] sm:flex-none sm:w-28">
                 <select class="form-select text-xs" id="typeFilter" name="type" hx-get="{% url 'archives:list' %}"
-                    hx-target="#archiveGrid" hx-include="#categoryFilter,#sortFilter,#searchInput,#dateFilter,#authorFilter" hx-push-url="true">
+                    hx-target="#archiveGrid"
+                    hx-include="#categoryFilter,#sortFilter,#searchInput,#dateFilter,#authorFilter" hx-push-url="true">
                     <option value="">All Types</option>
-                    <option value="image" {% if request.GET.type == 'image' %}selected{% endif %}>Images</option>
-                    <option value="video" {% if request.GET.type == 'video' %}selected{% endif %}>Videos</option>
-                    <option value="audio" {% if request.GET.type == 'audio' %}selected{% endif %}>Audio</option>
-                    <option value="document" {% if request.GET.type == 'document' %}selected{% endif %}>Documents</option>
+                    <option value="image" {% if request.GET.type=='image' %}selected{% endif %}>Images</option>
+                    <option value="video" {% if request.GET.type=='video' %}selected{% endif %}>Videos</option>
+                    <option value="audio" {% if request.GET.type=='audio' %}selected{% endif %}>Audio</option>
+                    <option value="document" {% if request.GET.type=='document' %}selected{% endif %}>Documents</option>
                 </select>
             </div>
 
             <div class="flex-1 min-w-[90px] sm:flex-none sm:w-28">
                 <select class="form-select text-xs" id="sortFilter" name="sort" hx-get="{% url 'archives:list' %}"
-                    hx-target="#archiveGrid" hx-include="#categoryFilter,#typeFilter,#searchInput,#dateFilter,#authorFilter" hx-push-url="true">
-                    <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Newest</option>
-                    <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest
+                    hx-target="#archiveGrid"
+                    hx-include="#categoryFilter,#typeFilter,#searchInput,#dateFilter,#authorFilter" hx-push-url="true">
+                    <option value="-created_at" {% if request.GET.sort=='-created_at' or not request.GET.sort %}selected{% endif %}>Newest</option>
+                    <option value="created_at" {% if request.GET.sort=='created_at' %}selected{% endif %}>Oldest
                     </option>
-                    <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Title A-Z</option>
+                    <option value="title" {% if request.GET.sort=='title' %}selected{% endif %}>Title A-Z</option>
                 </select>
             </div>
 
             <div class="flex-1 min-w-[80px] sm:flex-none sm:w-24">
-                <input type="text" class="form-input text-xs" placeholder="Year (e.g. 1920)" id="dateFilter"
-                    name="date" value="{{ request.GET.date }}" hx-get="{% url 'archives:list' %}"
+                <input type="text" class="form-input text-xs" placeholder="Year (e.g. 1920)" id="dateFilter" name="date"
+                    value="{{ request.GET.date }}" hx-get="{% url 'archives:list' %}"
                     hx-trigger="keyup changed delay:500ms" hx-target="#archiveGrid"
                     hx-include="#categoryFilter,#typeFilter,#sortFilter,#searchInput,#authorFilter" hx-push-url="true">
             </div>
 
             <div class="flex-1 min-w-[80px] sm:flex-none sm:w-24">
-                <input type="text" class="form-input text-xs" placeholder="Author" id="authorFilter"
-                    name="author" value="{{ request.GET.author }}" hx-get="{% url 'archives:list' %}"
+                <input type="text" class="form-input text-xs" placeholder="Author" id="authorFilter" name="author"
+                    value="{{ request.GET.author }}" hx-get="{% url 'archives:list' %}"
                     hx-trigger="keyup changed delay:500ms" hx-target="#archiveGrid"
                     hx-include="#categoryFilter,#typeFilter,#sortFilter,#searchInput,#dateFilter" hx-push-url="true">
             </div>
@@ -86,7 +88,39 @@
 {% endblock %}
 
 {% block content %}
-<div id="archiveGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+<div id="archiveGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-view="grid">
     {% include 'archives/partials/archive_grid.html' %}
 </div>
+
+<script>
+    (function () {
+        const gridBtn = document.getElementById('gridViewBtn');
+        const listBtn = document.getElementById('listViewBtn');
+        const grid = document.getElementById('archiveGrid');
+
+        function setView(view) {
+            if (view === 'list') {
+                grid.className = 'grid grid-cols-1 gap-3';
+                grid.setAttribute('data-view', 'list');
+                listBtn.classList.add('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
+                gridBtn.classList.remove('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
+            } else {
+                grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+                grid.setAttribute('data-view', 'grid');
+                gridBtn.classList.add('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
+                listBtn.classList.remove('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
+            }
+            localStorage.setItem('archiveViewPreference', view);
+        }
+
+        if (gridBtn && listBtn) {
+            gridBtn.addEventListener('click', function () { setView('grid'); });
+            listBtn.addEventListener('click', function () { setView('list'); });
+
+            // Restore preference
+            const saved = localStorage.getItem('archiveViewPreference');
+            if (saved) setView(saved);
+        }
+    })();
+</script>
 {% endblock %}

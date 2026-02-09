@@ -1,40 +1,48 @@
 {% if archives %}
 {% for archive in archives %}
-<a href="{% url 'archives:detail' archive.slug|default:archive.pk %}" class="card card-hover group block">
-    {% if archive.image %}
-    <div class="overflow-hidden">
-        <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" loading="lazy" decoding="async"
-            class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
-    </div>
-    {% elif archive.featured_image %}
-    <div class="overflow-hidden">
-        <img src="{{ archive.featured_image.url }}" alt="{{ archive.alt_text }}" loading="lazy" decoding="async"
-            class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
-    </div>
-    {% else %}
-    <div class="w-full h-48 bg-surface-alt flex items-center justify-center text-text-muted">
-        <i class="fas fa-archive text-4xl"></i>
-    </div>
-    {% endif %}
-    <div class="card-body">
-        <h3 class="font-serif text-lg font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">
-            {{ archive.title }}</h3>
-        <p class="text-sm text-text-muted line-clamp-2 mb-3">{{ archive.description|truncatewords:15 }}</p>
-        <div class="flex flex-wrap gap-2">
-            <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
-            {% if archive.category %}
-            <span class="badge badge-primary">{{ archive.category.name }}</span>
+<a href="{% url 'archives:detail' archive.slug|default:archive.pk %}" class="card card-hover group block archive-item">
+    <div class="archive-card-inner flex flex-col [*[data-view='list']_&]:flex-row [*[data-view='list']_&]:h-24">
+        <!-- Image section -->
+        <div
+            class="archive-img-wrapper overflow-hidden [*[data-view='list']_&]:w-32 [*[data-view='list']_&]:flex-shrink-0 [*[data-view='list']_&]:order-2">
+            {% if archive.image %}
+            <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" loading="lazy" decoding="async"
+                class="w-full h-48 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            {% elif archive.featured_image %}
+            <img src="{{ archive.featured_image.url }}" alt="{{ archive.alt_text }}" loading="lazy" decoding="async"
+                class="w-full h-48 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            {% else %}
+            <div
+                class="w-full h-48 [*[data-view='list']_&]:h-full bg-surface-alt flex items-center justify-center text-text-muted">
+                <i class="fas fa-archive text-4xl [*[data-view='list']_&]:text-2xl"></i>
+            </div>
             {% endif %}
         </div>
-    </div>
-    <div class="px-5 pb-4 flex items-center justify-between text-sm">
-        <span class="text-text-muted">
-            {% if archive.date_created %}
-            {{ archive.date_created|date:"Y" }}
-            {% elif archive.circa_date %}
-            {{ archive.circa_date }}
-            {% endif %}
-        </span>
+        <!-- Content section -->
+        <div class="card-body flex-1 [*[data-view='list']_&]:py-2 [*[data-view='list']_&]:order-1">
+            <h3
+                class="font-serif text-lg [*[data-view='list']_&]:text-base font-semibold mb-2 [*[data-view='list']_&]:mb-1 group-hover:text-accent transition-colors line-clamp-2 [*[data-view='list']_&]:line-clamp-1">
+                {{ archive.title }}</h3>
+            <p
+                class="text-sm text-text-muted line-clamp-2 [*[data-view='list']_&]:line-clamp-1 mb-3 [*[data-view='list']_&]:mb-1">
+                {{ archive.description|truncatewords:15 }}</p>
+            <div class="flex flex-wrap gap-2 [*[data-view='list']_&]:gap-1 items-center">
+                <span class="badge badge-secondary [*[data-view='list']_&]:text-xs">{{ archive.get_archive_type_display}}</span>
+                {% if archive.category %}
+                <span class="badge badge-primary [*[data-view='list']_&]:text-xs">{{ archive.category.name }}</span>
+                {% endif %}
+                <!-- Original Date -->
+                <span class="text-text-muted text-xs">
+                    {% if archive.date_created %}{{ archive.date_created|date:"Y" }}{% elif archive.circa_date %}{{archive.circa_date }}{% endif %}
+                </span>
+                <!-- Original Author -->
+                {% if archive.original_author or archive.author %}
+                <span class="text-text-muted text-xs">
+                    • {% if archive.author %}{{ archive.author.name }}{% else %}{{ archive.original_author }}{% endif %}
+                </span>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </a>
 {% endfor %}

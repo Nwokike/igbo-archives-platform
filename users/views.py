@@ -23,16 +23,20 @@ def dashboard(request):
     from archives.models import Archive
     from insights.models import InsightPost, EditSuggestion
     from books.models import BookRecommendation
+    from django.core.paginator import Paginator
     
     user = request.user
     
     messages_threads = user.message_threads.prefetch_related('participants')[:10]
     
-    my_insights = InsightPost.objects.filter(
+    # Insights with pagination
+    insights_queryset = InsightPost.objects.filter(
         author=user
     ).filter(
         Q(is_published=True) | Q(pending_approval=True)
-    ).order_by('-created_at')[:20]
+    ).order_by('-created_at')
+    insights_paginator = Paginator(insights_queryset, 20)
+    my_insights = insights_paginator.get_page(request.GET.get('insights_page', 1))
     
     my_drafts = InsightPost.objects.filter(
         author=user,
@@ -40,13 +44,19 @@ def dashboard(request):
         pending_approval=False
     ).order_by('-created_at')[:10]
     
-    my_book_recommendations = BookRecommendation.objects.filter(
+    # Books with pagination
+    books_queryset = BookRecommendation.objects.filter(
         added_by=user
-    ).order_by('-created_at')[:20]
+    ).order_by('-created_at')
+    books_paginator = Paginator(books_queryset, 20)
+    my_book_recommendations = books_paginator.get_page(request.GET.get('books_page', 1))
     
-    my_archives = Archive.objects.filter(
+    # Archives with pagination
+    archives_queryset = Archive.objects.filter(
         uploaded_by=user
-    ).select_related('category').order_by('-created_at')[:20]
+    ).select_related('category').order_by('-created_at')
+    archives_paginator = Paginator(archives_queryset, 20)
+    my_archives = archives_paginator.get_page(request.GET.get('archives_page', 1))
     
     edit_suggestions = EditSuggestion.objects.filter(
         post__author=user,
@@ -71,25 +81,35 @@ def profile_view(request, username):
     from archives.models import Archive
     from insights.models import InsightPost
     from books.models import BookRecommendation
+    from django.core.paginator import Paginator
     
     user = get_object_or_404(User, username=username)
     
-    archives = Archive.objects.filter(
+    # Archives with pagination
+    archives_queryset = Archive.objects.filter(
         uploaded_by=user,
         is_approved=True
-    ).select_related('category').order_by('-created_at')[:20]
+    ).select_related('category').order_by('-created_at')
+    archives_paginator = Paginator(archives_queryset, 20)
+    archives = archives_paginator.get_page(request.GET.get('archives_page', 1))
     
-    insights = InsightPost.objects.filter(
+    # Insights with pagination
+    insights_queryset = InsightPost.objects.filter(
         author=user,
         is_published=True,
         is_approved=True
-    ).order_by('-created_at')[:20]
+    ).order_by('-created_at')
+    insights_paginator = Paginator(insights_queryset, 20)
+    insights = insights_paginator.get_page(request.GET.get('insights_page', 1))
     
-    book_recommendations = BookRecommendation.objects.filter(
+    # Books with pagination
+    books_queryset = BookRecommendation.objects.filter(
         added_by=user,
         is_published=True,
         is_approved=True
-    ).order_by('-created_at')[:20]
+    ).order_by('-created_at')
+    books_paginator = Paginator(books_queryset, 20)
+    book_recommendations = books_paginator.get_page(request.GET.get('books_page', 1))
     
     context = {
         'profile_user': user,

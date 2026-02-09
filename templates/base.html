@@ -128,7 +128,8 @@
                             <i class="fas fa-bell text-lg"></i>
                             {% if unread_notification_count > 0 %}
                             <span id="notificationBadge"
-                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{unread_notification_count }}</span>
+                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{unread_notification_count
+                                }}</span>
                             {% endif %}
                         </button>
                         <div class="dropdown-menu w-80 right-0" id="notificationDropdown">
@@ -241,10 +242,10 @@
     <main id="main-content" class="flex-1 pb-20 lg:pb-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
             {% if messages %}
-            <div class="space-y-3 mb-6" role="alert" aria-live="polite">
+            <div class="space-y-3 mb-6" role="alert" aria-live="polite" id="flash-messages">
                 {% for message in messages %}
-                <div
-                    class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}"
+                    data-auto-dismiss="{% if message.tags == 'success' %}5000{% elif message.tags == 'info' %}7000{% else %}0{% endif %}">
                     <div class="flex-1">{{ message }}</div>
                     <button type="button" class="ml-auto opacity-60 hover:opacity-100 transition-opacity"
                         onclick="this.parentElement.remove()" aria-label="Dismiss">
@@ -253,6 +254,19 @@
                 </div>
                 {% endfor %}
             </div>
+            <script>
+                // Auto-dismiss flash messages
+                document.querySelectorAll('#flash-messages .alert[data-auto-dismiss]').forEach(function (alert) {
+                    var delay = parseInt(alert.getAttribute('data-auto-dismiss'));
+                    if (delay > 0) {
+                        setTimeout(function () {
+                            alert.style.transition = 'opacity 0.5s ease-out';
+                            alert.style.opacity = '0';
+                            setTimeout(function () { alert.remove(); }, 500);
+                        }, delay);
+                    }
+                });
+            </script>
             {% endif %}
 
             {% block content %}
@@ -263,8 +277,8 @@
     <!-- Footer -->
     <footer
         class="bg-white/95 dark:bg-surface-dark text-text dark:text-text-dark border-t border-border dark:border-none mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12 pb-24 lg:pb-12">
+            <div class="grid grid-cols-3 md:grid-cols-4 gap-4 lg:gap-10">
                 <!-- Brand Column -->
                 <div class="col-span-2 md:col-span-1">
                     <div class="mb-3">
@@ -328,8 +342,6 @@
                         <a href="{% url 'core:donate' %}"
                             class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Support
                             Us</a>
-                        <a href="{% url 'core:copyright' %}"
-                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Copyright</a>
                     </div>
                 </div>
 
@@ -341,6 +353,8 @@
                             class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Privacy</a>
                         <a href="{% url 'core:terms' %}"
                             class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Terms</a>
+                        <a href="{% url 'core:copyright' %}"
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Copyright</a>
                     </div>
                 </div>
             </div>

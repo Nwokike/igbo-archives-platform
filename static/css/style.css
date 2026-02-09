@@ -108,14 +108,17 @@ html:not(.dark) .logo-dark {
 
 .line-clamp-1 {
     -webkit-line-clamp: 1;
+    line-clamp: 1;
 }
 
 .line-clamp-2 {
     -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 
 .line-clamp-3 {
     -webkit-line-clamp: 3;
+    line-clamp: 3;
 }
 
 /* Subheader wrapping fix - ensure max 2 lines on mobile */
@@ -222,5 +225,20 @@ html:not(.dark) .logo-dark {
 @media (max-width: 640px) {
     .flex-wrap.items-center.gap-2 {
         gap: 0.5rem;
+    }
+}
+
+/* Mobile zoom adjustment - slightly smaller scale for more content visibility */
+@media (max-width: 640px) {
+    html {
+        font-size: 15px;
+        /* Slightly smaller than default 16px */
+    }
+
+    /* Compact filter bars on mobile */
+    nav.border-b .form-select,
+    nav.border-b .form-input {
+        font-size: 0.7rem;
+        padding: 0.35rem 0.5rem;
     }
 }

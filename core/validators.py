@@ -59,6 +59,8 @@ ALLOWED_BOOK_SORTS = {
     'rating': 'rating',
     'newest': '-created_at',
     'oldest': 'created_at',
+    '-publication_year': '-publication_year',
+    'publication_year': 'publication_year',
 }
 
 

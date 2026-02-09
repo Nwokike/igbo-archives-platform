@@ -25,19 +25,17 @@
                     <h4 class="font-serif text-sm font-medium line-clamp-2 mb-1">
                         {% if item.title %}
                         {{ item.title|truncatewords:10 }}
-                        {% elif item.review_title %}
-                        {{ item.review_title|truncatewords:10 }}
                         {% elif item.book_title %}
                         {{ item.book_title|truncatewords:10 }}
                         {% endif %}
                     </h4>
                     <p class="text-xs text-text-muted">
-                        {% if item.uploaded_by %}
-                        By {{ item.uploaded_by.get_display_name }}
+                        {% if item.original_author %}
+                        By {{ item.original_author }}
+                        {% elif item.author and item.author.name %}
+                        By {{ item.author.name }}
                         {% elif item.author %}
-                        By {{ item.author.get_display_name }}
-                        {% elif item.reviewer %}
-                        By {{ item.reviewer.get_display_name }}
+                        By {{ item.author }}
                         {% endif %}
                     </p>
                 </div>

@@ -49,7 +49,7 @@ def book_list(request):
         is_published=True, is_approved=True
     ).select_related('added_by').only(
         'id', 'book_title', 'title', 'slug', 'cover_image', 'author',
-        'created_at', 'added_by__full_name', 'added_by__username'
+        'publication_year', 'created_at', 'added_by__full_name', 'added_by__username'
     )
     
     if search := request.GET.get('search'):
@@ -59,7 +59,13 @@ def book_list(request):
             Q(author__icontains=search)
         )
     
-    sort = get_safe_sort(request.GET.get('sort', '-created_at'), ALLOWED_BOOK_SORTS)
+    if author := request.GET.get('author'):
+        books = books.filter(author__icontains=author)
+    
+    if year := request.GET.get('year'):
+        books = books.filter(publication_year__icontains=year)
+    
+    sort = get_safe_sort(request.GET.get('sort', '-publication_year'), ALLOWED_BOOK_SORTS)
     books = books.order_by(sort)
     
     paginator = Paginator(books, 12)
