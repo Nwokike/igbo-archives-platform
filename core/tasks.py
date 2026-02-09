@@ -66,6 +66,27 @@ def send_push_notification_async(user_id, title, body, url=None):
 
 
 @db_task()
+def broadcast_push_notification_task(title, body, url=None):
+    """Broadcast push notification to all subscribed users"""
+    try:
+        from webpush.models import PushInformation
+        # Get unique user IDs with active push subscriptions (explicit cast to list for Huey safety)
+        user_ids = list(PushInformation.objects.values_list('user', flat=True).distinct())
+        
+        count = 0
+        for user_id in user_ids:
+            if user_id:
+                send_push_notification_async(user_id, title, body, url)
+                count += 1
+        
+        logger.info(f"Broadcast push triggered for {count} users: {title}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to broadcast push notification: {e}")
+        return False
+
+
+@db_task()
 def notify_post_approved(post_id, post_type):
     """Notify author when their post is approved"""
     try:
@@ -78,7 +99,7 @@ def notify_post_approved(post_id, post_type):
             from books.models import BookRecommendation
             post = BookRecommendation.objects.select_related('added_by').get(id=post_id)
             author = post.added_by
-            title = post.review_title
+            title = post.title
         else:
             return False
         
@@ -115,7 +136,7 @@ def notify_post_rejected(post_id, post_type, reason=''):
             from books.models import BookRecommendation
             post = BookRecommendation.objects.select_related('added_by').get(id=post_id)
             author = post.added_by
-            title = post.review_title
+            title = post.title
         else:
             return False
         
@@ -263,56 +284,73 @@ def notify_indexnow(urls):
         return False
 
 
-@periodic_task(crontab(day_of_week='0', hour='6', minute='0'))
+@periodic_task(crontab(hour='6', minute='0'))
 def send_weekly_digest():
     """
-    Send weekly digest emails to all users (Sundays at 6 AM).
-    
-    - Batches emails to max 290 per run (leaving 10 for instant emails)
-    - Defers overflow to next day's run if over quota
-    - Uses content from DigestQueue
+    Send weekly digest emails to users in batches.
+    Runs daily at 6 AM.
+    - Limits to 270 users per day to stay within Brevo daily quota.
+    - Uses last_weekly_update_at to track which users need an update.
     """
     try:
         from django.contrib.auth import get_user_model
         from django.template.loader import render_to_string
         from django.utils import timezone
         from datetime import timedelta
+        from django.db.models import Q
         from core.models import DigestQueue, EmailLog
-        from core.email_service import send_email, DIGEST_BATCH_LIMIT
+        from core.email_service import send_email
         
         User = get_user_model()
+        now = timezone.now()
         
-        # Get pending digest content
+        # 1. Get pending digest content
         pending_items = list(DigestQueue.get_pending_content())
         if not pending_items:
             logger.info("No content for weekly digest")
             return True
         
-        # Group by content type
+        # 2. Check remaining quota
+        remaining_quota = EmailLog.quota_remaining()
+        if remaining_quota < 50:
+            logger.warning("Email quota too low for digest batch today. Skipping.")
+            return False
+            
+        # 3. Determine batch size (target 270 as requested)
+        batch_limit = min(270, remaining_quota - 20)
+        
+        # 4. Get users who haven't received an update in the last 7 days
+        # This picks up users who haven't been notified yet for this "week" cycle
+        last_week = now - timedelta(days=7)
+        users_to_notify = User.objects.filter(
+            is_active=True
+        ).filter(
+            Q(last_weekly_update_at__lt=last_week) | Q(last_weekly_update_at__isnull=True)
+        ).exclude(email='').order_by('id')[:batch_limit]
+        
+        users_list = list(users_to_notify)
+        
+        if not users_list:
+            # Check if ALL users are now up to date
+            remaining_users = User.objects.filter(
+                is_active=True
+            ).filter(
+                Q(last_weekly_update_at__lt=last_week) | Q(last_weekly_update_at__isnull=True)
+            ).exclude(email='').exists()
+            
+            if not remaining_users:
+                # Everyone is notified. Mark these items as processed so they don't appear in future weeks.
+                DigestQueue.mark_processed([i.id for i in pending_items])
+                logger.info("All users have received updates. Digest items marked as processed.")
+            return True
+
+        # 5. Prepare content group by type
         archives = [i for i in pending_items if i.content_type == 'archive']
         insights = [i for i in pending_items if i.content_type == 'insight']
         books = [i for i in pending_items if i.content_type == 'book']
         
-        # Check remaining quota
-        remaining_quota = EmailLog.quota_remaining()
-        if remaining_quota < 10:
-            logger.warning("Email quota too low for digest, deferring to tomorrow")
-            return False
-        
-        # Get all active users with emails
-        users = User.objects.filter(
-            is_active=True
-        ).exclude(email='').values_list('email', 'full_name', 'username')
-        
-        # Limit to avoid exceeding quota
-        max_users = min(DIGEST_BATCH_LIMIT, remaining_quota - 10)
-        users_list = list(users)[:max_users]
-        
-        if len(users_list) < len(list(users)):
-            logger.info(f"Deferring {len(list(users)) - len(users_list)} users to next run due to quota")
-        
-        # Prepare template context
-        week_end = timezone.now().date()
+        # 6. Prepare template context
+        week_end = now.date()
         week_start = week_end - timedelta(days=7)
         site_url = getattr(settings, 'SITE_URL', 'https://igboarchives.com.ng')
         
@@ -321,7 +359,7 @@ def send_weekly_digest():
             'week_end': week_end.strftime('%b %d, %Y'),
             'site_url': site_url,
             'year': week_end.year,
-            'new_archives': [{'title': i.title, 'author_name': i.author_name, 'url': i.url, 'archive_type': 'Photo'} for i in archives[:10]],
+            'new_archives': [{'title': i.title, 'author_name': i.author_name, 'url': i.url, 'archive_type': 'Archive'} for i in archives[:10]],
             'new_insights': [{'title': i.title, 'author_name': i.author_name, 'url': i.url} for i in insights[:10]],
             'new_books': [{'title': i.title, 'author_name': i.author_name, 'url': i.url} for i in books[:10]],
             'new_archives_count': len(archives),
@@ -329,64 +367,31 @@ def send_weekly_digest():
             'new_books_count': len(books),
         }
         
+        # 7. Send batch
         sent_count = 0
-        for email, full_name, username in users_list:
+        for user in users_list:
             user_context = context.copy()
-            user_context['user_name'] = full_name or username
+            user_context['user_name'] = user.get_display_name()
             
             html_message = render_to_string('email/weekly_digest.html', user_context)
             text_message = render_to_string('email/weekly_digest.txt', user_context)
             
             if send_email(
-                to_email=email,
-                subject='Your Weekly Update',
+                to_email=user.email,
+                subject='Igbo Archives: Your Weekly Update',
                 message=text_message,
                 email_type='digest',
                 html_message=html_message
             ):
                 sent_count += 1
+                user.last_weekly_update_at = now
+                user.save(update_fields=['last_weekly_update_at'])
         
-        # Mark items as processed
-        DigestQueue.mark_processed([i.id for i in pending_items])
-        
-        logger.info(f"Weekly digest sent to {sent_count}/{len(users_list)} users")
+        logger.info(f"Weekly digest batch: {sent_count} users notified")
         return True
         
     except Exception as e:
-        logger.error(f"Weekly digest failed: {e}", exc_info=True)
-        return False
-
-
-@periodic_task(crontab(hour='6', minute='30'))
-def send_deferred_digests():
-    """
-    Send deferred digest emails (runs daily at 6:30 AM).
-    
-    If the Sunday digest couldn't send to everyone due to quota,
-    this picks up the remainder on subsequent days.
-    """
-    try:
-        from django.contrib.auth import get_user_model
-        from core.models import EmailLog
-        
-        # Only run if we have quota remaining and didn't send yesterday
-        yesterday_digest_count = EmailLog.objects.filter(
-            email_type='digest',
-            sent_at__date=timezone.now().date() - timedelta(days=1)
-        ).count()
-        
-        remaining = EmailLog.quota_remaining()
-        
-        # If we sent digests yesterday and have remaining quota, there might be deferred users
-        if yesterday_digest_count > 0 and remaining > 50:
-            logger.info("Checking for deferred digest recipients...")
-            # The Sunday task already handles deferred users by limiting batch size
-            # This is a placeholder for more sophisticated deferred logic if needed
-        
-        return True
-        
-    except Exception as e:
-        logger.error(f"Deferred digest check failed: {e}")
+        logger.error(f"Weekly digest batch failed: {e}", exc_info=True)
         return False
 
 

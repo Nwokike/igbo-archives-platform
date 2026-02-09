@@ -66,7 +66,7 @@ def book_list(request):
         books = books.filter(publication_year__icontains=year)
     
     sort = get_safe_sort(request.GET.get('sort', '-created_at'), ALLOWED_BOOK_SORTS)
-    books = books.order_by(sort)
+    books = books.order_by(sort, '-created_at')
     
     paginator = Paginator(books, 12)
     books_page = paginator.get_page(request.GET.get('page'))
@@ -405,11 +405,23 @@ def book_rate(request, slug):
             )
             
             if created:
-                messages.success(request, 'Review posted successfully!')
-                # FIX: Send the notification
-                send_new_review_notification(user_rating, book)
+                # Bell Notification
+                try:
+                    from core.notifications_utils import send_review_posted_notification
+                    send_review_posted_notification(request.user, book)
+                except Exception as e:
+                    logger.warning(f"Failed to send review notification: {e}")
+                
+                # Also still notify the book owner
+                try:
+                    from core.notifications_utils import send_new_review_notification
+                    send_new_review_notification(user_rating, book)
+                except Exception as e:
+                    logger.warning(f"Failed to send new review notification to owner: {e}")
             else:
-                messages.success(request, 'Review updated successfully!')
+                # Update case - we don't necessarily need a notification for every update
+                # but we could add one if desired. Leaving as is for now without the flash message.
+                pass
                 
         except (ValueError, TypeError) as e:
             messages.error(request, str(e))

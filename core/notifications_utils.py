@@ -38,14 +38,17 @@ def _get_absolute_url(obj):
         return obj.get_absolute_url()
     return "/"
 
-def _send_notification_and_push(recipient, sender, verb, description, target_object=None, push_head="", push_body="", push_url="/"):
+def _send_notification_and_push(recipient, sender, verb, description, target_object=None, push_head="", push_body="", push_url="/", allow_self=False):
     """
     A private helper to:
     1. Create the in-app Notification object.
     2. Send the webpush notification.
     """
-    if not recipient or recipient == sender:
-        return  # Don't notify users of their own actions
+    if not recipient:
+        return
+        
+    if recipient == sender and not allow_self:
+        return  # Don't notify users of their own actions unless explicitly allowed (system confirmations)
 
     try:
         # 1. Create the In-App Notification
@@ -288,6 +291,48 @@ def send_edit_suggestion_rejected_notification(suggestion, reason=''):
         push_body=description,
         push_url=_get_absolute_url(suggestion.post)
     )
+
+
+def send_archive_uploaded_notification(user, archive):
+    """Notify user that their archive was uploaded successfully."""
+    description = f'Your archive "{archive.title}" was uploaded and is pending moderation.'
+    _send_notification_and_push(
+        recipient=user,
+        sender=None,
+        verb='uploaded an archive',
+        description=description,
+        target_object=archive,
+        push_head="Archive Uploaded",
+        push_body=description,
+        push_url=reverse('users:dashboard'),
+        allow_self=True
+    )
+
+
+def send_review_posted_notification(user, book):
+    """Notify user that their review was posted successfully."""
+    description = f'Your review for "{book.book_title}" was posted successfully.'
+    _send_notification_and_push(
+        recipient=user,
+        sender=None,
+        verb='posted a review',
+        description=description,
+        target_object=book,
+        push_head="Review Posted",
+        push_body=description,
+        push_url=_get_absolute_url(book),
+        allow_self=True
+    )
+
+
+def send_broadcast_notification(title, body, url="/"):
+    """Trigger a site-wide push notification broadcast."""
+    try:
+        from core.tasks import broadcast_push_notification_task
+        broadcast_push_notification_task(title, body, url)
+        logger.info(f"Broadcast triggered: {title}")
+    except Exception as e:
+        logger.warning(f"Failed to trigger broadcast: {e}")
 
 
 def send_email_notification(to_email, subject, message):

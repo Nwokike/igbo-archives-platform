@@ -303,6 +303,13 @@ def upload_media(request):
             
             cache.set(rate_key, upload_count + 1, 3600)
             
+            # Bell Notification for the uploader
+            try:
+                from core.notifications_utils import send_archive_uploaded_notification
+                send_archive_uploaded_notification(request.user, archive)
+            except Exception as e:
+                logger.warning(f"Failed to send archive upload notification: {e}")
+            
             media_field = getattr(archive, config['field'])
             
             return JsonResponse({

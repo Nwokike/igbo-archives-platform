@@ -273,7 +273,8 @@ def compose_message(request, username):
             except Exception as e:
                 logger.warning(f"Failed to send in-app notification to sender: {e}")
 
-            django_messages.success(request, 'Message sent successfully!')
+            # REMOVED: Success flash message in favor of bell notification
+            # django_messages.success(request, 'Message sent successfully!')
             return redirect('users:thread', thread_id=thread.id)
         else:
             django_messages.error(request, 'Subject and message are required.')

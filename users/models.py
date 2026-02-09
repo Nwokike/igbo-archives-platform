@@ -11,6 +11,7 @@ class CustomUser(AbstractUser):
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     social_links = models.JSONField(default=dict, blank=True)
+    last_weekly_update_at = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return self.full_name or self.email or self.username

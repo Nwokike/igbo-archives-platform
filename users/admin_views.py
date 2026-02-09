@@ -42,7 +42,18 @@ def approve_insight(request, pk):
     post.is_approved = True
     post.pending_approval = False
     post.save()
+    from core.notifications_utils import send_post_approved_notification, send_broadcast_notification
     send_post_approved_notification(post, 'insight')
+    send_broadcast_notification(
+        f"New Insight: {post.title}", 
+        f"Read the latest heritage insight by {post.author.get_display_name()}", 
+        post.get_absolute_url()
+    )
+    
+    # Queue for weekly digest
+    from core.email_service import queue_for_digest
+    queue_for_digest('insight', post.id, post.title, post.author.get_display_name(), post.get_absolute_url())
+    
     messages.success(request, f'Insight "{post.title}" approved.')
     return redirect('users:moderation_dashboard')
 
@@ -66,7 +77,18 @@ def approve_book_review(request, pk):
     review.is_approved = True
     review.pending_approval = False
     review.save()
+    from core.notifications_utils import send_post_approved_notification, send_broadcast_notification
     send_post_approved_notification(review, 'book review')
+    send_broadcast_notification(
+        f"New Book: {review.book_title}", 
+        f"A new book recommendation has been published by {review.added_by.get_display_name()}", 
+        review.get_absolute_url()
+    )
+    
+    # Queue for weekly digest
+    from core.email_service import queue_for_digest
+    queue_for_digest('book', review.id, review.book_title, review.added_by.get_display_name(), review.get_absolute_url())
+    
     messages.success(request, f'Review "{review.title}" approved.')
     return redirect('users:moderation_dashboard')
 
@@ -102,9 +124,19 @@ def approve_archive(request, pk):
     archive = Archive.objects.get(pk=pk)
     
     try:
+        from core.notifications_utils import send_post_approved_notification, send_broadcast_notification
         send_post_approved_notification(archive, 'archive')
+        send_broadcast_notification(
+            f"New Archive: {archive.title}", 
+            f"Explore a new heritage archive from {archive.uploaded_by.get_display_name()}", 
+            archive.get_absolute_url()
+        )
+        
+        # Queue for weekly digest
+        from core.email_service import queue_for_digest
+        queue_for_digest('archive', archive.id, archive.title, archive.uploaded_by.get_display_name(), archive.get_absolute_url())
     except Exception:
-        logger.warning("Failed to send archive approval notification")
+        logger.warning("Failed to send archive approval/broadcast notification")
         
     messages.success(request, f'Archive "{archive.title}" approved.')
     return redirect('users:moderation_dashboard')

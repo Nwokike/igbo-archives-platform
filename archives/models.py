@@ -257,17 +257,21 @@ class Archive(models.Model):
         if self.date_created:
             self.sort_year = self.date_created.year
         elif self.circa_date:
-            # Robust extraction of the first 4-digit number
-            # "c1930", "1930s", "1930-1935", "Around 1885" all -> 1930/1885
-            match = re.search(r'\b(1\d{3}|20\d{2})\b', str(self.circa_date))
+            circa_str = str(self.circa_date).strip()
+            # 1. Look for 4-digit years (c1930, 1930s, etc.)
+            match = re.search(r'\b(1\d{3}|20\d{2})\b', circa_str)
             if match:
                 self.sort_year = int(match.group(1))
             else:
-                # Fallback for weird dates like "1800s" or "Early 20th Century"
-                # Search for any string of digits that look like a year
-                match = re.search(r'(\d{4})', str(self.circa_date))
-                if match:
-                    self.sort_year = int(match.group(1))
+                # 2. Look for centuries (19th Century)
+                century_match = re.search(r'(\d{1,2})(?:st|nd|rd|th)?\s+century', circa_str, re.IGNORECASE)
+                if century_match:
+                    self.sort_year = (int(century_match.group(1)) - 1) * 100
+                else:
+                    # 3. Last resort fallback for any 4 digits
+                    match = re.search(r'(\d{4})', circa_str)
+                    if match:
+                        self.sort_year = int(match.group(1))
         
         # Auto-compress images before saving (max 1.5MB)
         try:

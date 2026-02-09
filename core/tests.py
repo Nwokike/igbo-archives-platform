@@ -167,7 +167,7 @@ class ValidatorsTests(TestCase):
         from core.validators import get_safe_sort, ALLOWED_ARCHIVE_SORTS
         
         result = get_safe_sort('newest', ALLOWED_ARCHIVE_SORTS)
-        self.assertEqual(result, '-created_at')
+        self.assertEqual(result, '-sort_year')
     
     def test_get_safe_sort_returns_default_for_invalid(self):
         """Test that get_safe_sort returns default for invalid input."""

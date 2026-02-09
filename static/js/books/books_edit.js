@@ -24,8 +24,8 @@
                 var data = JSON.parse(existingContentScript.textContent);
                 if (data && data.blocks) {
                     setTimeout(function () {
-                        if (editor) {
-                            editor.render(data).then(function () {
+                        if (editor && typeof IgboEditor.setData === 'function') {
+                            IgboEditor.setData(data).then(function () {
                                 console.log('Existing content loaded');
                             });
                         }
@@ -37,8 +37,8 @@
                 if (htmlContent && window.IgboEditor) {
                     var converted = window.IgboEditor.convertHtmlToEditorJS(htmlContent);
                     setTimeout(function () {
-                        if (editor) {
-                            editor.render(converted);
+                        if (editor && typeof IgboEditor.setData === 'function') {
+                            IgboEditor.setData(converted);
                         }
                     }, 500);
                 }
