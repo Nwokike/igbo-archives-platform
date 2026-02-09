@@ -308,6 +308,7 @@ REST_FRAMEWORK = {
 
 # --- PWA Settings ---
 PWA_APP_NAME = 'Igbo Archives'
+PWA_APP_SHORT_NAME = 'IgboArchives'
 PWA_APP_DESCRIPTION = 'Preserving the Past, Inspiring the Future'
 PWA_APP_THEME_COLOR = '#3D2817'
 PWA_APP_BACKGROUND_COLOR = '#FFFFFF'
@@ -317,10 +318,8 @@ PWA_APP_ORIENTATION = 'any'
 PWA_APP_START_URL = '/'
 PWA_APP_STATUS_BAR_COLOR = 'default'
 PWA_APP_ICONS = [
-    {'src': '/static/images/logos/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
-    {'src': '/static/images/logos/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
-    {'src': '/static/images/logos/logo-light.png', 'sizes': '192x192', 'type': 'image/png'},
-    {'src': '/static/images/logos/logo-dark.png', 'sizes': '192x192', 'type': 'image/png'},
+    {'src': '/static/images/logos/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any'},
+    {'src': '/static/images/logos/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any'},
 ]
 PWA_APP_ICONS_APPLE = [
     {'src': '/static/images/logos/icon-192.png', 'sizes': '180x180'},
