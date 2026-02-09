@@ -1,0 +1,56 @@
+{% if user_insights %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for insight in user_insights %}
+    <a href="{% url 'insights:detail' insight.slug %}" class="card card-hover group block">
+        {% if insight.featured_image %}
+        <div class="h-40 overflow-hidden">
+            <img src="{{ insight.featured_image.url }}" alt="{{ insight.title }}"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <h4 class="font-serif font-bold mb-1 line-clamp-2 group-hover:text-accent transition-colors">
+                {{ insight.title }}
+            </h4>
+            <p class="text-xs text-text-muted">{{ insight.created_at|date:"M d, Y" }}</p>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if user_insights.has_other_pages %}
+<div class="flex justify-center mt-8">
+    <nav class="pagination">
+        {% if user_insights.has_previous %}
+        <button class="page-link"
+            hx-get="{% url 'users:profile' profile_user.username %}?insights_page={{ user_insights.previous_page_number }}&target=insights"
+            hx-target="#insights" hx-push-url="false">
+            <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        {% endif %}
+
+        {% for num in user_insights.paginator.page_range %}
+        {% if user_insights.number == num %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > user_insights.number|add:'-3' and num < user_insights.number|add:'3' %} <button class="page-link"
+            hx-get="{% url 'users:profile' profile_user.username %}?insights_page={{ num }}&target=insights"
+            hx-target="#insights" hx-push-url="false">{{ num }}</button>
+            {% endif %}
+            {% endfor %}
+
+            {% if user_insights.has_next %}
+            <button class="page-link"
+                hx-get="{% url 'users:profile' profile_user.username %}?insights_page={{ user_insights.next_page_number }}&target=insights"
+                hx-target="#insights" hx-push-url="false">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </button>
+            {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% else %}
+<div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
+    <i class="fas fa-lightbulb text-3xl text-text-muted mb-3"></i>
+    <p class="text-text-muted">No insights published yet.</p>
+</div>
+{% endif %}

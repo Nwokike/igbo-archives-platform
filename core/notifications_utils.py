@@ -104,6 +104,29 @@ def send_post_approved_notification(post, post_type='insight'):
         send_email_notification(author.email, f'Your {post_type.title()} has been approved!', description)
 
 
+def send_post_submitted_notification(post, post_type='insight'):
+    """
+    Notify the user that their submission was received.
+    """
+    author = _get_post_author(post)
+    if not author:
+        return
+
+    post_title = _get_post_title(post)
+    description = f'Your {post_type} "{post_title}" has been submitted successfully for moderation.'
+
+    _send_notification_and_push(
+        recipient=author,
+        sender=None,
+        verb='received your submission',
+        description=description,
+        target_object=post,
+        push_head="Submission Received",
+        push_body=description,
+        push_url=reverse('users:dashboard')
+    )
+
+
 def send_post_rejected_notification(post, reason, post_type='insight'):
     author = _get_post_author(post)
     if not author:

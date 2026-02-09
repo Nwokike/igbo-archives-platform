@@ -67,12 +67,25 @@ def dashboard(request):
     context = {
         'messages_threads': messages_threads,
         'my_insights': my_insights,
+        'my_insights_count': insights_queryset.count(),
         'my_drafts': my_drafts,
+        'my_drafts_count': my_drafts.count(),
         'my_book_recommendations': my_book_recommendations,
+        'my_book_recommendations_count': books_queryset.count(),
         'my_archives': my_archives,
+        'my_archives_count': archives_queryset.count(),
         'edit_suggestions': edit_suggestions,
     }
     
+    if request.htmx:
+        target = request.GET.get('target')
+        if target == 'insights':
+            return render(request, 'users/partials/dashboard_insights.html', context)
+        elif target == 'books':
+            return render(request, 'users/partials/dashboard_books.html', context)
+        elif target == 'archives':
+            return render(request, 'users/partials/dashboard_archives.html', context)
+            
     return render(request, 'users/dashboard.html', context)
 
 
@@ -113,11 +126,23 @@ def profile_view(request, username):
     
     context = {
         'profile_user': user,
-        'user_archives': archives,  # Fixed: match template variable name
-        'user_insights': insights,  # Fixed: match template variable name
-        'user_book_recommendations': book_recommendations,  # Fixed: match template variable name
+        'user_archives': archives,
+        'user_archives_count': archives_queryset.count(),
+        'user_insights': insights,
+        'user_insights_count': insights_queryset.count(),
+        'user_book_recommendations': book_recommendations,
+        'user_book_recommendations_count': books_queryset.count(),
     }
     
+    if request.htmx:
+        target = request.GET.get('target')
+        if target == 'insights':
+            return render(request, 'users/partials/profile_insights.html', context)
+        elif target == 'books':
+            return render(request, 'users/partials/profile_books.html', context)
+        elif target == 'archives':
+            return render(request, 'users/partials/profile_archives.html', context)
+            
     return render(request, 'users/profile.html', context)
 
 
@@ -178,6 +203,22 @@ def message_thread(request, thread_id):
                 content=clean_content
             )
             cache.set(rate_key, msg_count + 1, 3600)
+            # Bell Notification (Confirmation for sender)
+            try:
+                from core.notifications_utils import _send_notification_and_push
+                _send_notification_and_push(
+                    recipient=request.user,
+                    sender=None,
+                    verb='sent a message',
+                    description=f'Your message to {thread.participants.exclude(id=request.user.id).first().get_display_name()} was sent.',
+                    target_object=thread,
+                    push_head="Message Sent",
+                    push_body="Your message was delivered.",
+                    push_url=reverse('users:thread', args=[thread.id])
+                )
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification to sender: {e}")
+
             return redirect('users:thread', thread_id=thread_id)
     
     thread.messages.exclude(sender=request.user).filter(is_read=False).update(is_read=True)
@@ -216,6 +257,22 @@ def compose_message(request, username):
                 content=clean_content[:10000]
             )
             cache.set(rate_key, msg_count + 1, 3600)
+            # Bell Notification (Confirmation for sender)
+            try:
+                from core.notifications_utils import _send_notification_and_push
+                _send_notification_and_push(
+                    recipient=request.user,
+                    sender=None,
+                    verb='sent a message',
+                    description=f'Your message to {recipient.get_display_name()} was sent.',
+                    target_object=thread,
+                    push_head="Message Sent",
+                    push_body="Your message was delivered.",
+                    push_url=reverse('users:thread', args=[thread.id])
+                )
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification to sender: {e}")
+
             django_messages.success(request, 'Message sent successfully!')
             return redirect('users:thread', thread_id=thread.id)
         else:

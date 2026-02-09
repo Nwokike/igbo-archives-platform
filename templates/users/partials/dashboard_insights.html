@@ -1,0 +1,64 @@
+<div class="flex justify-between items-center mb-4">
+    <h3 class="font-serif text-xl font-bold">My Insights</h3>
+    <a href="{% url 'insights:create' %}" class="btn-primary btn-sm">
+        <i class="fas fa-plus"></i> New Insight
+    </a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for insight in my_insights %}
+    <div class="card card-hover">
+        {% if insight.featured_image %}
+        <img src="{{ insight.featured_image.url }}" alt="{{ insight.title }}" class="w-full h-40 object-cover">
+        {% endif %}
+        <div class="card-body">
+            <h4 class="font-serif font-semibold mb-2">
+                <a href="{% url 'insights:detail' insight.slug %}" class="hover:text-accent transition-colors">
+                    {{ insight.title }}
+                </a>
+            </h4>
+            <p class="text-sm text-text-muted mb-3">
+                <i class="far fa-calendar"></i> {{ insight.created_at|date:"M d, Y" }}
+                {% if insight.pending_approval %}
+                <span class="badge badge-warning ml-2">Pending</span>
+                {% elif insight.is_approved %}
+                <span class="badge badge-success ml-2">Published</span>
+                {% endif %}
+            </p>
+            <div class="flex gap-2">
+                <a href="{% url 'insights:detail' insight.slug %}"
+                    class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary btn-sm flex-1 justify-center">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 text-text-muted">
+        <i class="fas fa-lightbulb text-4xl mb-4 opacity-30"></i>
+        <p class="mb-4">You haven't created any insights yet.</p>
+        <a href="{% url 'insights:create' %}" class="btn-primary">Create Your First Insight</a>
+    </div>
+    {% endfor %}
+</div>
+{% if my_insights.has_other_pages %}
+<div class="flex justify-center mt-6">
+    <nav class="pagination">
+        {% if my_insights.has_previous %}
+        <button class="page-link"
+            hx-get="{% url 'users:dashboard' %}?insights_page={{ my_insights.previous_page_number }}&target=insights"
+            hx-target="#insights" hx-push-url="false">
+            <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        {% endif %}
+        <span class="page-link active">{{ my_insights.number }} of {{ my_insights.paginator.num_pages }}</span>
+        {% if my_insights.has_next %}
+        <button class="page-link"
+            hx-get="{% url 'users:dashboard' %}?insights_page={{ my_insights.next_page_number }}&target=insights"
+            hx-target="#insights" hx-push-url="false">
+            <i class="fas fa-chevron-right text-xs"></i>
+        </button>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}

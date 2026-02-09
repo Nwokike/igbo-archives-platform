@@ -319,6 +319,8 @@ PWA_APP_STATUS_BAR_COLOR = 'default'
 PWA_APP_ICONS = [
     {'src': '/static/images/logos/logo-light.png', 'sizes': '192x192', 'type': 'image/png'},
     {'src': '/static/images/logos/logo-light.png', 'sizes': '512x512', 'type': 'image/png'},
+    {'src': '/static/images/logos/logo-dark.png', 'sizes': '192x192', 'type': 'image/png'},
+    {'src': '/static/images/logos/logo-dark.png', 'sizes': '512x512', 'type': 'image/png'},
 ]
 PWA_APP_ICONS_APPLE = [
     {'src': '/static/images/logos/logo-light.png', 'sizes': '180x180'},

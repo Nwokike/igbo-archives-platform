@@ -12,8 +12,8 @@
             </div>
             {% endif %}
             <span class="font-serif text-sm font-medium group-hover:text-accent transition-colors line-clamp-2">
-                {% if previous.title %}{{ previous.title|truncatewords:8 }}{% elif previous.review_title %}{{
-                previous.review_title|truncatewords:8 }}{% endif %}
+                {% if previous.title %}{{ previous.title|truncatewords:8 }}{% elif previous.book_title %}{{
+                previous.book_title|truncatewords:8 }}{% endif %}
             </span>
         </div>
     </a>
@@ -28,8 +28,8 @@
         </span>
         <div class="flex items-center gap-3 justify-end">
             <span class="font-serif text-sm font-medium group-hover:text-accent transition-colors line-clamp-2">
-                {% if next.title %}{{ next.title|truncatewords:8 }}{% elif next.review_title %}{{
-                next.review_title|truncatewords:8 }}{% endif %}
+                {% if next.title %}{{ next.title|truncatewords:8 }}{% elif next.book_title %}{{
+                next.book_title|truncatewords:8 }}{% endif %}
             </span>
             {% if next.image or next.featured_image or next.cover_image %}
             <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">

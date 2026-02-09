@@ -1,10 +1,10 @@
 {% if archives %}
 {% for archive in archives %}
-<a href="{% url 'archives:detail' archive.slug|default:archive.pk %}" class="card card-hover group block archive-item">
-    <div class="archive-card-inner flex flex-col [*[data-view='list']_&]:flex-row [*[data-view='list']_&]:h-24">
+<div class="card card-hover group block archive-item relative">
+    <div class="archive-card-inner flex flex-col [*[data-view='list']_&]:flex-row [*[data-view='list']_&]:h-36">
         <!-- Image section -->
-        <div
-            class="archive-img-wrapper overflow-hidden [*[data-view='list']_&]:w-32 [*[data-view='list']_&]:flex-shrink-0 [*[data-view='list']_&]:order-2">
+        <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
+            class="archive-img-wrapper overflow-hidden [*[data-view='list']_&]:w-56 [*[data-view='list']_&]:flex-shrink-0 [*[data-view='list']_&]:order-2">
             {% if archive.image %}
             <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}" loading="lazy" decoding="async"
                 class="w-full h-48 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -17,34 +17,73 @@
                 <i class="fas fa-archive text-4xl [*[data-view='list']_&]:text-2xl"></i>
             </div>
             {% endif %}
-        </div>
+        </a>
         <!-- Content section -->
         <div class="card-body flex-1 [*[data-view='list']_&]:py-2 [*[data-view='list']_&]:order-1">
-            <h3
-                class="font-serif text-lg [*[data-view='list']_&]:text-base font-semibold mb-2 [*[data-view='list']_&]:mb-1 group-hover:text-accent transition-colors line-clamp-2 [*[data-view='list']_&]:line-clamp-1">
-                {{ archive.title }}</h3>
+            <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}" class="block group/title">
+                <h3
+                    class="font-serif text-lg [*[data-view='list']_&]:text-base font-semibold mb-2 [*[data-view='list']_&]:mb-1 group-hover/title:text-accent transition-colors line-clamp-2 [*[data-view='list']_&]:line-clamp-1">
+                    {{ archive.title }}</h3>
+            </a>
             <p
-                class="text-sm text-text-muted line-clamp-2 [*[data-view='list']_&]:line-clamp-1 mb-3 [*[data-view='list']_&]:mb-1">
-                {{ archive.description|truncatewords:15 }}</p>
-            <div class="flex flex-wrap gap-2 [*[data-view='list']_&]:gap-1 items-center">
-                <span class="badge badge-secondary [*[data-view='list']_&]:text-xs">{{ archive.get_archive_type_display}}</span>
+                class="text-sm text-text-muted line-clamp-2 [*[data-view='list']_&]:line-clamp-4 mb-3 [*[data-view='list']_&]:mb-4">
+                {{ archive.description|truncatewords:40 }}</p>
+            <div class="flex flex-wrap gap-2 [*[data-view='list']_&]:gap-1 items-center z-10">
+                <a href="?type={{ archive.archive_type }}"
+                    hx-get="{% url 'archives:list' %}?type={{ archive.archive_type }}" hx-target="#archiveGrid"
+                    hx-push-url="true"
+                    class="badge badge-secondary hover:bg-accent hover:text-white transition-colors [*[data-view='list']_&]:text-xs">
+                    {{ archive.get_archive_type_display}}
+                </a>
                 {% if archive.category %}
-                <span class="badge badge-primary [*[data-view='list']_&]:text-xs">{{ archive.category.name }}</span>
+                <a href="?category={{ archive.category.id }}"
+                    hx-get="{% url 'archives:list' %}?category={{ archive.category.id }}" hx-target="#archiveGrid"
+                    hx-push-url="true"
+                    class="badge badge-primary hover:bg-accent hover:text-white transition-colors [*[data-view='list']_&]:text-xs">
+                    {{ archive.category.name }}
+                </a>
                 {% endif %}
-                <!-- Original Date -->
-                <span class="text-text-muted text-xs">
-                    {% if archive.date_created %}{{ archive.date_created|date:"Y" }}{% elif archive.circa_date %}{{archive.circa_date }}{% endif %}
-                </span>
+                {% with date_val=archive.date_created|date:"Y"|default:archive.circa_date %}
+                {% if date_val %}
+                <span class="text-text-muted mx-1 text-xs">•</span>
+                <a href="?date={{ date_val }}" hx-get="{% url 'archives:list' %}?date={{ date_val }}"
+                    hx-target="#archiveGrid" hx-push-url="true"
+                    class="text-text-muted text-xs hover:text-accent transition-colors flex items-center gap-1">
+                    <i class="far fa-calendar-alt text-[10px]"></i>
+                    {{ date_val }}
+                </a>
+                {% endif %}
+                {% endwith %}
+
                 <!-- Original Author -->
                 {% if archive.original_author or archive.author %}
-                <span class="text-text-muted text-xs">
-                    • {% if archive.author %}{{ archive.author.name }}{% else %}{{ archive.original_author }}{% endif %}
-                </span>
+                <span class="text-text-muted mx-1 text-xs">•</span>
+                {% if archive.original_author %}
+                {% with author_val=archive.original_author %}
+                <a href="?author={{ author_val|urlencode }}"
+                    hx-get="{% url 'archives:list' %}?author={{ author_val|urlencode }}" hx-target="#archiveGrid"
+                    hx-push-url="true"
+                    class="text-text-muted text-xs hover:text-accent transition-colors flex items-center gap-1">
+                    <i class="fas fa-user-edit text-[10px]"></i>
+                    {{ author_val }}
+                </a>
+                {% endwith %}
+                {% elif archive.author %}
+                {% with author_val=archive.author.name %}
+                <a href="?author={{ author_val|urlencode }}"
+                    hx-get="{% url 'archives:list' %}?author={{ author_val|urlencode }}" hx-target="#archiveGrid"
+                    hx-push-url="true"
+                    class="text-text-muted text-xs hover:text-accent transition-colors flex items-center gap-1">
+                    <i class="fas fa-user-edit text-[10px]"></i>
+                    {{ author_val }}
+                </a>
+                {% endwith %}
+                {% endif %}
                 {% endif %}
             </div>
         </div>
     </div>
-</a>
+</div>
 {% endfor %}
 
 {% if archives.has_other_pages %}

@@ -1,24 +1,53 @@
 {% if posts %}
 {% for post in posts %}
-<a href="{% url 'insights:detail' post.slug %}" class="card card-hover group block">
-    {% if post.featured_image %}
-    <div class="overflow-hidden">
-        <img src="{{ post.featured_image.url }}" alt="{{ post.alt_text }}" loading="lazy" decoding="async"
-            class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+<div class="card card-hover group block relative overflow-hidden">
+    <div class="flex flex-col [*[data-view='list']_&]:flex-row [*[data-view='list']_&]:h-48">
+        {% if post.featured_image %}
+        <a href="{% url 'insights:detail' post.slug %}"
+            class="overflow-hidden block [*[data-view='list']_&]:w-64 [*[data-view='list']_&]:flex-shrink-0 [*[data-view='list']_&]:order-2">
+            <img src="{{ post.featured_image.url }}" alt="{{ post.alt_text }}" loading="lazy" decoding="async"
+                class="w-full h-48 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-300">
+        </a>
+        {% endif %}
+        <div class="card-body flex-1 [*[data-view='list']_&]:py-4 [*[data-view='list']_&]:order-1">
+            <a href="{% url 'insights:detail' post.slug %}" class="block group/title">
+                <h3
+                    class="font-serif text-lg font-semibold mb-2 group-hover/title:text-accent transition-colors line-clamp-2">
+                    {{post.title }}</h3>
+            </a>
+            <div class="text-xs text-text-muted mb-3 flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-1">
+                    <i class="fas fa-user text-[10px]"></i>
+                    <a href="{% url 'users:profile' post.author.username %}"
+                        class="hover:text-accent transition-colors">
+                        {{ post.author.full_name|default:post.author.username }}
+                    </a>
+                </div>
+                <span class="text-border">•</span>
+                <span class="flex items-center gap-1">
+                    <i class="far fa-calendar text-[10px]"></i>
+                    <a href="?date={{ post.created_at|date:'Y-m-d' }}"
+                        hx-get="{% url 'insights:list' %}?date={{ post.created_at|date:'Y-m-d' }}"
+                        hx-target="#insightsGrid" hx-push-url="true" class="hover:text-accent transition-colors">
+                        {{ post.created_at|date:"M d, Y" }}
+                    </a>
+                </span>
+                {% if post.category %}
+                <span class="text-border">•</span>
+                <a href="?category={{ post.category.slug }}"
+                    hx-get="{% url 'insights:list' %}?category={{ post.category.slug }}" hx-target="#insightsGrid"
+                    hx-push-url="true"
+                    class="hover:text-accent transition-colors uppercase tracking-wider text-[10px] font-bold">
+                    {{ post.category.name }}
+                </a>
+                {% endif %}
+            </div>
+            <p class="text-sm text-text line-clamp-3 [*[data-view='list']_&]:line-clamp-4">
+                {{ post.excerpt|default:post.content|striptags|truncatewords:40 }}
+            </p>
+        </div>
     </div>
-    {% endif %}
-    <div class="card-body">
-        <h3 class="font-serif text-lg font-semibold mb-2 group-hover:text-accent transition-colors line-clamp-2">
-            {{post.title }}</h3>
-        <p class="text-sm text-text-muted mb-3 flex items-center gap-2">
-            <i class="fas fa-user text-xs"></i>
-            <span>{{ post.author.full_name|default:post.author.username }}</span>
-            <span class="text-border">•</span>
-            <span>{{ post.created_at|date:"M d, Y" }}</span>
-        </p>
-        <p class="text-sm text-text line-clamp-3">{{ post.excerpt|default:post.content|striptags|truncatewords:20 }}</p>
-    </div>
-</a>
+</div>
 {% endfor %}
 
 {% if posts.has_other_pages %}
@@ -37,7 +66,9 @@
         <span class="page-link active">{{ num }}</span>
         {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %} <a class="page-link"
             hx-get="{% url 'insights:list' %}?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-            hx-target="#insightsGrid" hx-push-url="true">{{ num }}</a>
+            hx-target="#insightsGrid" hx-push-url="true">
+            {{ num }}
+            </a>
             {% endif %}
             {% endfor %}
 

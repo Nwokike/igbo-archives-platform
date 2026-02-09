@@ -1,0 +1,49 @@
+<div class="flex justify-between items-center mb-4">
+    <h3 class="font-serif text-xl font-bold">My Archives</h3>
+    <a href="{% url 'archives:create' %}" class="btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Add Archive
+    </a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for archive in my_archives %}
+    <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}" class="card card-hover block">
+        {% if archive.image %}
+        <img src="{{ archive.image.url }}" alt="{{ archive.title }}" class="w-full h-32 object-cover">
+        {% endif %}
+        <div class="card-body">
+            <h4 class="font-serif font-semibold mb-2 line-clamp-1">{{ archive.title }}</h4>
+            <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
+            {% if not archive.is_approved %}
+            <span class="badge badge-warning ml-2">Draft/Pending</span>
+            {% endif %}
+        </div>
+    </a>
+    {% empty %}
+    <div class="col-span-full text-center py-12 text-text-muted">
+        <i class="fas fa-archive text-4xl mb-4 opacity-30"></i>
+        <p class="mb-4">You haven't contributed any archives yet.</p>
+        <a href="{% url 'archives:create' %}" class="btn-primary">Add an Archive</a>
+    </div>
+    {% endfor %}
+</div>
+{% if my_archives.has_other_pages %}
+<div class="flex justify-center mt-6">
+    <nav class="pagination">
+        {% if my_archives.has_previous %}
+        <button class="page-link"
+            hx-get="{% url 'users:dashboard' %}?archives_page={{ my_archives.previous_page_number }}&target=archives"
+            hx-target="#archives" hx-push-url="false">
+            <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        {% endif %}
+        <span class="page-link active">{{ my_archives.number }} of {{ my_archives.paginator.num_pages }}</span>
+        {% if my_archives.has_next %}
+        <button class="page-link"
+            hx-get="{% url 'users:dashboard' %}?archives_page={{ my_archives.next_page_number }}&target=archives"
+            hx-target="#archives" hx-push-url="false">
+            <i class="fas fa-chevron-right text-xs"></i>
+        </button>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}

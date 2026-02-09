@@ -34,8 +34,12 @@
                         By {{ item.original_author }}
                         {% elif item.author and item.author.name %}
                         By {{ item.author.name }}
+                        {% elif item.author and item.author.username %}
+                        By {{ item.author.full_name|default:item.author.username }}
                         {% elif item.author %}
                         By {{ item.author }}
+                        {% elif item.added_by %}
+                        By {{ item.added_by.get_display_name }}
                         {% endif %}
                     </p>
                 </div>

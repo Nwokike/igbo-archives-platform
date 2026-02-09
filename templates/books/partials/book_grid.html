@@ -1,10 +1,10 @@
 {% if books %}
 {% for book in books %}
-<a href="{% url 'books:detail' book.slug %}" class="card card-hover group block book-item">
-    <div class="book-card-inner flex flex-col [*[data-view='list']_&]:flex-row [*[data-view='list']_&]:h-28">
+<div class="card card-hover group block book-item relative">
+    <div class="book-card-inner flex flex-col [*[data-view='list']_&]:flex-row [*[data-view='list']_&]:h-40">
         <!-- Cover Image section -->
-        <div
-            class="book-img-wrapper overflow-hidden [*[data-view='list']_&]:w-24 [*[data-view='list']_&]:flex-shrink-0 [*[data-view='list']_&]:order-2">
+        <a href="{% url 'books:detail' book.slug %}"
+            class="book-img-wrapper overflow-hidden [*[data-view='list']_&]:w-32 [*[data-view='list']_&]:flex-shrink-0 [*[data-view='list']_&]:order-2">
             {% if book.cover_image %}
             <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}" loading="lazy" decoding="async"
                 class="w-full h-56 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -14,20 +14,49 @@
                 <i class="fas fa-book text-4xl [*[data-view='list']_&]:text-2xl"></i>
             </div>
             {% endif %}
-        </div>
+        </a>
         <!-- Content section -->
         <div class="card-body flex-1 [*[data-view='list']_&]:py-2 [*[data-view='list']_&]:order-1">
-            <h3
-                class="font-serif text-lg [*[data-view='list']_&]:text-base font-semibold mb-1 group-hover:text-accent transition-colors line-clamp-2 [*[data-view='list']_&]:line-clamp-1">
-                {{ book.book_title }}</h3>
-            <p class="text-sm text-text-muted mb-2 [*[data-view='list']_&]:mb-1">
-                by {{ book.author }}{% if book.publication_year %} • {{ book.publication_year }}{% endif %}
-            </p>
+            <a href="{% url 'books:detail' book.slug %}" class="block group/title">
+                <h3
+                    class="font-serif text-lg [*[data-view='list']_&]:text-base font-semibold mb-1 group-hover/title:text-accent transition-colors line-clamp-2 [*[data-view='list']_&]:line-clamp-1">
+                    {{ book.book_title }}</h3>
+            </a>
+            <div
+                class="text-xs text-text-muted mb-2 [*[data-view='list']_&]:mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <div class="flex items-center gap-1">
+                    <i class="fas fa-user-edit text-[10px]"></i>
+                    <a href="?author={{ book.author|urlencode }}"
+                        hx-get="{% url 'books:list' %}?author={{ book.author|urlencode }}" hx-target="#booksGrid"
+                        hx-push-url="true" class="hover:text-accent transition-colors font-medium">
+                        {{ book.author }}
+                    </a>
+                </div>
+                {% if book.publication_year %}
+                <span class="text-border">•</span>
+                <div class="flex items-center gap-1">
+                    <i class="far fa-calendar-alt text-[10px]"></i>
+                    <a href="?year={{ book.publication_year }}"
+                        hx-get="{% url 'books:list' %}?year={{ book.publication_year }}" hx-target="#booksGrid"
+                        hx-push-url="true" class="hover:text-accent transition-colors">
+                        {{ book.publication_year }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if book.publisher %}
+                <span class="text-border">•</span>
+                <div class="flex items-center gap-1">
+                    <i class="fas fa-building text-[10px]"></i>
+                    <span class="italic">{{ book.publisher }}</span>
+                </div>
+                {% endif %}
+            </div>
             {% if book.average_rating %}
             <div class="text-accent mb-2 [*[data-view='list']_&]:mb-1 text-sm">
                 {% with avg=book.average_rating %}
                 {% for i in "12345"|make_list %}
-                {% if forloop.counter <= avg %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif%}
+                {% if forloop.counter <= avg|floatformat:"0"|add:0 %}<i class="fas fa-star"></i>{% else %}<i
+                        class="far fa-star"></i>{% endif%}
                     {% endfor %}
                     <span class="text-xs text-text-muted">({{ book.rating_count }})</span>
                     {% endwith %}
@@ -35,7 +64,7 @@
             {% endif %}
         </div>
     </div>
-</a>
+</div>
 {% endfor %}
 
 {% if books.has_other_pages %}
@@ -43,7 +72,8 @@
     <nav class="pagination">
         {% if books.has_previous %}
         <a class="page-link"
-            href="?page={{ books.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+            hx-get="?page={{ books.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}"
+            hx-target="#booksGrid" hx-push-url="true">
             <i class="fas fa-chevron-left text-xs"></i>
         </a>
         {% endif %}
@@ -52,14 +82,17 @@
         {% if books.number == num %}
         <span class="page-link active">{{ num }}</span>
         {% elif num > books.number|add:'-3' and num < books.number|add:'3' %} <a class="page-link"
-            href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
-            {{ num }}</a>
+            hx-get="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}"
+            hx-target="#booksGrid" hx-push-url="true">
+            {{ num }}
+            </a>
             {% endif %}
             {% endfor %}
 
             {% if books.has_next %}
             <a class="page-link"
-                href="?page={{ books.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                hx-get="?page={{ books.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.author %}&author={{ request.GET.author }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}"
+                hx-target="#booksGrid" hx-push-url="true">
                 <i class="fas fa-chevron-right text-xs"></i>
             </a>
             {% endif %}

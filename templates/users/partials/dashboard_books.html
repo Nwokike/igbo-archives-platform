@@ -1,0 +1,76 @@
+<div class="flex justify-between items-center mb-4">
+    <h3 class="font-serif text-xl font-bold">My Book Recommendations</h3>
+    <a href="{% url 'books:create' %}" class="btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Recommend a Book
+    </a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for book in my_book_recommendations %}
+    <div class="card card-hover">
+        {% if book.cover_image %}
+        <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}" class="w-full h-40 object-cover">
+        {% endif %}
+        <div class="card-body">
+            <h4 class="font-serif font-semibold mb-2">
+                <a href="{% url 'books:detail' book.slug %}" class="hover:text-accent transition-colors">
+                    {{ book.title }}
+                </a>
+            </h4>
+            <p class="text-sm text-text-muted mb-2">{{ book.book_title }} by {{ book.author }}</p>
+            {% if book.average_rating %}
+            <div class="text-accent mb-3">
+                {% for i in "12345"|make_list %}
+                {% if forloop.counter <= book.average_rating %}<i class="fas fa-star"></i>{% else %}<i
+                        class="far fa-star"></i>{% endif %}
+                    {% endfor %}
+            </div>
+            {% endif %}
+            <p class="text-xs text-text-muted mb-3">
+                Status:
+                {% if book.is_approved %}
+                <span class="text-success">Approved</span>
+                {% elif book.pending_approval %}
+                <span class="text-warning">Pending Approval</span>
+                {% else %}
+                <span class="text-muted">Draft</span>
+                {% endif %}
+            </p>
+
+            <div class="flex gap-2">
+                <a href="{% url 'books:detail' book.slug %}" class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex-1 justify-center">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 text-text-muted">
+        <i class="fas fa-book text-4xl mb-4 opacity-30"></i>
+        <p class="mb-4">You haven't recommended any books yet.</p>
+        <a href="{% url 'books:create' %}" class="btn-primary">Recommend a Book</a>
+    </div>
+    {% endfor %}
+</div>
+{% if my_book_recommendations.has_other_pages %}
+<div class="flex justify-center mt-6">
+    <nav class="pagination">
+        {% if my_book_recommendations.has_previous %}
+        <button class="page-link"
+            hx-get="{% url 'users:dashboard' %}?books_page={{ my_book_recommendations.previous_page_number }}&target=books"
+            hx-target="#reviews" hx-push-url="false">
+            <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        {% endif %}
+        <span class="page-link active">{{ my_book_recommendations.number }} of {{
+            my_book_recommendations.paginator.num_pages }}</span>
+        {% if my_book_recommendations.has_next %}
+        <button class="page-link"
+            hx-get="{% url 'users:dashboard' %}?books_page={{ my_book_recommendations.next_page_number }}&target=books"
+            hx-target="#reviews" hx-push-url="false">
+            <i class="fas fa-chevron-right text-xs"></i>
+        </button>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}

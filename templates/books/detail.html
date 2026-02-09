@@ -6,15 +6,15 @@
 
 {% block meta_description %}{{ book.book_title }} by {{ book.author }} - {{ book.content|striptags|truncatewords:25 }}{%endblock %}
 
-{% block og_title %}{{ book.book_title }} by {{ book.author }}{% endblock %}
+<!-- Open Graph / Facebook -->
+{% block og_title %}{{ book.book_title }} by {{ book.author }} - Igbo Archives{% endblock %}
 {% block og_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
-{% block og_image %}{% if book.cover_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}{%
-else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_image %}{% if book.cover_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}{%else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}{% endif %}{% endblock %}
 
+<!-- Twitter -->
 {% block twitter_title %}{{ book.book_title }} by {{ book.author }}{% endblock %}
 {% block twitter_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
-{% block twitter_image %}{% if book.cover_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url
-}}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if book.cover_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url}}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}{% endif %}{%endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editor.css' %}">

@@ -1,0 +1,56 @@
+{% if user_archives %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for archive in user_archives %}
+    <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}" class="card card-hover group block">
+        {% if archive.image %}
+        <div class="h-32 overflow-hidden">
+            <img src="{{ archive.image.url }}" alt="{{ archive.title }}"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <h4 class="font-serif font-bold mb-2 line-clamp-1 group-hover:text-accent transition-colors">
+                {{ archive.title }}
+            </h4>
+            <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if user_archives.has_other_pages %}
+<div class="flex justify-center mt-8">
+    <nav class="pagination">
+        {% if user_archives.has_previous %}
+        <button class="page-link"
+            hx-get="{% url 'users:profile' profile_user.username %}?archives_page={{ user_archives.previous_page_number }}&target=archives"
+            hx-target="#archives" hx-push-url="false">
+            <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        {% endif %}
+
+        {% for num in user_archives.paginator.page_range %}
+        {% if user_archives.number == num %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > user_archives.number|add:'-3' and num < user_archives.number|add:'3' %} <button class="page-link"
+            hx-get="{% url 'users:profile' profile_user.username %}?archives_page={{ num }}&target=archives"
+            hx-target="#archives" hx-push-url="false">{{ num }}</button>
+            {% endif %}
+            {% endfor %}
+
+            {% if user_archives.has_next %}
+            <button class="page-link"
+                hx-get="{% url 'users:profile' profile_user.username %}?archives_page={{ user_archives.next_page_number }}&target=archives"
+                hx-target="#archives" hx-push-url="false">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </button>
+            {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% else %}
+<div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
+    <i class="fas fa-archive text-3xl text-text-muted mb-3"></i>
+    <p class="text-text-muted">No archives contributed yet.</p>
+</div>
+{% endif %}

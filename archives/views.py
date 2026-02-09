@@ -71,8 +71,12 @@ def archive_list(request):
     if category := request.GET.get('category'):
         archives = archives.filter(category__slug=category)
     
-    if author_slug := request.GET.get('author'):
-        archives = archives.filter(author__slug=author_slug)
+    if author_query := request.GET.get('author'):
+        archives = archives.filter(
+            Q(author__name__icontains=author_query) | 
+            Q(original_author__icontains=author_query) |
+            Q(author__slug=author_query)
+        )
     
     if circa_date := request.GET.get('date'):
         archives = archives.filter(circa_date__icontains=circa_date)
@@ -260,6 +264,13 @@ def archive_create(request):
                 
                 sync_parent_archive_with_first_item(archive)
                 
+                # Bell Notification
+                try:
+                    from core.notifications_utils import send_post_submitted_notification
+                    send_post_submitted_notification(archive, post_type='archive')
+                except Exception as e:
+                    logger.warning(f"Failed to send in-app notification: {e}")
+                
                 # --- PHASE 4: EMAIL NOTIFICATION ---
                 try:
                     staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
@@ -283,6 +294,13 @@ def archive_create(request):
                 # -----------------------------------
                 
                 messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
+                # Bell Notification
+                try:
+                    from core.notifications_utils import send_post_submitted_notification
+                    send_post_submitted_notification(archive, post_type='archive')
+                except Exception as e:
+                    logger.warning(f"Failed to send in-app notification: {e}")
+
                 if archive.slug:
                     return redirect('archives:detail', slug=archive.slug)
                 return redirect('archives:detail', pk=archive.pk)

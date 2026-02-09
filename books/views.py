@@ -65,7 +65,7 @@ def book_list(request):
     if year := request.GET.get('year'):
         books = books.filter(publication_year__icontains=year)
     
-    sort = get_safe_sort(request.GET.get('sort', '-publication_year'), ALLOWED_BOOK_SORTS)
+    sort = get_safe_sort(request.GET.get('sort', '-created_at'), ALLOWED_BOOK_SORTS)
     books = books.order_by(sort)
     
     paginator = Paginator(books, 12)
@@ -173,6 +173,12 @@ def book_create(request):
             pending_approval = True
             submitted_at = timezone.now()
             messages.success(request, 'Your book recommendation has been submitted for approval!')
+            # Bell Notification
+            try:
+                from core.notifications_utils import send_post_submitted_notification
+                send_post_submitted_notification(book, post_type='book recommendation')
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification: {e}")
         else:
             messages.success(request, 'Your book recommendation has been saved as a draft!')
         
@@ -297,6 +303,12 @@ def book_edit(request, slug):
             book.is_published = workflow_flags['is_published']
             book.is_approved = workflow_flags['is_approved']
             messages.success(request, 'Your book recommendation has been submitted for approval!')
+            # Bell Notification
+            try:
+                from core.notifications_utils import send_post_submitted_notification
+                send_post_submitted_notification(book, post_type='book recommendation')
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification: {e}")
         else:
             if book.is_published and book.is_approved:
                 book.pending_approval = True

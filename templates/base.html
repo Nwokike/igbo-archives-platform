@@ -128,8 +128,7 @@
                             <i class="fas fa-bell text-lg"></i>
                             {% if unread_notification_count > 0 %}
                             <span id="notificationBadge"
-                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{unread_notification_count
-                                }}</span>
+                                class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{unread_notification_count}}</span>
                             {% endif %}
                         </button>
                         <div class="dropdown-menu w-80 right-0" id="notificationDropdown">
@@ -280,7 +279,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12 pb-24 lg:pb-12">
             <div class="grid grid-cols-3 md:grid-cols-4 gap-4 lg:gap-10">
                 <!-- Brand Column -->
-                <div class="col-span-2 md:col-span-1">
+                <div class="col-span-full md:col-span-1">
                     <div class="mb-3">
                         <img src="{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives"
                             class="h-9 w-auto logo-light">

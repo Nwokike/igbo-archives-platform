@@ -150,112 +150,30 @@ profile_user.bio|truncatewords:25 }}{% endblock %}
             <div class="flex gap-1 border-b border-border" role="tablist">
                 <button type="button" class="tab active" data-tab="insights">
                     <i class="fas fa-lightbulb"></i> Insights
-                    <span class="badge badge-primary ml-1">{{ user_insights.count }}</span>
+                    <span class="badge badge-primary ml-1" id="insights-count">{{ user_insights_count }}</span>
                 </button>
                 <button type="button" class="tab" data-tab="recommendations">
                     <i class="fas fa-book"></i> Recommendations
-                    <span class="badge badge-primary ml-1">{{ user_book_recommendations.count }}</span>
+                    <span class="badge badge-primary ml-1" id="books-count">{{ user_book_recommendations_count }}</span>
                 </button>
                 <button type="button" class="tab" data-tab="archives">
                     <i class="fas fa-archive"></i> Archives
-                    <span class="badge badge-primary ml-1">{{ user_archives.count }}</span>
+                    <span class="badge badge-primary ml-1" id="archives-count">{{ user_archives_count }}</span>
                 </button>
             </div>
         </div>
 
         <div class="tab-content">
             <div id="insights" class="tab-panel active">
-                {% if user_insights %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {% for insight in user_insights %}
-                    <a href="{% url 'insights:detail' insight.slug %}" class="card card-hover group block">
-                        {% if insight.featured_image %}
-                        <div class="h-40 overflow-hidden">
-                            <img src="{{ insight.featured_image.url }}" alt="{{ insight.title }}"
-                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <h4
-                                class="font-serif font-bold mb-1 line-clamp-2 group-hover:text-accent transition-colors">
-                                {{ insight.title }}
-                            </h4>
-                            <p class="text-xs text-text-muted">{{ insight.created_at|date:"M d, Y" }}</p>
-                        </div>
-                    </a>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
-                    <i class="fas fa-lightbulb text-3xl text-text-muted mb-3"></i>
-                    <p class="text-text-muted">No insights published yet.</p>
-                </div>
-                {% endif %}
+                {% include 'users/partials/profile_insights.html' %}
             </div>
 
             <div id="recommendations" class="tab-panel">
-                {% if user_book_recommendations %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {% for recommendation in user_book_recommendations %}
-                    <a href="{% url 'books:detail' recommendation.slug %}" class="card card-hover group block">
-                        {% if recommendation.cover_image %}
-                        <div class="h-40 overflow-hidden">
-                            <img src="{{ recommendation.cover_image.url }}" alt="{{ recommendation.book_title }}"
-                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <h4
-                                class="font-serif font-bold mb-1 line-clamp-2 group-hover:text-accent transition-colors">
-                                {{ recommendation.recommendation_title }}
-                            </h4>
-                            <p class="text-sm text-text-muted mb-2">{{ recommendation.book_title }}</p>
-                            <div class="text-accent text-sm">
-                                {% for i in "12345"|make_list %}
-                                {% if forloop.counter <= recommendation.rating %}<i class="fas fa-star"></i>{% else %}<i
-                                        class="far fa-star"></i>{% endif %}
-                                    {% endfor %}
-                            </div>
-                        </div>
-                    </a>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
-                    <i class="fas fa-book text-3xl text-text-muted mb-3"></i>
-                    <p class="text-text-muted">No book recommendations yet.</p>
-                </div>
-                {% endif %}
+                {% include 'users/partials/profile_books.html' %}
             </div>
 
             <div id="archives" class="tab-panel">
-                {% if user_archives %}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {% for archive in user_archives %}
-                    <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
-                        class="card card-hover group block">
-                        {% if archive.image %}
-                        <div class="h-32 overflow-hidden">
-                            <img src="{{ archive.image.url }}" alt="{{ archive.title }}"
-                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <h4
-                                class="font-serif font-bold mb-2 line-clamp-1 group-hover:text-accent transition-colors">
-                                {{ archive.title }}
-                            </h4>
-                            <span class="badge badge-secondary">{{ archive.get_archive_type_display }}</span>
-                        </div>
-                    </a>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
-                    <i class="fas fa-archive text-3xl text-text-muted mb-3"></i>
-                    <p class="text-text-muted">No archives contributed yet.</p>
-                </div>
-                {% endif %}
+                {% include 'users/partials/profile_archives.html' %}
             </div>
         </div>
     </main>

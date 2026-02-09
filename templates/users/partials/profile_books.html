@@ -1,0 +1,63 @@
+{% if user_book_recommendations %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for recommendation in user_book_recommendations %}
+    <a href="{% url 'books:detail' recommendation.slug %}" class="card card-hover group block">
+        {% if recommendation.cover_image %}
+        <div class="h-40 overflow-hidden">
+            <img src="{{ recommendation.cover_image.url }}" alt="{{ recommendation.book_title }}"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <h4 class="font-serif font-bold mb-1 line-clamp-2 group-hover:text-accent transition-colors">
+                {{ recommendation.recommendation_title }}
+            </h4>
+            <p class="text-sm text-text-muted mb-2">{{ recommendation.book_title }}</p>
+            <div class="text-accent text-sm">
+                {% for i in "12345"|make_list %}
+                {% if forloop.counter <= recommendation.rating %}<i class="fas fa-star"></i>{% else %}<i
+                        class="far fa-star"></i>{% endif %}
+                    {% endfor %}
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if user_book_recommendations.has_other_pages %}
+<div class="flex justify-center mt-8">
+    <nav class="pagination">
+        {% if user_book_recommendations.has_previous %}
+        <button class="page-link"
+            hx-get="{% url 'users:profile' profile_user.username %}?books_page={{ user_book_recommendations.previous_page_number }}&target=books"
+            hx-target="#recommendations" hx-push-url="false">
+            <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        {% endif %}
+
+        {% for num in user_book_recommendations.paginator.page_range %}
+        {% if user_book_recommendations.number == num %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > user_book_recommendations.number|add:'-3' and num < user_book_recommendations.number|add:'3' %}
+            <button class="page-link"
+            hx-get="{% url 'users:profile' profile_user.username %}?books_page={{ num }}&target=books"
+            hx-target="#recommendations" hx-push-url="false">{{ num }}</button>
+            {% endif %}
+            {% endfor %}
+
+            {% if user_book_recommendations.has_next %}
+            <button class="page-link"
+                hx-get="{% url 'users:profile' profile_user.username %}?books_page={{ user_book_recommendations.next_page_number }}&target=books"
+                hx-target="#recommendations" hx-push-url="false">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </button>
+            {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% else %}
+<div class="text-center py-12 border-2 border-dashed border-border rounded-xl">
+    <i class="fas fa-book text-3xl text-text-muted mb-3"></i>
+    <p class="text-text-muted">No book recommendations yet.</p>
+</div>
+{% endif %}

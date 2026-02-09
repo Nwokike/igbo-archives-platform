@@ -31,36 +31,29 @@ def validate_audio_size(file):
 
 
 ALLOWED_ARCHIVE_SORTS = {
-    '-created_at': '-created_at',
-    'created_at': 'created_at',
-    'title': 'title',
-    '-title': '-title',
-    'newest': '-created_at',
-    'oldest': 'created_at',
+    'recently-added': '-created_at',
+    'newest': '-date_created',
+    'oldest': 'date_created',
     'a-z': 'title',
     'z-a': '-title',
+    '-created_at': '-created_at',
 }
 
 ALLOWED_INSIGHT_SORTS = {
-    '-created_at': '-created_at',
-    'created_at': 'created_at',
-    'title': 'title',
-    '-title': '-title',
+    'recently-added': '-created_at',
     'newest': '-created_at',
     'oldest': 'created_at',
+    '-created_at': '-created_at',
 }
 
 ALLOWED_BOOK_SORTS = {
-    '-created_at': '-created_at',
-    'created_at': 'created_at',
-    'book_title': 'book_title',
-    '-book_title': '-book_title',
-    '-rating': '-rating',
-    'rating': 'rating',
-    'newest': '-created_at',
-    'oldest': 'created_at',
+    'recently-added': '-created_at',
+    'newest': '-publication_year',
+    'oldest': 'publication_year',
     '-publication_year': '-publication_year',
     'publication_year': 'publication_year',
+    '-rating': '-rating',
+    '-created_at': '-created_at',
 }
 
 

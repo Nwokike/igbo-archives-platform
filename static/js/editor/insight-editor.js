@@ -92,25 +92,42 @@
         }
     }
 
-    function loadArchives() {
+    let currentArchivePage = 1;
+    let hasMoreArchives = false;
+
+    // ... existing init code ...
+
+    function loadArchives(append = false) {
+        if (!append) {
+            currentArchivePage = 1;
+        }
+
         const searchInput = document.getElementById('archiveSearch');
         const search = searchInput ? searchInput.value : '';
         const typeFilter = document.getElementById('archiveTypeFilter');
         const mediaType = typeFilter ? typeFilter.value : 'image';
-        const url = '/api/archive-media-browser/?search=' + encodeURIComponent(search) + '&type=' + mediaType;
+        const url = '/api/archive-media-browser/?search=' + encodeURIComponent(search) + '&type=' + mediaType + '&page=' + currentArchivePage;
         const grid = document.getElementById('archiveGrid');
         const insertBtn = document.getElementById('insertArchiveBtn');
+        const loadMoreContainer = document.getElementById('archiveLoadMoreContainer');
 
         if (!grid) return;
 
-        grid.innerHTML = '<div class="col-span-full flex justify-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-vintage-gold"></i></div>';
+        if (!append) {
+            grid.innerHTML = '<div class="col-span-full flex justify-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-vintage-gold"></i></div>';
+            if (loadMoreContainer) loadMoreContainer.innerHTML = '';
+        } else if (loadMoreContainer) {
+            loadMoreContainer.innerHTML = '<i class="fas fa-spinner fa-spin text-vintage-gold"></i>';
+        }
 
         fetch(url)
             .then(function (response) { return response.json(); })
             .then(function (data) {
-                grid.innerHTML = '';
-                selectedArchive = null;
-                if (insertBtn) insertBtn.classList.add('hidden');
+                if (!append) {
+                    grid.innerHTML = '';
+                    selectedArchive = null;
+                    if (insertBtn) insertBtn.classList.add('hidden');
+                }
 
                 if (data.archives && data.archives.length > 0) {
                     data.archives.forEach(function (archive) {
@@ -140,13 +157,33 @@
 
                         grid.appendChild(item);
                     });
+
+                    // Handle Load More button
+                    hasMoreArchives = data.has_next;
+                    if (loadMoreContainer) {
+                        if (hasMoreArchives) {
+                            loadMoreContainer.innerHTML = '<button type="button" class="btn-secondary btn-sm" id="loadMoreArchivesBtn">Load More</button>';
+                            document.getElementById('loadMoreArchivesBtn').addEventListener('click', function() {
+                                currentArchivePage++;
+                                loadArchives(true);
+                            });
+                        } else {
+                            loadMoreContainer.innerHTML = '<p class="text-xs text-vintage-beaver py-2">No more archives</p>';
+                        }
+                    }
                 } else {
-                    grid.innerHTML = '<p class="col-span-full text-center text-vintage-beaver py-8">No ' + mediaType + ' archives found</p>';
+                    if (!append) {
+                        grid.innerHTML = '<p class="col-span-full text-center text-vintage-beaver py-8">No ' + mediaType + ' archives found</p>';
+                        if (loadMoreContainer) loadMoreContainer.innerHTML = '';
+                    }
                 }
             })
             .catch(function (error) {
                 console.error('Error loading archives:', error);
-                grid.innerHTML = '<p class="col-span-full text-center text-red-600 py-8">Error loading archives</p>';
+                if (!append) {
+                    grid.innerHTML = '<p class="col-span-full text-center text-red-600 py-8">Error loading archives</p>';
+                }
+                if (loadMoreContainer) loadMoreContainer.innerHTML = '';
             });
     }
 

@@ -63,7 +63,19 @@ def insight_list(request):
     )
     
     if search := request.GET.get('search'):
-        insights = insights.filter(title__icontains=search)
+        insights = insights.filter(
+            Q(title__icontains=search) | 
+            Q(excerpt__icontains=search) |
+            Q(author__full_name__icontains=search) |
+            Q(author__username__icontains=search)
+        )
+    
+    if author_username := request.GET.get('author'):
+        insights = insights.filter(author__username=author_username)
+        
+    if date_str := request.GET.get('date'):
+        # Just filter by the date part
+        insights = insights.filter(created_at__date=date_str)
     
     # FILTER BY CATEGORY (Instead of Tag)
     if category_slug := request.GET.get('category'):
@@ -196,6 +208,12 @@ def insight_create(request):
         
         if action == 'submit':
             messages.success(request, 'Your insight has been submitted for approval!')
+            # Bell Notification
+            try:
+                from core.notifications_utils import send_post_submitted_notification
+                send_post_submitted_notification(insight, post_type='insight')
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification: {e}")
         else:
             messages.success(request, 'Your insight has been saved as a draft!')
         
@@ -297,12 +315,24 @@ def insight_edit(request, slug):
             insight.is_published = False
             insight.is_approved = False
             messages.success(request, 'Your insight has been submitted for approval!')
+            # Bell Notification
+            try:
+                from core.notifications_utils import send_post_submitted_notification
+                send_post_submitted_notification(insight, post_type='insight')
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification: {e}")
         else:
             if insight.is_published and insight.is_approved:
                 insight.pending_approval = True
                 insight.is_published = False
                 insight.is_approved = False
             messages.success(request, 'Your insight has been saved!')
+            # Bell Notification
+            try:
+                from core.notifications_utils import send_post_submitted_notification
+                send_post_submitted_notification(insight, post_type='insight')
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification: {e}")
         
         # Handle featured image
         featured_url = request.POST.get('featured_image_url', '').strip()
