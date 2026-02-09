@@ -1,10 +1,8 @@
 """
 Django settings for Igbo Archives project.
-Django 6.0.2
 """
 
 import os
-import sys
 from pathlib import Path
 from dotenv import load_dotenv
 from huey import SqliteHuey
@@ -14,8 +12,7 @@ load_dotenv()
 
 def get_bool_from_env(key, default_value='False'):
     """Helper to convert environment variable strings to booleans safely."""
-    value = os.getenv(key, default_value)
-    return str(value).lower() in ('true', '1', 't', 'y', 'yes')
+    return str(os.getenv(key, default_value)).lower() in ('true', '1', 't', 'y', 'yes')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,10 +37,7 @@ SITE_URL = os.getenv('SITE_URL', 'https://igboarchives.com.ng')
 
 # --- Application Definition ---
 INSTALLED_APPS = [
-    # 1. WhiteNoise (Must be before staticfiles for dev server support)
     'whitenoise.runserver_nostatic',
-    
-    # 2. Django Apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,8 +52,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'django_comments',     # Core comments
-    'threadedcomments',    # Legacy threading (Verify compatibility with Django 6.0)
+    'django_comments',
+    'threadedcomments',
     'taggit',
     'django_htmx',
     'pwa',
@@ -67,10 +61,10 @@ INSTALLED_APPS = [
     'dbbackup',
     'webpush',
     'huey.contrib.djhuey',
-    'csp',
+    'csp', 
     'rest_framework',
     'rest_framework.authtoken',
-    'django_cleanup.apps.CleanupConfig', # Should be near the end
+    'django_cleanup.apps.CleanupConfig',
 
     # 4. Project Apps
     'core.apps.CoreConfig',
@@ -84,6 +78,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware', 
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -91,7 +86,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'csp.middleware.CSPMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
 ]
@@ -177,21 +171,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 R2_CUSTOM_DOMAIN = os.getenv('R2_CUSTOM_DOMAIN', '')
 
+# Unified STORAGES config
 if DEBUG:
-    # Development Storage
     STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-        },
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
     DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
     DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR / 'backups'}
-
 else:
-    # Production Storage (S3/R2)
     if R2_CUSTOM_DOMAIN:
         MEDIA_URL = f'https://{R2_CUSTOM_DOMAIN}/'
 
@@ -199,10 +187,10 @@ else:
         "default": {
             "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
             "OPTIONS": {
-                "access_key": os.getenv("R2_ACCESS_KEY_ID", ""),
-                "secret_key": os.getenv("R2_SECRET_ACCESS_KEY", ""),
-                "bucket_name": os.getenv("R2_BUCKET_NAME", ""),
-                "endpoint_url": os.getenv("R2_ENDPOINT_URL", ""),
+                "access_key": os.getenv("R2_ACCESS_KEY_ID"),
+                "secret_key": os.getenv("R2_SECRET_ACCESS_KEY"),
+                "bucket_name": os.getenv("R2_BUCKET_NAME"),
+                "endpoint_url": os.getenv("R2_ENDPOINT_URL"),
                 "custom_domain": R2_CUSTOM_DOMAIN,
                 "default_acl": "public-read",
                 "querystring_auth": False,
@@ -216,23 +204,15 @@ else:
 
     DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     DBBACKUP_STORAGE_OPTIONS = {
-        'access_key': os.getenv('R2_ACCESS_KEY_ID', ''),
-        'secret_key': os.getenv('R2_SECRET_ACCESS_KEY', ''),
+        'access_key': os.getenv('R2_ACCESS_KEY_ID'),
+        'secret_key': os.getenv('R2_SECRET_ACCESS_KEY'),
         'bucket_name': 'igboarchives-backup',
-        'endpoint_url': os.getenv('R2_ENDPOINT_URL', ''),
+        'endpoint_url': os.getenv('R2_ENDPOINT_URL'),
         'default_acl': 'private',
         'location': 'backups',
         'addressing_style': 'path',
         'signature_version': 's3v4',
     }
-
-# --- File Upload Limits ---
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880 # 5MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880 # 5MB
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
-FILE_UPLOAD_HANDLERS = [
-    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
-]
 
 # --- Auth & AllAuth ---
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -249,9 +229,7 @@ LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
@@ -267,7 +245,6 @@ SOCIALACCOUNT_PROVIDERS = {
         'APP': {
             'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
             'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
-            'key': ''
         },
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'}
@@ -279,14 +256,16 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
-# Modern allauth features for auto-linking trust
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
 # --- Upload Limits ---
-# Increased to 50MB to handle high-quality archive images
-DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
-FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800 # 50MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800 # 50MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
+FILE_UPLOAD_HANDLERS = [
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+]
 
 # --- API (DRF) ---
 REST_FRAMEWORK = {
@@ -316,54 +295,43 @@ PWA_APP_DISPLAY = 'standalone'
 PWA_APP_SCOPE = '/'
 PWA_APP_ORIENTATION = 'any'
 PWA_APP_START_URL = '/'
-PWA_APP_STATUS_BAR_COLOR = 'default'
 PWA_APP_ICONS = [
-    {'src': '/static/images/logos/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any'},
-    {'src': '/static/images/logos/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any'},
+    {'src': '/static/images/logos/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
+    {'src': '/static/images/logos/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
 ]
 PWA_APP_ICONS_APPLE = [
     {'src': '/static/images/logos/icon-192.png', 'sizes': '180x180'},
 ]
-PWA_APP_SPLASH_SCREEN = [{'src': '/static/images/logos/logo-light.png', 'media': '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'}]
-PWA_APP_DIR = 'ltr'
-PWA_APP_LANG = 'en-US'
 PWA_SERVICE_WORKER_PATH = BASE_DIR / 'static' / 'serviceworker.js'
 
-# --- Third Party Configs ---
+# --- API Keys & Integrations ---
 TURNSTILE_SITE_KEY = os.getenv('TURNSTILE_SITE_KEY', '')
 TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')
 
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": os.getenv('VAPID_PUBLIC_KEY', ''),
     "VAPID_PRIVATE_KEY": os.getenv('VAPID_PRIVATE_KEY', ''),
-    "VAPID_ADMIN_EMAIL": os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng')
+    "VAPID_ADMIN_EMAIL": os.getenv('ADMIN_EMAIL', ADMINS[0][1])
 }
-
 COMMENTS_APP = 'threadedcomments'
 
-# AI & APIs
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 GEMINI_API_KEYS = os.getenv('GEMINI_API_KEYS', '')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')
 YARNGPT_API_KEY = os.getenv('YARNGPT_API_KEY', '')
 
-# IndexNow & Analytics
 GOOGLE_ADSENSE_CLIENT_ID = os.getenv('GOOGLE_ADSENSE_CLIENT_ID', '')
 ENABLE_ADSENSE = bool(GOOGLE_ADSENSE_CLIENT_ID)
-
 GOOGLE_ANALYTICS_ID = os.getenv('GOOGLE_ANALYTICS_ID', '')
 ENABLE_ANALYTICS = bool(GOOGLE_ANALYTICS_ID)
-
 INDEXNOW_API_KEY = os.getenv('INDEXNOW_API_KEY', '')
-INDEXNOW_API_URL = "https://api.indexnow.org/indexnow"
 
-# Payments
 PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
 ENABLE_DONATIONS = bool(PAYSTACK_SECRET_KEY)
 
-# Email
+# --- Email ---
 if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_SMTP_KEY'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = 'smtp-relay.brevo.com'
@@ -373,35 +341,25 @@ if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_SMTP_KEY'):
     EMAIL_HOST_PASSWORD = os.getenv('BREVO_SMTP_KEY')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@igboarchives.com.ng')
-ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng')
 
-# Meta
+# --- Meta ---
 META_SITE_PROTOCOL = 'https'
 META_USE_OG_PROPERTIES = True
 META_USE_TWITTER_PROPERTIES = True
 META_USE_SCHEMAORG_PROPERTIES = True
 META_SITE_TYPE = 'website'
 META_SITE_NAME = 'Igbo Archives'
-META_DEFAULT_KEYWORDS = ['Igbo culture', 'Nigerian heritage', 'Igbo history', 'cultural preservation', 'Igbo language', 'African culture']
-META_INCLUDE_KEYWORDS = ['Igbo', 'archives', 'cultural', 'heritage', 'history']
+META_DEFAULT_KEYWORDS = ['Igbo culture', 'Nigerian heritage', 'Igbo history', 'cultural preservation']
 META_DEFAULT_IMAGE = '/static/images/logos/og-image.png'
-META_IMAGE_URL = '/static/images/logos/og-image.png'
-META_USE_SITES = True
-META_OG_NAMESPACES = ['og', 'fb']
 
-# DB Backup
+# --- Backup ---
 DBBACKUP_CLEANUP_KEEP = 3
 DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
 DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
-DBBACKUP_CONNECTORS = {
-    'default': {
-        'CONNECTOR': 'dbbackup.db.sqlite.SqliteConnector',
-    }
-}
+DBBACKUP_CONNECTORS = {'default': {'CONNECTOR': 'dbbackup.db.sqlite.SqliteConnector'}}
 
-# Huey (Task Queue)
+# --- Huey ---
 HUEY = SqliteHuey(
     filename=str(BASE_DIR / 'huey.db'),
     immediate=False,
@@ -410,7 +368,7 @@ HUEY = SqliteHuey(
     utc=True,
 )
 
-# --- Security Headers & Cookies ---
+# --- Security Headers ---
 SESSION_COOKIE_AGE = 86400 * 7
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
@@ -430,73 +388,82 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # --- Content Security Policy (CSP) ---
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = (
-    "'self'",
-    "'unsafe-inline'",
-    "'unsafe-eval'",
-    "https://*.google.com",
-    "https://*.gstatic.com",
-    "https://*.doubleclick.net",
-    "https://*.googletagmanager.com",
-    "https://*.googlesyndication.com",
-    "https://*.cloudflare.com",
-    "https://static.cloudflareinsights.com",
-    "https://*.adtrafficquality.google",
-    "https://paystack.co",
-    "https://paystack.com",
-    "https://*.paystack.co",
-    "https://*.paystack.com",
-)
-CSP_STYLE_SRC = (
-    "'self'",
-    "'unsafe-inline'",
-    "https://fonts.googleapis.com",
-    "https://paystack.co",
-    "https://paystack.com",
-    "https://*.paystack.co",
-    "https://*.paystack.com",
-)
-CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
-CSP_IMG_SRC = (
-    "'self'",
-    "data:",
-    "blob:",
-    "https:",
-    "https://paystack.co",
-    "https://paystack.com",
-    "https://*.paystack.co",
-    "https://*.paystack.com",
-)
-CSP_CONNECT_SRC = (
-    "'self'",
-    "https://www.google-analytics.com",
-    "https://api.indexnow.org",
-    "https://challenges.cloudflare.com",
-    "https://www.googletagmanager.com",
-    "https://pagead2.googlesyndication.com",
-    "https://*.adtrafficquality.google",
-    "https://csi.gstatic.com",
-    "https://paystack.co",
-    "https://paystack.com",
-    "https://*.paystack.co",
-    "https://*.paystack.com",
-)
-CSP_FRAME_SRC = (
-    "'self'",
-    "https://challenges.cloudflare.com",
-    "https://googleads.g.doubleclick.net",
-    "https://*.google.com",
-    "https://*.adtrafficquality.google",
-    "https://paystack.co",
-    "https://paystack.com",
-    "https://*.paystack.co",
-    "https://*.paystack.com",
-)
-CSP_WORKER_SRC = ("'self'", "blob:")
-CSP_MANIFEST_SRC = ("'self'",)
-CSP_MEDIA_SRC = ("'self'", "https:", "data:", "blob:")
-CSP_CHILD_SRC = ("'self'", "blob:", "https://www.youtube.com", "https://player.vimeo.com", "https://twitter.com")
+
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ["'self'"],
+        'script-src': [
+            "'self'",
+            "'unsafe-inline'",
+            "'unsafe-eval'",
+            "https://*.google.com",
+            "https://*.gstatic.com",
+            "https://*.doubleclick.net",
+            "https://*.googletagmanager.com",
+            "https://*.googlesyndication.com",
+            "https://*.cloudflare.com",
+            "https://challenges.cloudflare.com",
+            "https://static.cloudflareinsights.com",
+            "https://*.adtrafficquality.google",
+            "https://paystack.co",
+            "https://paystack.com",
+            "https://*.paystack.co",
+            "https://*.paystack.com",
+            "https://js.paystack.co",
+            "https://pagead2.googlesyndication.com",
+        ],
+        'style-src': [
+            "'self'",
+            "'unsafe-inline'",
+            "https://fonts.googleapis.com",
+            "https://paystack.co",
+            "https://paystack.com",
+            "https://*.paystack.co",
+            "https://*.paystack.com",
+        ],
+        'font-src': [
+            "'self'",
+            "https://fonts.gstatic.com",
+        ],
+        'img-src': [
+            "'self'",
+            "data:",
+            "blob:",
+            "https:",
+        ],
+        'connect-src': [
+            "'self'",
+            "https://www.google-analytics.com",
+            "https://api.indexnow.org",
+            "https://challenges.cloudflare.com",
+            "https://www.googletagmanager.com",
+            "https://pagead2.googlesyndication.com",
+            "https://*.adtrafficquality.google",
+            "https://csi.gstatic.com",
+            "https://paystack.co",
+            "https://paystack.com",
+            "https://*.paystack.co",
+            "https://*.paystack.com",
+            "https://stats.g.doubleclick.net",
+        ],
+        'frame-src': [
+            "'self'",
+            "https://challenges.cloudflare.com",
+            "https://googleads.g.doubleclick.net",
+            "https://*.google.com",
+            "https://*.adtrafficquality.google",
+            "https://paystack.co",
+            "https://paystack.com",
+            "https://*.paystack.co",
+            "https://*.paystack.com",
+            "https://www.youtube.com",
+            "https://player.vimeo.com",
+        ],
+        'worker-src': ["'self'", "blob:"],
+        'manifest-src': ["'self'"],
+        'media-src': ["'self'", "https:", "data:", "blob:"],
+    }
+}
 
 # --- Logging ---
 LOGGING = {
