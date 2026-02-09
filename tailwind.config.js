@@ -30,6 +30,13 @@ module.exports = {
           DEFAULT: '#E5E0D8',
           dark: '#3E342E',
         },
+        // Legacy Heritage Aliases (to fix existing templates)
+        'vintage-gold': '#B8974F',
+        'vintage-beaver': '#6B5D52',
+        'dark-brown': '#2C2119',
+        'dark-umber': '#3E342E',
+        'sepia-pale': '#E5E0D8',
+        'heritage-cream': '#F5F2ED',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
