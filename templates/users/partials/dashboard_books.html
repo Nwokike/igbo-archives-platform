@@ -45,7 +45,9 @@
             {% endif %}
 
             <div class="flex gap-2">
+                {% if book.is_approved %}
                 <a href="{% url 'books:detail' book.slug %}" class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                {% endif %}
                 {% if not book.is_approved %}
                 <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex-1 justify-center">
                     <i class="fas fa-edit"></i> Edit

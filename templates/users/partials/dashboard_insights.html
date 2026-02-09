@@ -35,8 +35,10 @@
             </div>
             {% endif %}
             <div class="flex gap-2">
+                {% if insight.is_approved %}
                 <a href="{% url 'insights:detail' insight.slug %}"
                     class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                {% endif %}
                 <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary btn-sm flex-1 justify-center">
                     <i class="fas fa-edit"></i> Edit
                 </a>
