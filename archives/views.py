@@ -65,7 +65,7 @@ def archive_list(request):
         'id', 'title', 'archive_type', 'image', 'featured_image',
         'alt_text', 'description', 'created_at', 'uploaded_by_id', 'category_id',
         'author_id', 'uploaded_by__full_name', 'uploaded_by__username',
-        'category__name', 'category__slug'
+        'category__name', 'category__slug', 'sort_year'
     )
     
     if category := request.GET.get('category'):

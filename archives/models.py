@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -192,6 +193,13 @@ class Archive(models.Model):
         help_text="Optional: Where the photo/artifact was taken/found"
     )
     
+    sort_year = models.IntegerField(
+        null=True, 
+        blank=True, 
+        db_index=True,
+        help_text="Numeric year for sorting purposes (auto-calculated)"
+    )
+    
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='archives')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -206,6 +214,7 @@ class Archive(models.Model):
             models.Index(fields=['category', 'is_approved'], name='arch_cat_approved_idx'),
             models.Index(fields=['slug'], name='arch_slug_idx'),
             models.Index(fields=['circa_date'], name='arch_circa_date_idx'),
+            models.Index(fields=['sort_year'], name='arch_sort_year_idx'),
             models.Index(fields=['location'], name='arch_location_idx'),
         ]
     
@@ -243,6 +252,22 @@ class Archive(models.Model):
         
         if self.author and not self.original_author:
             self.original_author = self.author.name
+
+        # Calculate sort_year for historical sorting
+        if self.date_created:
+            self.sort_year = self.date_created.year
+        elif self.circa_date:
+            # Robust extraction of the first 4-digit number
+            # "c1930", "1930s", "1930-1935", "Around 1885" all -> 1930/1885
+            match = re.search(r'\b(1\d{3}|20\d{2})\b', str(self.circa_date))
+            if match:
+                self.sort_year = int(match.group(1))
+            else:
+                # Fallback for weird dates like "1800s" or "Early 20th Century"
+                # Search for any string of digits that look like a year
+                match = re.search(r'(\d{4})', str(self.circa_date))
+                if match:
+                    self.sort_year = int(match.group(1))
         
         # Auto-compress images before saving (max 1.5MB)
         try:

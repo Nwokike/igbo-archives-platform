@@ -32,8 +32,8 @@ def validate_audio_size(file):
 
 ALLOWED_ARCHIVE_SORTS = {
     'recently-added': '-created_at',
-    'newest': '-date_created',
-    'oldest': 'date_created',
+    'newest': '-sort_year',
+    'oldest': 'sort_year',
     'a-z': 'title',
     'z-a': '-title',
     '-created_at': '-created_at',
