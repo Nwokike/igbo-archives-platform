@@ -46,6 +46,8 @@ class InsightPost(models.Model):
     is_published = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
     pending_approval = models.BooleanField(default=False, help_text="Post is pending admin approval")
+    is_rejected = models.BooleanField(default=False, help_text="Set to true if admin rejects the post")
+    rejection_reason = models.TextField(blank=True, help_text="Internal reason for rejection")
     submitted_at = models.DateTimeField(null=True, blank=True, help_text="When post was submitted for approval")
     
     posted_to_social = models.BooleanField(default=False)

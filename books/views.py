@@ -440,3 +440,21 @@ def book_rate(request, slug):
         })
     
     return redirect('books:detail', slug=slug)
+
+
+@login_required
+def book_delete(request, slug):
+    """Allow user to delete their own unapproved book recommendation."""
+    book = get_object_or_404(BookRecommendation, slug=slug, added_by=request.user)
+    
+    # Safety check: Can only delete if not approved or if it's draft/rejected
+    if book.is_approved and not request.user.is_staff:
+        messages.error(request, "You cannot delete an approved book recommendation.")
+        return redirect('books:detail', slug=slug)
+    
+    if request.method == 'POST':
+        book.delete()
+        messages.success(request, f'Recommendation "{book.title}" deleted.')
+        return redirect('users:dashboard')
+    
+    return render(request, 'books/delete.html', {'book': book})

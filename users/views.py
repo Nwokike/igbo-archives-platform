@@ -48,6 +48,14 @@ def dashboard(request):
     books_queryset = BookRecommendation.objects.filter(
         added_by=user
     ).order_by('-created_at')
+    
+    # Live books count (for the tab badge, as requested)
+    live_books_count = BookRecommendation.objects.filter(
+        added_by=user,
+        is_published=True,
+        is_approved=True
+    ).count()
+    
     books_paginator = Paginator(books_queryset, 20)
     my_book_recommendations = books_paginator.get_page(request.GET.get('books_page', 1))
     
@@ -67,13 +75,13 @@ def dashboard(request):
     context = {
         'messages_threads': messages_threads,
         'my_insights': my_insights,
-        'my_insights_count': insights_queryset.count(),
+        'my_insights_count': InsightPost.objects.filter(author=user, is_published=True, is_approved=True).count(),
         'my_drafts': my_drafts,
         'my_drafts_count': my_drafts.count(),
         'my_book_recommendations': my_book_recommendations,
-        'my_book_recommendations_count': books_queryset.count(),
+        'my_book_recommendations_count': live_books_count,
         'my_archives': my_archives,
-        'my_archives_count': archives_queryset.count(),
+        'my_archives_count': Archive.objects.filter(uploaded_by=user, is_approved=True).count(),
         'edit_suggestions': edit_suggestions,
     }
     

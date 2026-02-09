@@ -64,6 +64,8 @@ def reject_insight(request, pk):
         reason = request.POST.get('reason', '')
         post.pending_approval = False
         post.is_approved = False
+        post.is_rejected = True
+        post.rejection_reason = reason
         post.save()
         send_post_rejected_notification(post, reason, 'insight')
         messages.info(request, f'Insight "{post.title}" rejected.')
@@ -99,6 +101,8 @@ def reject_book_review(request, pk):
         reason = request.POST.get('reason', '')
         review.pending_approval = False
         review.is_approved = False
+        review.is_rejected = True
+        review.rejection_reason = reason
         review.save()
         send_post_rejected_notification(review, reason, 'book review')
         messages.info(request, f'Review "{review.title}" rejected.')
@@ -147,7 +151,11 @@ def reject_archive(request, pk):
     if request.method == 'POST':
         reason = request.POST.get('reason', '')
         # For archives, rejection leaves it unapproved but allows user to edit/resubmit
-        # We do NOT delete it automatically to prevent data loss.
+        archive.is_approved = False
+        archive.is_rejected = True
+        archive.rejection_reason = reason
+        archive.save()
+        
         try:
             send_post_rejected_notification(archive, reason, 'archive')
         except Exception:

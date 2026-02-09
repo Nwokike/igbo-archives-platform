@@ -29,6 +29,8 @@
                 Status:
                 {% if book.is_approved %}
                 <span class="text-success">Approved</span>
+                {% elif book.is_rejected %}
+                <span class="text-error font-bold">Rejected</span>
                 {% elif book.pending_approval %}
                 <span class="text-warning">Pending Approval</span>
                 {% else %}
@@ -36,11 +38,24 @@
                 {% endif %}
             </p>
 
+            {% if book.is_rejected and book.rejection_reason %}
+            <div class="mb-3 p-2 bg-error/10 border border-error/20 rounded text-xs text-error">
+                <strong>Reason:</strong> {{ book.rejection_reason }}
+            </div>
+            {% endif %}
+
             <div class="flex gap-2">
                 <a href="{% url 'books:detail' book.slug %}" class="btn-secondary btn-sm flex-1 justify-center">View</a>
+                {% if not book.is_approved %}
                 <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex-1 justify-center">
                     <i class="fas fa-edit"></i> Edit
                 </a>
+                <a href="{% url 'books:delete' book.slug %}"
+                    class="btn-ghost btn-sm text-error bg-error/5 hover:bg-error/10 border border-error/10 px-2"
+                    title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -62,8 +77,8 @@
             <i class="fas fa-chevron-left text-xs"></i>
         </button>
         {% endif %}
-        <span class="page-link active">{{ my_book_recommendations.number }} of {{
-            my_book_recommendations.paginator.num_pages }}</span>
+        <span class="page-link active">{{ my_book_recommendations.number }} of
+            {{my_book_recommendations.paginator.num_pages }}</span>
         {% if my_book_recommendations.has_next %}
         <button class="page-link"
             hx-get="{% url 'users:dashboard' %}?books_page={{ my_book_recommendations.next_page_number }}&target=books"

@@ -204,6 +204,8 @@ class Archive(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_approved = models.BooleanField(default=False, help_text="Admin approval status")
+    is_rejected = models.BooleanField(default=False, help_text="Set to true if admin rejects the archive")
+    rejection_reason = models.TextField(blank=True, help_text="Internal reason for rejection")
     
     class Meta:
         ordering = ['-created_at']

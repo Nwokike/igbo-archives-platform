@@ -20,7 +20,8 @@
                 <p class="text-text-muted"><strong>Author:</strong> {{ book.author }}</p>
                 <p class="text-text-muted"><strong>Title:</strong> {{ book.title }}</p>
                 <p class="text-text-muted"><strong>Status:</strong>
-                    {% if book.is_published and book.is_approved %}Published
+                    {% if book.is_approved %}Approved
+                    {% elif book.is_rejected %}Rejected
                     {% elif book.pending_approval %}Pending Approval
                     {% else %}Draft
                     {% endif %}

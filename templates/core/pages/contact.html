@@ -61,10 +61,8 @@
                     {% endif %}
                 </div>
 
-                <!-- Honeypot field (hidden) -->
                 {{ form.website }}
 
-                <!-- Cloudflare Turnstile -->
                 {% if turnstile_site_key %}
                     <div class="turnstile-wrapper">
                         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -85,8 +83,10 @@
         <div>
             <h3 class="font-serif text-xl font-semibold text-dark-brown mb-4">Other Ways to Reach Us</h3>
             <ul class="space-y-3 text-dark-umber">
-                <li><i class="fas fa-envelope text-vintage-gold mr-2"></i> support@igboarchives.com.ng</li>
-                <li><i class="fab fa-twitter text-vintage-gold mr-2"></i> @IgboArchives</li>
+                <li>
+                    <i class="fas fa-envelope text-vintage-gold mr-2"></i> 
+                    <a href="mailto:hello@igboarchives.com.ng" class="hover:text-vintage-gold hover:underline">hello@igboarchives.com.ng</a>
+                </li>
             </ul>
         </div>
 

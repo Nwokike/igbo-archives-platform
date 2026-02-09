@@ -18,18 +18,35 @@
             </h4>
             <p class="text-sm text-text-muted mb-3">
                 <i class="far fa-calendar"></i> {{ insight.created_at|date:"M d, Y" }}
-                {% if insight.pending_approval %}
-                <span class="badge badge-warning ml-2">Pending</span>
-                {% elif insight.is_approved %}
+                {% if insight.is_approved %}
                 <span class="badge badge-success ml-2">Published</span>
+                {% elif insight.is_rejected %}
+                <span class="badge badge-error ml-2">Rejected</span>
+                {% elif insight.pending_approval %}
+                <span class="badge badge-warning ml-2">Pending</span>
+                {% else %}
+                <span class="badge badge-secondary ml-2">Draft</span>
                 {% endif %}
             </p>
+
+            {% if insight.is_rejected and insight.rejection_reason %}
+            <div class="mb-3 p-2 bg-error/10 border border-error/20 rounded text-xs text-error">
+                <strong>Reason:</strong> {{ insight.rejection_reason }}
+            </div>
+            {% endif %}
             <div class="flex gap-2">
                 <a href="{% url 'insights:detail' insight.slug %}"
                     class="btn-secondary btn-sm flex-1 justify-center">View</a>
                 <a href="{% url 'insights:edit' insight.slug %}" class="btn-primary btn-sm flex-1 justify-center">
                     <i class="fas fa-edit"></i> Edit
                 </a>
+                {% if not insight.is_approved %}
+                <a href="{% url 'insights:delete' insight.slug %}"
+                    class="btn-ghost btn-sm text-error bg-error/5 hover:bg-error/10 border border-error/10 px-2"
+                    title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
