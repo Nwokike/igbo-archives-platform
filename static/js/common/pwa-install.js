@@ -1,6 +1,7 @@
 /**
  * PWA Install Button Handler
  * Shows a persistent install button when the app is installable
+ * Also handles Service Worker registration
  */
 
 (function () {
@@ -9,11 +10,24 @@
     let deferredPrompt = null;
     const installBtn = document.getElementById('pwaInstallBtn');
 
+    // --- Service Worker Registration ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/serviceworker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registered successfully with scope:', registration.scope);
+                })
+                .catch(err => {
+                    console.error('ServiceWorker registration failed:', err);
+                });
+        });
+    }
+
     if (!installBtn) return;
 
     // Listen for the beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', function (e) {
-        console.log('beforeinstallprompt event fired inside pwa-install.js');
+        console.log('beforeinstallprompt event fired');
         // Prevent Chrome 67+ from automatically showing the prompt
         e.preventDefault();
         // Stash the event so it can be triggered later
@@ -27,7 +41,6 @@
 
     function showInstallButton() {
         if (installBtn) {
-            console.log('Showing PWA install button');
             installBtn.style.display = 'flex';
             installBtn.classList.remove('hidden');
         }
