@@ -10,6 +10,8 @@
     const PUSH_PROMPT_DISMISS_KEY = 'pushPromptDismissedAt';
     const DISMISS_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
 
+    // IF keys are missing, we simply exit this script. 
+    // This is now safe because SW registration is handled in pwa-install.js
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !vapidPublicKey) {
         console.warn('Push notifications not fully supported or configured (missing SW, PushManager, or VAPID key).');
         return;
@@ -215,18 +217,6 @@
     }).catch(error => {
         console.error('Service Worker ready failed:', error);
     });
-
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/serviceworker.js')
-                .then(registration => {
-                    console.log('ServiceWorker registered successfully.');
-                })
-                .catch(err => {
-                    console.error('ServiceWorker registration failed:', err);
-                });
-        });
-    }
 
     window.pushNotifications = {
         subscribe: syncSubscription,
