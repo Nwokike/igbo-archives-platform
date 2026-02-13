@@ -96,16 +96,14 @@ This analysis is for archival documentation. **Format your response in Markdown*
     def is_available(self):
         return key_manager.has_gemini
     
-    def analyze(self, image_path: str, analysis_type: str = 'describe') -> dict:
+    def analyze(self, image_path: str, analysis_type: str = 'describe', archive_context: dict = None) -> dict:
         """
         Analyze an image with advanced AI vision and web grounding.
         
         Args:
             image_path: Path to image file
             analysis_type: 'describe', 'historical', 'cultural', 'translation', 'artifact'
-        
-        Returns:
-            {'success': bool, 'content': str}
+            archive_context: Optional dictionary with 'title', 'description', 'caption', 'location', etc.
         """
         if not self.is_available:
             return {
@@ -142,9 +140,18 @@ This analysis is for archival documentation. **Format your response in Markdown*
                 }
                 mime_type = mime_types.get(suffix, 'image/jpeg')
                 
-                # STEP 1: Identification (Observation)
-                # Ask the model to identify the main subject and keywords for search
-                id_prompt = "Identify the main Igbo cultural artifact, person, or scene in this image. Return ONLY 3-5 keywords separated by commas that would be effective for a web search to find more context about this item."
+                # STEP 1: Search Query Generation (Fast)
+                # Combine image observation with existing metadata to get a specialist search query
+                meta_str = ""
+                if archive_context:
+                    meta_filtered = {k: v for k, v in archive_context.items() if v}
+                    meta_str = f"Archive Metadata: {meta_filtered}"
+                
+                id_prompt = (
+                    f"You are a specialist in Igbo heritage. Using this image and the provided metadata ({meta_str}), "
+                    "return ONLY 3-5 keywords that would help find deep historical or cultural details about this specific item on the web. "
+                    "Prioritize terms like specific names, clans, or traditional labels mentioned in metadata or seen in the image."
+                )
                 
                 id_response = client.models.generate_content(
                     model=self.MODEL,
@@ -155,30 +162,40 @@ This analysis is for archival documentation. **Format your response in Markdown*
                 )
                 
                 keywords = id_response.text.strip().strip('.')
-                logger.info(f"Vision ID keywords: {keywords}")
+                logger.info(f"Vision specialist grounding keywords: {keywords}")
                 
                 # STEP 2: Web Search Grounding
                 from .chat_service import web_search
                 web_context = ""
                 if keywords and len(keywords) > 3:
-                    search_query = f"{keywords} Igbo culture history"
+                    # Logic similar to chat_service: add "Igbo culture" if not clearly present
+                    search_query = keywords
+                    if 'igbo' not in keywords.lower():
+                        search_query += " Igbo culture heritage"
+                    
                     web_context = web_search(search_query, max_results=3)
                 
-                # STEP 3: Final Grounded Analysis
-                prompt = self.ANALYSIS_PROMPTS.get(analysis_type, self.ANALYSIS_PROMPTS['describe'])
+                # STEP 3: Final Specialist Analysis (Grounded)
+                analysis_prompt = self.ANALYSIS_PROMPTS.get(analysis_type, self.ANALYSIS_PROMPTS['describe'])
+                
+                # Incorporate all context into the final prompt
+                context_payload = []
+                if archive_context:
+                    context_payload.append(f"### INTERNAL ARCHIVE DATA:\n{meta_str}\n")
+                
+                if web_context:
+                    context_payload.append(f"### EXTERNAL GROUNDING (Use to avoid hallucination):\n{web_context}\n")
+                
+                full_context = "\n".join(context_payload)
                 
                 final_parts = [
                     types.Part.from_bytes(data=image_data, mime_type=mime_type),
-                    f"PROMPT: {prompt}"
+                    f"CONTEXT:\n{full_context}\n\nPROMPT:\n{analysis_prompt}\n\n"
+                    "INSTRUCTIONS:\n"
+                    "1. Priority: Use context for factual accuracy (dates, names, historical events).\n"
+                    "2. Synthesis: Combine image details with context to provide a specialist-level analysis.\n"
+                    "3. No Hallucinations: If something isn't in the image or context, don't invent it."
                 ]
-                
-                if web_context:
-                    grounding_instruction = (
-                        f"\n\n---\n## WEB SEARCH CONTEXT (Use this to avoid hallucination):\n{web_context}\n---\n\n"
-                        "IMPORTANT: Use the information above to provide factual context about the item depicted. "
-                        "If the web search contradicts your visual observation, prioritize the web search for facts like dates, names, and regional origins."
-                    )
-                    final_parts.append(grounding_instruction)
                 
                 response = client.models.generate_content(
                     model=self.MODEL,

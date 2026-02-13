@@ -208,9 +208,19 @@ def analyze_archive(request):
             logger.error(f"Error processing image for archive analysis: {e}")
             return JsonResponse({'error': 'Failed to process image. Please try again.'}, status=500)
     
+    metadata = {
+        'title': archive.title,
+        'description': archive.description,
+        'caption': archive.caption,
+        'location': archive.location,
+        'date': archive.circa_date or (str(archive.date_created) if archive.date_created else ''),
+        'author': archive.original_author,
+        'category': archive.category.name if archive.category else ''
+    }
+    
     try:
         # Analyze
-        result = vision_service.analyze(tmp_path, analysis_type)
+        result = vision_service.analyze(tmp_path, analysis_type, archive_context=metadata)
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
