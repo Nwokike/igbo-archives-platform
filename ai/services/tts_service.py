@@ -57,15 +57,7 @@ class TTSService:
     GEMINI_TTS_MODEL = "gemini-2.5-flash-tts"
     
     def __init__(self):
-        self._output_dir = None
-    
-    @property
-    def output_dir(self):
-        """Lazily create output directory (settings may not be ready at import time)."""
-        if self._output_dir is None:
-            self._output_dir = Path(settings.MEDIA_ROOT) / 'tts'
-            self._output_dir.mkdir(parents=True, exist_ok=True)
-        return self._output_dir
+        pass
     
     @property
     def is_available(self):
@@ -84,20 +76,20 @@ class TTSService:
     
     def generate_audio(self, text: str, voice: str = 'default') -> dict:
         """
-        Generate audio file from text.
+        Generate audio bytes from text.
         
         Args:
             text: Text to convert to speech (max 2000 chars)
             voice: Voice key from YARNGPT_VOICES or voice name directly
             
         Returns:
-            dict with 'success', 'url', 'filename', 'provider'
+            dict with 'success', 'audio_bytes', 'content_type', 'provider'
         """
         if not self.is_available:
             return {
                 'success': False,
-                'url': '',
-                'filename': '',
+                'audio_bytes': None,
+                'content_type': '',
                 'provider': '',
                 'error': 'TTS service not available'
             }
@@ -105,8 +97,8 @@ class TTSService:
         if not text or len(text.strip()) < 2:
             return {
                 'success': False,
-                'url': '',
-                'filename': '',
+                'audio_bytes': None,
+                'content_type': '',
                 'provider': '',
                 'error': 'Text is too short'
             }
@@ -134,19 +126,14 @@ class TTSService:
         
         return {
             'success': False,
-            'url': '',
-            'filename': '',
+            'audio_bytes': None,
+            'content_type': '',
             'provider': '',
             'error': 'All TTS providers failed'
         }
     
     def _yarngpt_generate(self, text: str, voice: str) -> dict:
-        """
-        Generate audio using official YarnGPT API.
-        
-        API: https://yarngpt.ai/api/v1/tts
-        Limit: 80 requests/day
-        """
+        """Generate audio bytes using YarnGPT API."""
         try:
             api_key = getattr(settings, 'YARNGPT_API_KEY', '')
             
@@ -164,25 +151,14 @@ class TTSService:
                 self.YARNGPT_API_URL,
                 headers=headers,
                 json=payload,
-                stream=True,
-                timeout=60  # May take time for longer text
+                timeout=120
             )
             
             if response.status_code == 200:
-                # Stream and save audio content
-                filename = f"tts_{uuid.uuid4().hex[:12]}.mp3"
-                filepath = self.output_dir / filename
-                
-                with open(filepath, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                
-                url = f"{settings.MEDIA_URL}tts/{filename}"
-                
                 return {
                     'success': True,
-                    'url': url,
-                    'filename': filename,
+                    'audio_bytes': response.content,
+                    'content_type': 'audio/mpeg',
                     'provider': 'yarngpt',
                     'voice': voice,
                     'error': ''
@@ -196,32 +172,24 @@ class TTSService:
                 
                 return {
                     'success': False,
-                    'url': '',
-                    'filename': '',
+                    'audio_bytes': None,
+                    'content_type': '',
                     'provider': 'yarngpt',
                     'error': error_msg
                 }
                 
-        except requests.Timeout:
-            return {
-                'success': False,
-                'url': '',
-                'filename': '',
-                'provider': 'yarngpt',
-                'error': 'Request timed out'
-            }
         except Exception as e:
             logger.error(f"YarnGPT TTS error: {e}")
             return {
                 'success': False,
-                'url': '',
-                'filename': '',
+                'audio_bytes': None,
+                'content_type': '',
                 'provider': 'yarngpt',
                 'error': str(e)
             }
     
-    def _gemini_tts_generate(self, text: str, language: str) -> dict:
-        """Generate audio using Gemini TTS (high quality fallback)."""
+    def _gemini_tts_generate(self, text: str, voice_name: str) -> dict:
+        """Generate audio bytes using Gemini TTS."""
         try:
             from google import genai
             
@@ -229,8 +197,8 @@ class TTSService:
             if not api_key:
                 return {
                     'success': False,
-                    'url': '',
-                    'filename': '',
+                    'audio_bytes': None,
+                    'content_type': '',
                     'provider': 'gemini_tts',
                     'error': 'No Gemini API key available'
                 }
@@ -246,37 +214,28 @@ class TTSService:
                     "speech_config": {
                         "voice_config": {
                             "prebuilt_voice_config": {
-                                "voice_name": "Kore"  # Natural sounding voice
+                                "voice_name": "Kore"
                             }
                         }
                     }
                 }
             )
             
-            # Save audio
             if response.candidates and response.candidates[0].content.parts:
                 audio_data = response.candidates[0].content.parts[0].inline_data.data
                 
-                filename = f"tts_{uuid.uuid4().hex[:12]}.wav"
-                filepath = self.output_dir / filename
-                
-                with open(filepath, 'wb') as f:
-                    f.write(audio_data)
-                
-                url = f"{settings.MEDIA_URL}tts/{filename}"
-                
                 return {
                     'success': True,
-                    'url': url,
-                    'filename': filename,
+                    'audio_bytes': audio_data,
+                    'content_type': 'audio/wav',
                     'provider': 'gemini_tts',
                     'error': ''
                 }
             
             return {
                 'success': False,
-                'url': '',
-                'filename': '',
+                'audio_bytes': None,
+                'content_type': '',
                 'provider': 'gemini_tts',
                 'error': 'No audio in response'
             }
@@ -285,27 +244,11 @@ class TTSService:
             logger.error(f"Gemini TTS error: {e}")
             return {
                 'success': False,
-                'url': '',
-                'filename': '',
+                'audio_bytes': None,
+                'content_type': '',
                 'provider': 'gemini_tts',
                 'error': str(e)
             }
     
-    def cleanup_old_files(self, max_age_hours: int = 24):
-        """Remove TTS files older than max_age_hours."""
-        import time
-        
-        try:
-            now = time.time()
-            max_age_seconds = max_age_hours * 3600
-            
-            for filepath in self.output_dir.glob('*.*'):
-                if filepath.suffix in ('.mp3', '.wav') and now - filepath.stat().st_mtime > max_age_seconds:
-                    filepath.unlink()
-                    logger.info(f"Cleaned up old TTS file: {filepath.name}")
-        except Exception as e:
-            logger.error(f"TTS cleanup error: {e}")
-
-
 # Singleton instance
 tts_service = TTSService()

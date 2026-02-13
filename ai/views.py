@@ -245,20 +245,17 @@ def analyze_archive(request):
 @login_required
 @require_POST
 def generate_tts(request):
-    """Generate text-to-speech audio."""
+    """Generate text-to-speech audio metadata and store in cache."""
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid request'}, status=400)
     
     text = data.get('text', '').strip()
-    language = data.get('language', 'en')
+    voice = data.get('voice', data.get('language', 'default'))
     
     if not text:
         return JsonResponse({'error': 'Text is required'}, status=400)
-    
-    if len(text) > 5000:
-        return JsonResponse({'error': 'Text too long'}, status=400)
     
     # Rate limiting
     rate_key = f'ai_tts_{request.user.id}'
@@ -266,12 +263,53 @@ def generate_tts(request):
     if count >= 30:
         return JsonResponse({'error': 'TTS limit reached'}, status=429)
     
-    result = tts_service.generate_audio(text, language)
+    result = tts_service.generate_audio(text, voice)
     
     if result['success']:
+        import uuid
+        audio_id = str(uuid.uuid4())
+        
+        # Store audio bytes and content type in cache for 5 minutes
+        cache_data = {
+            'bytes': result['audio_bytes'],
+            'content_type': result['content_type']
+        }
+        cache.set(f"tts_data_{audio_id}", cache_data, 300)
+        
+        # Construct serve URL
+        from django.urls import reverse
+        serve_url = reverse('ai:serve_tts', kwargs={'audio_id': audio_id})
+        
         cache.set(rate_key, count + 1, 3600)
+        
+        return JsonResponse({
+            'success': True,
+            'url': serve_url,
+            'provider': result['provider']
+        })
     
-    return JsonResponse(result)
+    return JsonResponse({
+        'success': False,
+        'error': result.get('error', 'TTS failed')
+    })
+
+
+@require_GET
+def serve_tts_audio(request, audio_id):
+    """Serve audio bytes directly from cache."""
+    from django.http import HttpResponse, Http404
+    
+    cache_key = f"tts_data_{audio_id}"
+    cache_data = cache.get(cache_key)
+    
+    if not cache_data:
+        raise Http404("Audio expired or not found")
+    
+    response = HttpResponse(cache_data['bytes'], content_type=cache_data['content_type'])
+    response['Content-Disposition'] = f'inline; filename="tts_{str(audio_id)[:8]}"'
+    # Prevent caching by browser
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response
 
 
 

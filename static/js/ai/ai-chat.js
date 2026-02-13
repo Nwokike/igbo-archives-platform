@@ -135,7 +135,7 @@ class AIChat {
         this.isLoadingAudio = true;
         const originalIconClass = icon.className;
         icon.className = 'fas fa-spinner fa-spin';
-        if (textSpan) textSpan.textContent = 'Loading...';
+        if (textSpan) textSpan.textContent = 'Wait... (up to 30s)';
         button.disabled = true;
 
         try {

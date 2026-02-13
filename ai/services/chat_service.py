@@ -122,8 +122,14 @@ def get_database_context(query: str, max_results: int = 5) -> str:
 
 def web_search(query: str, max_results: int = 3) -> str:
     """Search the web using DuckDuckGo (unlimited free)."""
+    import warnings
+    warnings.filterwarnings("ignore", category=RuntimeWarning, module="duckduckgo_search")
+    
     try:
-        from duckduckgo_search import DDGS
+        try:
+            from ddgs import DDGS
+        except ImportError:
+            from duckduckgo_search import DDGS
         
         # Try default backend (api) first
         try:
