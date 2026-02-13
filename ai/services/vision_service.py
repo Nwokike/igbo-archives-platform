@@ -98,7 +98,7 @@ This analysis is for archival documentation. **Format your response in Markdown*
     
     def analyze(self, image_path: str, analysis_type: str = 'describe') -> dict:
         """
-        Analyze an image with advanced AI vision.
+        Analyze an image with advanced AI vision and web grounding.
         
         Args:
             image_path: Path to image file
@@ -112,8 +112,6 @@ This analysis is for archival documentation. **Format your response in Markdown*
                 'success': False,
                 'content': 'Image analysis is being configured. Please check back soon!'
             }
-        
-        prompt = self.ANALYSIS_PROMPTS.get(analysis_type, self.ANALYSIS_PROMPTS['describe'])
         
         # Try each available key
         for _ in range(len(key_manager.gemini_keys)):
@@ -144,12 +142,47 @@ This analysis is for archival documentation. **Format your response in Markdown*
                 }
                 mime_type = mime_types.get(suffix, 'image/jpeg')
                 
-                response = client.models.generate_content(
+                # STEP 1: Identification (Observation)
+                # Ask the model to identify the main subject and keywords for search
+                id_prompt = "Identify the main Igbo cultural artifact, person, or scene in this image. Return ONLY 3-5 keywords separated by commas that would be effective for a web search to find more context about this item."
+                
+                id_response = client.models.generate_content(
                     model=self.MODEL,
                     contents=[
                         types.Part.from_bytes(data=image_data, mime_type=mime_type),
-                        prompt
+                        id_prompt
                     ]
+                )
+                
+                keywords = id_response.text.strip().strip('.')
+                logger.info(f"Vision ID keywords: {keywords}")
+                
+                # STEP 2: Web Search Grounding
+                from .chat_service import web_search
+                web_context = ""
+                if keywords and len(keywords) > 3:
+                    search_query = f"{keywords} Igbo culture history"
+                    web_context = web_search(search_query, max_results=3)
+                
+                # STEP 3: Final Grounded Analysis
+                prompt = self.ANALYSIS_PROMPTS.get(analysis_type, self.ANALYSIS_PROMPTS['describe'])
+                
+                final_parts = [
+                    types.Part.from_bytes(data=image_data, mime_type=mime_type),
+                    f"PROMPT: {prompt}"
+                ]
+                
+                if web_context:
+                    grounding_instruction = (
+                        f"\n\n---\n## WEB SEARCH CONTEXT (Use this to avoid hallucination):\n{web_context}\n---\n\n"
+                        "IMPORTANT: Use the information above to provide factual context about the item depicted. "
+                        "If the web search contradicts your visual observation, prioritize the web search for facts like dates, names, and regional origins."
+                    )
+                    final_parts.append(grounding_instruction)
+                
+                response = client.models.generate_content(
+                    model=self.MODEL,
+                    contents=final_parts
                 )
                 
                 return {

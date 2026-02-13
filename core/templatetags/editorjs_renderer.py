@@ -21,7 +21,7 @@ ALLOWED_TAGS = [
     'a', 'b', 'strong', 'i', 'em', 'u', 'br', 'span', 'mark', 'code', 'sub', 'sup'
 ]
 ALLOWED_ATTRS = {
-    'a': {'href', 'title', 'target', 'rel'},
+    'a': {'href', 'title', 'target'},
     'span': {'class'},
     'mark': {'class'},
 }

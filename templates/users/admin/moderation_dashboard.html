@@ -42,17 +42,21 @@
                             <span class="badge badge-secondary text-xs">{{ archive.get_archive_type_display }}</span>
                         </div>
                         <p class="text-sm text-text-muted mb-2">
-                            Uploaded by <strong>{{ archive.uploaded_by.get_display_name }}</strong> • {{archive.created_at|date:"M d, Y" }}
+                            Uploaded by <strong>{{ archive.uploaded_by.get_display_name }}</strong> •
+                            {{archive.created_at|date:"M d, Y" }}
                         </p>
                         <p class="text-sm text-dark-umber line-clamp-2 mb-3">{{ archive.description }}</p>
 
                         <div class="flex gap-2">
                             <a href="{% url 'archives:detail' archive.pk %}" class="btn-secondary btn-sm"
                                 target="_blank">Review</a>
-                            <a href="{% url 'users:approve_archive' archive.pk %}"
-                                class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">
-                                <i class="fas fa-check mr-1"></i> Approve
-                            </a>
+                            <form action="{% url 'users:approve_archive' archive.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">
+                                    <i class="fas fa-check mr-1"></i> Approve
+                                </button>
+                            </form>
                             <a href="{% url 'users:reject_archive' archive.pk %}"
                                 class="btn-secondary btn-sm text-red-600 hover:bg-red-50">
                                 <i class="fas fa-times mr-1"></i> Reject
@@ -89,8 +93,13 @@
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'insights:detail' post.slug %}" class="btn-secondary btn-sm"
                                 target="_blank">Review</a>
-                            <a href="{% url 'users:approve_insight' post.pk %}"
-                                class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">Approve</a>
+                            <form action="{% url 'users:approve_insight' post.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">
+                                    Approve
+                                </button>
+                            </form>
                             <a href="{% url 'users:reject_insight' post.pk %}"
                                 class="btn-secondary btn-sm text-red-600 hover:bg-red-50">Reject</a>
                         </div>
@@ -124,8 +133,13 @@
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm"
                                 target="_blank">Review</a>
-                            <a href="{% url 'users:approve_book_review' review.pk %}"
-                                class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">Approve</a>
+                            <form action="{% url 'users:approve_book_review' review.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">
+                                    Approve
+                                </button>
+                            </form>
                             <a href="{% url 'users:reject_book_review' review.pk %}"
                                 class="btn-secondary btn-sm text-red-600 hover:bg-red-50">Reject</a>
                         </div>
