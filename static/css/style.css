@@ -22,6 +22,18 @@
     background-color: rgba(36, 30, 25, 0.5);
 }
 
+/* text-vintage-beaver (#6B5D52) needs to be brighter in dark mode */
+.dark .text-vintage-beaver {
+    color: #A89B8C;
+}
+
+/* Gray border overrides for old templates */
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+    border-color: #3E342E;
+}
+
 /* bg-gray-50/100 containers need dark treatment */
 .dark .bg-gray-50,
 .dark .bg-gray-100 {

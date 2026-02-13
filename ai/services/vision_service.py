@@ -27,7 +27,7 @@ Provide a comprehensive description including:
 4. **Text/Inscriptions**: Transcribe any visible text, translate if in Igbo
 5. **Preservation Value**: Why this image matters for cultural preservation
 
-Be detailed but concise. Use Igbo terms where relevant with English explanations.""",
+Be detailed but concise. **Always format your response in Markdown** (use ## headers, **bold**, and bullet points where appropriate). Use Igbo terms where relevant with English explanations.""",
 
         'historical': """Analyze this image for its historical significance within Igbo culture and Nigerian history.
 
@@ -38,7 +38,7 @@ Discuss:
 4. Changes or continuities this represents
 5. Historical figures or events it might relate to
 
-Provide scholarly analysis suitable for an archives platform.""",
+Provide scholarly analysis suitable for an archives platform. **Format your response in Markdown**.""",
 
         'cultural': """Analyze the cultural significance of this image for Igbo heritage.
 
@@ -49,7 +49,7 @@ Examine:
 4. Regional variations if identifiable (Anambra, Enugu, Imo, etc.)
 5. How this contributes to understanding and preserving Igbo culture
 
-Use Igbo terminology where appropriate with explanations.""",
+Use Igbo terminology where appropriate with explanations. **Format your response in Markdown**.""",
 
         'translation': """Analyze any text visible in this image.
 
@@ -60,7 +60,7 @@ Provide:
 4. Cultural context and significance of the text
 5. Any proverbs, sayings, or notable phrases
 
-If no text is visible, describe what is shown instead.""",
+If no text is visible, describe what is shown instead. **Format your response in Markdown**.""",
 
         'artifact': """Analyze this cultural artifact for documentation purposes.
 
@@ -72,7 +72,7 @@ Document:
 5. Cultural/ceremonial purpose
 6. Condition and preservation considerations
 
-This analysis is for archival documentation."""
+This analysis is for archival documentation. **Format your response in Markdown**."""
     }
     
     def __init__(self):

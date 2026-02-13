@@ -1,9 +1,10 @@
 """
 Igbo Archives AI Chat Service.
 Grounded AI with database access, web search, and citations.
-Updated January 2026 with latest models.
+Updated February 2026 — anti-hallucination overhaul.
 """
 import logging
+import re
 from django.conf import settings
 from django.core.cache import cache
 from .key_manager import key_manager
@@ -12,40 +13,83 @@ from .constants import SYSTEM_PROMPT, SITE_URL
 logger = logging.getLogger(__name__)
 
 
+def extract_search_keywords(query: str, max_keywords: int = 5) -> list:
+    """Extract meaningful search keywords from a user query.
+    
+    Strips common stop words and question phrases to get the actual
+    search terms. Returns a list of keywords.
+    """
+    # Remove common question words and filler
+    stop_phrases = [
+        r'^(what|who|where|when|why|how|can you|could you|please|tell me|'
+        r'i want to|i need|show me|find|search|look for|help me|'
+        r'do you have|is there|are there|about|regarding)\s+',
+    ]
+    cleaned = query.lower().strip()
+    for pattern in stop_phrases:
+        cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+    
+    stop_words = {
+        'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
+        'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from',
+        'and', 'or', 'but', 'not', 'this', 'that', 'it', 'its',
+        'any', 'some', 'all', 'more', 'most', 'me', 'my', 'your',
+        'our', 'their', 'them', 'they', 'we', 'you', 'i', 'do',
+        'does', 'did', 'have', 'has', 'had', 'will', 'would',
+        'can', 'could', 'should', 'shall', 'may', 'might',
+    }
+    
+    words = [w for w in cleaned.split() if w not in stop_words and len(w) > 2]
+    return words[:max_keywords] if words else [query.strip()[:50]]
+
+
 def get_database_context(query: str, max_results: int = 5) -> str:
-    """Search the database for relevant content to provide context with full URLs."""
+    """Search the database for relevant content using keyword matching.
+    
+    Uses extracted keywords to search across multiple fields, returning
+    only REAL content with REAL URLs that the AI can safely cite.
+    """
     from django.db.models import Q
     
+    keywords = extract_search_keywords(query)
     context_parts = []
     
     try:
+        # Build Q objects that match ANY keyword across multiple fields
         # Search archives
         from archives.models import Archive
+        archive_q = Q()
+        for kw in keywords:
+            archive_q |= (
+                Q(title__icontains=kw) |
+                Q(description__icontains=kw) |
+                Q(caption__icontains=kw)
+            )
         archives = Archive.objects.filter(
-            Q(title__icontains=query) | 
-            Q(description__icontains=query) |
-            Q(caption__icontains=query),
-            is_approved=True
-        )[:max_results]
+            archive_q, is_approved=True
+        ).distinct()[:max_results]
         
         if archives:
-            context_parts.append("**Relevant Archives:**")
+            context_parts.append("### Archives Found in Database:")
             for a in archives:
                 full_url = f"{SITE_URL}/archives/{a.slug}/"
-                desc = a.description[:200] + '...' if len(a.description) > 200 else a.description
+                desc = (a.description[:200] + '...') if a.description and len(a.description) > 200 else (a.description or '')
                 context_parts.append(f"- 答 [{a.title}]({full_url}): {desc}")
         
         # Search insights
         from insights.models import InsightPost
+        insight_q = Q()
+        for kw in keywords:
+            insight_q |= (
+                Q(title__icontains=kw) |
+                Q(excerpt__icontains=kw)
+            )
         insights = InsightPost.objects.filter(
-            Q(title__icontains=query) |
-            Q(excerpt__icontains=query),
-            is_approved=True,
-            is_published=True
-        )[:max_results]
+            insight_q, is_approved=True, is_published=True
+        ).distinct()[:max_results]
         
         if insights:
-            context_parts.append("\n**Relevant Insights:**")
+            context_parts.append("\n### Insights Found in Database:")
             for i in insights:
                 full_url = f"{SITE_URL}/insights/{i.slug}/"
                 excerpt_text = i.excerpt[:200] if i.excerpt else ''
@@ -53,16 +97,19 @@ def get_database_context(query: str, max_results: int = 5) -> str:
         
         # Search books
         from books.models import BookRecommendation
+        book_q = Q()
+        for kw in keywords:
+            book_q |= (
+                Q(book_title__icontains=kw) |
+                Q(author__icontains=kw) |
+                Q(title__icontains=kw)
+            )
         books = BookRecommendation.objects.filter(
-            Q(book_title__icontains=query) |
-            Q(author__icontains=query) |
-            Q(title__icontains=query),
-            is_approved=True,
-            is_published=True
-        )[:max_results]
+            book_q, is_approved=True, is_published=True
+        ).distinct()[:max_results]
         
         if books:
-            context_parts.append("\n**Relevant Book Recommendations:**")
+            context_parts.append("\n### Books Found in Database:")
             for b in books:
                 full_url = f"{SITE_URL}/books/{b.slug}/"
                 context_parts.append(f"- 答 [{b.book_title}]({full_url}) by {b.author}")
@@ -143,8 +190,8 @@ class ChatService:
     # Note: STT moved to stt_service.py using NaijaLingo ASR (Nigerian languages)
     
     def __init__(self):
-        self.max_tokens = 1500
-        self.temperature = 0.7
+        self.max_tokens = 2500
+        self.temperature = 0.4  # Lower = more factual, less hallucination
         self._groq_clients = {}
         self._gemini_models = {}
     
@@ -202,21 +249,29 @@ class ChatService:
                 user_message = msg['content']
                 break
         
-        # Build grounded context
+        # Build grounded context — ALWAYS search both DB and web
         context_parts = []
         
-        # Database context
+        # Database context — always search
         db_context = get_database_context(user_message)
         if db_context:
             context_parts.append(db_context)
         
-        # Web search context (if enabled and no database results)
-        if use_web_search and not db_context:
-            web_context = web_search(user_message + " Igbo culture")
+        # Web search context — always search (not just when DB is empty)
+        if use_web_search:
+            search_query = user_message
+            # Add Igbo context if not already present
+            if 'igbo' not in user_message.lower():
+                search_query += " Igbo culture"
+            web_context = web_search(search_query)
             if web_context:
                 context_parts.append(web_context)
         
-        grounded_context = "\n\n".join(context_parts) if context_parts else ""
+        # If no context found at all, add an explicit note
+        if not context_parts:
+            grounded_context = "NO RELEVANT CONTENT FOUND in database or web search. Answer based on your general knowledge about Igbo culture, but clearly state that you are using general knowledge and NOT referencing specific archives."
+        else:
+            grounded_context = "\n\n".join(context_parts)
         
         # Choose provider based on task type
         if task_type == 'analysis':
@@ -265,7 +320,9 @@ class ChatService:
                 try:
                     system_content = SYSTEM_PROMPT
                     if context:
-                        system_content += f"\n\n**Context from Igbo Archives and Web:**\n{context}\n\nUse this information in your response with proper citations."
+                        system_content += f"\n\n---\n## PROVIDED CONTEXT (cite ONLY from this):\n{context}\n---\n\nIMPORTANT: Only reference the links and titles shown above. Do NOT invent any URLs or titles not listed here. Format your entire response in Markdown."
+                    else:
+                        system_content += "\n\nNo database or web results were found for this query. Answer using your general knowledge but do NOT fabricate any archive links. Format your entire response in Markdown."
                     
                     full_messages = [{'role': 'system', 'content': system_content}]
                     full_messages.extend(messages[-10:])
@@ -313,7 +370,9 @@ class ChatService:
                 try:
                     system_content = SYSTEM_PROMPT
                     if context:
-                        system_content += f"\n\n**Context from Igbo Archives and Web:**\n{context}\n\nUse this information with proper citations."
+                        system_content += f"\n\n---\n## PROVIDED CONTEXT (cite ONLY from this):\n{context}\n---\n\nIMPORTANT: Only reference the links and titles shown above. Do NOT invent any URLs or titles not listed here. Format your entire response in Markdown."
+                    else:
+                        system_content += "\n\nNo database or web results were found. Answer using general knowledge but do NOT fabricate any archive links. Format your response in Markdown."
                     
                     prompt_parts = [system_content, "\nConversation:"]
                     for msg in messages[-10:]:

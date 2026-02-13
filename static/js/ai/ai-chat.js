@@ -71,16 +71,26 @@ class AIChat {
     }
 
     formatContent(content) {
-        // Convert markdown links to HTML — validate URL to prevent javascript: XSS
+        if (typeof marked !== 'undefined') {
+            try {
+                // Use marked.js for full markdown rendering
+                return marked.parse(content, {
+                    breaks: true,
+                    gfm: true
+                });
+            } catch (err) {
+                console.error('Markdown parsing error:', err);
+            }
+        }
+
+        // Fallback for basic links and line breaks if marked is not loaded
         content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (match, text, url) {
             if (isSafeUrl(url)) {
                 return '<a href="' + escapeHtml(url) + '" target="_blank" class="underline hover:text-vintage-gold">' + escapeHtml(text) + '</a>';
             }
-            return escapeHtml(text); // Render as plain text if URL is unsafe
+            return escapeHtml(text);
         });
-        // Convert newlines to breaks
-        content = content.replace(/\n/g, '<br>');
-        return content;
+        return content.replace(/\n/g, '<br>');
     }
 
     getCsrfToken() {

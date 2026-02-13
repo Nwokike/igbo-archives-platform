@@ -72,7 +72,11 @@ class ArchiveAnalysis {
             this.loading.classList.add('hidden');
 
             if (data.success) {
-                this.result.innerHTML = data.content.replace(/\n/g, '<br>');
+                if (typeof marked !== 'undefined') {
+                    this.result.innerHTML = marked.parse(data.content);
+                } else {
+                    this.result.innerHTML = data.content.replace(/\n/g, '<br>');
+                }
             } else {
                 this.result.innerHTML = '<p class="text-red-500">' + (data.error || 'Analysis failed. Please try again.') + '</p>';
             }

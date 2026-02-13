@@ -414,6 +414,7 @@ CONTENT_SECURITY_POLICY = {
             "https://*.paystack.com",
             "https://js.paystack.co",
             "https://pagead2.googlesyndication.com",
+            "https://cdn.jsdelivr.net",
         ],
         'style-src': [
             "'self'",

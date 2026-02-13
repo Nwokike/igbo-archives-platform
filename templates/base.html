@@ -388,9 +388,10 @@
     <script src="{% static 'vendor/js/htmx.min.js' %}"
         integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"
         defer></script>
-    <script src="{% static 'js/common/utils.js' %}" defer></script>
+    <script src="{% static 'js/common/utils.js' %}?v=2" defer></script>
     <script src="{% static 'js/common/main.js' %}" defer></script>
     <script src="{% static 'js/common/notifications.js' %}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     {% block page_js %}
     <script src="{% static 'js/common/comments.js' %}" defer></script>
     <script src="{% static 'js/common/modals.js' %}" defer></script>

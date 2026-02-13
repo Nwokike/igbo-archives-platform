@@ -29,6 +29,93 @@
     animation-delay: 0.4s;
 }
 
+/* Markdown Styling in Chat Bubbles */
+.message-content h1,
+.message-content h2,
+.message-content h3 {
+    font-weight: 700;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.25;
+}
+
+.message-content h1 {
+    font-size: 1.25rem;
+}
+
+.message-content h2 {
+    font-size: 1.15rem;
+}
+
+.message-content h3 {
+    font-size: 1.05rem;
+}
+
+.message-content p {
+    margin-bottom: 0.75rem;
+}
+
+.message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.message-content ul,
+.message-content ol {
+    margin-bottom: 0.75rem;
+    padding-left: 1.25rem;
+}
+
+.message-content ul {
+    list-style-type: disc;
+}
+
+.message-content ol {
+    list-style-type: decimal;
+}
+
+.message-content li {
+    margin-bottom: 0.25rem;
+}
+
+.message-content blockquote {
+    border-left: 3px solid #B8974F;
+    padding-left: 1rem;
+    font-italic: italic;
+    margin: 1rem 0;
+    color: #6B5D52;
+}
+
+.dark .message-content blockquote {
+    color: #A89B8C;
+}
+
+.message-content code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: monospace;
+}
+
+.dark .message-content code {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.message-content pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.message-content pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+}
+
 @keyframes typing {
 
     0%,
