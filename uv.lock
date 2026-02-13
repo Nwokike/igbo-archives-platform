@@ -856,6 +856,7 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "coverage" },
+    { name = "duckduckgo-search" },
     { name = "pytest" },
     { name = "pytest-django" },
     { name = "ruff" },
@@ -882,6 +883,7 @@ requires-dist = [
     { name = "django-webpush", specifier = "==0.3.6" },
     { name = "djangorestframework", specifier = "==3.16.0" },
     { name = "duckduckgo-search", specifier = "==8.1.1" },
+    { name = "duckduckgo-search", marker = "extra == 'dev'", specifier = ">=6.0.0" },
     { name = "google-genai", specifier = "==1.62.0" },
     { name = "groq", specifier = "==1.0.0" },
     { name = "gtts", specifier = "==2.5.4" },
