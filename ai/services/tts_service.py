@@ -111,25 +111,36 @@ class TTSService:
         if voice_name not in self.YARNGPT_VOICES.values():
             voice_name = 'Chinenye'  # Default Igbo voice
         
-        # Try YarnGPT first (works for Igbo)
         if self._has_yarngpt:
-            result = self._yarngpt_generate(text, voice_name)
-            if result['success']:
-                return result
-            logger.warning(f"YarnGPT failed, trying Gemini TTS: {result.get('error')}")
-        
-        # Fallback to Gemini TTS (high quality)
-        if self._has_gemini_tts:
-            result = self._gemini_tts_generate(text, voice_name)
-            if result['success']:
-                return result
+            # Try YarnGPT with a small retry on timeout
+            max_retries = 2
+            last_error = ""
+            
+            for attempt in range(max_retries):
+                result = self._yarngpt_generate(text, voice_name)
+                if result['success']:
+                    return result
+                
+                last_error = result.get('error', 'Unknown error')
+                if "timeout" in last_error.lower() and attempt < max_retries - 1:
+                    logger.warning(f"YarnGPT timeout (attempt {attempt+1}), retrying...")
+                    continue
+                break
+            
+            return {
+                'success': False,
+                'audio_bytes': None,
+                'content_type': '',
+                'provider': 'yarngpt',
+                'error': f"YarnGPT failed: {last_error}"
+            }
         
         return {
             'success': False,
             'audio_bytes': None,
             'content_type': '',
             'provider': '',
-            'error': 'All TTS providers failed'
+            'error': 'YarnGPT service not configured'
         }
     
     def _yarngpt_generate(self, text: str, voice: str) -> dict:
@@ -170,6 +181,7 @@ class TTSService:
                 except Exception:
                     error_msg = response.text[:200] if response.text else f"HTTP {response.status_code}"
                 
+                logger.error(f"YarnGPT failed ({response.status_code}): {error_msg}")
                 return {
                     'success': False,
                     'audio_bytes': None,
@@ -185,68 +197,6 @@ class TTSService:
                 'audio_bytes': None,
                 'content_type': '',
                 'provider': 'yarngpt',
-                'error': str(e)
-            }
-    
-    def _gemini_tts_generate(self, text: str, voice_name: str) -> dict:
-        """Generate audio bytes using Gemini TTS."""
-        try:
-            from google import genai
-            
-            api_key = key_manager.get_gemini_key()
-            if not api_key:
-                return {
-                    'success': False,
-                    'audio_bytes': None,
-                    'content_type': '',
-                    'provider': 'gemini_tts',
-                    'error': 'No Gemini API key available'
-                }
-            
-            client = genai.Client(api_key=api_key)
-            
-            # Generate speech
-            response = client.models.generate_content(
-                model=self.GEMINI_TTS_MODEL,
-                contents=text,
-                config={
-                    "response_modalities": ["AUDIO"],
-                    "speech_config": {
-                        "voice_config": {
-                            "prebuilt_voice_config": {
-                                "voice_name": "Kore"
-                            }
-                        }
-                    }
-                }
-            )
-            
-            if response.candidates and response.candidates[0].content.parts:
-                audio_data = response.candidates[0].content.parts[0].inline_data.data
-                
-                return {
-                    'success': True,
-                    'audio_bytes': audio_data,
-                    'content_type': 'audio/wav',
-                    'provider': 'gemini_tts',
-                    'error': ''
-                }
-            
-            return {
-                'success': False,
-                'audio_bytes': None,
-                'content_type': '',
-                'provider': 'gemini_tts',
-                'error': 'No audio in response'
-            }
-            
-        except Exception as e:
-            logger.error(f"Gemini TTS error: {e}")
-            return {
-                'success': False,
-                'audio_bytes': None,
-                'content_type': '',
-                'provider': 'gemini_tts',
                 'error': str(e)
             }
     

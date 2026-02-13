@@ -21,7 +21,7 @@ ALLOWED_TAGS = [
     'a', 'b', 'strong', 'i', 'em', 'u', 'br', 'span', 'mark', 'code', 'sub', 'sup'
 ]
 ALLOWED_ATTRS = {
-    'a': {'href', 'title', 'target'},
+    'a': {'href', 'title', 'target', 'rel'},
     'span': {'class'},
     'mark': {'class'},
 }
@@ -36,6 +36,7 @@ def sanitize_html(text):
             text,
             tags=set(ALLOWED_TAGS),
             attributes=ALLOWED_ATTRS,
+            link_rel=None,
         )
         return cleaned
     return escape(text)
