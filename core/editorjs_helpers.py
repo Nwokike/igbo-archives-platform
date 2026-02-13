@@ -188,7 +188,35 @@ def download_and_save_image_from_url(model_instance, image_field_name, url, max_
         
         # Handle absolute URLs (http/https)
         if url.startswith('http://') or url.startswith('https://'):
-            # Download from URL
+            # SSRF protection: block private/internal IP ranges
+            from urllib.parse import urlparse
+            import ipaddress
+            import socket
+            
+            parsed_url = urlparse(url)
+            hostname = parsed_url.hostname
+            if not hostname:
+                return False
+            
+            # Block obvious internal hostnames
+            blocked_hostnames = {'localhost', '127.0.0.1', '::1', '0.0.0.0'}
+            if hostname.lower() in blocked_hostnames:
+                logger.warning(f"Blocked SSRF attempt to internal host: {hostname}")
+                return False
+            
+            # Resolve hostname and check for private IP ranges
+            try:
+                addr_info = socket.getaddrinfo(hostname, None)
+                for _, _, _, _, sockaddr in addr_info:
+                    ip = ipaddress.ip_address(sockaddr[0])
+                    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                        logger.warning(f"Blocked SSRF attempt to private IP: {ip} ({hostname})")
+                        return False
+            except (socket.gaierror, ValueError):
+                logger.warning(f"Could not resolve hostname: {hostname}")
+                return False
+            
+            # Download from URL with streaming
             response = requests.get(url, timeout=10, stream=True)
             response.raise_for_status()
             
@@ -197,15 +225,22 @@ def download_and_save_image_from_url(model_instance, image_field_name, url, max_
             if not content_type.startswith('image/'):
                 return False
             
-            # Check file size
+            # Check declared file size
             content_length = response.headers.get('content-length')
             if content_length and int(content_length) > max_size_mb * 1024 * 1024:
                 return False
             
-            # Download image
-            img_data = response.content
-            if len(img_data) > max_size_mb * 1024 * 1024:
-                return False
+            # Stream download with size limit
+            max_bytes = int(max_size_mb * 1024 * 1024)
+            chunks = []
+            downloaded = 0
+            for chunk in response.iter_content(chunk_size=8192):
+                downloaded += len(chunk)
+                if downloaded > max_bytes:
+                    logger.warning(f"Image download exceeded size limit: {url}")
+                    return False
+                chunks.append(chunk)
+            img_data = b''.join(chunks)
             
             # Get file extension from URL or content type
             ext = 'jpg'

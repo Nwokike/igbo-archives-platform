@@ -39,7 +39,10 @@ class APIKeyManager:
         
         cache_key = 'ai_gemini_idx'
         idx = cache.get(cache_key, 0)
-        blocked = cache.get('ai_gemini_blocked', set())
+        blocked = cache.get('ai_gemini_blocked', [])
+        # Normalize to list for JSON-safe cache serialization
+        if isinstance(blocked, set):
+            blocked = list(blocked)
         
         for i in range(len(self.gemini_keys)):
             key_idx = (idx + i) % len(self.gemini_keys)
@@ -49,8 +52,10 @@ class APIKeyManager:
                 cache.set(cache_key, (key_idx + 1) % len(self.gemini_keys), 3600)
                 return key
         
-        cache.delete('ai_gemini_blocked')
-        return self.gemini_keys[0]
+        # All keys blocked — add cooldown before retrying
+        logger.warning("All Gemini keys are rate-limited. Adding 60s cooldown.")
+        cache.set('ai_gemini_blocked', blocked, 60)  # Keep blocked for 60s cooldown
+        return None
     
     def get_groq_key(self):
         """Get next available Groq API key."""
@@ -59,7 +64,10 @@ class APIKeyManager:
         
         cache_key = 'ai_groq_idx'
         idx = cache.get(cache_key, 0)
-        blocked = cache.get('ai_groq_blocked', set())
+        blocked = cache.get('ai_groq_blocked', [])
+        # Normalize to list for JSON-safe cache serialization
+        if isinstance(blocked, set):
+            blocked = list(blocked)
         
         for i in range(len(self.groq_keys)):
             key_idx = (idx + i) % len(self.groq_keys)
@@ -69,14 +77,20 @@ class APIKeyManager:
                 cache.set(cache_key, (key_idx + 1) % len(self.groq_keys), 3600)
                 return key
         
-        cache.delete('ai_groq_blocked')
-        return self.groq_keys[0]
+        # All keys blocked — add cooldown before retrying
+        logger.warning("All Groq keys are rate-limited. Adding 60s cooldown.")
+        cache.set('ai_groq_blocked', blocked, 60)  # Keep blocked for 60s cooldown
+        return None
     
     def mark_rate_limited(self, service: str, key: str, duration: int = 3600):
         """Mark a key as temporarily rate limited."""
         cache_key = f'ai_{service}_blocked'
-        blocked = cache.get(cache_key, set())
-        blocked.add(key)
+        blocked = cache.get(cache_key, [])
+        # Normalize to list for JSON-safe cache serialization
+        if isinstance(blocked, set):
+            blocked = list(blocked)
+        if key not in blocked:
+            blocked.append(key)
         cache.set(cache_key, blocked, duration)
         logger.info(f"AI key rotated due to rate limit")
     

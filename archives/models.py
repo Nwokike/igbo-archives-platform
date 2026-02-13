@@ -1,8 +1,12 @@
 import re
+import logging
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.utils.text import slugify
 from django.core.validators import FileExtensionValidator
+
+logger = logging.getLogger(__name__)
 
 from core.validators import (
     validate_image_size,
@@ -35,7 +39,7 @@ class Category(models.Model):
         ordering = ['name']
     
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 
 class Author(models.Model):
@@ -46,7 +50,6 @@ class Author(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            from django.utils.text import slugify
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
@@ -66,7 +69,7 @@ class Archive(models.Model):
     ]
     
     title = models.CharField(max_length=255, help_text="Required: Archive title")
-    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True, help_text="URL-friendly version of title")
+    slug = models.SlugField(max_length=255, unique=True, blank=True, default='', help_text="URL-friendly version of title")
     description = models.TextField(help_text="Required: Detailed description (plain text)")
     archive_type = models.CharField(max_length=20, choices=ARCHIVE_TYPES, help_text="Required: Type of archive")
     
@@ -200,7 +203,7 @@ class Archive(models.Model):
         help_text="Numeric year for sorting purposes (auto-calculated)"
     )
     
-    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='archives')
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='archives')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_approved = models.BooleanField(default=False, help_text="Admin approval status")
@@ -214,82 +217,76 @@ class Archive(models.Model):
             models.Index(fields=['is_approved', '-created_at'], name='arch_approved_date_idx'),
             models.Index(fields=['archive_type', 'is_approved'], name='arch_type_approved_idx'),
             models.Index(fields=['category', 'is_approved'], name='arch_cat_approved_idx'),
-            models.Index(fields=['slug'], name='arch_slug_idx'),
-            models.Index(fields=['circa_date'], name='arch_circa_date_idx'),
             models.Index(fields=['sort_year'], name='arch_sort_year_idx'),
-            models.Index(fields=['location'], name='arch_location_idx'),
         ]
     
     def __str__(self):
         return self.title
     
-    def save(self, *args, **kwargs):
-        # Auto-generate slug if missing
-        if not self.slug:
-            from django.utils.text import slugify
-            import uuid
-            
-            base_slug = slugify(self.title)[:200]
-            if not base_slug:
-                base_slug = "archive"
-            
-            slug = base_slug
-            counter = 1
-            
-            # Check for slug collision
-            while Archive.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-                if counter > 100:
-                    slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
-                    break
-            
-            self.slug = slug
+    def _generate_slug(self):
+        """Auto-generate a unique slug from title."""
+        import uuid
+        base_slug = slugify(self.title)[:200]
+        if not base_slug:
+            base_slug = "archive"
+        slug = base_slug
+        counter = 1
+        while Archive.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+            if counter > 100:
+                slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+                break
+        self.slug = slug
 
-        # Auto-link logic:
+    def _link_author(self):
+        """Auto-link original_author text to Author FK and vice versa."""
         if self.original_author and not self.author:
             match = Author.objects.filter(name__iexact=self.original_author.strip()).first()
             if match:
                 self.author = match
-        
         if self.author and not self.original_author:
             self.original_author = self.author.name
 
-        # Calculate sort_year for historical sorting
+    def _calculate_sort_year(self):
+        """Calculate numeric sort_year from date_created or circa_date."""
         if self.date_created:
             self.sort_year = self.date_created.year
         elif self.circa_date:
             circa_str = str(self.circa_date).strip()
-            # 1. Look for 4-digit years (c1930, 1930s, etc.)
             match = re.search(r'\b(1\d{3}|20\d{2})\b', circa_str)
             if match:
                 self.sort_year = int(match.group(1))
             else:
-                # 2. Look for centuries (19th Century)
                 century_match = re.search(r'(\d{1,2})(?:st|nd|rd|th)?\s+century', circa_str, re.IGNORECASE)
                 if century_match:
                     self.sort_year = (int(century_match.group(1)) - 1) * 100
                 else:
-                    # 3. Last resort fallback for any 4 digits
                     match = re.search(r'(\d{4})', circa_str)
                     if match:
                         self.sort_year = int(match.group(1))
-        
-        # Auto-compress images before saving (max 1.5MB)
-        try:
-            from core.image_utils import compress_model_images
-            compress_model_images(self, 'image', 'featured_image', max_size_mb=1.5)
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(f"Image compression failed for Archive {self.pk}: {e}")
-            
+
+    def save(self, *args, **kwargs):
+        # Skip heavy logic when only specific fields are being updated (e.g. from signals)
+        update_fields = kwargs.get('update_fields')
+        if update_fields is None:
+            if not self.slug:
+                self._generate_slug()
+            self._link_author()
+            self._calculate_sort_year()
+
+            # Auto-compress images (only on full save)
+            try:
+                from core.image_utils import compress_model_images
+                compress_model_images(self, 'image', 'featured_image', max_size_mb=1.5)
+            except Exception as e:
+                logger.warning(f"Image compression failed for Archive {self.pk}: {e}")
+
         super().save(*args, **kwargs)
-    
+
     def get_absolute_url(self):
         """Return the URL for this archive."""
-        if self.slug:
-            return reverse('archives:detail', args=[self.slug])
-        return reverse('archives:detail', args=[self.pk])
+        return reverse('archives:detail', args=[self.slug])
     
     def get_primary_file(self):
         """Return the primary file based on archive type"""

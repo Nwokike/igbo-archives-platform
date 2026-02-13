@@ -21,7 +21,7 @@ def get_indexnow_key():
     """Get IndexNow API key from settings. Returns None if not configured."""
     key = getattr(settings, 'INDEXNOW_API_KEY', None) or os.getenv('INDEXNOW_API_KEY')
     if not key:
-        logger.error("INDEXNOW_API_KEY is not set. Generate with: python -c \"import uuid; print(uuid.uuid4())\"")
+        logger.warning("INDEXNOW_API_KEY is not set. Generate with: python -c \"import uuid; print(uuid.uuid4())\"")
         return None
     return key
 
@@ -120,21 +120,3 @@ def submit_urls_bulk(urls, host=None):
         except Exception as e:
             logger.error(f"Error submitting bulk URLs to IndexNow: {str(e)}")
 
-
-class IndexNowClient:
-    """Class wrapper for IndexNow API functions.
-    
-    Provides a class-based interface for IndexNow URL submission.
-    Used by core/tasks.py for async URL submission.
-    """
-    
-    def __init__(self):
-        self.api_key = get_indexnow_key()
-    
-    def submit_url(self, url, host=None):
-        """Submit a single URL to IndexNow."""
-        return submit_url_to_indexnow(url, host)
-    
-    def submit_urls(self, urls, host=None):
-        """Submit multiple URLs to IndexNow."""
-        return submit_urls_bulk(urls, host)

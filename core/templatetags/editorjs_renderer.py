@@ -2,19 +2,18 @@
 Editor.js Block Renderer Template Tags
 
 Converts Editor.js JSON block format to HTML for display on detail pages.
-Includes XSS protection via bleach sanitization.
+Includes XSS protection via nh3 sanitization.
 """
 import json
-import ast
 from django import template
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 try:
-    import bleach
-    BLEACH_AVAILABLE = True
+    import nh3
+    NH3_AVAILABLE = True
 except ImportError:
-    BLEACH_AVAILABLE = False
+    NH3_AVAILABLE = False
 
 register = template.Library()
 
@@ -32,15 +31,12 @@ def sanitize_html(text):
     """Sanitize HTML content while preserving safe inline formatting tags."""
     if not text:
         return ''
-    if BLEACH_AVAILABLE:
-        cleaned = bleach.clean(
+    if NH3_AVAILABLE:
+        cleaned = nh3.clean(
             text,
-            tags=ALLOWED_TAGS,
+            tags=set(ALLOWED_TAGS),
             attributes=ALLOWED_ATTRS,
-            strip=True
         )
-        if 'href' in cleaned:
-            cleaned = bleach.linkify(cleaned, callbacks=[lambda attrs, new: {**attrs, (None, 'rel'): 'noopener noreferrer'}])
         return cleaned
     return escape(text)
 
@@ -66,16 +62,12 @@ def render_editorjs(content):
         try:
             content = json.loads(content)
         except (json.JSONDecodeError, ValueError):
-            # Fallback: Try ast.literal_eval for python-dict-as-string
+            # Fallback: Double encoded string?
             try:
-                content = ast.literal_eval(content)
-            except (ValueError, SyntaxError):
-                 # Fallback: Double encoded string?
-                 try:
-                     content = json.loads(json.loads(content))
-                 except (json.JSONDecodeError, ValueError, SyntaxError):
-                     # If all parsing fails, do NOT show raw JSON. Return empty or warning.
-                     return '' 
+                content = json.loads(json.loads(content))
+            except (json.JSONDecodeError, ValueError, SyntaxError):
+                # If all parsing fails, do NOT show raw JSON. Return empty.
+                return '' 
     else:
         # Unknown type
         return ''
@@ -235,8 +227,15 @@ def render_embed(data):
     if not embed:
         return ''
     
-    allowed_domains = ['youtube.com', 'youtube-nocookie.com', 'vimeo.com', 'player.vimeo.com']
-    is_safe = any(domain in embed for domain in allowed_domains)
+    # Validate embed domain using proper URL parsing
+    from urllib.parse import urlparse
+    try:
+        parsed = urlparse(embed)
+        embed_domain = parsed.hostname or ''
+        allowed_domains = ['youtube.com', 'www.youtube.com', 'youtube-nocookie.com', 'www.youtube-nocookie.com', 'vimeo.com', 'player.vimeo.com']
+        is_safe = embed_domain in allowed_domains
+    except Exception:
+        is_safe = False
     
     if not is_safe:
         return f'<p class="text-vintage-beaver italic">Embed not supported: {escape(embed)}</p>'

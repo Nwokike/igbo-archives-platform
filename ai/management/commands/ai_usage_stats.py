@@ -84,14 +84,21 @@ class Command(BaseCommand):
         tts_count = 0
         stt_count = 0
         
-        # Estimate from cache keys (not perfect but gives rough idea)
-        for user in User.objects.all():
+        # Only check users who have had recent AI activity (last_login within period)
+        # Avoids iterating ALL users when most have no AI usage
+        active_users = User.objects.filter(
+            last_login__gte=cutoff
+        ).only('id')
+        
+        for user in active_users:
             tts_key = f'ai_tts_{user.id}'
             stt_key = f'ai_stt_{user.id}'
-            if cache.get(tts_key, 0) > 0:
-                tts_count += cache.get(tts_key, 0)
-            if cache.get(stt_key, 0) > 0:
-                stt_count += cache.get(stt_key, 0)
+            tts_val = cache.get(tts_key, 0)
+            stt_val = cache.get(stt_key, 0)
+            if tts_val > 0:
+                tts_count += tts_val
+            if stt_val > 0:
+                stt_count += stt_val
         
         self.stdout.write(f'\n🎤 TTS/STT Usage (estimated):')
         self.stdout.write(f'  TTS requests: ~{tts_count}')

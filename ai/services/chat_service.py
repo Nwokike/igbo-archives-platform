@@ -7,45 +7,9 @@ import logging
 from django.conf import settings
 from django.core.cache import cache
 from .key_manager import key_manager
+from .constants import SYSTEM_PROMPT, SITE_URL
 
 logger = logging.getLogger(__name__)
-
-# Live site URL and routes for directing users
-SITE_URL = getattr(settings, 'SITE_URL', 'https://igboarchives.com.ng')
-ROUTES = {
-    'archive': f'{SITE_URL}/archives/{{slug}}/',
-    'insight': f'{SITE_URL}/insights/{{slug}}/',
-    'book': f'{SITE_URL}/books/{{slug}}/',
-    'category': f'{SITE_URL}/archives/category/{{slug}}/',
-    'author': f'{SITE_URL}/archives/author/{{slug}}/',
-    'search': f'{SITE_URL}/archives/?search={{query}}',
-    'home': f'{SITE_URL}',
-    'chat': f'{SITE_URL}/ai/',
-}
-
-SYSTEM_PROMPT = f"""You are the Igbo Archives AI, an intelligent assistant specialized in Igbo culture, history, language, and heritage.
-
-IMPORTANT GUIDELINES:
-1. Always be accurate - if you're not sure, say so.
-2. When you reference information from the archives, include FULL clickable URLs.
-3. When you use web search results, cite the source.
-4. Use Igbo words naturally with translations (e.g., "Ndewo (Welcome)").
-5. Be culturally sensitive and encourage preservation of Igbo heritage.
-6. Direct users to relevant pages on the platform using full URLs.
-7. You have access to both the Igbo Archives database and the internet. Use them to provide comprehensive and grounded answers.
-
-LIVE SITE: {SITE_URL}
-
-When citing sources, use FULL URLs:
-- For archives: [{SITE_URL}/archives/slug/](full_url)
-- For insights: [{SITE_URL}/insights/slug/](full_url)
-- For books: [{SITE_URL}/books/slug/](full_url)
-- For web: [Source](URL)
-
-Format archive links as styled cards when appropriate:
-答 **Archive:** [Title]({SITE_URL}/archives/slug/) - Brief description
-
-Be helpful, accurate, and celebrate Igbo culture."""
 
 
 def get_database_context(query: str, max_results: int = 5) -> str:

@@ -3,6 +3,60 @@
    Only non-Tailwind overrides go here
    ======================================== */
 
+/* ── Dark Mode Overrides ──────────────────
+   These fix classes used across 50+ templates
+   that have no dark: variant applied.
+   ──────────────────────────────────────── */
+
+/* text-dark-brown (#2C2119) is invisible on dark bg (#1A1410) */
+.dark .text-dark-brown {
+    color: #EFE5D7;
+}
+
+/* bg-heritage-cream is too bright in dark mode */
+.dark .bg-heritage-cream {
+    background-color: #241E19;
+}
+
+.dark .bg-heritage-cream\/50 {
+    background-color: rgba(36, 30, 25, 0.5);
+}
+
+/* bg-gray-50/100 containers need dark treatment */
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+    background-color: #241E19;
+}
+
+/* Prose content (insight detail, etc.) */
+.dark .prose {
+    color: #EFE5D7;
+}
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6 {
+    color: #EFE5D7;
+}
+
+.dark .prose a {
+    color: #B8974F;
+}
+
+.dark .prose strong {
+    color: #EFE5D7;
+}
+
+.dark .prose blockquote {
+    color: #A89B8C;
+    border-left-color: #3E342E;
+}
+
+/* text-vintage-beaver is dim but still legible — no override needed */
+
 /* Custom Scrollbar (global) */
 ::-webkit-scrollbar {
     width: 8px;

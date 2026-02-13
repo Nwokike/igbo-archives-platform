@@ -429,7 +429,7 @@
                     }
 
                     option.innerHTML =
-                        '<img src="' + img.url + '" alt="Image ' + (index + 1) + '">' +
+                        '<img src="' + escapeHtml(img.url) + '" alt="Image ' + (index + 1) + '">' +
                         (isSelected ? '<span class="featured-badge">Featured</span>' : '');
 
                     option.addEventListener('click', function () {
@@ -497,8 +497,8 @@
                             item.className = 'archive-item';
                             item.dataset.archiveId = archive.id;
                             item.innerHTML =
-                                '<img src="' + archive.thumbnail + '" alt="' + (archive.alt_text || archive.title) + '">' +
-                                '<div class="archive-item-title">' + archive.title + '</div>';
+                                '<img src="' + escapeHtml(archive.thumbnail) + '" alt="' + escapeHtml(archive.alt_text || archive.title) + '">' +
+                                '<div class="archive-item-title">' + escapeHtml(archive.title) + '</div>';
 
                             item.addEventListener('click', function () {
                                 document.querySelectorAll('.archive-item').forEach(function (el) {
@@ -660,27 +660,28 @@
                 switch (block.type) {
                     case 'header':
                         const level = block.data.level || 2;
-                        html += '<h' + level + '>' + block.data.text + '</h' + level + '>';
+                        html += '<h' + level + '>' + escapeHtml(block.data.text) + '</h' + level + '>';
                         break;
 
                     case 'paragraph':
-                        html += '<p>' + block.data.text + '</p>';
+                        html += '<p>' + escapeHtml(block.data.text) + '</p>';
                         break;
 
                     case 'image':
                         const imgUrl = block.data.file ? block.data.file.url : block.data.url;
-                        // UPDATED: Use the saved 'alt' field for the image tag
-                        const altText = block.data.alt || block.data.description || block.data.caption || '';
+                        const altText = escapeHtml(block.data.alt || block.data.description || block.data.caption || '');
                         const archiveSlug = block.data.archive_slug;
+
+                        // Validate image URL before rendering
+                        if (!isSafeUrl(imgUrl)) break;
 
                         html += '<figure class="editor-image">';
 
-                        // Wrap image in archive link if archive_slug exists
                         if (archiveSlug) {
-                            html += '<a href="/archives/' + archiveSlug + '/" class="archive-image-link" title="View in Archives">';
+                            html += '<a href="/archives/' + escapeHtml(archiveSlug) + '/" class="archive-image-link" title="View in Archives">';
                         }
 
-                        html += '<img src="' + imgUrl + '" alt="' + altText + '"';
+                        html += '<img src="' + escapeHtml(imgUrl) + '" alt="' + altText + '"';
                         let imgClasses = [];
                         if (block.data.stretched) imgClasses.push('stretched');
                         if (block.data.withBorder) imgClasses.push('editor-image-bordered');
@@ -692,7 +693,7 @@
                         }
 
                         if (block.data.caption) {
-                            html += '<figcaption>' + block.data.caption + '</figcaption>';
+                            html += '<figcaption>' + escapeHtml(block.data.caption) + '</figcaption>';
                         }
                         html += '</figure>';
                         break;
@@ -702,9 +703,9 @@
                         html += '<' + tag + '>';
                         block.data.items.forEach(function (item) {
                             if (typeof item === 'string') {
-                                html += '<li>' + item + '</li>';
+                                html += '<li>' + escapeHtml(item) + '</li>';
                             } else if (item.content) {
-                                html += '<li>' + item.content + '</li>';
+                                html += '<li>' + escapeHtml(item.content) + '</li>';
                             }
                         });
                         html += '</' + tag + '>';
@@ -712,15 +713,15 @@
 
                     case 'quote':
                         html += '<blockquote>';
-                        html += '<p>' + block.data.text + '</p>';
+                        html += '<p>' + escapeHtml(block.data.text) + '</p>';
                         if (block.data.caption) {
-                            html += '<cite>' + block.data.caption + '</cite>';
+                            html += '<cite>' + escapeHtml(block.data.caption) + '</cite>';
                         }
                         html += '</blockquote>';
                         break;
 
                     case 'code':
-                        html += '<pre><code>' + block.data.code + '</code></pre>';
+                        html += '<pre><code>' + escapeHtml(block.data.code) + '</code></pre>';
                         break;
 
                     case 'delimiter':
@@ -728,10 +729,11 @@
                         break;
 
                     case 'embed':
+                        if (!isSafeUrl(block.data.embed)) break;
                         html += '<div class="embed-container">';
-                        html += '<iframe src="' + block.data.embed + '" allowfullscreen></iframe>';
+                        html += '<iframe src="' + escapeHtml(block.data.embed) + '" allowfullscreen></iframe>';
                         if (block.data.caption) {
-                            html += '<p class="embed-caption">' + block.data.caption + '</p>';
+                            html += '<p class="embed-caption">' + escapeHtml(block.data.caption) + '</p>';
                         }
                         html += '</div>';
                         break;
@@ -741,14 +743,14 @@
                         if (block.data.withHeadings && block.data.content.length > 0) {
                             html += '<thead><tr>';
                             block.data.content[0].forEach(function (cell) {
-                                html += '<th>' + cell + '</th>';
+                                html += '<th>' + escapeHtml(cell) + '</th>';
                             });
                             html += '</tr></thead>';
                             html += '<tbody>';
                             for (let i = 1; i < block.data.content.length; i++) {
                                 html += '<tr>';
                                 block.data.content[i].forEach(function (cell) {
-                                    html += '<td>' + cell + '</td>';
+                                    html += '<td>' + escapeHtml(cell) + '</td>';
                                 });
                                 html += '</tr>';
                             }
@@ -758,7 +760,7 @@
                             block.data.content.forEach(function (row) {
                                 html += '<tr>';
                                 row.forEach(function (cell) {
-                                    html += '<td>' + cell + '</td>';
+                                    html += '<td>' + escapeHtml(cell) + '</td>';
                                 });
                                 html += '</tr>';
                             });
@@ -769,14 +771,14 @@
 
                     case 'warning':
                         html += '<div class="warning-block">';
-                        html += '<strong>' + (block.data.title || 'Warning') + '</strong>';
-                        html += '<p>' + block.data.message + '</p>';
+                        html += '<strong>' + escapeHtml(block.data.title || 'Warning') + '</strong>';
+                        html += '<p>' + escapeHtml(block.data.message) + '</p>';
                         html += '</div>';
                         break;
 
                     default:
                         if (block.data && block.data.text) {
-                            html += '<p>' + block.data.text + '</p>';
+                            html += '<p>' + escapeHtml(block.data.text) + '</p>';
                         }
                 }
             });

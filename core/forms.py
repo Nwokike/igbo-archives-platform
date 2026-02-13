@@ -5,6 +5,21 @@ from django.conf import settings
 from .turnstile import verify_turnstile
 
 
+def _verify_turnstile_for_form(form_instance):
+    """Shared Turnstile verification logic for forms with a `request` attribute."""
+    token = form_instance.cleaned_data.get('cf_turnstile_response') or form_instance.data.get('cf-turnstile-response', '')
+    
+    remote_ip = None
+    if form_instance.request:
+        remote_ip = form_instance.request.META.get('HTTP_CF_CONNECTING_IP') or \
+                   form_instance.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
+                   form_instance.request.META.get('REMOTE_ADDR')
+    
+    result = verify_turnstile(token, remote_ip)
+    if not result.get('success'):
+        raise ValidationError('Please complete the security verification.')
+
+
 class TurnstileCommentForm(ThreadedCommentForm):
     """Comment form with Cloudflare Turnstile for ALL users."""
     
@@ -30,22 +45,7 @@ class TurnstileCommentForm(ThreadedCommentForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        
-        # Get Turnstile token from form data
-        token = cleaned_data.get('cf_turnstile_response') or self.data.get('cf-turnstile-response', '')
-        
-        # Get client IP
-        remote_ip = None
-        if self.request:
-            remote_ip = self.request.META.get('HTTP_CF_CONNECTING_IP') or \
-                       self.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
-                       self.request.META.get('REMOTE_ADDR')
-        
-        # Verify with Cloudflare
-        result = verify_turnstile(token, remote_ip)
-        if not result.get('success'):
-            raise ValidationError('Please complete the verification challenge.')
-        
+        _verify_turnstile_for_form(self)
         return cleaned_data
 
 
@@ -117,20 +117,5 @@ class ContactForm(forms.Form):
     def clean(self):
         """Validate Turnstile token"""
         cleaned_data = super().clean()
-        
-        # Get Turnstile token from form data
-        token = cleaned_data.get('cf_turnstile_response') or self.data.get('cf-turnstile-response', '')
-        
-        # Get client IP
-        remote_ip = None
-        if self.request:
-            remote_ip = self.request.META.get('HTTP_CF_CONNECTING_IP') or \
-                       self.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
-                       self.request.META.get('REMOTE_ADDR')
-        
-        # Verify with Cloudflare
-        result = verify_turnstile(token, remote_ip)
-        if not result.get('success'):
-            raise ValidationError('Please complete the security verification.')
-        
+        _verify_turnstile_for_form(self)
         return cleaned_data

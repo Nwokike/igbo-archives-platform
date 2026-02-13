@@ -8,6 +8,7 @@ from django.conf import settings
 
 class ChatSession(models.Model):
     """A conversation session between a user and the AI."""
+    # CASCADE is intentional (privacy-by-design): deleting a user removes their chat history
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -28,8 +29,11 @@ class ChatSession(models.Model):
         return f"{self.title} - {self.user.username}"
     
     def get_context_messages(self, limit=10):
-        """Get recent messages for AI context."""
-        return self.messages.order_by('-created_at')[:limit][::-1]
+        """Get recent messages for AI context (ordered oldest-first)."""
+        # Use a subquery to get only the last N messages, then order ascending
+        # Avoids loading all rows into Python memory just to slice and reverse
+        recent_ids = self.messages.order_by('-created_at').values_list('id', flat=True)[:limit]
+        return self.messages.filter(id__in=recent_ids).order_by('created_at')
 
 
 class ChatMessage(models.Model):

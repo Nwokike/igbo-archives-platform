@@ -4,14 +4,16 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from core.validators import validate_image_size
 
 
 class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=200, blank=True)
     bio = models.TextField(blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True, validators=[validate_image_size])
     social_links = models.JSONField(default=dict, blank=True)
     last_weekly_update_at = models.DateTimeField(null=True, blank=True)
+    deactivated_at = models.DateTimeField(null=True, blank=True, help_text='Set when user soft-deletes their account')
     
     def __str__(self):
         return self.full_name or self.email or self.username
@@ -39,7 +41,7 @@ class Thread(models.Model):
 
 class Message(models.Model):
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    sender = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
@@ -67,7 +69,7 @@ class Notification(models.Model):
     
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='sent_notifications'

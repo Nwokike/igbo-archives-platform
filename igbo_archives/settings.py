@@ -19,7 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- Core Security ---
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
-    raise ValueError("The SECRET_KEY environment variable must be set.")
+    if DEBUG:
+        SECRET_KEY = 'insecure-dev-key-do-not-use-in-production'
+    else:
+        raise ValueError("The SECRET_KEY environment variable must be set.")
 
 DEBUG = get_bool_from_env('DEBUG', 'False')
 
@@ -27,12 +30,12 @@ ADMINS = [('Admin', os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng'))]
 
 # --- Hosts & Trusted Origins ---
 if DEBUG:
-    ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
+    ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']  # SECURITY: never deploy with DEBUG=True
 else:
     allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'igboarchives.com.ng,www.igboarchives.com.ng')
     ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
 
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng,https://www.igboarchives.com.ng').split(',')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng,https://www.igboarchives.com.ng').split(',') if o.strip()]
 SITE_URL = os.getenv('SITE_URL', 'https://igboarchives.com.ng')
 
 # --- Application Definition ---
@@ -126,14 +129,15 @@ DATABASES = {
             'init_command': (
                 "PRAGMA journal_mode=WAL;"
                 "PRAGMA synchronous=NORMAL;"
-                "PRAGMA cache_size=-64000;"
+                "PRAGMA cache_size=-32000;"
                 "PRAGMA foreign_keys=ON;"
+                "PRAGMA busy_timeout=5000;"
             ),
         }
     }
 }
 
-CONN_MAX_AGE = 600
+CONN_MAX_AGE = None  # Django 6.0 persistent connection pooling
 CONN_HEALTH_CHECKS = True
 
 CACHES = {
@@ -175,7 +179,7 @@ R2_CUSTOM_DOMAIN = os.getenv('R2_CUSTOM_DOMAIN', '')
 if DEBUG:
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
     DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
     DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR / 'backups'}
@@ -228,7 +232,7 @@ LOGIN_REDIRECT_URL = '/profile/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 SOCIALACCOUNT_LOGIN_ON_GET = True
@@ -260,8 +264,8 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
 # --- Upload Limits ---
-DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800 # 50MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800 # 50MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB — safe for 1GB RAM VM
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB — actual files go to disk via TemporaryFileUploadHandler
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 FILE_UPLOAD_HANDLERS = [
     'django.core.files.uploadhandler.TemporaryFileUploadHandler',
@@ -300,7 +304,7 @@ PWA_APP_ICONS = [
     {'src': '/static/images/logos/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
 ]
 PWA_APP_ICONS_APPLE = [
-    {'src': '/static/images/logos/icon-192.png', 'sizes': '180x180'},
+    {'src': '/static/images/logos/icon-192.png', 'sizes': '192x192'},
 ]
 PWA_SERVICE_WORKER_PATH = BASE_DIR / 'static' / 'serviceworker.js'
 
@@ -364,7 +368,6 @@ HUEY = SqliteHuey(
     filename=str(BASE_DIR / 'huey.db'),
     immediate=False,
     results=False,
-    store_none=True,
     utc=True,
 )
 
@@ -386,6 +389,7 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # --- Content Security Policy (CSP) ---
 
@@ -395,7 +399,6 @@ CONTENT_SECURITY_POLICY = {
         'script-src': [
             "'self'",
             "'unsafe-inline'",
-            "'unsafe-eval'",
             "https://*.google.com",
             "https://*.gstatic.com",
             "https://*.doubleclick.net",

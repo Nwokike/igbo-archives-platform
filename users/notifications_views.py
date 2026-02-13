@@ -47,6 +47,9 @@ def notification_mark_read(request: HttpRequest, notification_id: int):
 def notification_mark_all_read(request: HttpRequest):
     """Mark all notifications as read"""
     request.user.notifications.filter(unread=True).update(unread=False)
+    # Invalidate the cached notification count so badge updates immediately
+    from django.core.cache import cache
+    cache.delete(f'notif_count_{request.user.id}')
     
     # Check for AJAX/JSON request more robustly
     is_ajax = (

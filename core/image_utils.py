@@ -113,5 +113,6 @@ def compress_model_images(instance, *field_names, max_size_mb=1.5):
                         compressed = compress_image(field.file, max_size_mb=max_size_mb)
                         if compressed and compressed != field.file:
                             setattr(instance, field_name, compressed)
-            except Exception:
-                pass  # Keep original on error
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Image compression skipped for field '{field_name}': {e}")

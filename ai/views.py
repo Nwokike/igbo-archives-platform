@@ -3,15 +3,19 @@ AI views for Igbo Archives.
 World-class cultural AI assistant - no visible provider branding.
 """
 import json
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.core.cache import cache
+from django.db.models import Count
 from .models import ChatSession, ChatMessage, ArchiveAnalysis
 from .services.chat_service import chat_service
 from .services.vision_service import vision_service
 from .services.tts_service import tts_service
+
+logger = logging.getLogger(__name__)
 
 
 def ai_home(request):
@@ -201,7 +205,8 @@ def analyze_archive(request):
         except Exception as e:
             if os.path.exists(tmp.name):
                 os.unlink(tmp.name)
-            return JsonResponse({'error': f'Error processing image: {str(e)}'}, status=500)
+            logger.error(f"Error processing image for archive analysis: {e}")
+            return JsonResponse({'error': 'Failed to process image. Please try again.'}, status=500)
     
     try:
         # Analyze
@@ -269,13 +274,15 @@ def chat_history(request):
     sessions = ChatSession.objects.filter(
         user=request.user,
         is_active=True
+    ).annotate(
+        message_count=Count('messages')
     ).order_by('-updated_at')[:20]
     
     data = [{
         'id': s.id,
         'title': s.title,
         'updated_at': s.updated_at.isoformat(),
-        'message_count': s.messages.count(),
+        'message_count': s.message_count,
     } for s in sessions]
     
     return JsonResponse({'sessions': data})
@@ -295,6 +302,12 @@ def delete_session(request, session_id):
 @require_POST
 def generate_insight_content(request):
     """Generate or refine insight content using AI."""
+    
+    # Rate limiting — consistent with analyze_archive (20/hour)
+    rate_key = f'ai_insight_gen_{request.user.id}'
+    gen_count = cache.get(rate_key, 0)
+    if gen_count >= 20:
+        return JsonResponse({'success': False, 'error': 'Generation limit reached. Please wait a while.'}, status=429)
     
     try:
         data = json.loads(request.body)
@@ -326,6 +339,7 @@ def generate_insight_content(request):
         response = chat_service.chat(messages, use_web_search=bool(topic))
         
         if response['success']:
+            cache.set(rate_key, gen_count + 1, 3600)
             return JsonResponse({
                 'success': True,
                 'content': response['content']
@@ -339,7 +353,8 @@ def generate_insight_content(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        logger.error(f"Insight content generation error: {e}")
+        return JsonResponse({'success': False, 'error': 'An unexpected error occurred. Please try again.'}, status=500)
 
 
 def coming_soon(request):

@@ -1,10 +1,7 @@
 from django.urls import reverse
-from django.core.mail import send_mail
 from django.conf import settings
-from django.template.loader import render_to_string
 from django.contrib.contenttypes.models import ContentType
 from users.models import Notification
-from webpush import send_user_notification
 import logging
 
 logger = logging.getLogger(__name__)
@@ -67,19 +64,17 @@ def _send_notification_and_push(recipient, sender, verb, description, target_obj
             object_id=object_id
         )
         
-        # 2. Send the Browser Push Notification
-        payload = {
-            "head": push_head,
-            "body": push_body,
-            "icon": "/static/images/logos/logo-light.png",
-            "url": push_url
-        }
-        send_user_notification(user=recipient, payload=payload, ttl=1000)
+        # 2. Send the Browser Push Notification (async via Huey)
+        try:
+            from core.tasks import send_push_notification_async
+            send_push_notification_async(recipient.id, push_head, push_body, push_url)
+        except Exception as push_err:
+            logger.warning(f"Failed to queue push notification for {recipient.username}: {push_err}")
         
         logger.info(f"Sent notification ('{verb}') to {recipient.username}")
         
     except Exception as e:
-        logger.warning(f"Error sending notification or push to {recipient.username}: {str(e)}")
+        logger.warning(f"Error sending notification: {str(e)}")
 
 
 # --- NOTIFICATION FUNCTIONS ---
@@ -159,7 +154,7 @@ def send_new_comment_notification(comment, post):
     if not post_author or (comment.user and comment.user == post_author):
         return 
         
-    commenter_name = comment.user.full_name if comment.user else comment.name
+    commenter_name = comment.user.get_display_name() if comment.user else comment.name
     description = f'{commenter_name} commented on your post'
 
     _send_notification_and_push(
@@ -206,8 +201,11 @@ def send_comment_reply_notification(comment, parent_comment):
     if comment.user and comment.user == parent_comment.user:
         return 
     
-    commenter_name = comment.user.full_name if comment.user else comment.name
+    commenter_name = comment.user.get_display_name() if comment.user else comment.name
     description = f'{commenter_name} replied to your comment'
+
+    # Get the actual post from the parent comment's content object
+    post = parent_comment.content_object
 
     _send_notification_and_push(
         recipient=parent_comment.user,
@@ -217,12 +215,12 @@ def send_comment_reply_notification(comment, parent_comment):
         target_object=comment,
         push_head="New Reply",
         push_body=f'{commenter_name} replied to your comment.',
-        push_url=f"{_get_absolute_url(parent_comment)}#comment-{comment.id}"
+        push_url=f"{_get_absolute_url(post)}#comment-{comment.id}"
     )
 
 
 def send_message_notification(message, recipient):
-    description = f'{message.sender.full_name} sent you a message'
+    description = f'{message.sender.get_display_name()} sent you a message'
     
     _send_notification_and_push(
         recipient=recipient,
@@ -336,16 +334,9 @@ def send_broadcast_notification(title, body, url="/"):
 
 
 def send_email_notification(to_email, subject, message):
-    if not settings.EMAIL_BACKEND or 'console' in settings.EMAIL_BACKEND:
-        return
-    
+    """Send email notification routed through email_service for quota tracking."""
     try:
-        send_mail(
-            subject=f'Igbo Archives - {subject}',
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[to_email],
-            fail_silently=True,
-        )
+        from core.email_service import send_email
+        send_email(to_email, subject, message, email_type='instant')
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {str(e)}")

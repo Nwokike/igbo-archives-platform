@@ -28,28 +28,31 @@ class ArchiveItemInline(admin.StackedInline):
 
 @admin.action(description='✅ Approve selected archives')
 def approve_archives(modeladmin, request, queryset):
-    count = queryset.update(is_approved=True)
+    count = queryset.update(is_approved=True, is_rejected=False)
     modeladmin.message_user(request, f'{count} archive(s) approved.')
 
 
 @admin.action(description='❌ Reject selected archives')
 def reject_archives(modeladmin, request, queryset):
-    count = queryset.update(is_approved=False)
+    count = queryset.update(is_approved=False, is_rejected=True)
     modeladmin.message_user(request, f'{count} archive(s) rejected.')
 
 
 @admin.register(Archive)
 class ArchiveAdmin(admin.ModelAdmin):
     list_display = ['title', 'archive_type', 'category', 'item_count', 'uploaded_by', 'created_at', 'is_approved']
-    list_filter = ['archive_type', 'category', 'is_approved', 'item_count']
+    list_filter = ['archive_type', 'category', 'is_approved', 'is_rejected', 'item_count']
     search_fields = ['title', 'description', 'original_author']
     list_editable = ['category']
     actions = [approve_archives, reject_archives]
     inlines = [ArchiveItemInline]
+    raw_id_fields = ['uploaded_by']
+    readonly_fields = ['slug', 'sort_year', 'created_at', 'updated_at']
+    list_per_page = 25
     
     fieldsets = (
         ('Basic Info', {
-            'fields': ('title', 'description', 'archive_type', 'category', 'item_count')
+            'fields': ('title', 'slug', 'description', 'archive_type', 'category', 'item_count')
         }),
         ('Primary Media (Cover)', {
             'fields': ('image', 'video', 'audio', 'document', 'featured_image')
@@ -61,9 +64,9 @@ class ArchiveAdmin(admin.ModelAdmin):
             'fields': ('original_author', 'author', 'original_url', 'original_identity_number')
         }),
         ('Date & Location', {
-            'fields': ('date_created', 'circa_date', 'location')
+            'fields': ('date_created', 'circa_date', 'location', 'sort_year')
         }),
         ('Status', {
-            'fields': ('uploaded_by', 'is_approved')
+            'fields': ('uploaded_by', 'is_approved', 'is_rejected', 'rejection_reason', 'created_at', 'updated_at')
         }),
     )

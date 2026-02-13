@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
-import bleach
+import nh3
 from .models import InsightPost, EditSuggestion
 
 # Allowed tags for admin preview (for user-provided content, we only allow basic formatting)
-ADMIN_PREVIEW_ALLOWED_TAGS = ['b', 'i', 'u', 'strong', 'em', 'br']
+ADMIN_PREVIEW_ALLOWED_TAGS = {'b', 'i', 'u', 'strong', 'em', 'br'}
 
 
 @admin.register(InsightPost)
@@ -45,25 +45,35 @@ class InsightPostAdmin(admin.ModelAdmin):
             
             if block_type == 'header':
                 level = min(max(int(data.get('level', 2)), 1), 6)  # Sanitize level
-                text = bleach.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
+                text = nh3.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
                 html_parts.append(f'<h{level} style="margin:0.5em 0">{text}</h{level}>')
             elif block_type == 'paragraph':
-                text = bleach.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
+                text = nh3.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
                 html_parts.append(f'<p style="margin:0.5em 0">{text}</p>')
             elif block_type == 'image':
                 file_data = data.get('file', {})
                 url = escape(file_data.get('url', '') if isinstance(file_data, dict) else '')
-                caption = bleach.clean(data.get('caption', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
+                caption = nh3.clean(data.get('caption', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
                 if url:
                     html_parts.append(f'<figure style="margin:1em 0"><img src="{url}" alt="" style="max-width:400px;border-radius:8px"><figcaption style="font-size:0.9em;color:#666">{caption}</figcaption></figure>')
             elif block_type == 'list':
                 style = data.get('style', 'unordered')
                 tag = 'ol' if style == 'ordered' else 'ul'
                 items = data.get('items', [])
-                items_html = ''.join(f'<li>{bleach.clean(item, tags=ADMIN_PREVIEW_ALLOWED_TAGS)}</li>' for item in items if isinstance(item, str))
+                items_html_parts = []
+                for item in items:
+                    # Handle nested list items (dicts with 'content' key)
+                    if isinstance(item, dict):
+                        text = item.get('content', '')
+                    elif isinstance(item, str):
+                        text = item
+                    else:
+                        continue
+                    items_html_parts.append(f'<li>{nh3.clean(text, tags=ADMIN_PREVIEW_ALLOWED_TAGS)}</li>')
+                items_html = ''.join(items_html_parts)
                 html_parts.append(f'<{tag} style="margin:0.5em 0;padding-left:1.5em">{items_html}</{tag}>')
             elif block_type == 'quote':
-                text = bleach.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
+                text = nh3.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
                 html_parts.append(f'<blockquote style="margin:1em 0;padding:0.5em 1em;border-left:3px solid #ddd;background:#f9f9f9">{text}</blockquote>')
             elif block_type == 'delimiter':
                 html_parts.append('<hr style="margin:1em 0">')

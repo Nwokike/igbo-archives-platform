@@ -80,15 +80,18 @@ class ArchiveForm(forms.ModelForm):
         self.fields['category'].queryset = Category.objects.filter(type='archive')
         self.fields['category'].empty_label = 'Select category...'
         
-        # Apply utility classes to all fields
+        # Apply utility classes to all fields (avoid duplicating if already set in widgets)
         for field_name, field in self.fields.items():
             current_class = field.widget.attrs.get('class', '')
             if isinstance(field.widget, (forms.TextInput, forms.URLInput, forms.DateInput)):
-                field.widget.attrs['class'] = f'form-input {current_class}'.strip()
+                if 'form-input' not in current_class:
+                    field.widget.attrs['class'] = f'form-input {current_class}'.strip()
             elif isinstance(field.widget, forms.Textarea):
-                field.widget.attrs['class'] = f'form-textarea {current_class}'.strip()
+                if 'form-textarea' not in current_class:
+                    field.widget.attrs['class'] = f'form-textarea {current_class}'.strip()
             elif isinstance(field.widget, forms.Select):
-                field.widget.attrs['class'] = f'form-select {current_class}'.strip()
+                if 'form-select' not in current_class:
+                    field.widget.attrs['class'] = f'form-select {current_class}'.strip()
     
     def clean_original_identity_number(self):
         """Validate that IDNO is unique, with graceful error message."""
@@ -107,12 +110,8 @@ class ArchiveForm(forms.ModelForm):
         existing = existing.first()
         
         if existing:
-            # Get URL for existing archive
-            from django.urls import reverse
-            url = existing.get_absolute_url()
             raise ValidationError(
-                f'An archive with ID Number "{idno}" already exists. '
-                f'View it at: {url}'
+                f'An archive with ID Number "{idno}" already exists.'
             )
         
         return idno
@@ -169,7 +168,7 @@ ArchiveItemFormSet = inlineformset_factory(
     Archive,
     ArchiveItem,
     form=ArchiveItemForm,
-    extra=5,       # Allow up to 5 blank forms (JS will hide/show them)
+    extra=1,       # Start with 1 blank form (JS can add more)
     max_num=5,     # Maximum 5 items
     can_delete=True,
     validate_max=True

@@ -45,12 +45,12 @@ class ArchiveAnalysis {
     }
 
     openModal() {
-        this.modal.classList.remove('hidden');
+        this.modal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
 
     closeModal() {
-        this.modal.classList.add('hidden');
+        this.modal.classList.remove('active');
         document.body.style.overflow = '';
     }
 

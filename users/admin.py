@@ -10,26 +10,29 @@ class CustomUserAdmin(UserAdmin):
     )
     actions = ['send_onboarding_email']
 
-    @admin.action(description='Send onboarding/claim profile email')
+    @admin.action(description='Send onboarding/claim profile email (async)')
     def send_onboarding_email(self, request, queryset):
-        from .utils import send_claim_profile_email
-        sent_count = 0
+        from core.tasks import send_email_async
+        from .utils import _build_claim_email_context
+        queued_count = 0
         skipped_count = 0
         
         for user in queryset:
             # Only send if they haven't set a password (unusable password)
-            if not user.has_usable_password():
-                if send_claim_profile_email(user, mode='onboarding'):
-                    sent_count += 1
-                else:
+            if not user.has_usable_password() and user.email:
+                try:
+                    subject, plain_message, _ = _build_claim_email_context(user, mode='onboarding')
+                    send_email_async(subject, plain_message, [user.email])
+                    queued_count += 1
+                except Exception:
                     skipped_count += 1
             else:
                 skipped_count += 1
         
         self.message_user(
             request,
-            f"Successfully sent onboarding emails to {sent_count} users. Skipped {skipped_count} (already have passwords or error).",
-            level='INFO' if sent_count > 0 else 'WARNING'
+            f"Queued onboarding emails for {queued_count} users. Skipped {skipped_count} (already have passwords or no email).",
+            level='INFO' if queued_count > 0 else 'WARNING'
         )
 
 

@@ -5,25 +5,9 @@ Handles chat completions with multi-key rotation and fallback to Gemini.
 import logging
 from django.conf import settings
 from .key_manager import key_manager
+from .constants import SYSTEM_PROMPT, GENERIC_AI_ERROR
 
 logger = logging.getLogger(__name__)
-
-SYSTEM_PROMPT = """You are Igbo Archives AI, a knowledgeable and friendly assistant specialized in Igbo culture, history, language, and heritage. You help users:
-
-1. Learn about Igbo traditions, customs, and cultural practices
-2. Understand Igbo history and notable historical figures
-3. Explore the Igbo language, including translations and explanations
-4. Discover Igbo art, music, literature, and folklore
-5. Navigate and contribute to the Igbo Archives platform
-
-Guidelines:
-- Be respectful and culturally sensitive
-- Provide accurate, well-researched information
-- When uncertain, acknowledge limitations and suggest further research
-- Use Igbo words and phrases where appropriate, with explanations
-- Encourage preservation and appreciation of Igbo heritage
-
-Format responses in a clear, readable way using markdown when helpful."""
 
 
 class GroqService:
@@ -71,7 +55,7 @@ class GroqService:
         model = self.FAST_MODEL if use_fast else self.CHAT_MODEL
         
         # Try each available key
-        for _ in range(key_manager.groq_key_count):
+        for _ in range(len(key_manager.groq_keys)):
             api_key = key_manager.get_groq_key()
             if not api_key:
                 break
@@ -107,14 +91,14 @@ class GroqService:
             except Exception as e:
                 error_str = str(e).lower()
                 if 'rate' in error_str or 'limit' in error_str or '429' in error_str:
-                    key_manager.mark_key_rate_limited('groq', api_key, 3600)
+                    key_manager.mark_rate_limited('groq', api_key, 3600)
                     logger.warning(f"Groq key rate limited, trying next...")
                     continue
                 else:
                     logger.error(f"Groq chat error: {e}")
                     return {
                         'success': False,
-                        'content': f'Sorry, I encountered an error: {str(e)}',
+                        'content': GENERIC_AI_ERROR,
                         'tokens_used': 0,
                         'model': model,
                         'provider': 'groq'
@@ -144,7 +128,7 @@ class GroqService:
         if not self.is_available:
             return {'success': False, 'text': '', 'error': 'Groq not configured'}
         
-        for _ in range(key_manager.groq_key_count):
+        for _ in range(len(key_manager.groq_keys)):
             api_key = key_manager.get_groq_key()
             if not api_key:
                 break
@@ -170,11 +154,11 @@ class GroqService:
             except Exception as e:
                 error_str = str(e).lower()
                 if 'rate' in error_str or 'limit' in error_str:
-                    key_manager.mark_key_rate_limited('groq', api_key, 3600)
+                    key_manager.mark_rate_limited('groq', api_key, 3600)
                     continue
                 else:
                     logger.error(f"Whisper transcription error: {e}")
-                    return {'success': False, 'text': '', 'error': str(e)}
+                    return {'success': False, 'text': '', 'error': 'Transcription failed. Please try again.'}
         
         return {'success': False, 'text': '', 'error': 'All API keys exhausted'}
     
@@ -183,7 +167,7 @@ class GroqService:
         if not self.is_available:
             return first_message[:50] + '...' if len(first_message) > 50 else first_message
         
-        for _ in range(key_manager.groq_key_count):
+        for _ in range(len(key_manager.groq_keys)):
             api_key = key_manager.get_groq_key()
             if not api_key:
                 break
@@ -206,7 +190,7 @@ class GroqService:
             except Exception as e:
                 error_str = str(e).lower()
                 if 'rate' in error_str or 'limit' in error_str:
-                    key_manager.mark_key_rate_limited('groq', api_key, 3600)
+                    key_manager.mark_rate_limited('groq', api_key, 3600)
                     continue
                 logger.error(f"Title generation error: {e}")
                 break

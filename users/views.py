@@ -7,7 +7,10 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages as django_messages
 from django.core.cache import cache
 from django.db.models import Q
-import bleach
+from django.http import HttpResponseBadRequest
+from django.urls import reverse
+from django.utils import timezone
+import nh3
 import logging
 from .models import Thread, Message
 from .forms import ProfileEditForm
@@ -93,6 +96,8 @@ def dashboard(request):
             return render(request, 'users/partials/dashboard_books.html', context)
         elif target == 'archives':
             return render(request, 'users/partials/dashboard_archives.html', context)
+        else:
+            return HttpResponseBadRequest('Invalid target.')
             
     return render(request, 'users/dashboard.html', context)
 
@@ -150,6 +155,8 @@ def profile_view(request, username):
             return render(request, 'users/partials/profile_books.html', context)
         elif target == 'archives':
             return render(request, 'users/partials/profile_archives.html', context)
+        else:
+            return HttpResponseBadRequest('Invalid target.')
             
     return render(request, 'users/profile.html', context)
 
@@ -203,30 +210,15 @@ def message_thread(request, thread_id):
         elif len(content) > 10000:
             django_messages.error(request, 'Message is too long (max 10,000 characters).')
         else:
-            # Sanitize content with bleach to prevent XSS
-            clean_content = bleach.clean(content, strip=True)
+            # Sanitize content with nh3 to prevent XSS
+            clean_content = nh3.clean(content)
             Message.objects.create(
                 thread=thread,
                 sender=request.user,
                 content=clean_content
             )
             cache.set(rate_key, msg_count + 1, 3600)
-            # Bell Notification (Confirmation for sender)
-            try:
-                from core.notifications_utils import _send_notification_and_push
-                _send_notification_and_push(
-                    recipient=request.user,
-                    sender=None,
-                    verb='sent a message',
-                    description=f'Your message to {thread.participants.exclude(id=request.user.id).first().get_display_name()} was sent.',
-                    target_object=thread,
-                    push_head="Message Sent",
-                    push_body="Your message was delivered.",
-                    push_url=reverse('users:thread', args=[thread.id])
-                )
-            except Exception as e:
-                logger.warning(f"Failed to send in-app notification to sender: {e}")
-
+            # Recipient notification is handled by the Message post_save signal
             return redirect('users:thread', thread_id=thread_id)
     
     thread.messages.exclude(sender=request.user).filter(is_read=False).update(is_read=True)
@@ -255,9 +247,9 @@ def compose_message(request, username):
         content = request.POST.get('content', '').strip()
         
         if subject and content:
-            # Sanitize content with bleach to prevent XSS
-            clean_content = bleach.clean(content, strip=True)
-            thread = Thread.objects.create(subject=bleach.clean(subject[:255], strip=True))
+            # Sanitize content with nh3 to prevent XSS
+            clean_content = nh3.clean(content)
+            thread = Thread.objects.create(subject=nh3.clean(subject[:255]))
             thread.participants.add(request.user, recipient)
             Message.objects.create(
                 thread=thread,
@@ -265,24 +257,7 @@ def compose_message(request, username):
                 content=clean_content[:10000]
             )
             cache.set(rate_key, msg_count + 1, 3600)
-            # Bell Notification (Confirmation for sender)
-            try:
-                from core.notifications_utils import _send_notification_and_push
-                _send_notification_and_push(
-                    recipient=request.user,
-                    sender=None,
-                    verb='sent a message',
-                    description=f'Your message to {recipient.get_display_name()} was sent.',
-                    target_object=thread,
-                    push_head="Message Sent",
-                    push_body="Your message was delivered.",
-                    push_url=reverse('users:thread', args=[thread.id])
-                )
-            except Exception as e:
-                logger.warning(f"Failed to send in-app notification to sender: {e}")
-
-            # REMOVED: Success flash message in favor of bell notification
-            # django_messages.success(request, 'Message sent successfully!')
+            # Recipient notification is handled by the Message post_save signal
             return redirect('users:thread', thread_id=thread.id)
         else:
             django_messages.error(request, 'Subject and message are required.')
@@ -292,7 +267,12 @@ def compose_message(request, username):
 
 @login_required
 def delete_account(request):
-    """Delete user account with password confirmation and rate limiting."""
+    """Soft-delete user account with password confirmation and rate limiting.
+    
+    Sets is_active=False and records deactivation timestamp.
+    Account data is preserved for a 30-day grace period before permanent deletion
+    by the cleanup_old_chat_sessions periodic task.
+    """
     rate_key = f'delete_attempt_{request.user.id}'
     attempts = cache.get(rate_key, 0)
     
@@ -304,18 +284,18 @@ def delete_account(request):
         password = request.POST.get('password', '')
         
         if request.user.check_password(password):
-            import logging
-            logger = logging.getLogger(__name__)
             username = request.user.username
             email = request.user.email
-            logger.warning(f"User {username} ({email}) deleted their account")
-            request.user.delete()
+            logger.warning(f"User {username} ({email}) deactivated their account")
+            # Soft-delete: deactivate instead of destroying
+            request.user.is_active = False
+            request.user.deactivated_at = timezone.now()
+            request.user.save(update_fields=['is_active', 'deactivated_at'])
             cache.delete(rate_key)
-            django_messages.success(request, 'Your account has been deleted.')
+            django_messages.success(request, 'Your account has been deactivated. It will be permanently deleted after 30 days.')
             return redirect('core:home')
         else:
             cache.set(rate_key, attempts + 1, 3600)
             django_messages.error(request, 'Incorrect password.')
     
     return render(request, 'users/delete_account.html')
-

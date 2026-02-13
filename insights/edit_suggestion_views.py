@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import InsightPost, EditSuggestion
 from core.notifications_utils import send_edit_suggestion_approved_notification, send_edit_suggestion_rejected_notification
@@ -10,6 +11,7 @@ from core.notifications_utils import send_edit_suggestion_approved_notification,
 
 
 @login_required
+@require_POST
 def approve_edit_suggestion(request, pk):
     """Post author approves an edit suggestion"""
     suggestion = get_object_or_404(EditSuggestion, pk=pk)
@@ -26,7 +28,7 @@ def approve_edit_suggestion(request, pk):
     # Send notification to suggester
     send_edit_suggestion_approved_notification(suggestion)
     
-    messages.success(request, f'{suggestion.suggested_by.full_name} can now edit your post.')
+    messages.success(request, f'{suggestion.suggested_by.get_display_name()} can now edit your post.')
     return redirect('users:dashboard')
 
 

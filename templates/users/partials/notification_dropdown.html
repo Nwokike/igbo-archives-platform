@@ -1,46 +1,50 @@
-<div class="notification-dropdown-content">
+<div class="notification-dropdown-content" id="notificationsList"
+    data-mark-read-url="{% url 'users:notification_mark_read' notification_id=0 %}"
+    data-mark-all-read-url="{% url 'users:notification_mark_all_read' %}">
     <div class="p-3 border-b border-border flex justify-between items-center bg-surface-alt/50">
         <h4 class="text-sm font-bold font-serif">Recent Notifications</h4>
-        <button onclick="markAllRead()" class="text-[10px] text-accent hover:underline">Mark all read</button>
+        <button class="text-[10px] text-accent hover:underline" data-action="mark-all-read">Mark all read</button>
     </div>
     <div class="max-h-[350px] overflow-y-auto">
         {% if notifications %}
-            {% for notification in notifications %}
-            <a href="{% if notification.target %}{{ notification.target.get_absolute_url }}{% else %}{% url 'users:notifications' %}{% endif %}" 
-               class="flex items-start gap-3 p-3 border-b border-border hover:bg-surface-alt transition-colors {% if notification.unread %}bg-accent/5 border-l-4 border-l-accent{% endif %}"
-               id="notification-{{ notification.id }}">
-                <div class="flex-shrink-0 mt-1">
-                    {% if 'approved' in notification.verb|lower %}
-                        <i class="fas fa-check-circle text-green-600 text-sm"></i>
-                    {% elif 'rejected' in notification.verb|lower %}
-                        <i class="fas fa-times-circle text-red-500 text-sm"></i>
-                    {% elif 'comment' in notification.verb|lower %}
-                        <i class="fas fa-comment text-accent text-sm"></i>
-                    {% elif 'message' in notification.verb|lower %}
-                        <i class="fas fa-envelope text-accent text-sm"></i>
-                    {% else %}
-                        <i class="fas fa-bell text-text-muted text-sm"></i>
+        {% for notification in notifications %}
+        <a href="{% if notification.target %}{{ notification.target.get_absolute_url }}{% else %}{% url 'users:notifications' %}{% endif %}"
+            class="flex items-start gap-3 p-3 border-b border-border hover:bg-surface-alt transition-colors {% if notification.unread %}bg-accent/5 border-l-4 border-l-accent{% endif %}"
+            id="notification-{{ notification.id }}">
+            <div class="flex-shrink-0 mt-1">
+                {% if 'approved' in notification.verb|lower %}
+                <i class="fas fa-check-circle text-green-600 text-sm"></i>
+                {% elif 'rejected' in notification.verb|lower %}
+                <i class="fas fa-times-circle text-red-500 text-sm"></i>
+                {% elif 'comment' in notification.verb|lower %}
+                <i class="fas fa-comment text-accent text-sm"></i>
+                {% elif 'message' in notification.verb|lower %}
+                <i class="fas fa-envelope text-accent text-sm"></i>
+                {% else %}
+                <i class="fas fa-bell text-text-muted text-sm"></i>
+                {% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs text-text line-clamp-2">{{ notification.description|default:notification.verb }}</p>
+                <div class="flex justify-between items-center mt-1">
+                    <span class="text-[10px] text-text-muted">{{ notification.timestamp|timesince }} ago</span>
+                    {% if notification.unread %}
+                    <button data-action="mark-read" data-notification-id="{{ notification.id }}"
+                        class="text-[10px] text-accent hover:underline mark-read-btn">Mark read</button>
                     {% endif %}
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-xs text-text line-clamp-2">{{ notification.description|default:notification.verb }}</p>
-                    <div class="flex justify-between items-center mt-1">
-                        <span class="text-[10px] text-text-muted">{{ notification.timestamp|timesince }} ago</span>
-                        {% if notification.unread %}
-                        <button onclick="event.preventDefault(); markNotificationRead('{{ notification.id }}')" class="text-[10px] text-accent hover:underline">Mark read</button>
-                        {% endif %}
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
-        {% else %}
-            <div class="p-8 text-center text-text-muted">
-                <i class="fas fa-bell-slash text-2xl mb-2 opacity-20"></i>
-                <p class="text-xs">No new notifications</p>
             </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="p-8 text-center text-text-muted">
+            <i class="fas fa-bell-slash text-2xl mb-2 opacity-20"></i>
+            <p class="text-xs">No new notifications</p>
+        </div>
         {% endif %}
     </div>
     <div class="p-2 border-t border-border text-center">
-        <a href="{% url 'users:notifications' %}" class="text-xs text-accent font-medium hover:underline">View All Notifications</a>
+        <a href="{% url 'users:notifications' %}" class="text-xs text-accent font-medium hover:underline">View All
+            Notifications</a>
     </div>
 </div>

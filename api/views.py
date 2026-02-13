@@ -139,19 +139,19 @@ def upload_image(request):
     # Atomic creation of Archive + Item
     try:
         with transaction.atomic():
-            # 1. Parent Archive
+            # 1. Parent Archive (no file — stored only on ArchiveItem to avoid doubling storage)
             archive = Archive.objects.create(
                 title=caption[:255],
                 description=description,
                 caption=caption,
                 alt_text=description[:255],
                 archive_type='image',
-                image=image_file, # Kept for sync
                 uploaded_by=request.user,
                 is_approved=False
             )
             
-            # 2. Archive Item
+            # 2. Archive Item — file lives here only
+            image_file.seek(0)  # Ensure stream is at start
             ArchiveItem.objects.create(
                 archive=archive,
                 item_number=1,
@@ -163,10 +163,14 @@ def upload_image(request):
             
             cache.set(rate_key, upload_count + 1, 3600)
             
+            # Build URL from the ArchiveItem
+            item = archive.items.first()
+            file_url = request.build_absolute_uri(item.image.url) if item and item.image else ''
+            
             return JsonResponse({
                 'success': 1,
                 'file': {
-                    'url': request.build_absolute_uri(archive.image.url),
+                    'url': file_url,
                     'size': file_size,
                     'name': image_file.name,
                 },
@@ -268,8 +272,7 @@ def upload_media(request):
                 # Defaults from the first item (for list view compatibility)
                 'caption': caption[:500], 
                 'alt_text': alt_text[:255],
-                
-                config['field']: uploaded_file # Save file to parent for legacy sync
+                # File NOT saved to parent — only to ArchiveItem (avoids duplicate storage)
             }
             
             archive = Archive.objects.create(**archive_data)
@@ -279,8 +282,8 @@ def upload_media(request):
                 try:
                     archive.category = Category.objects.get(id=int(category_id))
                     archive.save(update_fields=['category'])
-                except Exception:
-                    pass
+                except (Category.DoesNotExist, ValueError, TypeError):
+                    logger.warning(f"Invalid category_id '{category_id}' for archive {archive.id}")
             
             # Handle tags
             if tags:
@@ -289,7 +292,8 @@ def upload_media(request):
                 if tag_list:
                     archive.tags.add(*tag_list[:20])
 
-            # 2. Create Archive Item (The specific media file)
+            # 2. Create Archive Item (The specific media file — file lives here only)
+            uploaded_file.seek(0)  # Ensure stream is at start
             item_data = {
                 'archive': archive,
                 'item_number': 1,
@@ -297,33 +301,39 @@ def upload_media(request):
                 'caption': caption[:500],
                 'alt_text': alt_text[:255],
                 'description': '', # Optional specific item description, leaving blank for now
-                config['field']: uploaded_file # Save file to item
+                config['field']: uploaded_file # Save file to item only
             }
             ArchiveItem.objects.create(**item_data)
             
             cache.set(rate_key, upload_count + 1, 3600)
             
-            # Bell Notification for the uploader
-            try:
-                from core.notifications_utils import send_archive_uploaded_notification
-                send_archive_uploaded_notification(request.user, archive)
-            except Exception as e:
-                logger.warning(f"Failed to send archive upload notification: {e}")
-            
-            media_field = getattr(archive, config['field'])
-            
-            return JsonResponse({
-                'success': 1,
-                'file': {
-                    'url': request.build_absolute_uri(media_field.url),
-                    'size': uploaded_file.size,
-                    'name': uploaded_file.name,
-                    # Return captions for Editor.js to display immediately
-                    'caption': caption,
-                    'alt': alt_text
-                },
-                'archive_id': archive.id
-            })
+            # Get URL from the ArchiveItem (file lives there now)
+            item = archive.items.first()
+            media_url = ''
+            if item:
+                file_field = getattr(item, config['field'], None)
+                if file_field:
+                    media_url = request.build_absolute_uri(file_field.url)
+        
+        # Bell Notification — outside transaction to avoid holding DB lock
+        try:
+            from core.notifications_utils import send_archive_uploaded_notification
+            send_archive_uploaded_notification(request.user, archive)
+        except Exception as e:
+            logger.warning(f"Failed to send archive upload notification: {e}")
+        
+        return JsonResponse({
+            'success': 1,
+            'file': {
+                'url': media_url,
+                'size': uploaded_file.size,
+                'name': uploaded_file.name,
+                # Return captions for Editor.js to display immediately
+                'caption': caption,
+                'alt': alt_text
+            },
+            'archive_id': archive.id
+        })
             
     except Exception as e:
         logger.error(f"Media upload error: {e}", exc_info=True)

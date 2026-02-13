@@ -67,17 +67,24 @@ def send_push_notification_async(user_id, title, body, url=None):
 
 @db_task()
 def broadcast_push_notification_task(title, body, url=None):
-    """Broadcast push notification to all subscribed users"""
+    """Broadcast push notification to all subscribed users in batches of 50."""
     try:
+        import time
         from webpush.models import PushInformation
-        # Get unique user IDs with active push subscriptions (explicit cast to list for Huey safety)
+        # Get unique user IDs with active push subscriptions
         user_ids = list(PushInformation.objects.values_list('user', flat=True).distinct())
         
         count = 0
-        for user_id in user_ids:
-            if user_id:
-                send_push_notification_async(user_id, title, body, url)
-                count += 1
+        batch_size = 50
+        for i in range(0, len(user_ids), batch_size):
+            batch = user_ids[i:i + batch_size]
+            for user_id in batch:
+                if user_id:
+                    send_push_notification_async(user_id, title, body, url)
+                    count += 1
+            # Small delay between batches to avoid overwhelming Huey queue
+            if i + batch_size < len(user_ids):
+                time.sleep(1)
         
         logger.info(f"Broadcast push triggered for {count} users: {title}")
         return True
@@ -99,6 +106,11 @@ def notify_post_approved(post_id, post_type):
             from books.models import BookRecommendation
             post = BookRecommendation.objects.select_related('added_by').get(id=post_id)
             author = post.added_by
+            title = post.title
+        elif post_type == 'archive':
+            from archives.models import Archive
+            post = Archive.objects.select_related('uploaded_by').get(id=post_id)
+            author = post.uploaded_by
             title = post.title
         else:
             return False
@@ -189,7 +201,7 @@ def cleanup_old_chat_sessions():
             is_active=False
         ).delete()
         
-        logger.info(f"Chat cleanup: {deleted_count} deactivated, {hard_deleted} deleted")
+        logger.info(f"Chat cleanup: {deactivated_count} deactivated, {hard_deleted} deleted")
         return True
     except Exception as e:
         logger.error(f"Chat cleanup failed: {e}")
@@ -268,14 +280,13 @@ def cleanup_old_messages():
 def notify_indexnow(urls):
     """Notify search engines about new/updated content via IndexNow"""
     try:
-        from core.indexnow import IndexNowClient
-        client = IndexNowClient()
+        from core.indexnow import submit_url_to_indexnow
         
         if isinstance(urls, str):
             urls = [urls]
         
         for url in urls:
-            client.submit_url(url)
+            submit_url_to_indexnow(url)
         
         logger.info(f"Submitted {len(urls)} URLs to IndexNow")
         return True
@@ -287,9 +298,9 @@ def notify_indexnow(urls):
 @periodic_task(crontab(hour='6', minute='0'))
 def send_weekly_digest():
     """
-    Send weekly digest emails to users in batches.
-    Runs daily at 6 AM.
-    - Limits to 270 users per day to stay within Brevo daily quota.
+    Process weekly digest batch. Runs daily at 6 AM but only sends
+    to users whose last digest was 7+ days ago.
+    - Limits to 270 users per batch to stay within Brevo daily quota.
     - Uses last_weekly_update_at to track which users need an update.
     """
     try:

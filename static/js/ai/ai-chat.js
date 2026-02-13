@@ -71,16 +71,20 @@ class AIChat {
     }
 
     formatContent(content) {
-        // Convert markdown links to HTML
-        content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="underline hover:text-vintage-gold">$1</a>');
+        // Convert markdown links to HTML — validate URL to prevent javascript: XSS
+        content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (match, text, url) {
+            if (isSafeUrl(url)) {
+                return '<a href="' + escapeHtml(url) + '" target="_blank" class="underline hover:text-vintage-gold">' + escapeHtml(text) + '</a>';
+            }
+            return escapeHtml(text); // Render as plain text if URL is unsafe
+        });
         // Convert newlines to breaks
         content = content.replace(/\n/g, '<br>');
         return content;
     }
 
     getCsrfToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
-            document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+        return getCookie('csrftoken');
     }
 
     showTyping() {

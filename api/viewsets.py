@@ -5,7 +5,7 @@ Provides RESTful API endpoints for Archive and BookRecommendation models.
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from django.core.cache import cache
 from django.db.models import Q, Avg, Count
 
 from archives.models import Archive, Category
@@ -54,7 +54,7 @@ class ArchiveViewSet(viewsets.ModelViewSet):
     PUT/PATCH /api/v1/archives/{slug}/ - Update archive (owner only)
     DELETE /api/v1/archives/{slug}/ - Delete archive (owner only)
     """
-    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    # authentication_classes inherited from DEFAULT_AUTHENTICATION_CLASSES in settings
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     lookup_field = 'slug'
     
@@ -81,7 +81,13 @@ class ArchiveViewSet(viewsets.ModelViewSet):
                 Q(caption__icontains=search)
             )
         
-        return queryset.select_related('category', 'uploaded_by').prefetch_related('tags', 'items')
+        queryset = queryset.select_related('category', 'uploaded_by')
+        
+        # Only add prefetch_related for detail/retrieve (list doesn't need items/tags)
+        if self.action in ('retrieve', 'update', 'partial_update'):
+            queryset = queryset.prefetch_related('tags', 'items')
+        
+        return queryset
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -95,9 +101,21 @@ class ArchiveViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        """Get featured archives (random selection of images)."""
-        featured = self.get_queryset().filter(archive_type='image').order_by('?')[:10]
+        """Get featured archives — cached random selection (avoids ORDER BY RANDOM)."""
+        cache_key = 'api_featured_archives'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+        
+        import random
+        image_ids = list(
+            Archive.objects.filter(is_approved=True, archive_type='image')
+            .values_list('id', flat=True)
+        )
+        selected_ids = random.sample(image_ids, min(10, len(image_ids))) if image_ids else []
+        featured = Archive.objects.filter(id__in=selected_ids).select_related('category', 'uploaded_by')
         serializer = ArchiveListSerializer(featured, many=True)
+        cache.set(cache_key, serializer.data, 600)  # Cache for 10 minutes
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
@@ -123,7 +141,7 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
     POST /api/v1/books/{slug}/rate/ - Rate a book (auth required)
     GET /api/v1/books/{slug}/ratings/ - Get book ratings
     """
-    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    # authentication_classes inherited from DEFAULT_AUTHENTICATION_CLASSES in settings
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     lookup_field = 'slug'
     
@@ -164,8 +182,10 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def top_rated(self, request):
-        """Get top-rated books."""
-        top = self.get_queryset().order_by('-avg_rating')[:10]
+        """Get top-rated books (minimum 3 ratings to qualify)."""
+        top = self.get_queryset().filter(
+            num_ratings__gte=3
+        ).order_by('-avg_rating')[:10]
         serializer = BookRecommendationListSerializer(top, many=True)
         return Response(serializer.data)
     

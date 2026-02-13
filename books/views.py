@@ -9,10 +9,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, Avg, Count
 from django.utils import timezone
 from django.utils.text import slugify
-from django.core.mail import send_mail
+from django.utils.safestring import mark_safe
 from django.conf import settings
 from django.contrib.auth import get_user_model
 import logging
@@ -21,7 +21,6 @@ from .models import BookRecommendation, UserBookRating
 from core.validators import ALLOWED_BOOK_SORTS, get_safe_sort
 from core.editorjs_helpers import parse_editorjs_content, get_workflow_flags
 from core.turnstile import verify_turnstile
-# IMPORT THE NOTIFICATION FUNCTION
 from core.notifications_utils import send_new_review_notification
 
 logger = logging.getLogger(__name__)
@@ -38,6 +37,9 @@ def get_related_books(book, count=9):
     ).exclude(pk=book.pk).select_related('added_by').only(
         'id', 'book_title', 'title', 'slug', 'cover_image',
         'created_at', 'added_by__full_name', 'added_by__username'
+    ).annotate(
+        avg_rating=Avg('ratings__rating'),
+        review_count=Count('ratings'),
     ).order_by('-created_at')
     
     return related[:count]
@@ -50,6 +52,9 @@ def book_list(request):
     ).select_related('added_by').only(
         'id', 'book_title', 'title', 'slug', 'cover_image', 'author',
         'publication_year', 'created_at', 'added_by__full_name', 'added_by__username'
+    ).annotate(
+        avg_rating=Avg('ratings__rating'),
+        review_count=Count('ratings'),
     )
     
     if search := request.GET.get('search'):
@@ -63,7 +68,11 @@ def book_list(request):
         books = books.filter(author__icontains=author)
     
     if year := request.GET.get('year'):
-        books = books.filter(publication_year__icontains=year)
+        # Validate and use integer comparison instead of icontains on IntegerField
+        try:
+            books = books.filter(publication_year=int(year))
+        except (ValueError, TypeError):
+            pass  # Ignore invalid year strings
     
     sort = get_safe_sort(request.GET.get('sort', '-created_at'), ALLOWED_BOOK_SORTS)
     books = books.order_by(sort, '-created_at')
@@ -137,10 +146,11 @@ def book_create(request):
             messages.error(request, 'Please fill in all required fields.')
             return render(request, 'books/create.html')
         
+        # Use parse_editorjs_content for consistent sanitization
         try:
-            content_data = json.loads(content_json) if isinstance(content_json, str) else content_json
-        except json.JSONDecodeError:
-            messages.error(request, 'Invalid content format. Please try again.')
+            content_data = parse_editorjs_content(content_json)
+        except ValidationError as e:
+            messages.error(request, str(e))
             return render(request, 'books/create.html')
         
         base_slug = slugify(recommendation_title)[:200]
@@ -172,15 +182,6 @@ def book_create(request):
         if action == 'submit':
             pending_approval = True
             submitted_at = timezone.now()
-            messages.success(request, 'Your book recommendation has been submitted for approval!')
-            # Bell Notification
-            try:
-                from core.notifications_utils import send_post_submitted_notification
-                send_post_submitted_notification(book, post_type='book recommendation')
-            except Exception as e:
-                logger.warning(f"Failed to send in-app notification: {e}")
-        else:
-            messages.success(request, 'Your book recommendation has been saved as a draft!')
         
         try:
             publication_year = int(request.POST.get('publication_year'))
@@ -219,27 +220,32 @@ def book_create(request):
         
         book.save()
         
-        # Email notification
+        # Notifications — AFTER book.save() to avoid NameError
         if action == 'submit':
+            messages.success(request, 'Your book recommendation has been submitted for approval!')
+            # Bell Notification
             try:
+                from core.notifications_utils import send_post_submitted_notification
+                send_post_submitted_notification(book, post_type='book recommendation')
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification: {e}")
+            
+            # Email notification (async)
+            try:
+                from core.tasks import send_email_async
                 staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
                 if staff_emails:
-                    send_mail(
-                        subject=f"New Book Recommendation: {book.book_title}",
-                        message=f"""
-                        A new book recommendation has been submitted by {request.user.get_full_name() or request.user.username}.
-                        
-                        Book: {book.book_title}
-                        Title: {book.title}
-                        
-                        Review it here: {request.scheme}://{request.get_host()}/users/admin/moderation/
-                        """,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=staff_emails,
-                        fail_silently=True
+                    send_email_async(
+                        f"New Book Recommendation: {book.book_title}",
+                        f"A new book recommendation has been submitted by {request.user.get_full_name() or request.user.username}.\n\n"
+                        f"Book: {book.book_title}\nTitle: {book.title}\n\n"
+                        f"Review it here: {settings.SITE_URL}/users/admin/moderation/",
+                        staff_emails
                     )
             except Exception as e:
                 logger.warning(f"Failed to send notification email: {e}")
+        else:
+            messages.success(request, 'Your book recommendation has been saved as a draft!')
         
         return redirect('users:dashboard')
     
@@ -262,8 +268,10 @@ def book_edit(request, slug):
             if existing_book:
                 messages.error(
                     request, 
-                    f'A book with ISBN/ASIN "{new_isbn}" already exists. '
-                    f'<a href="{existing_book.get_absolute_url()}" target="_blank" class="text-accent underline">View existing book</a>'
+                    mark_safe(
+                        f'A book with ISBN/ASIN "{new_isbn}" already exists. '
+                        f'<a href="{existing_book.get_absolute_url()}" target="_blank" class="text-accent underline">View existing book</a>'
+                    )
                 )
                 initial_content = ''
                 if book.content_json:
@@ -321,20 +329,19 @@ def book_edit(request, slug):
         
         book.save()
         
-        # Email notification on resubmit
+        # Email notification on resubmit (async)
         if action == 'submit':
             try:
+                from core.tasks import send_email_async
                 staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
                 if staff_emails:
-                    send_mail(
-                        subject=f"Book Recommendation Updated: {book.book_title}",
-                        message=f"User {request.user.username} updated a book recommendation. Please review.",
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=staff_emails,
-                        fail_silently=True
+                    send_email_async(
+                        f"Book Recommendation Updated: {book.book_title}",
+                        f"User {request.user.username} updated a book recommendation. Please review.",
+                        staff_emails
                     )
-            except Exception as e:
-                logger.warning(f"Failed to send notification email: {e}")
+            except Exception:
+                pass
         
         return redirect('users:dashboard')
     
@@ -412,15 +419,12 @@ def book_rate(request, slug):
                 except Exception as e:
                     logger.warning(f"Failed to send review notification: {e}")
                 
-                # Also still notify the book owner
+                # Also notify the book owner
                 try:
-                    from core.notifications_utils import send_new_review_notification
                     send_new_review_notification(user_rating, book)
                 except Exception as e:
                     logger.warning(f"Failed to send new review notification to owner: {e}")
             else:
-                # Update case - we don't necessarily need a notification for every update
-                # but we could add one if desired. Leaving as is for now without the flash message.
                 pass
                 
         except (ValueError, TypeError) as e:
@@ -440,21 +444,3 @@ def book_rate(request, slug):
         })
     
     return redirect('books:detail', slug=slug)
-
-
-@login_required
-def book_delete(request, slug):
-    """Allow user to delete their own unapproved book recommendation."""
-    book = get_object_or_404(BookRecommendation, slug=slug, added_by=request.user)
-    
-    # Safety check: Can only delete if not approved or if it's draft/rejected
-    if book.is_approved and not request.user.is_staff:
-        messages.error(request, "You cannot delete an approved book recommendation.")
-        return redirect('books:detail', slug=slug)
-    
-    if request.method == 'POST':
-        book.delete()
-        messages.success(request, f'Recommendation "{book.title}" deleted.')
-        return redirect('users:dashboard')
-    
-    return render(request, 'books/delete.html', {'book': book})

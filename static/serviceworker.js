@@ -42,10 +42,10 @@ function shouldCache(url) {
 
 async function limitCacheSize(cacheName, maxItems) {
     const cache = await caches.open(cacheName);
-    const keys = await cache.keys();
-    if (keys.length > maxItems) {
+    let keys = await cache.keys();
+    while (keys.length > maxItems) {
         await cache.delete(keys[0]);
-        limitCacheSize(cacheName, maxItems);
+        keys = await cache.keys();
     }
 }
 

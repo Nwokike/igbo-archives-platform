@@ -48,9 +48,8 @@ def notify_author_of_suggestion(sender, instance, created, **kwargs):
 @receiver([post_save, post_delete], sender=Category)
 def handle_category_change(sender, instance, **kwargs):
     """
-    Invalidate insight categories cache when a category is added/modified/deleted.
-    Only relevant if the category is of type 'insight', but checking type 
-    doesn't hurt performance significantly for this rate of change.
+    Invalidate insight categories cache when an insight-type category is added/modified/deleted.
     """
-    cache.delete('insight_categories')
-    logger.info(f"Invalidated insight_categories cache due to Category change: {instance.name}")
+    if getattr(instance, 'type', '') == 'insight':
+        cache.delete('insight_categories')
+        logger.info(f"Invalidated insight_categories cache due to Category change: {instance.name}")

@@ -57,8 +57,15 @@ class TTSService:
     GEMINI_TTS_MODEL = "gemini-2.5-flash-tts"
     
     def __init__(self):
-        self.output_dir = Path(settings.MEDIA_ROOT) / 'tts'
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self._output_dir = None
+    
+    @property
+    def output_dir(self):
+        """Lazily create output directory (settings may not be ready at import time)."""
+        if self._output_dir is None:
+            self._output_dir = Path(settings.MEDIA_ROOT) / 'tts'
+            self._output_dir.mkdir(parents=True, exist_ok=True)
+        return self._output_dir
     
     @property
     def is_available(self):

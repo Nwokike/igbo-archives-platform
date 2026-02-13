@@ -8,11 +8,10 @@ Migrated to google-genai SDK (2026).
 import logging
 from django.conf import settings
 from .key_manager import key_manager
+from .constants import SYSTEM_PROMPT, GENERIC_AI_ERROR
+from .url_validators import is_safe_url
 
 logger = logging.getLogger(__name__)
-
-# System prompt for chat (same as Groq for consistency)
-SYSTEM_PROMPT = """You are Igbo Archives AI, a knowledgeable and friendly assistant specialized in Igbo culture, history, language, and heritage. Be respectful, accurate, and encourage cultural preservation. Use Igbo words where appropriate with explanations."""
 
 
 class GeminiService:
@@ -101,7 +100,7 @@ class GeminiService:
                     logger.error(f"Gemini chat error: {e}")
                     return {
                         'success': False,
-                        'content': f'Sorry, I encountered an error: {str(e)}',
+                        'content': GENERIC_AI_ERROR,
                         'tokens_used': 0,
                         'model': self.FLASH_MODEL,
                         'provider': 'gemini'
@@ -214,7 +213,7 @@ Focus on details that would help preserve and understand this piece of Igbo heri
                     logger.error(f"Gemini image analysis error: {e}")
                     return {
                         'success': False,
-                        'content': f'Error analyzing image: {str(e)}',
+                        'content': 'Image analysis failed. Please try again.',
                         'model': self.FLASH_MODEL
                     }
         
@@ -225,9 +224,13 @@ Focus on details that would help preserve and understand this piece of Igbo heri
         }
     
     def analyze_image_url(self, image_url: str, analysis_type: str = 'description') -> dict:
-        """Analyze an image from URL."""
+        """Analyze an image from URL (with SSRF protection)."""
         if not self.is_available:
             return {'success': False, 'content': 'Not configured.', 'model': ''}
+        
+        # SSRF protection — block private IPs, metadata endpoints, non-HTTP schemes
+        if not is_safe_url(image_url):
+            return {'success': False, 'content': 'Invalid or blocked URL.', 'model': ''}
         
         prompt = f"Analyze this image for {analysis_type} focusing on Igbo cultural heritage."
         
@@ -270,11 +273,10 @@ Focus on details that would help preserve and understand this piece of Igbo heri
                     continue
                 else:
                     logger.error(f"Gemini URL analysis error: {e}")
-                    return {'success': False, 'content': str(e), 'model': ''}
+                    return {'success': False, 'content': 'URL image analysis failed.', 'model': ''}
         
         return {'success': False, 'content': 'All keys rate limited.', 'model': ''}
 
 
 # Singleton instance
 gemini_service = GeminiService()
-

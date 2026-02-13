@@ -2,16 +2,15 @@
 Insight views for browsing and managing community articles.
 """
 import json
-import ast
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Case, When, Value, IntegerField
 from django.utils import timezone
-from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
@@ -19,6 +18,8 @@ from .models import InsightPost, EditSuggestion
 from archives.models import Archive, Category
 from core.validators import ALLOWED_INSIGHT_SORTS, get_safe_sort
 from core.editorjs_helpers import parse_editorjs_content, generate_unique_slug, get_workflow_flags, download_and_save_image_from_url
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -44,10 +45,14 @@ def get_insight_recommendations(insight, count=9):
     )
     
     if insight.category:
-        recommendations = recommendations.order_by(
-            '-category', # Prioritize same category
-            '-created_at'
-        )
+        # Annotate to prioritize same-category results, then order by recency
+        recommendations = recommendations.annotate(
+            same_category=Case(
+                When(category=insight.category, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by('same_category', '-created_at')
     else:
         recommendations = recommendations.order_by('-created_at')
     
@@ -74,8 +79,13 @@ def insight_list(request):
         insights = insights.filter(author__username=author_username)
         
     if date_str := request.GET.get('date'):
-        # Just filter by the date part
-        insights = insights.filter(created_at__date=date_str)
+        # Validate date format before filtering
+        try:
+            from datetime import date as date_type
+            date_type.fromisoformat(date_str)
+            insights = insights.filter(created_at__date=date_str)
+        except (ValueError, TypeError):
+            pass  # Ignore invalid date strings silently
     
     # FILTER BY CATEGORY (Instead of Tag)
     if category_slug := request.GET.get('category'):
@@ -185,7 +195,7 @@ def insight_create(request):
                 'initial_content': content_json or initial_content,
                 'initial_excerpt': excerpt or initial_excerpt,
                 'categories': categories,
-                'archive_categories': archive_categories, # ADDED
+                'archive_categories': archive_categories,
             }
             return render(request, 'insights/create.html', context)
         
@@ -199,24 +209,14 @@ def insight_create(request):
                 'initial_content': content_json,
                 'initial_excerpt': excerpt,
                 'categories': categories,
-                'archive_categories': archive_categories, # ADDED
+                'archive_categories': archive_categories,
             }
             return render(request, 'insights/create.html', context)
         
         slug = generate_unique_slug(title, InsightPost)
         workflow_flags = get_workflow_flags(action, is_submit=(action == 'submit'))
         
-        if action == 'submit':
-            messages.success(request, 'Your insight has been submitted for approval!')
-            # Bell Notification
-            try:
-                from core.notifications_utils import send_post_submitted_notification
-                send_post_submitted_notification(insight, post_type='insight')
-            except Exception as e:
-                logger.warning(f"Failed to send in-app notification: {e}")
-        else:
-            messages.success(request, 'Your insight has been saved as a draft!')
-        
+        # Create the insight FIRST
         insight = InsightPost.objects.create(
             title=title[:200],
             slug=slug,
@@ -245,28 +245,32 @@ def insight_create(request):
         insight.save()
         cache.delete('insight_categories')
         
-        # --- PHASE 4: EMAIL NOTIFICATION ---
+        # Notifications — only on submit, AFTER object creation
         if action == 'submit':
+            messages.success(request, 'Your insight has been submitted for approval!')
+            # Bell Notification
             try:
+                from core.notifications_utils import send_post_submitted_notification
+                send_post_submitted_notification(insight, post_type='insight')
+            except Exception as e:
+                logger.warning(f"Failed to send in-app notification: {e}")
+            
+            # Email notification to staff (async)
+            try:
+                from core.tasks import send_email_async
                 staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
                 if staff_emails:
-                    send_mail(
-                        subject=f"New Insight Submitted: {insight.title}",
-                        message=f"""
-                        A new insight has been submitted by {request.user.get_full_name() or request.user.username}.
-                        
-                        Title: {insight.title}
-                        Excerpt: {insight.excerpt}
-                        
-                        Review it here: {request.scheme}://{request.get_host()}/users/admin/moderation/
-                        """,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=staff_emails,
-                        fail_silently=True
+                    send_email_async(
+                        f"New Insight Submitted: {insight.title}",
+                        f"A new insight has been submitted by {request.user.get_full_name() or request.user.username}.\n\n"
+                        f"Title: {insight.title}\nExcerpt: {insight.excerpt}\n\n"
+                        f"Review it here: {settings.SITE_URL}/users/admin/moderation/",
+                        staff_emails
                     )
             except Exception as e:
                 logger.warning(f"Failed to send notification email: {e}")
-        # -----------------------------------
+        else:
+            messages.success(request, 'Your insight has been saved as a draft!')
         
         return redirect('users:dashboard')
     
@@ -304,7 +308,7 @@ def insight_edit(request, slug):
                     'insight': insight,
                     'initial_content': content_json,
                     'categories': Category.objects.filter(type='insight').order_by('name'),
-                    'archive_categories': Category.objects.filter(type='archive').order_by('name'), # ADDED
+                    'archive_categories': Category.objects.filter(type='archive').order_by('name'),
                 })
         
         action = request.POST.get('action')
@@ -315,7 +319,7 @@ def insight_edit(request, slug):
             insight.is_published = False
             insight.is_approved = False
             messages.success(request, 'Your insight has been submitted for approval!')
-            # Bell Notification
+            # Bell Notification — only on submit
             try:
                 from core.notifications_utils import send_post_submitted_notification
                 send_post_submitted_notification(insight, post_type='insight')
@@ -327,12 +331,7 @@ def insight_edit(request, slug):
                 insight.is_published = False
                 insight.is_approved = False
             messages.success(request, 'Your insight has been saved!')
-            # Bell Notification
-            try:
-                from core.notifications_utils import send_post_submitted_notification
-                send_post_submitted_notification(insight, post_type='insight')
-            except Exception as e:
-                logger.warning(f"Failed to send in-app notification: {e}")
+            # No notification on draft saves
         
         # Handle featured image
         featured_url = request.POST.get('featured_image_url', '').strip()
@@ -355,21 +354,19 @@ def insight_edit(request, slug):
         insight.save()
         cache.delete('insight_categories')
         
-        # --- PHASE 4: EMAIL NOTIFICATION ON RESUBMIT ---
+        # Email notification on resubmit (async)
         if action == 'submit':
             try:
+                from core.tasks import send_email_async
                 staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
                 if staff_emails:
-                    send_mail(
-                        subject=f"Insight Updated (Review Needed): {insight.title}",
-                        message=f"User {request.user.username} updated an insight. Please re-review.",
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=staff_emails,
-                        fail_silently=True
+                    send_email_async(
+                        f"Insight Updated (Review Needed): {insight.title}",
+                        f"User {request.user.username} updated an insight. Please re-review.",
+                        staff_emails
                     )
             except Exception:
                 pass
-        # -----------------------------------------------
         
         return redirect('users:dashboard')
     
@@ -384,11 +381,8 @@ def insight_edit(request, slug):
                 json.loads(content_str)
                 initial_content = content_str
             except json.JSONDecodeError:
-                try:
-                    cleaned_data = ast.literal_eval(content_str)
-                    initial_content = json.dumps(cleaned_data)
-                except (ValueError, SyntaxError):
-                    initial_content = content_str
+                # Content is not valid JSON — use as raw string
+                initial_content = content_str
     
     return render(request, 'insights/edit.html', {
         'insight': insight,

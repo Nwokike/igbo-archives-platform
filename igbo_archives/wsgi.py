@@ -4,7 +4,7 @@ WSGI config for igbo_archives project.
 It exposes the WSGI callable as a module-level variable named ``application``.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
+https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
 """
 
 import os
@@ -12,8 +12,5 @@ import os
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'igbo_archives.settings')
-
-from igbo_archives.sqlite_wal import enable_wal_mode
-enable_wal_mode()
 
 application = get_wsgi_application()

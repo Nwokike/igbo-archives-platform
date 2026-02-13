@@ -36,14 +36,15 @@ def moderation_dashboard(request):
     return render(request, 'users/admin/moderation_dashboard.html', context)
 
 @staff_member_required
+@require_POST
 def approve_insight(request, pk):
     post = get_object_or_404(InsightPost, pk=pk)
     post.is_published = True
     post.is_approved = True
     post.pending_approval = False
     post.save()
-    from core.notifications_utils import send_post_approved_notification, send_broadcast_notification
     send_post_approved_notification(post, 'insight')
+    from core.notifications_utils import send_broadcast_notification
     send_broadcast_notification(
         f"New Insight: {post.title}", 
         f"Read the latest heritage insight by {post.author.get_display_name()}", 
@@ -73,14 +74,15 @@ def reject_insight(request, pk):
     return render(request, 'users/admin/reject_post.html', {'post': post, 'post_type': 'insight'})
 
 @staff_member_required
+@require_POST
 def approve_book_review(request, pk):
     review = get_object_or_404(BookRecommendation, pk=pk)
     review.is_published = True
     review.is_approved = True
     review.pending_approval = False
     review.save()
-    from core.notifications_utils import send_post_approved_notification, send_broadcast_notification
     send_post_approved_notification(review, 'book review')
+    from core.notifications_utils import send_broadcast_notification
     send_broadcast_notification(
         f"New Book: {review.book_title}", 
         f"A new book recommendation has been published by {review.added_by.get_display_name()}", 
@@ -111,24 +113,23 @@ def reject_book_review(request, pk):
 
 # --- NEW: Archive Actions ---
 @staff_member_required
+@require_POST
 def approve_archive(request, pk):
-    # Use update() to avoid triggering the full save() method which includes
-    # image compression that can hold database locks for too long
     from django.utils import timezone
-    updated = Archive.objects.filter(pk=pk, is_approved=False).update(
-        is_approved=True,
-        updated_at=timezone.now()
-    )
+    from django.db import transaction
     
-    if not updated:
+    try:
+        with transaction.atomic():
+            archive = Archive.objects.select_for_update().get(pk=pk, is_approved=False)
+            archive.is_approved = True
+            archive.updated_at = timezone.now()
+            archive.save(update_fields=['is_approved', 'updated_at'])
+    except Archive.DoesNotExist:
         messages.warning(request, 'Archive not found or already approved.')
         return redirect('users:moderation_dashboard')
     
-    # Fetch for notification after the update completes
-    archive = Archive.objects.get(pk=pk)
-    
     try:
-        from core.notifications_utils import send_post_approved_notification, send_broadcast_notification
+        from core.notifications_utils import send_broadcast_notification
         send_post_approved_notification(archive, 'archive')
         send_broadcast_notification(
             f"New Archive: {archive.title}", 

@@ -2,22 +2,9 @@
     'use strict';
 
     /**
-     * Helper function to get CSRF token from cookies.
+     * Helper: getCookie is provided by utils.js (loaded before this file).
+     * Use the global getCookie() function.
      */
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
 
     // --- PWA LOGIC (Moved to pwa-install.js) ---
     // Redundant listeners removed to prevent conflicts and ensure reliable visibility.

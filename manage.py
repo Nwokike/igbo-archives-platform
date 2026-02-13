@@ -3,8 +3,8 @@
 import os
 import sys
 
-if sys.version_info < (3, 12):
-    raise SystemExit("Python 3.12+ is required to run Igbo Archives")
+if sys.version_info < (3, 13):
+    raise SystemExit("Python 3.13+ is required to run Igbo Archives")
 
 
 def main():

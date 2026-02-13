@@ -1,7 +1,6 @@
 import random
 from django.shortcuts import render
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 from django.core.cache import cache
@@ -105,6 +104,7 @@ def contact(request):
             
             if hasattr(settings, 'ADMIN_EMAIL') and settings.ADMIN_EMAIL:
                 try:
+                    from core.tasks import send_email_async
                     full_message = f"""
 Contact Form Submission
 
@@ -115,18 +115,16 @@ Subject: {subject}
 Message:
 {message_text}
 """
-                    send_mail(
+                    send_email_async(
                         f'Contact Form: {subject}',
                         full_message,
-                        settings.DEFAULT_FROM_EMAIL,
                         [settings.ADMIN_EMAIL],
-                        fail_silently=False,
                     )
                     messages.success(request, 'Thank you for your message! We will get back to you soon.')
                 except Exception as e:
                     messages.error(request, 'There was an error sending your message. Please try again later.')
             else:
-                messages.info(request, f'Email not configured. Your message: "{subject}" from {email} has been logged.')
+                messages.info(request, 'Your message has been logged. We will get back to you soon.')
             
             form = ContactForm(request=request)
     else:
@@ -151,8 +149,17 @@ def offline(request):
 
 
 def health_check(request):
-    """Simple health check endpoint for deployment verification."""
-    return render(request, 'core/health.html', status=200)
+    """Health check endpoint with DB connectivity verification."""
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+    except Exception as e:
+        logger.error(f"Health check DB failure: {e}")
+        return render(request, 'core/health.html', {'db_ok': False}, status=503)
+    return render(request, 'core/health.html', {'db_ok': True}, status=200)
 
 
 def bad_request_handler(request, exception):

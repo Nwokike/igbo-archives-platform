@@ -131,7 +131,7 @@ The project follows Django's app-based architecture with clear separation of con
 - **`core.backup_database`**: Manual database backup command
 
 ### Python Version
-- **Required**: Python 3.12+
+- **Required**: Python 3.13+
 - Managed via `uv` package manager
-- `pyproject.toml` and `uv.lock` specify Python 3.12 requirement
-- `manage.py` enforces Python 3.12+ requirement
+- `pyproject.toml` and `uv.lock` specify Python 3.13 requirement
+- `manage.py` enforces Python 3.13+ requirement

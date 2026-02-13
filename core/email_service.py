@@ -74,7 +74,8 @@ def send_email(to_email, subject, message, email_type='instant', html_message=No
     from core.models import EmailLog
     
     # Check if email backend is configured
-    if not settings.EMAIL_BACKEND or 'console' in settings.EMAIL_BACKEND.lower():
+    email_backend = getattr(settings, 'EMAIL_BACKEND', '') or ''
+    if not email_backend or 'console' in email_backend.lower():
         logger.info(f"Email (to: {to_email}) logged only: EMAIL_BACKEND not configured.")
         log_email(to_email, subject, email_type, success=True)
         return True

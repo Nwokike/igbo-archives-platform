@@ -33,6 +33,7 @@ dependencies = [
     "django-csp==4.0",
     "django-cleanup==9.0.0",
     "djangorestframework==3.16.0",
+    "nh3>=0.3.2",
 ]
 
 [project.optional-dependencies]
@@ -42,3 +43,15 @@ dev = [
     "ruff==0.15.0",
     "coverage==7.13.3",
 ]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["E501"]  # line length handled by formatter

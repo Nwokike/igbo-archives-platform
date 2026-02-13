@@ -36,24 +36,19 @@ ALLOWED_ARCHIVE_SORTS = {
     'oldest': 'sort_year',
     'a-z': 'title',
     'z-a': '-title',
-    '-created_at': '-created_at',
 }
 
 ALLOWED_INSIGHT_SORTS = {
     'recently-added': '-created_at',
     'newest': '-created_at',
     'oldest': 'created_at',
-    '-created_at': '-created_at',
 }
 
 ALLOWED_BOOK_SORTS = {
     'recently-added': '-created_at',
     'newest': '-publication_year',
     'oldest': 'publication_year',
-    '-publication_year': '-publication_year',
-    'publication_year': 'publication_year',
-    '-rating': '-rating',
-    '-created_at': '-created_at',
+    'top-rated': '-rating',
 }
 
 

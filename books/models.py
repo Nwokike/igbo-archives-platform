@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 
-from core.validators import validate_image_size as validate_file_size
+from core.validators import validate_image_size
 
 User = get_user_model()
 
@@ -45,13 +45,13 @@ class BookRecommendation(models.Model):
         null=True,
         validators=[
             FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_file_size
+            validate_image_size
         ],
         help_text="Book cover image (max 5MB)"
     )
     
     # Who added the recommendation
-    added_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='book_recommendations')
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='book_recommendations')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

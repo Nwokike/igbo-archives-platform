@@ -53,7 +53,7 @@ def push_subscribe(request):
         logger.error(f"Push subscribe error: {e}")
         return JsonResponse({
             'status': 'error',
-            'message': str(e)
+            'message': 'Failed to save push subscription. Please try again.'
         }, status=400)
 
 
@@ -93,5 +93,5 @@ def push_unsubscribe(request):
         logger.error(f"Push unsubscribe error: {e}")
         return JsonResponse({
             'status': 'error',
-            'message': str(e)
+            'message': 'Failed to remove subscription. Please try again.'
         }, status=400)

@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-import bleach
+import nh3
 from .models import BookRecommendation, UserBookRating
 
 # Allowed tags for admin preview
-ADMIN_PREVIEW_ALLOWED_TAGS = ['b', 'i', 'u', 'strong', 'em', 'br']
+ADMIN_PREVIEW_ALLOWED_TAGS = {'b', 'i', 'u', 'strong', 'em', 'br'}
 
 class UserBookRatingInline(admin.TabularInline):
     """
@@ -52,8 +52,8 @@ class BookRecommendationAdmin(admin.ModelAdmin):
     )
 
     def approve_books(self, request, queryset):
-        queryset.update(is_approved=True)
-    approve_books.short_description = "Approve selected books"
+        queryset.update(is_approved=True, is_published=True, pending_approval=False)
+    approve_books.short_description = "Approve and publish selected books"
 
     def publish_books(self, request, queryset):
         queryset.update(is_published=True)
@@ -63,7 +63,6 @@ class BookRecommendationAdmin(admin.ModelAdmin):
         queryset.update(is_published=False)
     unpublish_books.short_description = "Unpublish selected books"
     
-    # --- YOUR CUSTOM PREVIEW LOGIC (KEPT) ---
     def content_preview(self, obj):
         """Render EditorJS content as HTML for admin preview with XSS protection."""
         if not obj.content_json or not isinstance(obj.content_json, dict):
@@ -80,19 +79,29 @@ class BookRecommendationAdmin(admin.ModelAdmin):
             
             if block_type == 'header':
                 level = min(max(int(data.get('level', 2)), 1), 6)
-                text = bleach.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
+                text = nh3.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
                 html_parts.append(f'<h{level} style="margin:0.5em 0">{text}</h{level}>')
             elif block_type == 'paragraph':
-                text = bleach.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
+                text = nh3.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
                 html_parts.append(f'<p style="margin:0.5em 0">{text}</p>')
             elif block_type == 'list':
                 style = data.get('style', 'unordered')
                 tag = 'ol' if style == 'ordered' else 'ul'
                 items = data.get('items', [])
-                items_html = ''.join(f'<li>{bleach.clean(item, tags=ADMIN_PREVIEW_ALLOWED_TAGS)}</li>' for item in items if isinstance(item, str))
+                items_html_parts = []
+                for item in items:
+                    # Handle nested list items (dicts with 'content' key)
+                    if isinstance(item, dict):
+                        text = item.get('content', '')
+                    elif isinstance(item, str):
+                        text = item
+                    else:
+                        continue
+                    items_html_parts.append(f'<li>{nh3.clean(text, tags=ADMIN_PREVIEW_ALLOWED_TAGS)}</li>')
+                items_html = ''.join(items_html_parts)
                 html_parts.append(f'<{tag} style="margin:0.5em 0;padding-left:1.5em">{items_html}</{tag}>')
             elif block_type == 'quote':
-                text = bleach.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
+                text = nh3.clean(data.get('text', ''), tags=ADMIN_PREVIEW_ALLOWED_TAGS)
                 html_parts.append(f'<blockquote style="margin:1em 0;padding:0.5em 1em;border-left:3px solid #ddd;background:#f9f9f9">{text}</blockquote>')
             elif block_type == 'delimiter':
                 html_parts.append('<hr style="margin:1em 0">')

@@ -11,7 +11,6 @@ backlog = 256
 # Worker processes - cap at 2 for 1GB RAM constraint
 workers = min(2, (multiprocessing.cpu_count() * 2) + 1)
 worker_class = "sync"  # Use sync for SQLite (avoid gevent with SQLite)
-worker_connections = 100
 timeout = 30
 keepalive = 2
 
@@ -24,7 +23,6 @@ accesslog = "-"
 errorlog = "-"
 loglevel = "info"
 capture_output = True
-enable_stdio_inheritance = True
 
 # Security
 limit_request_line = 4094

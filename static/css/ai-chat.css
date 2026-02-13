@@ -12,6 +12,11 @@
     background-color: #F0F0DA;
 }
 
+.dark .message-assistant {
+    background-color: #2A2420;
+    color: #EFE5D7;
+}
+
 .typing-indicator span {
     animation: typing 1.4s infinite ease-in-out;
 }
@@ -25,9 +30,13 @@
 }
 
 @keyframes typing {
-    0%, 60%, 100% {
+
+    0%,
+    60%,
+    100% {
         transform: translateY(0);
     }
+
     30% {
         transform: translateY(-5px);
     }
@@ -38,9 +47,12 @@
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.5;
     }

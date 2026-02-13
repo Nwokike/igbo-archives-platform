@@ -7,9 +7,11 @@ from insights.models import InsightPost
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    display_name = serializers.CharField(source='get_display_name', read_only=True)
+    
     class Meta:
         model = User
-        fields = ['id', 'username', 'get_display_name', 'profile_picture', 'bio']
+        fields = ['id', 'username', 'display_name', 'profile_picture', 'bio']
         read_only_fields = ['id']
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -160,6 +162,10 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
 class BookRecommendationListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for book list views."""
     added_by_name = serializers.CharField(source='added_by.get_display_name', read_only=True)
+    # Map to annotation names from BookRecommendationViewSet.get_queryset()
+    # Avoids calling model @property which triggers N+1 queries
+    average_rating = serializers.FloatField(source='avg_rating', read_only=True)
+    rating_count = serializers.IntegerField(source='num_ratings', read_only=True)
     
     class Meta:
         model = BookRecommendation

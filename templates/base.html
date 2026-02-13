@@ -18,6 +18,9 @@
     <script src="{% static 'js/common/analytics.js' %}" data-ga-id="{{ GOOGLE_ANALYTICS_ID }}"></script>
     {% endif %}
 
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4026538242880905"
+        crossorigin="anonymous"></script>
+
     {% progressive_web_app_meta %}
 
     <script>
@@ -37,7 +40,6 @@
     <link rel="stylesheet" href="{% static 'css/tailwind.output.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
     <link rel="stylesheet" href="{% static 'css/modal.css' %}">
     <link rel="stylesheet" href="{% static 'css/comments.css' %}">
     <link rel="stylesheet" href="{% static 'css/share-buttons.css' %}">
@@ -386,13 +388,16 @@
     <script src="{% static 'vendor/js/htmx.min.js' %}"
         integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"
         defer></script>
+    <script src="{% static 'js/common/utils.js' %}" defer></script>
     <script src="{% static 'js/common/main.js' %}" defer></script>
     <script src="{% static 'js/common/notifications.js' %}" defer></script>
+    {% block page_js %}
     <script src="{% static 'js/common/comments.js' %}" defer></script>
     <script src="{% static 'js/common/modals.js' %}" defer></script>
     <script src="{% static 'js/common/tabs.js' %}" defer></script>
     <script src="{% static 'js/common/view-toggle.js' %}" defer></script>
     <script src="{% static 'js/common/share.js' %}" defer></script>
+    {% endblock page_js %}
     <script src="{% static 'js/common/push-notifications.js' %}" id="push-notifications-script"
         data-subscribe-url="{% url 'api:push_subscribe' %}" data-unsubscribe-url="{% url 'api:push_unsubscribe' %}"
         defer></script>

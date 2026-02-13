@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.validators import FileExtensionValidator
 
-from core.validators import validate_image_size as validate_file_size
+from core.validators import validate_image_size
 from archives.models import Category
 
 User = get_user_model()
@@ -28,7 +28,7 @@ class InsightPost(models.Model):
         null=True,
         validators=[
             FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_file_size
+            validate_image_size
         ]
     )
     alt_text = models.CharField(max_length=255, blank=True)
@@ -39,7 +39,7 @@ class InsightPost(models.Model):
     
     submit_as_archive = models.BooleanField(default=True, help_text="Submit uploaded images as archives")
     
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='insights')
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='insights')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -109,7 +109,7 @@ class UploadedImage(models.Model):
         upload_to='insights/uploads/',
         validators=[
             FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_file_size
+            validate_image_size
         ]
     )
     caption = models.CharField(max_length=500, help_text="Required: Caption with copyright/source")

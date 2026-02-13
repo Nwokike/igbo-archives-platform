@@ -36,7 +36,7 @@ class Command(BaseCommand):
             from django.utils.module_loading import import_string
             from django.conf import settings
             
-            def get_storage_class(import_path=None):
+            def get_storage_class(import_path=None, _cache={}):
                 # If no path provided, use DBBACKUP_STORAGE or fallback to default
                 if import_path is None:
                     import_path = getattr(settings, 'DBBACKUP_STORAGE', None)
@@ -45,6 +45,10 @@ class Command(BaseCommand):
                         import_path = settings.STORAGES.get('default', {}).get('BACKEND')
                     else:
                         import_path = getattr(settings, 'DEFAULT_FILE_STORAGE', None)
+                
+                # Return cached version if available
+                if import_path in _cache:
+                    return _cache[import_path]
                 
                 cls = import_string(import_path)
                 
@@ -60,7 +64,9 @@ class Command(BaseCommand):
                             # kwarg settings take precedence over default backup settings
                             merged = {**conf, **kwargs}
                             super().__init__(**merged)
+                    _cache[import_path] = PatchedStorage
                     return PatchedStorage
+                _cache[import_path] = cls
                 return cls
                 
             django.core.files.storage.get_storage_class = get_storage_class

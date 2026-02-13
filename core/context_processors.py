@@ -38,11 +38,14 @@ def monetization_settings(request):
 def notification_count(request):
     """Cache unread notification count to avoid N+1 queries on every page load."""
     if request.user.is_authenticated:
-        from django.core.cache import cache
-        cache_key = f'notif_count_{request.user.id}'
-        count = cache.get(cache_key)
-        if count is None:
-            count = request.user.notifications.filter(unread=True).count()
-            cache.set(cache_key, count, 60)  # Cache for 60 seconds
-        return {'unread_notification_count': count}
+        try:
+            from django.core.cache import cache
+            cache_key = f'notif_count_{request.user.id}'
+            count = cache.get(cache_key)
+            if count is None:
+                count = request.user.notifications.filter(unread=True).count()
+                cache.set(cache_key, count, 60)  # Cache for 60 seconds
+            return {'unread_notification_count': count}
+        except Exception:
+            return {'unread_notification_count': 0}
     return {'unread_notification_count': 0}

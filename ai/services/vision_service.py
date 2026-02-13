@@ -7,6 +7,7 @@ Migrated to google-genai SDK (2026).
 import logging
 from pathlib import Path
 from .key_manager import key_manager
+from .url_validators import is_safe_url
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +163,7 @@ This analysis is for archival documentation."""
                     key_manager.mark_rate_limited('gemini', api_key, 3600)
                     continue
                 logger.error(f"Vision error: {e}")
-                return {'success': False, 'content': f'Analysis error: {str(e)}'}
+                return {'success': False, 'content': 'Image analysis failed. Please try again.'}
         
         return {
             'success': False,
@@ -170,9 +171,13 @@ This analysis is for archival documentation."""
         }
     
     def analyze_url(self, image_url: str, analysis_type: str = 'describe') -> dict:
-        """Analyze image from URL."""
+        """Analyze image from URL (with SSRF protection)."""
         if not self.is_available:
             return {'success': False, 'content': 'Vision not available.'}
+        
+        # SSRF protection — block private IPs, metadata endpoints, non-HTTP schemes
+        if not is_safe_url(image_url):
+            return {'success': False, 'content': 'Invalid or blocked URL.'}
         
         prompt = self.ANALYSIS_PROMPTS.get(analysis_type, self.ANALYSIS_PROMPTS['describe'])
         
@@ -208,7 +213,8 @@ This analysis is for archival documentation."""
                 if 'rate' in error_str or 'limit' in error_str:
                     key_manager.mark_rate_limited('gemini', api_key, 3600)
                     continue
-                return {'success': False, 'content': str(e)}
+                logger.error(f"Vision URL analysis error: {e}")
+                return {'success': False, 'content': 'URL image analysis failed.'}
         
         return {'success': False, 'content': 'Service temporarily unavailable.'}
 

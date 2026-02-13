@@ -41,9 +41,7 @@ class ArchiveSitemap(Sitemap):
         return obj.updated_at if hasattr(obj, 'updated_at') else obj.created_at
     
     def location(self, obj):
-        if obj.slug:
-            return reverse('archives:detail', args=[obj.slug])
-        return reverse('archives:detail', args=[obj.id])
+        return reverse('archives:detail', args=[obj.slug])
 
 
 class InsightSitemap(Sitemap):
@@ -86,7 +84,7 @@ class UserProfileSitemap(Sitemap):
     priority = 0.5
     
     def items(self):
-        return User.objects.filter(is_active=True).only('id', 'username', 'last_login', 'date_joined')
+        return User.objects.filter(is_active=True, is_staff=True).only('id', 'username', 'last_login', 'date_joined')
     
     def location(self, obj):
         return reverse('users:profile', args=[obj.username])

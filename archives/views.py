@@ -3,7 +3,7 @@ Archive views for browsing and managing cultural archives.
 """
 import random  # Non-cryptographic use for content recommendations
 import logging
-import bleach
+import nh3
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -13,7 +13,6 @@ from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.db import transaction
 from django.db.models import Q
-from django.core.mail import send_mail  # Added for email notifications
 from django.conf import settings        # Added for email settings
 from django.contrib.auth import get_user_model # Added to find staff
 
@@ -179,6 +178,7 @@ def author_detail(request, slug):
     return render(request, 'archives/author_detail.html', context)
 
 
+@login_required
 def metadata_suggestions(request):
     """Suggestions for autocomplete (Authors, Dates)."""
     query = request.GET.get('q', '')
@@ -205,31 +205,6 @@ def metadata_suggestions(request):
     return JsonResponse({'results': results})
 
 
-def sync_parent_archive_with_first_item(archive):
-    """Sync logic: item #1 -> parent archive."""
-    first_item = archive.items.order_by('item_number').first()
-    
-    if first_item:
-        archive.archive_type = first_item.item_type
-        archive.caption = first_item.caption
-        archive.alt_text = first_item.alt_text
-        
-        archive.image = None
-        archive.video = None
-        archive.audio = None
-        archive.document = None
-        
-        if first_item.item_type == 'image':
-            archive.image = first_item.image
-        elif first_item.item_type == 'video':
-            archive.video = first_item.video
-        elif first_item.item_type == 'audio':
-            archive.audio = first_item.audio
-        elif first_item.item_type == 'document':
-            archive.document = first_item.document
-            
-        archive.save()
-
 
 @login_required
 def archive_create(request):
@@ -247,7 +222,7 @@ def archive_create(request):
                 if not archive.slug:
                     archive.slug = generate_unique_slug(archive.title, Archive)
                 
-                archive.description = bleach.clean(archive.description, strip=True)
+                archive.description = nh3.clean(archive.description)
                 archive.save()
                 
                 # REMOVED: form.save_m2m() (Tags are gone)
@@ -255,14 +230,18 @@ def archive_create(request):
                 items = formset.save(commit=False)
                 if not items:
                     messages.error(request, 'You must upload at least one item.')
-                    raise ValidationError("At least one item is required")
+                    return render(request, 'archives/create.html', {
+                        'form': form,
+                        'formset': formset,
+                        'categories': get_cached_categories()
+                    })
 
                 for i, item in enumerate(items):
                     item.archive = archive
                     item.item_number = i + 1
                     item.save()
                 
-                sync_parent_archive_with_first_item(archive)
+                # Signals handle sync_parent_archive_with_first_item automatically
                 
                 # Bell Notification
                 try:
@@ -271,35 +250,25 @@ def archive_create(request):
                 except Exception as e:
                     logger.warning(f"Failed to send in-app notification: {e}")
                 
-                # --- PHASE 4: EMAIL NOTIFICATION ---
+                # Email Notification (async via Huey)
                 try:
+                    from .tasks import send_archive_notification_email
                     staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
                     if staff_emails:
-                        send_mail(
+                        send_archive_notification_email(
                             subject=f"New Archive Submitted: {archive.title}",
-                            message=f"""
-                            A new archive has been submitted by {request.user.get_full_name() or request.user.username}.
-                            
-                            Title: {archive.title}
-                            Description: {archive.description[:200]}...
-                            
-                            Review it here: {request.scheme}://{request.get_host()}/users/admin/moderation/
-                            """,
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=staff_emails,
-                            fail_silently=False
+                            message_body=(
+                                f"A new archive has been submitted by {request.user.get_full_name() or request.user.username}.\n\n"
+                                f"Title: {archive.title}\n"
+                                f"Description: {archive.description[:200]}...\n\n"
+                                f"Review it here: {request.scheme}://{request.get_host()}/users/admin/moderation/"
+                            ),
+                            staff_emails=staff_emails,
                         )
                 except Exception as e:
-                    logger.warning(f"Failed to send notification email: {e}")
-                # -----------------------------------
+                    logger.warning(f"Failed to schedule notification email: {e}")
                 
                 messages.success(request, 'Archive uploaded successfully! It will be reviewed by our team.')
-                # Bell Notification
-                try:
-                    from core.notifications_utils import send_post_submitted_notification
-                    send_post_submitted_notification(archive, post_type='archive')
-                except Exception as e:
-                    logger.warning(f"Failed to send in-app notification: {e}")
 
                 if archive.slug:
                     return redirect('archives:detail', slug=archive.slug)
@@ -336,11 +305,11 @@ def archive_edit(request, pk=None, slug=None):
             with transaction.atomic():
                 archive = form.save(commit=False)
                 
-                old_title = Archive.objects.get(pk=archive.pk).title
+                old_title = form.initial.get('title', '')
                 if archive.title != old_title or not archive.slug:
                     archive.slug = generate_unique_slug(archive.title, Archive, exclude_pk=archive.pk)
                 
-                archive.description = bleach.clean(archive.description, strip=True)
+                archive.description = nh3.clean(archive.description)
                 archive.save()
                 
                 # REMOVED: form.save_m2m() (Tags are gone)
@@ -357,13 +326,14 @@ def archive_edit(request, pk=None, slug=None):
                         item.item_number = max_num + 1
                     item.save()
                 
-                sync_parent_archive_with_first_item(archive)
+                # Signals handle sync_parent_archive_with_first_item automatically
                 
                 if archive.is_approved:
                     # Reset approval if edited
                     archive.is_approved = False
                     archive.save(update_fields=['is_approved'])
                     cache.delete('all_approved_archive_ids')
+                    cache.delete('archive_categories')
                     
                     # Notify admin of re-submission (Optional, re-using logic)
                     try:

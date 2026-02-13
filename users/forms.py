@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from .models import CustomUser
 from core.turnstile import verify_turnstile
-import re
 
 
 class CustomSignupForm(SignupForm):
@@ -55,23 +54,22 @@ class CustomSignupForm(SignupForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        # Validate Turnstile
+        # Validate Turnstile with client IP
         token = self.data.get('cf-turnstile-response', '')
-        result = verify_turnstile(token)
+        remote_ip = None
+        if self.request:
+            remote_ip = self.request.META.get('HTTP_CF_CONNECTING_IP') or \
+                       self.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
+                       self.request.META.get('REMOTE_ADDR')
+        result = verify_turnstile(token, remote_ip)
         if not result.get('success'):
             raise ValidationError('Please complete the security verification.')
         return cleaned_data
     
     def save(self, request):
+        from users.username_utils import generate_unique_username
         email = self.cleaned_data['email']
-        username = re.sub(r'[^a-zA-Z0-9]', '', email.split('@')[0])[:30]
-        
-        from users.models import CustomUser
-        counter = 1
-        original_username = username
-        while CustomUser.objects.filter(username=username).exists():
-            username = f"{original_username}{counter}"
-            counter += 1
+        username = generate_unique_username(email)
         
         self.cleaned_data['username'] = username
         
@@ -106,9 +104,14 @@ class CustomLoginForm(LoginForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        # Validate Turnstile
+        # Validate Turnstile with client IP
         token = self.data.get('cf-turnstile-response', '')
-        result = verify_turnstile(token)
+        remote_ip = None
+        if self.request:
+            remote_ip = self.request.META.get('HTTP_CF_CONNECTING_IP') or \
+                       self.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
+                       self.request.META.get('REMOTE_ADDR')
+        result = verify_turnstile(token, remote_ip)
         if not result.get('success'):
             raise ValidationError('Please complete the security verification.')
         return cleaned_data
