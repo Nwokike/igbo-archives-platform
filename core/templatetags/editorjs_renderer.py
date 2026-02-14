@@ -20,8 +20,11 @@ register = template.Library()
 ALLOWED_TAGS = [
     'a', 'b', 'strong', 'i', 'em', 'u', 'br', 'span', 'mark', 'code', 'sub', 'sup'
 ]
+
+# FIX: Removed 'rel' from 'a' attributes to prevent pyo3/nh3 panic
+# nh3 automatically handles 'rel' (adding noopener/noreferrer)
 ALLOWED_ATTRS = {
-    'a': {'href', 'title', 'target', 'rel'},
+    'a': {'href', 'title', 'target'}, 
     'span': {'class'},
     'mark': {'class'},
 }
@@ -36,7 +39,7 @@ def sanitize_html(text):
             text,
             tags=set(ALLOWED_TAGS),
             attributes=ALLOWED_ATTRS,
-            link_rel=None,
+            link_rel=None, # Let nh3 use default secure rel attributes
         )
         return cleaned
     return escape(text)

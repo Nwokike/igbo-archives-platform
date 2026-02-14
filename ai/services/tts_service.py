@@ -7,15 +7,12 @@ YarnGPT: African language TTS - https://yarngpt.ai/api/v1/tts
 - 16 Nigerian voices available
 - Max 2000 characters per request
 
-Gemini TTS: High quality fallback (100/day)
-
-Combined: 180 TTS/day capacity
+Gemini TTS: High quality fallback (Unlimited/High limits on Paid Tier)
+- Uses Gemini 2.0 Flash and Flash-Exp
 """
 import logging
 import os
-import uuid
 import requests
-from pathlib import Path
 from django.conf import settings
 from .key_manager import key_manager
 
@@ -28,7 +25,7 @@ class TTSService:
     
     Rate Limits:
     1. YarnGPT: 80 requests/day (Igbo-native)
-    2. Gemini TTS: 10 RPM, ~100/day (high quality backup)
+    2. Gemini: High limits (Paid Tier), used as reliable fallback.
     """
     
     # Official YarnGPT API
@@ -53,8 +50,12 @@ class TTSService:
         'male_rich': 'Femi',
     }
     
-    # Gemini TTS model
-    GEMINI_TTS_MODEL = "gemini-2.5-flash-tts"
+    # Fallback Models (Ordered by preference/stability)
+    # Gemini 2.0 Flash is stable and supports audio generation.
+    GEMINI_MODELS = [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-exp",
+    ]
     
     def __init__(self):
         pass
@@ -103,44 +104,42 @@ class TTSService:
                 'error': 'Text is too short'
             }
         
-        # YarnGPT max is 2000 characters
-        text = text[:2000]
-        
-        # Resolve voice name
-        voice_name = self.YARNGPT_VOICES.get(voice, voice)
-        if voice_name not in self.YARNGPT_VOICES.values():
-            voice_name = 'Chinenye'  # Default Igbo voice
-        
+        # 1. Try YarnGPT (Primary) - Best for Igbo pronunciation
         if self._has_yarngpt:
+            # YarnGPT max is 2000 characters
+            yg_text = text[:2000]
+            
+            # Resolve voice name
+            voice_name = self.YARNGPT_VOICES.get(voice, voice)
+            if voice_name not in self.YARNGPT_VOICES.values():
+                voice_name = 'Chinenye'  # Default Igbo voice
+            
             # Try YarnGPT with a small retry on timeout
             max_retries = 2
-            last_error = ""
-            
             for attempt in range(max_retries):
-                result = self._yarngpt_generate(text, voice_name)
+                result = self._yarngpt_generate(yg_text, voice_name)
                 if result['success']:
                     return result
                 
-                last_error = result.get('error', 'Unknown error')
-                if "timeout" in last_error.lower() and attempt < max_retries - 1:
+                # If it's a timeout, retry once. Otherwise break to fallback.
+                error_msg = result.get('error', '').lower()
+                if "timeout" in error_msg and attempt < max_retries - 1:
                     logger.warning(f"YarnGPT timeout (attempt {attempt+1}), retrying...")
                     continue
                 break
             
-            return {
-                'success': False,
-                'audio_bytes': None,
-                'content_type': '',
-                'provider': 'yarngpt',
-                'error': f"YarnGPT failed: {last_error}"
-            }
-        
+            logger.warning(f"YarnGPT failed, failing over to Gemini: {result.get('error')}")
+
+        # 2. Try Gemini (Fallback) - High availability
+        if self._has_gemini_tts:
+            return self._gemini_generate(text)
+            
         return {
             'success': False,
             'audio_bytes': None,
             'content_type': '',
             'provider': '',
-            'error': 'YarnGPT service not configured'
+            'error': 'All TTS providers failed'
         }
     
     def _yarngpt_generate(self, text: str, voice: str) -> dict:
@@ -162,7 +161,7 @@ class TTSService:
                 self.YARNGPT_API_URL,
                 headers=headers,
                 json=payload,
-                timeout=120
+                timeout=30 
             )
             
             if response.status_code == 200:
@@ -181,7 +180,6 @@ class TTSService:
                 except Exception:
                     error_msg = response.text[:200] if response.text else f"HTTP {response.status_code}"
                 
-                logger.error(f"YarnGPT failed ({response.status_code}): {error_msg}")
                 return {
                     'success': False,
                     'audio_bytes': None,
@@ -191,12 +189,74 @@ class TTSService:
                 }
                 
         except Exception as e:
-            logger.error(f"YarnGPT TTS error: {e}")
             return {
                 'success': False,
                 'audio_bytes': None,
                 'content_type': '',
                 'provider': 'yarngpt',
+                'error': str(e)
+            }
+
+    def _gemini_generate(self, text: str) -> dict:
+        """Generate speech using Gemini 2.0 Flash (with model fallback)."""
+        try:
+            import google.generativeai as genai
+            
+            api_key = key_manager.get_key()
+            if not api_key:
+                return {'success': False, 'error': 'No Gemini API key'}
+                
+            genai.configure(api_key=api_key)
+            
+            last_error = None
+            
+            # Loop through available models to find one that works
+            for model_name in self.GEMINI_MODELS:
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    
+                    response = model.generate_content(
+                        f"Please read this text aloud naturally: {text}",
+                        generation_config=genai.types.GenerationConfig(
+                            response_mime_type="audio/mp3"
+                        )
+                    )
+                    
+                    # Extract audio data
+                    audio_data = None
+                    if response.parts:
+                        part = response.parts[0]
+                        if hasattr(part, 'inline_data'):
+                            audio_data = part.inline_data.data
+                        elif hasattr(part, 'blob'):
+                             audio_data = part.blob.data
+                    
+                    if audio_data:
+                        return {
+                            'success': True,
+                            'audio_bytes': audio_data,
+                            'content_type': 'audio/mpeg',
+                            'provider': 'gemini',
+                            'error': ''
+                        }
+                        
+                except Exception as e:
+                    logger.warning(f"Gemini TTS attempt with {model_name} failed: {e}")
+                    last_error = e
+                    continue # Try next model
+
+            return {
+                'success': False, 
+                'error': f"Gemini TTS failed after trying all models. Last error: {last_error}"
+            }
+
+        except Exception as e:
+            logger.error(f"Gemini TTS Critical Error: {e}")
+            return {
+                'success': False,
+                'audio_bytes': None,
+                'content_type': '',
+                'provider': 'gemini',
                 'error': str(e)
             }
     
