@@ -7,8 +7,9 @@ YarnGPT: African language TTS - https://yarngpt.ai/api/v1/tts
 - 16 Nigerian voices available
 - Max 2000 characters per request
 
-Gemini TTS: High quality fallback (Unlimited/High limits on Paid Tier)
-- Uses Gemini 2.0 Flash and Flash-Exp
+Gemini TTS: High quality fallback (Paid Tier)
+- Uses Gemini 2.5 TTS models (Specialized)
+- Falls back to Gemini 2.5/3 Flash (High Quota) if specialized limits are hit
 """
 import logging
 import os
@@ -25,7 +26,8 @@ class TTSService:
     
     Rate Limits:
     1. YarnGPT: 80 requests/day (Igbo-native)
-    2. Gemini: High limits (Paid Tier), used as reliable fallback.
+    2. Gemini Specialized (TTS): ~150 requests/day
+    3. Gemini Standard (Flash): 10,000+ requests/day (Fail-safe)
     """
     
     # Official YarnGPT API
@@ -50,11 +52,12 @@ class TTSService:
         'male_rich': 'Femi',
     }
     
-    # Fallback Models (Ordered by preference/stability)
-    # Gemini 2.0 Flash is stable and supports audio generation.
+    # Fallback Models (Ordered by Quality -> Stability -> Quota)
     GEMINI_MODELS = [
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-exp",
+        "gemini-2.5-flash-tts",
+        "gemini-2.5-pro-tts",
+        "gemini-2.5-flash",
+        "gemini-3-flash", 
     ]
     
     def __init__(self):
@@ -198,7 +201,7 @@ class TTSService:
             }
 
     def _gemini_generate(self, text: str) -> dict:
-        """Generate speech using Gemini 2.0 Flash (with model fallback)."""
+        """Generate speech using Gemini (with model fallback)."""
         try:
             import google.generativeai as genai
             
@@ -232,6 +235,7 @@ class TTSService:
                              audio_data = part.blob.data
                     
                     if audio_data:
+                        logger.info(f"Gemini TTS succeeded with model: {model_name}")
                         return {
                             'success': True,
                             'audio_bytes': audio_data,
