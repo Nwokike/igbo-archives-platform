@@ -3,7 +3,7 @@ Background tasks for the archives app.
 Uses Huey for async processing of email notifications.
 """
 import logging
-from huey.contrib.djhuey import task
+from django.tasks import task
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @task()
 def send_archive_notification_email(subject, message_body, staff_emails):
-    """Send archive notification emails asynchronously via Huey."""
+    """Send archive notification emails asynchronously via Django Tasks."""
     try:
         send_mail(
             subject=subject,

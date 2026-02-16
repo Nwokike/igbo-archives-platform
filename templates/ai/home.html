@@ -32,33 +32,6 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    {% if user.is_authenticated and sessions %}
-    <!-- Recent Conversations -->
-    <div class="mb-6">
-        <h2 class="font-serif text-lg font-semibold text-dark-brown mb-4 flex items-center gap-2">
-            <i class="fas fa-history text-vintage-gold"></i>
-            Your Conversations
-        </h2>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {% for session in sessions %}
-            <a href="{% url 'ai:chat_session' session.id %}" class="card card-hover p-4 flex items-start gap-3 group">
-                <div class="w-10 h-10 bg-vintage-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-comments text-vintage-gold"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h3
-                        class="text-sm font-medium text-dark-brown truncate group-hover:text-vintage-gold transition-colors">
-                        {{ session.title }}
-                    </h3>
-                    <p class="text-xs text-vintage-beaver mt-0.5">{{ session.updated_at|timesince }} ago</p>
-                </div>
-                <i
-                    class="fas fa-chevron-right text-xs text-vintage-beaver group-hover:text-vintage-gold transition-colors mt-3"></i>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Capabilities Section -->
     <div class="card p-6">
@@ -108,13 +81,11 @@
                 <i class="fas fa-sign-in-alt mr-2"></i> Login to Start Chatting
             </a>
         </div>
-        {% else %}
         <div class="text-center mt-6 pt-4 border-t border-sepia-pale/20">
             <a href="{% url 'ai:new_chat' %}" class="btn-primary">
-                <i class="fas fa-plus mr-2"></i> Start New Conversation
+                <i class="fas fa-brain mr-2"></i> Open AI Assistant
             </a>
         </div>
-        {% endif %}
     </div>
 
     <!-- Trust Badges -->

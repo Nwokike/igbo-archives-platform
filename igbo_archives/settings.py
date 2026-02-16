@@ -5,7 +5,6 @@ Django settings for Igbo Archives project.
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from huey import SqliteHuey
 
 # --- Environment Setup ---
 load_dotenv()
@@ -63,7 +62,6 @@ INSTALLED_APPS = [
     'meta',
     'dbbackup',
     'webpush',
-    'huey.contrib.djhuey',
     'csp', 
     'rest_framework',
     'rest_framework.authtoken',
@@ -363,13 +361,14 @@ DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
 DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
 DBBACKUP_CONNECTORS = {'default': {'CONNECTOR': 'dbbackup.db.sqlite.SqliteConnector'}}
 
-# --- Huey ---
-HUEY = SqliteHuey(
-    filename=str(BASE_DIR / 'huey.db'),
-    immediate=False,
-    results=False,
-    utc=True,
-)
+# --- Tasks (Django 6) ---
+TASKS = {
+    'default': {
+        'BACKEND': 'django.tasks.backends.immediate.ImmediateBackend',
+    },
+}
+# Note: For production with persistent queue, consider 'django.tasks.backends.redis.RedisBackend'
+# or similar once infra is available. For now, immediate handles 1GB RAM constraints best.
 
 # --- Security Headers ---
 SESSION_COOKIE_AGE = 86400 * 7
@@ -491,11 +490,6 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'huey': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,

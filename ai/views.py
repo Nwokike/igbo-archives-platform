@@ -20,15 +20,7 @@ logger = logging.getLogger(__name__)
 
 def ai_home(request):
     """AI landing page."""
-    sessions = []
-    if request.user.is_authenticated:
-        sessions = ChatSession.objects.filter(
-            user=request.user,
-            is_active=True
-        ).order_by('-updated_at')[:10]
-    
     context = {
-        'sessions': sessions,
         'chat_available': chat_service.is_available,
         'vision_available': vision_service.is_available,
     }
@@ -102,9 +94,8 @@ def chat_send(request):
         content=message_content
     )
     
-    # Build message history
-    history = session.messages.order_by('-created_at')[:10]
-    messages = [{'role': m.role, 'content': m.content} for m in reversed(history)]
+    # Stateless: We don't load history
+    messages = [{'role': 'user', 'content': message_content}]
     
     # Get AI response with task-appropriate model
     task_type = 'analysis' if mode == 'advanced' else 'chat'
@@ -118,11 +109,7 @@ def chat_send(request):
         model_used=result.get('model_type', '')
     )
     
-    # Update session title if first exchange
-    if session.messages.count() == 2:
-        title = chat_service.generate_title(message_content)
-        session.title = title
-        session.save()
+    # Stateless: We don't update titles based on history anymore
     
     # Update rate limit
     cache.set(rate_key, chat_count + 1, 3600)
@@ -318,31 +305,14 @@ def serve_tts_audio(request, audio_id):
 @login_required
 @require_GET
 def chat_history(request):
-    """Get user's chat history."""
-    sessions = ChatSession.objects.filter(
-        user=request.user,
-        is_active=True
-    ).annotate(
-        message_count=Count('messages')
-    ).order_by('-updated_at')[:20]
-    
-    data = [{
-        'id': s.id,
-        'title': s.title,
-        'updated_at': s.updated_at.isoformat(),
-        'message_count': s.message_count,
-    } for s in sessions]
-    
-    return JsonResponse({'sessions': data})
+    """Stateless: history is no longer provided."""
+    return JsonResponse({'sessions': []})
 
 
 @login_required
 @require_POST
 def delete_session(request, session_id):
-    """Delete a chat session."""
-    session = get_object_or_404(ChatSession, id=session_id, user=request.user)
-    session.is_active = False
-    session.save()
+    """Stateless: delete is a no-op but returns success."""
     return JsonResponse({'success': True})
 
 

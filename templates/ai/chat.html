@@ -19,20 +19,15 @@
                 </a>
                 <div>
                     <h1 class="font-serif text-sm font-semibold text-dark-brown truncate max-w-[200px] sm:max-w-none"
-                        id="sessionTitle">{{ session.title }}</h1>
+                        id="sessionTitle">AI Assistant</h1>
                     <p class="text-xs text-vintage-beaver hidden sm:block">Igbo Archives AI Assistant</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <a href="{% url 'ai:new_chat' %}"
+                <button onclick="window.location.reload()"
                     class="w-8 h-8 flex items-center justify-center rounded-lg text-vintage-beaver hover:text-vintage-gold hover:bg-vintage-gold/10 transition-all"
-                    title="New conversation">
-                    <i class="fas fa-plus text-sm"></i>
-                </a>
-                <button id="deleteBtn"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg text-vintage-beaver hover:text-red-500 hover:bg-red-50 transition-all"
-                    title="Delete conversation">
-                    <i class="fas fa-trash text-sm"></i>
+                    title="Reset Chat">
+                    <i class="fas fa-sync-alt text-sm"></i>
                 </button>
             </div>
         </div>
@@ -109,8 +104,8 @@
 {% csrf_token %}
 
 <!-- Configuration for JavaScript (no inline JS) -->
-<div id="aiChatConfig" class="hidden" data-session-id="{{ session.id }}" data-send-url="{% url 'ai:chat_send' %}"
-    data-delete-url="{% url 'ai:delete_session' session.id %}" data-home-url="{% url 'ai:home' %}">
+<div id="aiChatConfig" class="hidden" data-session-id="" data-send-url="{% url 'ai:chat_send' %}"
+    data-delete-url="{% url 'ai:delete_session' '0' %}" data-home-url="{% url 'ai:home' %}">
 </div>
 {% endblock %}
 

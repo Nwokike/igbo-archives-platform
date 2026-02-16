@@ -11,8 +11,7 @@ Task Schedule:
 - 06:00 AM Sunday: Send weekly digest emails (max 290/batch)
 """
 
-from huey.contrib.djhuey import task, periodic_task, db_task
-from huey import crontab
+from django.tasks import task
 from django.core.mail import send_mail
 from django.conf import settings
 import logging
@@ -20,7 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@db_task()
+@task()
 def send_email_async(subject, message, recipient_list, from_email=None):
     """Send email asynchronously to reduce request latency"""
     try:
@@ -39,7 +38,7 @@ def send_email_async(subject, message, recipient_list, from_email=None):
         return False
 
 
-@db_task()
+@task()
 def send_push_notification_async(user_id, title, body, url=None):
     """Send push notification asynchronously"""
     try:
@@ -65,7 +64,7 @@ def send_push_notification_async(user_id, title, body, url=None):
         return False
 
 
-@db_task()
+@task()
 def broadcast_push_notification_task(title, body, url=None):
     """Broadcast push notification to all subscribed users in batches of 50."""
     try:
@@ -93,7 +92,7 @@ def broadcast_push_notification_task(title, body, url=None):
         return False
 
 
-@db_task()
+@task()
 def notify_post_approved(post_id, post_type):
     """Notify author when their post is approved"""
     try:
@@ -135,7 +134,7 @@ def notify_post_approved(post_id, post_type):
         return False
 
 
-@db_task()
+@task()
 def notify_post_rejected(post_id, post_type, reason=''):
     """Notify author when their post is rejected"""
     try:
@@ -166,7 +165,7 @@ def notify_post_rejected(post_id, post_type, reason=''):
         return False
 
 
-@periodic_task(crontab(hour='3', minute='0'))
+@task()
 def daily_database_backup():
     """Run database and media backup daily at 3 AM"""
     try:
@@ -180,48 +179,9 @@ def daily_database_backup():
         return False
 
 
-@periodic_task(crontab(hour='2', minute='30'))
-def cleanup_old_chat_sessions():
-    """Remove chat sessions older than 30 days to keep DB light."""
-    try:
-        from ai.models import ChatSession
-        from django.utils import timezone
-        from datetime import timedelta
-        
-        cutoff = timezone.now() - timedelta(days=30)
-        deactivated_count = ChatSession.objects.filter(
-            updated_at__lt=cutoff,
-            is_active=True
-        ).update(is_active=False)
-        
-        # Also hard delete very old inactive sessions (90+ days)
-        very_old = timezone.now() - timedelta(days=90)
-        hard_deleted, _ = ChatSession.objects.filter(
-            updated_at__lt=very_old,
-            is_active=False
-        ).delete()
-        
-        logger.info(f"Chat cleanup: {deactivated_count} deactivated, {hard_deleted} deleted")
-        return True
-    except Exception as e:
-        logger.error(f"Chat cleanup failed: {e}")
-        return False
 
 
-@periodic_task(crontab(hour='5', minute='0'))
-def cleanup_tts_files():
-    """Clean up old TTS audio files."""
-    try:
-        from ai.services.tts_service import tts_service
-        tts_service.cleanup_old_files(max_age_hours=24)
-        logger.info("TTS file cleanup completed")
-        return True
-    except Exception as e:
-        logger.error(f"TTS cleanup failed: {e}")
-        return False
-
-
-@periodic_task(crontab(day='1', hour='4', minute='0'))
+@task()
 def cleanup_old_notifications():
     """Archive or delete read notifications older than 18 months to keep DB lean."""
     try:
@@ -244,7 +204,7 @@ def cleanup_old_notifications():
         return False
 
 
-@periodic_task(crontab(day='1', hour='4', minute='30'))
+@task()
 def cleanup_old_messages():
     """Archive very old message threads to keep messaging DB lean.
     
@@ -276,7 +236,7 @@ def cleanup_old_messages():
         return False
 
 
-@db_task()
+@task()
 def notify_indexnow(urls):
     """Notify search engines about new/updated content via IndexNow"""
     try:
@@ -295,7 +255,7 @@ def notify_indexnow(urls):
         return False
 
 
-@periodic_task(crontab(hour='6', minute='0'))
+@task()
 def send_weekly_digest():
     """
     Process weekly digest batch. Runs daily at 6 AM but only sends

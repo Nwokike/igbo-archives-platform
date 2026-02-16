@@ -46,7 +46,6 @@ jobs:
           # TODO: Switch to passwordless sudo — add deploy user to sudoers with
           # specific commands: igboarchives ALL=(ALL) NOPASSWD: /bin/systemctl restart igboarchives, ...
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart igboarchives-huey
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
 
           # 8. Health check

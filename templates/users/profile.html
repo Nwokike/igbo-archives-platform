@@ -2,8 +2,7 @@
 
 {% block title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
 
-{% block meta_description %}{{ profile_user.get_display_name }}'s profile on Igbo Archives. {{
-profile_user.bio|truncatewords:25 }}{% endblock %}
+{% block meta_description %}{{ profile_user.get_display_name }}'s profile on Igbo Archives. {{ profile_user.bio|truncatewords:25 }}{% endblock %}
 
 {% block og_title %}{{ profile_user.get_display_name }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ profile_user.bio|truncatewords:50 }}{% endblock %}

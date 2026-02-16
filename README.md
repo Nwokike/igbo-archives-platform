@@ -80,7 +80,7 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 │ └─ Brevo (Transactional Email)                          │
 │                                                         │
 │ ⏰ Background Tasks                                     │
-│ └─ Huey (SQLite backend) for async jobs                 │
+│ └─ Django 6 native tasks for async jobs                 │
 └─────────────────────────────────────────────────────────┘
 
 ```
@@ -91,7 +91,7 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 |----------|------------|
 | **Backend** | Django 6.0, Python 3.13 (uv), Django REST Framework |
 | **Database** | SQLite with WAL mode |
-| **Task Queue** | Huey (SQLite backend) |
+| **Task Queue** | Django 6 Background Tasks |
 | **Frontend** | Tailwind CSS, HTMX, Editor.js |
 | **Server** | Gunicorn + Whitenoise |
 | **PWA** | django-pwa, django-webpush |
@@ -114,7 +114,7 @@ igbo-archives-platform/
 │   ├── templates/          # Base templates
 │   ├── static/             # CSS, JS, images
 │   ├── context_processors.py
-│   ├── tasks.py            # Huey background tasks
+│   ├── tasks.py            # Background tasks
 │   └── validators.py       # Shared validators
 ├── users/                  # Authentication & profiles
 ├── archives/               # Cultural archives
@@ -227,7 +227,7 @@ This project is optimized for deployment on low-memory VMs (1GB RAM) using a `uv
 * **WSGI**: Gunicorn (2 workers max).
 * **Static Files**: Whitenoise for efficient serving.
 * **Database**: SQLite with WAL mode (optimized concurrency).
-* **Background Tasks**: Huey (single worker).
+* **Background Tasks**: Django 6 native tasks.
 * **Automated Cleanup**: GitHub Actions automatically prunes `uv` cache and vacuums system logs.
 
 For detailed deployment instructions, please refer to the internal documentation.
@@ -238,7 +238,7 @@ This platform is optimized for deployment on a 1GB RAM VM:
 
 * **SQLite WAL mode**: Reduced cache (32MB) and mmap (64MB)
 * **Database cache**: Uses database instead of memory cache
-* **Huey workers**: Single worker for background tasks
+* **Background Tasks**: Efficient async execution via Django 6 native tasks
 * **Gunicorn workers**: 2 workers maximum
 * **File uploads**: Disk-based, not memory-based
 * **Efficient queries**: `select_related`, `prefetch_related`, `only()`
