@@ -128,5 +128,53 @@ class AIViewTests(TestCase):
             self.assertEqual(data['content'], 'Analysis results')
             
             # Verify no ArchiveAnalysis record was created
+            # Verify no ArchiveAnalysis record was created
             self.assertEqual(ArchiveAnalysis.objects.count(), 0)
+
+
+from unittest.mock import patch
+class TTSServiceTests(TestCase):
+    """Tests for the TTS service and fallback logic."""
+    
+    def setUp(self):
+        from ai.services.tts_service import TTSService
+        self.tts = TTSService()
+    
+    @patch('ai.services.tts_service.requests.post')
+    def test_yarngpt_success(self, mock_post):
+        """Test YarnGPT success path."""
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.content = b"fake mp3 data"
+        
+        with self.settings(YARNGPT_API_KEY='test_key'):
+            result = self.tts.generate_audio("Hello")
+            
+            self.assertTrue(result['success'])
+            self.assertEqual(result['provider'], 'yarngpt')
+            self.assertEqual(result['audio_bytes'], b"fake mp3 data")
+
+    @patch('ai.services.tts_service.requests.post')
+    @patch('ai.services.tts_service.TTSService._gemini_generate')
+    def test_yarngpt_timeout_fallback(self, mock_gemini, mock_post):
+        """Test that YarnGPT timeout triggers Gemini fallback."""
+        # Mock YarnGPT timeout error
+        from requests.exceptions import Timeout
+        mock_post.side_effect = Timeout("Operation timed out")
+        
+        # Mock Gemini success
+        mock_gemini.return_value = {
+            'success': True, 
+            'audio_bytes': b"gemini audio", 
+            'provider': 'gemini'
+        }
+        
+        with self.settings(YARNGPT_API_KEY='test_key'):
+            # Trigger audio generation
+            result = self.tts.generate_audio("Hello world")
+            
+            # Verify fallback happened
+            self.assertTrue(result['success'])
+            self.assertEqual(result['provider'], 'gemini')
+            self.assertEqual(mock_post.call_count, 2) # Should retry once before failing over
+            mock_gemini.assert_called_once()
 

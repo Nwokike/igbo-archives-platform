@@ -126,7 +126,7 @@ class TTSService:
                 
                 # If it's a timeout, retry once. Otherwise break to fallback.
                 error_msg = result.get('error', '').lower()
-                if "timeout" in error_msg and attempt < max_retries - 1:
+                if ("timeout" in error_msg or "timed out" in error_msg) and attempt < max_retries - 1:
                     logger.warning(f"YarnGPT timeout (attempt {attempt+1}), retrying...")
                     continue
                 break
@@ -160,11 +160,12 @@ class TTSService:
                 "response_format": "mp3"
             }
             
+            # Increased timeout to 60s as YarnGPT can be slow on large texts
             response = requests.post(
                 self.YARNGPT_API_URL,
                 headers=headers,
                 json=payload,
-                timeout=30 
+                timeout=60 
             )
             
             if response.status_code == 200:
@@ -203,36 +204,35 @@ class TTSService:
     def _gemini_generate(self, text: str) -> dict:
         """Generate speech using Gemini (with model fallback)."""
         try:
-            import google.generativeai as genai
+            from google import genai
             
-            api_key = key_manager.get_key()
+            api_key = key_manager.get_gemini_key()
             if not api_key:
                 return {'success': False, 'error': 'No Gemini API key'}
                 
-            genai.configure(api_key=api_key)
-            
+            client = genai.Client(api_key=api_key)
             last_error = None
             
             # Loop through available models to find one that works
             for model_name in self.GEMINI_MODELS:
                 try:
-                    model = genai.GenerativeModel(model_name)
-                    
-                    response = model.generate_content(
-                        f"Please read this text aloud naturally: {text}",
-                        generation_config=genai.types.GenerationConfig(
-                            response_mime_type="audio/mp3"
-                        )
+                    # Use the new SDK generate_content with audio output
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=f"Please read this text aloud naturally: {text}",
+                        config={
+                            "response_mime_type": "audio/mp3"
+                        }
                     )
                     
-                    # Extract audio data
+                    # Extract audio data from parts
                     audio_data = None
-                    if response.parts:
-                        part = response.parts[0]
-                        if hasattr(part, 'inline_data'):
-                            audio_data = part.inline_data.data
-                        elif hasattr(part, 'blob'):
-                             audio_data = part.blob.data
+                    if response.candidates and response.candidates[0].content.parts:
+                        for part in response.candidates[0].content.parts:
+                            if hasattr(part, 'inline_data') and part.inline_data:
+                                audio_data = part.inline_data.data
+                            elif hasattr(part, 'blob') and part.blob:
+                                audio_data = part.blob.data
                     
                     if audio_data:
                         logger.info(f"Gemini TTS succeeded with model: {model_name}")
