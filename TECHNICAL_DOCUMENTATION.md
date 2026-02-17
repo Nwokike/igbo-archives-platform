@@ -102,7 +102,7 @@ The project follows Django's app-based architecture with clear separation of con
 
 ### Background Tasks & Schedules
 
-#### Huey Periodic Tasks (via `core/tasks.py`)
+#### Django Tasks (via `core/tasks.py`)
 - **Daily Database Backup** (`daily_database_backup`): Runs at 3:00 AM
   - Uses `django-dbbackup` to create compressed backups
   - Cleans old backups (keeps 3 most recent)

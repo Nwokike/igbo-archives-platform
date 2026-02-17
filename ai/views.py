@@ -10,7 +10,6 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.core.cache import cache
 from django.db.models import Count
-from .models import ChatSession, ChatMessage, ArchiveAnalysis
 from .services.chat_service import chat_service
 from .services.vision_service import vision_service
 from .services.tts_service import tts_service
@@ -28,26 +27,10 @@ def ai_home(request):
 
 
 @login_required
-def chat_session(request, session_id=None):
-    """View or continue a chat session."""
-    if session_id:
-        session = get_object_or_404(
-            ChatSession,
-            id=session_id,
-            user=request.user
-        )
-    else:
-        session = ChatSession.objects.create(
-            user=request.user,
-            title='New Conversation'
-        )
-        return redirect('ai:chat_session', session_id=session.id)
-    
-    messages = session.messages.all()[:50]
-    
+def chat_view(request):
+    """Stateless chat view."""
     context = {
-        'session': session,
-        'messages': messages,
+        'messages': [],
         'chat_available': chat_service.is_available,
     }
     return render(request, 'ai/chat.html', context)
@@ -56,14 +39,13 @@ def chat_session(request, session_id=None):
 @login_required
 @require_POST
 def chat_send(request):
-    """Send a message to the AI assistant."""
+    """Send a message to the AI assistant (Stateless)."""
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid request'}, status=400)
     
     message_content = data.get('message', '').strip()
-    session_id = data.get('session_id')
     mode = data.get('mode', 'fast')  # 'fast' or 'advanced'
     
     if not message_content:
@@ -78,38 +60,28 @@ def chat_send(request):
     if chat_count >= 50:  # 50 messages per hour
         return JsonResponse({'error': 'You\'ve reached your message limit. Please wait a while.'}, status=429)
     
-    # Get or create session
-    if session_id:
-        session = get_object_or_404(ChatSession, id=session_id, user=request.user)
-    else:
-        session = ChatSession.objects.create(
-            user=request.user,
-            title='New Conversation'
-        )
+    # Stateless: We don't save messages to the database
     
-    # Save user message
-    ChatMessage.objects.create(
-        session=session,
-        role='user',
-        content=message_content
-    )
+    # Get history from client if available for context
+    messages = data.get('history', [])
+    if not isinstance(messages, list):
+        messages = []
     
-    # Stateless: We don't load history
-    messages = [{'role': 'user', 'content': message_content}]
+    # Filter for safety (ensure only role and content are passed)
+    sanitized_history = []
+    for msg in messages[-10:]: # Keep only last 10 for context window efficiency
+        if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
+            sanitized_history.append({
+                'role': msg['role'],
+                'content': msg['content']
+            })
+    
+    # Append current message
+    sanitized_history.append({'role': 'user', 'content': message_content})
     
     # Get AI response with task-appropriate model
     task_type = 'analysis' if mode == 'advanced' else 'chat'
-    result = chat_service.chat(messages, use_web_search=True, task_type=task_type)
-    
-    # Save AI response
-    ai_message = ChatMessage.objects.create(
-        session=session,
-        role='assistant',
-        content=result['content'],
-        model_used=result.get('model_type', '')
-    )
-    
-    # Stateless: We don't update titles based on history anymore
+    result = chat_service.chat(sanitized_history, use_web_search=True, task_type=task_type)
     
     # Update rate limit
     cache.set(rate_key, chat_count + 1, 3600)
@@ -117,9 +89,9 @@ def chat_send(request):
     return JsonResponse({
         'success': result['success'],
         'message': result['content'],
-        'session_id': session.id,
-        'session_title': session.title,
-        'message_id': ai_message.id,
+        'session_id': 0, # dummy ID for JS compatibility
+        'session_title': 'Chat',
+        'message_id': 0,
     })
 
 
@@ -156,20 +128,8 @@ def analyze_archive(request):
     
     archive = get_object_or_404(Archive, id=archive_id, is_approved=True)
     
-    # Check cache
-    existing = ArchiveAnalysis.objects.filter(
-        archive=archive,
-        analysis_type=analysis_type
-    ).first()
+    # Stateless: we no longer cache or check ArchiveAnalysis model
     
-    if existing:
-        return JsonResponse({
-            'success': True,
-            'content': existing.content,
-            'cached': True,
-        })
-    
-    # Get image path
     # Get image
     if archive.image:
         image_file = archive.image
@@ -213,13 +173,6 @@ def analyze_archive(request):
             os.unlink(tmp_path)
     
     if result['success']:
-        ArchiveAnalysis.objects.create(
-            archive=archive,
-            user=request.user,
-            analysis_type=analysis_type,
-            content=result['content'],
-            model_used='vision'
-        )
         cache.set(rate_key, count + 1, 3600)
     
     return JsonResponse({
@@ -311,7 +264,7 @@ def chat_history(request):
 
 @login_required
 @require_POST
-def delete_session(request, session_id):
+def delete_session(request):
     """Stateless: delete is a no-op but returns success."""
     return JsonResponse({'success': True})
 

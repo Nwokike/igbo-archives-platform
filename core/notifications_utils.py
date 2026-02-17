@@ -64,7 +64,7 @@ def _send_notification_and_push(recipient, sender, verb, description, target_obj
             object_id=object_id
         )
         
-        # 2. Send the Browser Push Notification (async via Huey)
+        # 2. Send the Browser Push Notification (async via tasks)
         try:
             from core.tasks import send_push_notification_async
             send_push_notification_async(recipient.id, push_head, push_body, push_url)

@@ -1,5 +1,5 @@
 """
-Huey background tasks for the Igbo Archives platform.
+Django Tasks for the Igbo Archives platform.
 Memory-efficient async tasks for 1GB RAM constraint.
 
 Task Schedule:
@@ -81,7 +81,7 @@ def broadcast_push_notification_task(title, body, url=None):
                 if user_id:
                     send_push_notification_async(user_id, title, body, url)
                     count += 1
-            # Small delay between batches to avoid overwhelming Huey queue
+            # Small delay between batches to avoid overwhelming task queue
             if i + batch_size < len(user_ids):
                 time.sleep(1)
         

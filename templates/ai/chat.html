@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ session.title }} - Igbo Archives AI{% endblock %}
+{% block title %}AI Assistant - Igbo Archives AI{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/ai-chat.css' %}">
@@ -104,8 +104,8 @@
 {% csrf_token %}
 
 <!-- Configuration for JavaScript (no inline JS) -->
-<div id="aiChatConfig" class="hidden" data-session-id="" data-send-url="{% url 'ai:chat_send' %}"
-    data-delete-url="{% url 'ai:delete_session' '0' %}" data-home-url="{% url 'ai:home' %}">
+<div id="aiChatConfig" class="hidden" data-session-id="0" data-send-url="{% url 'ai:chat_send' %}"
+    data-delete-url="{% url 'ai:chat' %}" data-home-url="{% url 'ai:home' %}">
 </div>
 {% endblock %}
 

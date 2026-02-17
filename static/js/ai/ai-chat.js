@@ -9,6 +9,8 @@ class AIChat {
         this.endpoints = endpoints;
         this.currentAudio = null; // Store current audio object
         this.isLoadingAudio = false;
+        this.history = []; // Client-side conversation history
+        this.STORAGE_KEY = 'igbo_ai_chat_history';
 
         this.elements = {
             chatMessages: document.getElementById('chatMessages'),
@@ -26,6 +28,9 @@ class AIChat {
     }
 
     init() {
+        this.loadHistory();
+        this.renderHistory();
+
         this.elements.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
         this.scrollToBottom();
         this.elements.messageInput.focus();
@@ -43,9 +48,14 @@ class AIChat {
         this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
     }
 
-    addMessage(content, role) {
+    addMessage(content, role, save = true) {
         if (this.elements.emptyState) {
             this.elements.emptyState.remove();
+        }
+
+        if (save) {
+            this.history.push({ role, content });
+            this.saveHistory();
         }
 
         const messageId = Date.now();
@@ -211,6 +221,33 @@ class AIChat {
         }
     }
 
+    loadHistory() {
+        try {
+            const stored = sessionStorage.getItem(this.STORAGE_KEY);
+            this.history = stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            console.error('Failed to load history:', e);
+            this.history = [];
+        }
+    }
+
+    saveHistory() {
+        try {
+            sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.history));
+        } catch (e) {
+            console.error('Failed to save history:', e);
+        }
+    }
+
+    renderHistory() {
+        if (this.history.length > 0 && this.elements.emptyState) {
+            this.elements.emptyState.remove();
+        }
+        this.history.forEach(msg => {
+            this.addMessage(msg.content, msg.role, false);
+        });
+    }
+
     resetButton(button, iconClass = 'fas fa-volume-up') {
         const icon = button.querySelector('i');
         const textSpan = button.querySelector('span');
@@ -240,7 +277,7 @@ class AIChat {
                 },
                 body: JSON.stringify({
                     message: message,
-                    session_id: this.sessionId,
+                    history: this.history.slice(0, -1), // Send history EXCEPT the message we just added
                 }),
             });
 
@@ -266,17 +303,11 @@ class AIChat {
     }
 
     async deleteSession() {
-        if (!confirm('Delete this conversation?')) return;
-
-        try {
-            await fetch(this.endpoints.delete, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': this.getCsrfToken() },
-            });
-            window.location.href = this.endpoints.home;
-        } catch (error) {
-            alert('Could not delete conversation');
-        }
+        if (!confirm('Clear this conversation?')) return;
+        // Stateless: just clear client-side history
+        this.history = [];
+        sessionStorage.removeItem(this.STORAGE_KEY);
+        window.location.reload();
     }
 }
 

@@ -17,11 +17,11 @@
                 </div>
             </div>
             {% if user.is_authenticated %}
-            <a href="{% url 'ai:new_chat' %}" class="btn-primary btn-sm">
+            <a href="{% url 'ai:chat' %}" class="btn-primary btn-sm">
                 <i class="fas fa-plus mr-1"></i> New Chat
             </a>
             {% else %}
-            <a href="{% url 'account_login' %}?next={% url 'ai:new_chat' %}" class="btn-secondary btn-sm">
+            <a href="{% url 'account_login' %}?next={% url 'ai:chat' %}" class="btn-secondary btn-sm">
                 Login to Chat
             </a>
             {% endif %}
@@ -77,15 +77,17 @@
 
         {% if not user.is_authenticated %}
         <div class="text-center mt-6 pt-4 border-t border-sepia-pale/20">
-            <a href="{% url 'account_login' %}?next={% url 'ai:new_chat' %}" class="btn-primary">
+            <a href="{% url 'account_login' %}?next={% url 'ai:chat' %}" class="btn-primary">
                 <i class="fas fa-sign-in-alt mr-2"></i> Login to Start Chatting
             </a>
         </div>
+        {% else %}
         <div class="text-center mt-6 pt-4 border-t border-sepia-pale/20">
-            <a href="{% url 'ai:new_chat' %}" class="btn-primary">
+            <a href="{% url 'ai:chat' %}" class="btn-primary">
                 <i class="fas fa-brain mr-2"></i> Open AI Assistant
             </a>
         </div>
+        {% endif %}
     </div>
 
     <!-- Trust Badges -->

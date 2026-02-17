@@ -202,11 +202,6 @@ uv run python manage.py runserver
 ```
 
 
-10. **Start Huey worker**
-```bash
-uv run python manage.py run_huey
-
-```
 
 
 

@@ -265,16 +265,16 @@ class MediaCleanupTests(TestCase):
                 mock_delete.assert_any_call(name)
 
 
-class HueyTaskTests(TestCase):
-    """Tests for Huey background tasks."""
+class BackgroundTaskTests(TestCase):
+    """Tests for background tasks."""
 
     @patch('core.tasks.send_mail')
     def test_send_email_async(self, mock_send_mail):
         """Test the send_email_async task."""
         from core.tasks import send_email_async
         
-        # Test calling directly using .call_local() to bypass Huey queue
-        result = send_email_async.call_local(
+        # Test calling directly using .func to bypass async queue
+        result = send_email_async.func(
             subject='Test Subject',
             message='Test Message',
             recipient_list=['test@example.com']
@@ -293,8 +293,8 @@ class HueyTaskTests(TestCase):
         
         user = User.objects.create_user(username='pushtest', password='password')
         
-        # Test calling directly using .call_local() to bypass Huey queue
-        result = send_push_notification_async.call_local(
+        # Test calling directly using .func to bypass async queue
+        result = send_push_notification_async.func(
             user_id=user.id,
             title='Test Push',
             body='Test Body',
