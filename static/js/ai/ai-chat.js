@@ -96,7 +96,7 @@ class AIChat {
         // Fallback for basic links and line breaks if marked is not loaded
         content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (match, text, url) {
             if (isSafeUrl(url)) {
-                return '<a href="' + escapeHtml(url) + '" target="_blank" class="underline hover:text-vintage-gold">' + escapeHtml(text) + '</a>';
+                return '<a href="' + escapeHtml(url) + '" target="_blank">' + escapeHtml(text) + '</a>';
             }
             return escapeHtml(text);
         });

@@ -116,6 +116,36 @@
     color: inherit;
 }
 
+/* Link Visibility in Chat */
+.message-content a {
+    color: #8B6D31;
+    /* High contrast gold for light mode */
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.message-user .message-content a {
+    color: #FFFFFF;
+    /* Links in user bubbles look better white with underline */
+    text-decoration-thickness: 1px;
+}
+
+.message-content a:hover {
+    color: #A3854A;
+}
+
+.dark .message-content a {
+    color: #B8974F;
+    /* Accent gold for dark mode */
+}
+
+.dark .message-content a:hover {
+    color: #D4C4A0;
+    /* Muted accent for hover in dark */
+}
+
 @keyframes typing {
 
     0%,
