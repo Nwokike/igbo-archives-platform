@@ -173,7 +173,7 @@ This analysis is for archival documentation. **Format your response in Markdown*
                     if 'igbo' not in keywords.lower():
                         search_query += " Igbo culture heritage"
                     
-                    web_context = web_search(search_query, max_results=3)
+                    web_context = web_search(search_query, max_results=5)
                 
                 # STEP 3: Final Specialist Analysis (Grounded)
                 analysis_prompt = self.ANALYSIS_PROMPTS.get(analysis_type, self.ANALYSIS_PROMPTS['describe'])

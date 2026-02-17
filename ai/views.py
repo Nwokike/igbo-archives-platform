@@ -69,7 +69,7 @@ def chat_send(request):
     
     # Filter for safety (ensure only role and content are passed)
     sanitized_history = []
-    for msg in messages[-10:]: # Keep only last 10 for context window efficiency
+    for msg in messages[-3:]: # Keep only last 3 for context window efficiency
         if isinstance(msg, dict) and 'role' in msg and 'content' in msg:
             sanitized_history.append({
                 'role': msg['role'],

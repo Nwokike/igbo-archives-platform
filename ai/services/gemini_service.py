@@ -60,7 +60,7 @@ class GeminiService:
         if session_context:
             prompt_parts.append(f"Context: {session_context}")
         
-        for msg in messages[-10:]:
+        for msg in messages[-3:]:
             role = "User" if msg['role'] == 'user' else "Assistant"
             prompt_parts.append(f"{role}: {msg['content']}")
         

@@ -144,12 +144,16 @@ def web_search(query: str, max_results: int = 3) -> str:
         if not results:
             return ""
         
-        context_parts = ["**Web Search Results:**"]
+        context_parts = ["### Recent Web Research Results:"]
         for r in results:
             title = r.get('title', 'No title')
-            url = r.get('href', '')
-            body = r.get('body', '')[:200]
-            context_parts.append(f"- [{title}]({url}): {body}...")
+            url = r.get('href', r.get('url', ''))
+            body = r.get('body', r.get('snippet', ''))
+            if not url or not body:
+                continue
+            
+            # Use the format required by SYSTEM_PROMPT for better grounding
+            context_parts.append(f"🌐 **Source:** [{title}]({url}) — {body[:500]}")
         
         return "\n".join(context_parts)
     
@@ -263,13 +267,22 @@ class ChatService:
         if db_context:
             context_parts.append(db_context)
         
-        # Web search context — always search (not just when DB is empty)
+        # Web search context — always search
         if use_web_search:
-            search_query = user_message
+            # Better search query: Include the last couple of messages to handle follow-ups ("who is he?", etc.)
+            search_query_parts = []
+            for msg in messages[-2:-1]: # Just the previous assistant/user message for context
+                 search_query_parts.append(msg['content'][:100])
+            search_query_parts.append(user_message)
+            
+            search_query = " ".join(search_query_parts)
+            
             # Add Igbo context if not already present
-            if 'igbo' not in user_message.lower():
-                search_query += " Igbo culture"
-            web_context = web_search(search_query)
+            if 'igbo' not in search_query.lower():
+                search_query += " Igbo culture heritage"
+            
+            logger.info(f"Triggering web search for: {search_query}")
+            web_context = web_search(search_query, max_results=5)
             if web_context:
                 context_parts.append(web_context)
         
@@ -278,6 +291,8 @@ class ChatService:
             grounded_context = "NO RELEVANT CONTENT FOUND in database or web search. Answer based on your general knowledge about Igbo culture, but clearly state that you are using general knowledge and NOT referencing specific archives."
         else:
             grounded_context = "\n\n".join(context_parts)
+        
+        logger.info(f"AI Grounding context size: {len(grounded_context)} chars")
         
         # Choose provider based on task type
         if task_type == 'analysis':
@@ -326,12 +341,12 @@ class ChatService:
                 try:
                     system_content = SYSTEM_PROMPT
                     if context:
-                        system_content += f"\n\n---\n## PROVIDED CONTEXT (cite ONLY from this):\n{context}\n---\n\nIMPORTANT: Only reference the links and titles shown above. Do NOT invent any URLs or titles not listed here. Format your entire response in Markdown."
+                        system_content += f"\n\n---\n## PROVIDED CONTEXT (cite ONLY from this):\n{context}\n---\n\nIMPORTANT: Use the icons (📦, 📝, 📚, 🌐) provided in the context for your citations. Only reference the links and titles shown above. Do NOT invent any URLs or titles not listed here. Format your entire response in Markdown."
                     else:
                         system_content += "\n\nNo database or web results were found for this query. Answer using your general knowledge but do NOT fabricate any archive links. Format your entire response in Markdown."
                     
                     full_messages = [{'role': 'system', 'content': system_content}]
-                    full_messages.extend(messages[-10:])
+                    full_messages.extend(messages[-3:])
                     
                     response = client.chat.completions.create(
                         model=current_model,
@@ -376,12 +391,12 @@ class ChatService:
                 try:
                     system_content = SYSTEM_PROMPT
                     if context:
-                        system_content += f"\n\n---\n## PROVIDED CONTEXT (cite ONLY from this):\n{context}\n---\n\nIMPORTANT: Only reference the links and titles shown above. Do NOT invent any URLs or titles not listed here. Format your entire response in Markdown."
+                        system_content += f"\n\n---\n## PROVIDED CONTEXT (cite ONLY from this):\n{context}\n---\n\nIMPORTANT: Use the icons (📦, 📝, 📚, 🌐) provided in the context for your citations. Only reference the links and titles shown above. Do NOT invent any URLs or titles not listed here. Format your entire response in Markdown."
                     else:
                         system_content += "\n\nNo database or web results were found. Answer using general knowledge but do NOT fabricate any archive links. Format your response in Markdown."
                     
                     prompt_parts = [system_content, "\nConversation:"]
-                    for msg in messages[-10:]:
+                    for msg in messages[-3:]:
                         role = "User" if msg['role'] == 'user' else "Assistant"
                         prompt_parts.append(f"\n{role}: {msg['content']}")
                     prompt_parts.append("\nAssistant:")

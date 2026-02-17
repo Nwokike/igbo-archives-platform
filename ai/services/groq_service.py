@@ -68,7 +68,7 @@ class GroqService:
                 full_messages = [{'role': 'system', 'content': SYSTEM_PROMPT}]
                 if session_context:
                     full_messages[0]['content'] += f"\n\nCurrent context: {session_context}"
-                full_messages.extend(messages[-10:])
+                full_messages.extend(messages[-3:])
                 
                 response = client.chat.completions.create(
                     model=model,

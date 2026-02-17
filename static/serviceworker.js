@@ -3,7 +3,7 @@
  * Handles caching, offline support, and push notifications
  */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'static';
 const STATIC_CACHE_NAME = 'static-cache-' + CACHE_VERSION;
 const DYNAMIC_CACHE_NAME = 'dynamic-cache-' + CACHE_VERSION;
 const MAX_DYNAMIC_CACHE_ITEMS = 50;
