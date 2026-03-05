@@ -18,17 +18,16 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 - **Related Archives**: Link insights to cultural artifacts
 
 ### 📚 Book Reviews
-- **Igbo Literature**: Reviews of books on Igbo culture and history
+- **Igbo Literature**: Recommendation of books on Igbo culture and history
 - **Rating System**: 5-star rating with detailed reviews
 - **Cover Images**: Front and back cover display
 - **Publication Details**: ISBN, publisher, year
 
 ### 🤖 AI Assistant
-- **Igbo-Optimized Models**: Kimi K2 (best Igbo), Llama-4 Scout, Qwen3-32B via Groq
+- **Igbo-Optimized Models**: Kimi K2, GPTOSS-120B, Llama-4 Scout, Qwen3-32B via Groq
 - **Gemini Flash**: Vision analysis with gemini-2.5-flash and gemini-3-flash
 - **YarnGPT TTS**: Nigerian-native text-to-speech for Igbo audio output
-- **NaijaLingo ASR**: Local speech-to-text for Igbo, Yoruba, Hausa, Nigerian English
-- **Cultural Q&A**: Intelligent grounded responses with live archive links
+- **Research**: Various engineering methods are used to reduce hallucinations, including DuckDuckGo and Google search and database read access to ground responses and cite sources.
 
 ### 🔌 REST API
 - **RESTful Endpoints**: `/api/v1/archives/`, `/api/v1/books/`, `/api/v1/categories/`
