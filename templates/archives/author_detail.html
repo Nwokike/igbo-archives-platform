@@ -2,6 +2,29 @@
 
 {% block title %}{{ author.name }} - Igbo Archives{% endblock %}
 
+{% block meta_description %}{{ author.description|striptags|truncatewords:25 }}{% endblock %}
+
+{% block og_title %}{{ author.name }} - Igbo Archives Profile{% endblock %}
+{% block og_description %}{{ author.description|striptags|truncatewords:50 }}{% endblock %}
+{% block og_image %}
+{% if author.image %}
+{{ request.scheme }}://{{ request.get_host }}{{ author.image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
+{% endblock %}
+
+{% block twitter_title %}{{ author.name }} - Igbo Archives{% endblock %}
+{% block twitter_description %}{{ author.description|striptags|truncatewords:50 }}{% endblock %}
+{% block twitter_image %}
+{% if author.image %}
+{{ request.scheme }}://{{ request.get_host }}{{ author.image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
+{% endblock %}
+
+
 {% block content %}
 <div class="container py-12">
     <!-- Author Profile Header -->
@@ -26,6 +49,31 @@
                 </div>
                 {% else %}
                 <p class="text-text-muted italic">No biography available for this author.</p>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                <div class="mt-4">
+                    <button type="button" onclick="document.getElementById('edit-bio-form').classList.toggle('hidden')"
+                        class="btn-ghost btn-sm text-xs">
+                        <i class="fas fa-edit mr-1"></i> {% if author.description %}Suggest Edit{% else %}Add
+                        Biography{% endif %}
+                    </button>
+                    <form id="edit-bio-form" method="post"
+                        action="{% url 'archives:submit_author_description' author.slug %}"
+                        class="hidden mt-4 bg-surface-dark-alt/10 p-4 rounded-lg border border-border/50 text-left">
+                        {% csrf_token %}
+                        <p class="text-xs text-text-muted mb-3">{% if author.description %}Propose an edit to this
+                            biography. Your submission will be reviewed by our moderation team.{% else %}Provide a
+                            biography for this author. It will be added immediately upon submission.{% endif %}</p>
+                        {{ desc_form.proposed_description }}
+                        <div class="mt-3 flex justify-end gap-2">
+                            <button type="button"
+                                onclick="document.getElementById('edit-bio-form').classList.add('hidden')"
+                                class="btn-ghost btn-sm">Cancel</button>
+                            <button type="submit" class="btn-primary btn-sm">Submit Biography</button>
+                        </div>
+                    </form>
+                </div>
                 {% endif %}
 
                 <div

@@ -31,9 +31,9 @@
             <i class="fas fa-envelope"></i> Messages
             <span class="badge badge-primary ml-1">{{ messages_threads.count }}</span>
         </button>
-        <button type="button" class="tab" data-tab="insights">
-            <i class="fas fa-lightbulb"></i> Insights
-            <span class="badge badge-primary ml-1">{{ my_insights_count }}</span>
+        <button type="button" class="tab" data-tab="lores">
+            <i class="fas fa-lightbulb"></i> lores
+            <span class="badge badge-primary ml-1">{{ my_lores_count }}</span>
         </button>
         <button type="button" class="tab" data-tab="drafts">
             <i class="fas fa-edit"></i> Drafts
@@ -87,14 +87,14 @@
         </div>
     </div>
 
-    <div id="insights" class="tab-panel hidden">
-        {% include 'users/partials/dashboard_insights.html' %}
+    <div id="lores" class="tab-panel hidden">
+        {% include 'users/partials/dashboard_lores.html' %}
     </div>
 
     <div id="drafts" class="tab-panel hidden">
         <div class="flex justify-between items-center mb-4">
             <h3 class="font-serif text-xl font-bold">My Drafts</h3>
-            <a href="{% url 'insights:create' %}" class="btn-primary btn-sm">
+            <a href="{% url 'lore:create' %}" class="btn-primary btn-sm">
                 <i class="fas fa-plus"></i> New Draft
             </a>
         </div>
@@ -107,7 +107,7 @@
                         Last edited: {{ draft.updated_at|date:"M d, Y" }}
                     </p>
                     <div class="flex gap-2">
-                        <a href="{% url 'insights:edit' draft.slug %}" class="btn-primary btn-sm w-full justify-center">
+                        <a href="{% url 'lore:edit' draft.slug %}" class="btn-primary btn-sm w-full justify-center">
                             <i class="fas fa-pen mr-2"></i> Continue Editing
                         </a>
                     </div>
@@ -137,7 +137,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="flex items-start justify-between gap-4 mb-2">
-                        <h4 class="font-serif font-semibold">{{ suggestion.insight.title }}</h4>
+                        <h4 class="font-serif font-semibold">{{ suggestion.lore.title }}</h4>
                         <span
                             class="badge {% if suggestion.status == 'pending' %}badge-warning{% elif suggestion.status == 'approved' %}badge-success{% else %}badge-secondary{% endif %}">
                             {{ suggestion.get_status_display }}

@@ -13,6 +13,10 @@
     border-bottom: none;
     border-radius: 12px 12px 0 0;
     align-items: center;
+    position: sticky;
+    top: 60px; /* Offset for site header */
+    z-index: 50;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* subtle shadow when scrolling */
 }
 
 .dark .editor-toolbar {
@@ -105,31 +109,27 @@
         gap: 3px;
         padding: 8px;
     }
-    
+
     .editor-toolbar-btn {
         padding: 6px 8px;
         font-size: 13px;
     }
-    
+
     .editor-toolbar-label {
         display: none;
     }
-    
+
     .editor-toolbar-divider {
         margin: 0 4px;
         height: 20px;
     }
 }
 
-/* Update editor container to connect with toolbar */
-.editor-container {
-    border-radius: 0 0 12px 12px;
-}
-
+/* Editor container connects with toolbar above */
 .editor-container {
     min-height: 400px;
     background: white;
-    border-radius: 12px;
+    border-radius: 0 0 12px 12px;
     border: 1px solid #E3CEB9;
     /* overflow: hidden; Removed to allow toolbar to show */
     transition: border-color 0.2s, box-shadow 0.2s;

@@ -21,7 +21,20 @@
 
 {% block twitter_title %}{{ archive.title }} | Igbo Archives{% endblock %}
 {% block twitter_description %}{{ archive.description|truncatewords:50 }}{% endblock %}
-{% block twitter_image %}{% if archive.image %}{{ request.scheme }}://{{ request.get_host }}{{ archive.image.url }}{%endif %}{% endblock %}
+{% block twitter_image %}
+{% if archive.image %}
+{{ request.scheme }}://{{ request.get_host }}{{ archive.image.url }}
+{% elif archive.image_url %}
+{{ archive.image_url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
+{% endblock %}
+
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/editor.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -56,12 +69,19 @@
                         {% if item.item_type == 'image' and item.image %}
                         <img src="{{ item.image.url }}" alt="{{ item.alt_text|default:archive.title }}"
                             class="w-full h-full object-contain cursor-pointer" loading="lazy">
+                        {% elif item.item_type == 'image' and item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.alt_text|default:archive.title }}"
+                            class="w-full h-full object-contain cursor-pointer" loading="lazy">
 
                         {% elif item.item_type == 'video' and item.video %}
                         <video controls class="w-full h-full max-h-[600px]" preload="metadata">
                             <source src="{{ item.video.url }}" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
+                        {% elif item.item_type == 'video' and item.video_url %}
+                        <!-- Basic iframe for YouTube/Vimeo style links or raw URLs -->
+                        <iframe src="{{ item.video_url }}" class="w-full h-full min-h-[400px]" frameborder="0"
+                            allowfullscreen></iframe>
 
                         {% elif item.item_type == 'audio' and item.audio %}
                         <div class="flex flex-col items-center justify-center h-full w-full p-12 bg-surface-dark-alt">
@@ -71,12 +91,27 @@
                                 Your browser does not support the audio element.
                             </audio>
                         </div>
+                        {% elif item.item_type == 'audio' and item.audio_url %}
+                        <div class="flex flex-col items-center justify-center h-full w-full p-12 bg-surface-dark-alt">
+                            <i class="fas fa-music text-6xl text-accent mb-4"></i>
+                            <audio controls class="w-full max-w-md">
+                                <source src="{{ item.audio_url }}">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
 
                         {% elif item.item_type == 'document' and item.document %}
                         <div class="flex flex-col items-center justify-center h-full p-12 bg-surface w-full">
                             <i class="fas fa-file-pdf text-6xl text-red-500 mb-4"></i>
                             <a href="{{ item.document.url }}" class="btn-primary" download>
                                 <i class="fas fa-download mr-2"></i> Download Document
+                            </a>
+                        </div>
+                        {% elif item.item_type == 'document' and item.document_url %}
+                        <div class="flex flex-col items-center justify-center h-full p-12 bg-surface w-full">
+                            <i class="fas fa-external-link-alt text-6xl text-blue-500 mb-4"></i>
+                            <a href="{{ item.document_url }}" target="_blank" class="btn-primary">
+                                <i class="fas fa-external-link-alt mr-2"></i> View External Document
                             </a>
                         </div>
                         {% endif %}
@@ -98,7 +133,7 @@
                     {% endfor %}
                 </div>
 
-                {% if archive_items.count > 1 %}
+                {% if archive_items|length > 1 %}
                 <div class="swiper-button-next text-white drop-shadow-md"></div>
                 <div class="swiper-button-prev text-white drop-shadow-md"></div>
                 <div class="swiper-pagination"></div>
@@ -109,6 +144,114 @@
         <div class="prose prose-lg max-w-none mb-8">
             <p class="whitespace-pre-wrap">{{ archive.description }}</p>
         </div>
+
+        <!-- Community Notes Section -->
+        <div class="mt-8 mb-8 border-t border-border/50 pt-8" id="community-notes-section">
+            <h3 class="font-serif text-2xl font-semibold mb-6 flex items-center gap-2">
+                <i class="fas fa-users text-accent"></i> Community Notes
+            </h3>
+
+            {% if archive.community_notes.exists %}
+            <div class="space-y-6">
+                {% for note in archive.community_notes.all %}
+                {% if note.is_approved or request.user == note.added_by %}
+                <div
+                    class="card bg-surface-alt/20 shadow-sm border border-border/50 {% if not note.is_approved %}opacity-75{% endif %}">
+                    <div class="card-body p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                {% if note.added_by.profile_picture %}
+                                <img src="{{ note.added_by.profile_picture.url }}"
+                                    class="w-8 h-8 rounded-full object-cover">
+                                {% else %}
+                                <div
+                                    class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-xs font-bold">
+                                    {{ note.added_by.username|slice:":1"|upper }}
+                                </div>
+                                {% endif %}
+                                <div class="text-sm">
+                                    <p class="font-semibold">{{ note.added_by.get_display_name }}</p>
+                                    <p class="text-text-muted text-xs">{{ note.created_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                            {% if not note.is_approved %}
+                            <span class="badge badge-warning text-xs">Pending Review</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="prose prose-sm max-w-none editorjs-content">
+                            {% load editorjs_renderer %}
+                            {{ note.content|render_editorjs }}
+                        </div>
+
+                        {% if request.user.is_authenticated and request.user != note.added_by %}
+                        <div class="mt-4 flex justify-end">
+                            <button type="button" class="btn-ghost btn-sm text-xs suggest-edit-btn"
+                                data-note-id="{{ note.id }}">
+                                <i class="fas fa-edit mr-1"></i> Suggest Edit
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 bg-surface-alt/10 rounded-xl border border-dashed border-border/50">
+                <p class="text-text-muted mb-4">No community notes yet. Share your knowledge!</p>
+            </div>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+            <div class="mt-6">
+                <button type="button" class="btn-secondary w-full" id="addNoteBtn">
+                    <i class="fas fa-plus mr-2"></i> Add Context / Note
+                </button>
+
+                <form id="noteForm" class="hidden mt-4 card p-4 border border-accent/30" method="post"
+                    action="{% url 'archives:add_note' archive.slug %}">
+                    {% csrf_token %}
+                    <h4 class="font-serif font-medium mb-3">Contribute Context</h4>
+                    <div id="editorjs-note"
+                        class="bg-surface border border-border rounded-lg min-h-[200px] p-4 font-sans text-base"></div>
+                    <input type="hidden" name="content_json" id="id_content_json_note">
+
+                    <div class="turnstile-wrapper mb-4 scale-90 origin-left">
+                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                        <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" class="btn-ghost" id="cancelNoteBtn">Cancel</button>
+                        <button type="submit" class="btn-primary" id="saveNoteBtn">Submit Note</button>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="mt-6 text-center">
+                <p class="text-sm text-text-muted"><a href="{% url 'account_login' %}"
+                        class="text-accent hover:underline">Log in</a> to add context.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Explore Further (AI Powered) -->
+        {% if ai_correlations and ai_correlations.items %}
+        <div class="mt-8 mb-8 border-t border-border/50 pt-8" id="explore-further-section">
+            <h3 class="font-serif text-2xl font-semibold mb-4 flex items-center gap-2">
+                <i class="fas fa-compass text-accent"></i> Explore Further
+            </h3>
+
+            {% if ai_correlations.intro %}
+            <p class="text-text-muted mb-6 italic border-l-4 border-accent pl-4 py-1 bg-surface-alt/30 rounded-r-lg">
+                {{ ai_correlations.intro }}
+            </p>
+            {% endif %}
+
+            {% include 'partials/recommended_carousel.html' with recommended=ai_correlations.items %}
+        </div>
+        {% endif %}
 
         <div
             class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/50 dark:bg-surface-dark-alt/50 rounded-xl border border-border/50">
@@ -137,11 +280,6 @@
             {% endif %}
             {% endif %}
             {% endif %}
-
-            <a href="{% url 'insights:create' %}?archive_id={{ archive.id }}"
-                class="btn-secondary btn-sm flex items-center gap-2">
-                <i class="fas fa-lightbulb"></i> <span class="hidden sm:inline">Insight</span>
-            </a>
 
             {% if user.is_authenticated and archive.archive_type == 'image' %}
             <button type="button" id="aiAnalyzeBtn" class="btn-secondary btn-sm flex items-center gap-2"
@@ -217,28 +355,6 @@
                 <div class="card-body">
                     <h4 class="font-serif font-semibold mb-3">Archive Details</h4>
                     <dl class="space-y-2 text-sm">
-                        {% if archive.author %}
-                        <div>
-                            <dt class="font-medium">Original Author:</dt>
-                            <dd class="text-text-muted">
-                                <a href="{% url 'archives:author_detail' archive.author.slug %}"
-                                    class="hover:text-accent transition-colors font-medium">
-                                    {{ archive.author.name }}
-                                </a>
-                            </dd>
-                        </div>
-                        {% elif archive.original_author %}
-                        <div>
-                            <dt class="font-medium">Original Author:</dt>
-                            <dd class="text-text-muted">
-                                <a href="{% url 'archives:list' %}?search={{ archive.original_author|urlencode }}"
-                                    class="hover:text-accent transition-colors">
-                                    {{ archive.original_author }}
-                                </a>
-                            </dd>
-                        </div>
-                        {% endif %}
-
                         {% if archive.circa_date %}
                         <div>
                             <dt class="font-medium">Circa Date:</dt>
@@ -293,6 +409,48 @@
                         </div>
                         {% endif %}
                     </dl>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if archive.author or archive.original_author %}
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold mb-3">Original Creator</h4>
+                    <div class="flex items-center gap-3 mb-3">
+                        {% if archive.author and archive.author.image %}
+                        <img src="{{ archive.author.image.url }}" alt="{{ archive.author.name }}"
+                            class="w-12 h-12 rounded-full object-cover border-2 border-secondary/10">
+                        {% else %}
+                        <div class="avatar avatar-lg bg-secondary/10 text-secondary border-2 border-secondary/20">
+                            {% if archive.author %}{{ archive.author.name|slice:":1"|upper }}{% else %}{{ archive.original_author|slice:":1"|upper }}{% endif %}
+                        </div>
+                        {% endif %}
+                        <div>
+                            {% if archive.author %}
+                            <a href="{% url 'archives:author_detail' archive.author.slug %}"
+                                class="hover:text-accent font-medium transition-colors text-lg">
+                                {{ archive.author.name }}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'archives:list' %}?search={{ archive.original_author|urlencode }}"
+                                class="hover:text-accent font-medium transition-colors text-lg">
+                                {{ archive.original_author }}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if archive.author and archive.author.description %}
+                    <p class="text-sm text-text-muted">{{ archive.author.description|truncatewords:25 }}</p>
+                    <a href="{% url 'archives:author_detail' archive.author.slug %}"
+                        class="text-xs text-accent hover:underline mt-2 inline-block font-medium">Read full bio
+                        &rarr;</a>
+                    {% elif archive.author and not archive.author.description %}
+                    <p class="text-xs text-text-muted italic mb-2">No biography available yet.</p>
+                    <a href="{% url 'archives:author_detail' archive.author.slug %}"
+                        class="btn-ghost btn-sm text-xs mt-1 inline-flex items-center gap-1"><i class="fas fa-edit"></i>
+                        Contribute Biography</a>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
@@ -359,8 +517,7 @@
                                 </h5>
                                 <div class="flex items-center text-xs text-text-muted dark:text-text-dark-muted">
                                     <i class="far fa-calendar mr-1.5 opacity-70"></i>
-                                    {% if item.circa_date %}{{ item.circa_date }}{% elif item.date_created %}{{
-                                    item.date_created|date:"Y" }}{% else %}{{ item.created_at|date:"M Y" }}{% endif %}
+                                    {% if item.circa_date %}{{ item.circa_date }}{% elif item.date_created %}{{ item.date_created|date:"Y" }}{% else %}{{ item.created_at|date:"M Y" }}{% endif %}
                                 </div>
                             </div>
                         </a>
@@ -375,6 +532,19 @@
 {% endblock %}
 
 {% block extra_js %}
+{% load static %}
+<script src="{% static 'vendor/js/editorjs/editorjs.umd.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/header.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/list.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/quote.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/embed.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/code.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/link.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
+<script src="{% static 'js/editor/editor.js' %}"></script>
+<script src="{% static 'js/editor/editor-toolbar.js' %}"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         if (document.querySelector('.swiper-slide')) {
@@ -382,15 +552,49 @@
                 loop: false,
                 autoHeight: true,
                 spaceBetween: 20,
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true,
-                    dynamicBullets: true,
-                },
+                navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+                pagination: { el: '.swiper-pagination', clickable: true, dynamicBullets: true },
+            });
+        }
+
+        // Community Notes Editor Logic
+        const addBtn = document.getElementById('addNoteBtn');
+        const cancelBtn = document.getElementById('cancelNoteBtn');
+        const form = document.getElementById('noteForm');
+        let editorInstance = null;
+
+        if (addBtn && form) {
+            addBtn.addEventListener('click', () => {
+                form.classList.remove('hidden');
+                addBtn.classList.add('hidden');
+
+                if (!editorInstance) {
+                    editorInstance = window.IgboEditor.initSimple('editorjs-note', {
+                        placeholder: 'Write your context, history, or corrections here...',
+                        autofocus: true
+                    });
+
+                    setTimeout(function () {
+                        if (window.EditorToolbar && editorInstance) {
+                            window.EditorToolbar.init(editorInstance, 'editorjs-note', { hasImageTool: false });
+                        }
+                    }, 300);
+                }
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                form.classList.add('hidden');
+                addBtn.classList.remove('hidden');
+            });
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                editorInstance.save().then((outputData) => {
+                    document.getElementById('id_content_json_note').value = JSON.stringify(outputData);
+                    this.submit();
+                }).catch((error) => {
+                    console.log('Saving failed: ', error);
+                });
             });
         }
     });

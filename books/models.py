@@ -62,7 +62,7 @@ class BookRecommendation(models.Model):
     rejection_reason = models.TextField(blank=True, help_text="Internal reason for rejection")
     submitted_at = models.DateTimeField(null=True, blank=True, help_text="When submitted for approval")
     
-    # tags field REMOVED
+
     
     class Meta:
         ordering = ['-created_at']
@@ -85,14 +85,18 @@ class BookRecommendation(models.Model):
     
     @property
     def average_rating(self):
-        """Calculate average rating from user ratings using database aggregation."""
+        """Return annotated avg_rating if available, else query DB."""
+        if hasattr(self, 'avg_rating'):
+            return self.avg_rating
         from django.db.models import Avg
         result = self.ratings.aggregate(avg=Avg('rating'))
         return result['avg']
     
     @property
     def rating_count(self):
-        """Count of user ratings."""
+        """Return annotated review_count if available, else query DB."""
+        if hasattr(self, 'review_count'):
+            return self.review_count
         return self.ratings.count()
 
 

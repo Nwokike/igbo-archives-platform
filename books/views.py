@@ -19,7 +19,8 @@ import logging
 
 from .models import BookRecommendation, UserBookRating
 from core.validators import ALLOWED_BOOK_SORTS, get_safe_sort
-from core.editorjs_helpers import parse_editorjs_content, get_workflow_flags
+from core.editorjs_helpers import parse_editorjs_content, get_workflow_flags, generate_unique_slug
+from core.image_utils import compress_image
 from core.turnstile import verify_turnstile
 from core.notifications_utils import send_new_review_notification
 
@@ -119,8 +120,26 @@ def book_detail(request, slug):
     # Get all reviews for this book
     reviews = UserBookRating.objects.filter(book=book).select_related('user').order_by('-created_at')
 
+    # Extract plain text excerpt from EditorJS content for SEO meta tags
+    content_excerpt = ''
+    if book.content_json and isinstance(book.content_json, dict):
+        blocks = book.content_json.get('blocks', [])
+        text_parts = []
+        for block in blocks:
+            text = block.get('data', {}).get('text', '')
+            if text:
+                import re
+                clean = re.sub(r'<[^>]+>', '', text)
+                text_parts.append(clean)
+                if len(' '.join(text_parts)) > 200:
+                    break
+        content_excerpt = ' '.join(text_parts)[:300]
+    elif book.legacy_content:
+        content_excerpt = book.legacy_content[:300]
+
     context = {
         'book': book,
+        'content_excerpt': content_excerpt,
         'previous_book': previous_book,
         'next_book': next_book,
         'related_books': related_books,
@@ -153,15 +172,7 @@ def book_create(request):
             messages.error(request, str(e))
             return render(request, 'books/create.html')
         
-        base_slug = slugify(recommendation_title)[:200]
-        slug = base_slug
-        counter = 1
-        while BookRecommendation.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-            if counter > 100:
-                slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
-                break
+        slug = generate_unique_slug(recommendation_title, BookRecommendation)
         
         # Check for duplicate ISBN
         isbn = request.POST.get('isbn', '').strip()[:20]
@@ -190,9 +201,12 @@ def book_create(request):
         except (ValueError, TypeError):
             publication_year = None
         
+        author_name = request.POST.get('author', '').strip()
+        author_about_text = request.POST.get('author_about', '').strip()
+        
         book = BookRecommendation(
             book_title=book_title,
-            author=request.POST.get('author', '').strip(),
+            author=author_name,
             isbn=isbn,
             external_url=request.POST.get('external_url', '').strip(),
             publisher=request.POST.get('publisher', '').strip(),
@@ -207,8 +221,19 @@ def book_create(request):
             submitted_at=submitted_at,
         )
         
+        # Link author to central database profile
+        if author_name:
+            from archives.models import Author
+            author_obj, created = Author.objects.get_or_create(
+                name__iexact=author_name,
+                defaults={'name': author_name}
+            )
+            if author_about_text and not author_obj.description:
+                author_obj.description = author_about_text
+                author_obj.save()
+        
         if request.FILES.get('cover_image'):
-            book.cover_image = request.FILES['cover_image']
+            book.cover_image = compress_image(request.FILES['cover_image'])
         
         try:
             book.full_clean()
@@ -258,8 +283,23 @@ def book_edit(request, slug):
     book = get_object_or_404(BookRecommendation, slug=slug, added_by=request.user)
     
     if request.method == 'POST':
+        author_name = request.POST.get('author', '').strip()
+        author_about_text = request.POST.get('author_about', '').strip()
+        
         book.book_title = request.POST.get('book_title', '').strip()
-        book.author = request.POST.get('author', '').strip()
+        book.author = author_name
+        
+        if author_name:
+            from archives.models import Author
+            author_obj, created = Author.objects.get_or_create(
+                name__iexact=author_name,
+                defaults={'name': author_name}
+            )
+            # Only update description if they explicitly provided it and the profile doesn't have one 
+            # OR if they are updating it specifically here. For safety, we just overwrite if text is provided.
+            if author_about_text:
+                author_obj.description = author_about_text
+                author_obj.save()
         
         # Check for duplicate ISBN (excluding current book)
         new_isbn = request.POST.get('isbn', '').strip()[:20]
@@ -268,10 +308,7 @@ def book_edit(request, slug):
             if existing_book:
                 messages.error(
                     request, 
-                    mark_safe(
-                        f'A book with ISBN/ASIN "{new_isbn}" already exists. '
-                        f'<a href="{existing_book.get_absolute_url()}" target="_blank" class="text-accent underline">View existing book</a>'
-                    )
+                    f'A book with ISBN/ASIN "{new_isbn}" already exists. Search for "{existing_book.book_title}" to view it.'
                 )
                 initial_content = ''
                 if book.content_json:
@@ -320,12 +357,11 @@ def book_edit(request, slug):
         else:
             if book.is_published and book.is_approved:
                 book.pending_approval = True
-                book.is_published = False
                 book.is_approved = False
             messages.success(request, 'Your book recommendation has been saved!')
         
         if request.FILES.get('cover_image'):
-            book.cover_image = request.FILES['cover_image']
+            book.cover_image = compress_image(request.FILES['cover_image'])
         
         book.save()
         
@@ -424,8 +460,7 @@ def book_rate(request, slug):
                     send_new_review_notification(user_rating, book)
                 except Exception as e:
                     logger.warning(f"Failed to send new review notification to owner: {e}")
-            else:
-                pass
+
                 
         except (ValueError, TypeError) as e:
             messages.error(request, str(e))

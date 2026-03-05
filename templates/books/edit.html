@@ -10,8 +10,8 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="mb-8">
-        <h1 class="font-serif text-display-lg text-dark-brown mb-2">Edit Book Recommendation</h1>
-        <p class="text-vintage-beaver">Update your recommendation for "{{ book.book_title }}"</p>
+        <h1 class="font-serif text-2xl lg:text-3xl font-bold mb-2">Edit Book Recommendation</h1>
+        <p class="text-text-muted">Update your recommendation for "{{ book.book_title }}"</p>
     </div>
 
     <form method="post" enctype="multipart/form-data" id="bookForm" class="space-y-6">
@@ -31,6 +31,13 @@
                 <div class="form-group">
                     <label for="author" class="form-label">Author <span class="text-red-500">*</span></label>
                     <input type="text" class="form-input" id="author" name="author" value="{{ book.author }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="author_about" class="form-label">About the Author <span
+                            class="text-text-muted font-normal text-xs">(Optional)</span></label>
+                    <textarea class="form-textarea" id="author_about" name="author_about" rows="3"
+                        placeholder="Provide a brief biography of the author...">{% if author_profile and author_profile.description %}{{ author_profile.description }}{% endif %}</textarea>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -92,7 +99,7 @@
                     {% if book.cover_image %}
                     <div class="mb-2">
                         <img src="{{ book.cover_image.url }}" alt="{{ book.book_title }}"
-                            class="max-w-[150px] h-auto rounded border-2 border-sepia-pale p-1">
+                            class="max-w-[150px] h-auto rounded border-2 border-border p-1">
                     </div>
                     {% endif %}
                     <input type="file" class="form-input" id="cover_image" name="cover_image" accept="image/*">
@@ -157,4 +164,5 @@
 <script src="{% static 'js/editor/editor.js' %}"></script>
 <script src="{% static 'js/editor/editor-toolbar.js' %}"></script>
 <script src="{% static 'js/books/books_edit.js' %}"></script>
+<script src="{% static 'js/author_autocomplete.js' %}"></script>
 {% endblock %}

@@ -33,5 +33,9 @@ def generate_unique_username(email):
     while CustomUser.objects.filter(username=username).exists():
         username = f"{base}{counter}"
         counter += 1
+        if counter > 1000:
+            import uuid
+            username = f"{base}_{uuid.uuid4().hex[:8]}"
+            break
 
     return username

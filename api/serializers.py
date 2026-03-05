@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from archives.models import Archive, ArchiveItem, Category, Author
 from books.models import BookRecommendation, UserBookRating
-from insights.models import InsightPost
+from lore.models import LorePost
 
 User = get_user_model()
 
@@ -129,7 +129,11 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
         description = validated_data.get('description', '')
 
         with transaction.atomic():
-            # 1. Create the Parent Archive
+            # 1. Pop file fields before creating parent to avoid duplicate storage
+            for field in ('image', 'video', 'audio', 'document'):
+                validated_data.pop(field, None)
+            
+            # Create the Parent Archive (without file fields)
             archive = Archive.objects.create(**validated_data)
 
             # 2. Automatically Create Item #1 (The Missing Link Fix)
@@ -206,22 +210,10 @@ class BookRecommendationCreateSerializer(serializers.ModelSerializer):
         ]
     
     def create(self, validated_data):
-        from django.utils.text import slugify
-        import uuid
+        from core.editorjs_helpers import generate_unique_slug
         
-        # Generate unique slug
         title = validated_data.get('title', validated_data.get('book_title', ''))
-        base_slug = slugify(title)[:200]
-        slug = base_slug
-        counter = 1
-        while BookRecommendation.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-            if counter > 100:
-                slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
-                break
-        
-        validated_data['slug'] = slug
+        validated_data['slug'] = generate_unique_slug(title, BookRecommendation)
         return super().create(validated_data)
 
 
@@ -243,13 +235,13 @@ class UserBookRatingCreateSerializer(serializers.ModelSerializer):
         fields = ['rating', 'review_text']
 
 
-class InsightPostSerializer(serializers.ModelSerializer):
+class LorePostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     
     class Meta:
-        model = InsightPost
+        model = LorePost
         fields = [
             'id', 'title', 'slug', 'content', 'excerpt',
-            'featured_image', 'author', 'views_count',
+            'featured_image', 'author',
             'created_at'
         ]

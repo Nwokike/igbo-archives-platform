@@ -15,10 +15,22 @@
             {% for item in recommended %}
             <a href="{{ item.get_absolute_url|default:'#' }}"
                 class="card card-hover flex-shrink-0 w-64 snap-start block">
-                {% if item.image or item.featured_image or item.cover_image %}
-                <div class="h-32 overflow-hidden">
-                    <img src="{% if item.image %}{{ item.image.url }}{% elif item.featured_image %}{{ item.featured_image.url }}{% else %}{{ item.cover_image.url }}{% endif %}"
+                {% if item.image or item.featured_image or item.cover_image or item.image_url %}
+                <div class="h-32 bg-surface-alt/50 relative overflow-hidden flex items-center justify-center">
+                    <img src="{% if item.image %}{{ item.image.url }}{% elif item.featured_image %}{{ item.featured_image.url }}{% elif item.cover_image %}{{ item.cover_image.url }}{% else %}{{ item.image_url }}{% endif %}"
                         alt="" class="w-full h-full object-cover">
+                </div>
+                {% elif item.featured_video or item.video_url %}
+                <div class="h-32 relative overflow-hidden">
+                    {% include 'partials/media_fallback.html' with type='video' %}
+                </div>
+                {% elif item.featured_audio or item.audio_url %}
+                <div class="h-32 relative overflow-hidden">
+                    {% include 'partials/media_fallback.html' with type='audio' %}
+                </div>
+                {% else %}
+                <div class="h-32 relative overflow-hidden">
+                    {% include 'partials/media_fallback.html' with type='text' %}
                 </div>
                 {% endif %}
                 <div class="card-body">

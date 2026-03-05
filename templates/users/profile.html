@@ -147,9 +147,9 @@
     <main class="lg:col-span-8 tab-container">
         <div class="mb-6">
             <div class="flex gap-1 border-b border-border" role="tablist">
-                <button type="button" class="tab active" data-tab="insights">
-                    <i class="fas fa-lightbulb"></i> Insights
-                    <span class="badge badge-primary ml-1" id="insights-count">{{ user_insights_count }}</span>
+                <button type="button" class="tab active" data-tab="lores">
+                    <i class="fas fa-lightbulb"></i> lores
+                    <span class="badge badge-primary ml-1" id="lores-count">{{ user_lores_count }}</span>
                 </button>
                 <button type="button" class="tab" data-tab="recommendations">
                     <i class="fas fa-book"></i> Recommendations
@@ -163,8 +163,8 @@
         </div>
 
         <div class="tab-content">
-            <div id="insights" class="tab-panel active">
-                {% include 'users/partials/profile_insights.html' %}
+            <div id="lores" class="tab-panel active">
+                {% include 'users/partials/profile_lores.html' %}
             </div>
 
             <div id="recommendations" class="tab-panel">

@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.conf import settings
 import logging
-from insights.models import InsightPost
+from lore.models import LorePost
 from books.models import BookRecommendation
 from archives.models import Archive
 from core.notifications_utils import send_post_approved_notification, send_post_rejected_notification
@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 @staff_member_required
 def moderation_dashboard(request):
     """Admin moderation dashboard showing pending posts"""
-    pending_insights = InsightPost.objects.filter(
+    pending_lores = LorePost.objects.filter(
         pending_approval=True, is_approved=False
-    ).select_related('author').order_by('-submitted_at')
+    ).select_related('author').order_by('-created_at')
     
     pending_books = BookRecommendation.objects.filter(
         pending_approval=True, is_approved=False
@@ -28,7 +28,7 @@ def moderation_dashboard(request):
     ).select_related('uploaded_by', 'category').order_by('-created_at')
     
     context = {
-        'pending_insights': pending_insights,
+        'pending_lores': pending_lores,
         'pending_books': pending_books,
         'pending_archives': pending_archives,
     }
@@ -37,30 +37,30 @@ def moderation_dashboard(request):
 
 @staff_member_required
 @require_POST
-def approve_insight(request, pk):
-    post = get_object_or_404(InsightPost, pk=pk)
+def approve_lore(request, pk):
+    post = get_object_or_404(LorePost, pk=pk)
     post.is_published = True
     post.is_approved = True
     post.pending_approval = False
     post.save()
-    send_post_approved_notification(post, 'insight')
+    send_post_approved_notification(post, 'lore')
     from core.notifications_utils import send_broadcast_notification
     send_broadcast_notification(
-        f"New Insight: {post.title}", 
-        f"Read the latest heritage insight by {post.author.get_display_name()}", 
+        f"New Lore: {post.title}", 
+        f"Read the latest heritage lore by {post.author.get_display_name()}", 
         post.get_absolute_url()
     )
     
     # Queue for weekly digest
     from core.email_service import queue_for_digest
-    queue_for_digest('insight', post.id, post.title, post.author.get_display_name(), post.get_absolute_url())
+    queue_for_digest('lore', post.id, post.title, post.author.get_display_name(), post.get_absolute_url())
     
-    messages.success(request, f'Insight "{post.title}" approved.')
+    messages.success(request, f'Lore "{post.title}" approved.')
     return redirect('users:moderation_dashboard')
 
 @staff_member_required
-def reject_insight(request, pk):
-    post = get_object_or_404(InsightPost, pk=pk)
+def reject_lore(request, pk):
+    post = get_object_or_404(LorePost, pk=pk)
     if request.method == 'POST':
         reason = request.POST.get('reason', '')
         post.pending_approval = False
@@ -68,10 +68,10 @@ def reject_insight(request, pk):
         post.is_rejected = True
         post.rejection_reason = reason
         post.save()
-        send_post_rejected_notification(post, reason, 'insight')
-        messages.info(request, f'Insight "{post.title}" rejected.')
+        send_post_rejected_notification(post, reason, 'lore')
+        messages.info(request, f'Lore "{post.title}" rejected.')
         return redirect('users:moderation_dashboard')
-    return render(request, 'users/admin/reject_post.html', {'post': post, 'post_type': 'insight'})
+    return render(request, 'users/admin/reject_post.html', {'post': post, 'post_type': 'lore'})
 
 @staff_member_required
 @require_POST

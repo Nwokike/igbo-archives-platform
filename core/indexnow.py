@@ -31,7 +31,7 @@ def submit_url_to_indexnow(url, host=None):
     Submit a URL to IndexNow API for immediate indexing
     
     Args:
-        url: Full URL to submit (e.g., https://igboarchives.com/insights/my-post/)
+        url: Full URL to submit (e.g., https://igboarchives.com/lore/my-post/)
         host: Domain name (e.g., igboarchives.com)
     """
     api_key = get_indexnow_key()
@@ -45,7 +45,7 @@ def submit_url_to_indexnow(url, host=None):
         parsed = urlparse(url)
         host = parsed.netloc
     
-        # IndexNow API endpoint (can use Bing, Yandex, or others)
+    # IndexNow API endpoint (can use Bing, Yandex, or others)
     endpoint = getattr(settings, 'INDEXNOW_API_URL', "https://api.indexnow.org/indexnow")
     
     payload = {
@@ -119,4 +119,5 @@ def submit_urls_bulk(urls, host=None):
                 
         except Exception as e:
             logger.error(f"Error submitting bulk URLs to IndexNow: {str(e)}")
+
 

@@ -3,8 +3,11 @@ Image compression utilities for automatic size reduction on upload.
 Compresses large images to reduce storage and improve load times.
 """
 import io
+import logging
 from PIL import Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
+
+logger = logging.getLogger(__name__)
 
 
 def compress_image(image_file, max_size_mb=1.5, quality=85, max_dimension=2400):
@@ -38,7 +41,8 @@ def compress_image(image_file, max_size_mb=1.5, quality=85, max_dimension=2400):
             background = Image.new('RGB', img.size, (255, 255, 255))
             if img.mode == 'P':
                 img = img.convert('RGBA')
-            background.paste(img, mask=img.split()[-1] if len(img.split()) == 4 else None)
+            channels = img.split()
+            background.paste(img, mask=channels[-1] if len(channels) == 4 else None)
             img = background
         elif img.mode != 'RGB':
             img = img.convert('RGB')
@@ -63,6 +67,7 @@ def compress_image(image_file, max_size_mb=1.5, quality=85, max_dimension=2400):
                 break
             current_quality -= 10
         
+        file_size = output.tell()
         output.seek(0)
         
         # Get original filename, ensure .jpg extension
@@ -76,14 +81,12 @@ def compress_image(image_file, max_size_mb=1.5, quality=85, max_dimension=2400):
             field_name=getattr(image_file, 'field_name', 'image'),
             name=original_name,
             content_type='image/jpeg',
-            size=output.tell(),
+            size=file_size,
             charset=None
         )
         
     except Exception as e:
-        # Return original on any error
-        import logging
-        logging.getLogger(__name__).warning(f"Image compression failed: {e}")
+        logger.warning(f"Image compression failed: {e}")
         if hasattr(image_file, 'seek'):
             image_file.seek(0)
         return image_file
@@ -114,5 +117,4 @@ def compress_model_images(instance, *field_names, max_size_mb=1.5):
                         if compressed and compressed != field.file:
                             setattr(instance, field_name, compressed)
             except Exception as e:
-                import logging
-                logging.getLogger(__name__).warning(f"Image compression skipped for field '{field_name}': {e}")
+                logger.warning(f"Image compression skipped for field '{field_name}': {e}")

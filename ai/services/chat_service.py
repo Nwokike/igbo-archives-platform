@@ -76,22 +76,22 @@ def get_database_context(query: str, max_results: int = 5) -> str:
                 desc = (a.description[:200] + '...') if a.description and len(a.description) > 200 else (a.description or '')
                 context_parts.append(f"- 答 [{a.title}]({full_url}): {desc}")
         
-        # Search insights
-        from insights.models import InsightPost
-        insight_q = Q()
+        # Search lore
+        from lore.models import LorePost
+        lore_q = Q()
         for kw in keywords:
-            insight_q |= (
+            lore_q |= (
                 Q(title__icontains=kw) |
                 Q(excerpt__icontains=kw)
             )
-        insights = InsightPost.objects.filter(
-            insight_q, is_approved=True, is_published=True
+        lore = LorePost.objects.filter(
+            lore_q, is_approved=True, is_published=True
         ).distinct()[:max_results]
         
-        if insights:
-            context_parts.append("\n### Insights Found in Database:")
-            for i in insights:
-                full_url = f"{SITE_URL}/insights/{i.slug}/"
+        if lore:
+            context_parts.append("\n### Lore Found in Database:")
+            for i in lore:
+                full_url = f"{SITE_URL}/lore/{i.slug}/"
                 excerpt_text = i.excerpt[:200] if i.excerpt else ''
                 context_parts.append(f"- 庁 [{i.title}]({full_url}): {excerpt_text}")
         

@@ -11,10 +11,21 @@
             {% elif archive.featured_image %}
             <img src="{{ archive.featured_image.url }}" alt="{{ archive.alt_text }}" loading="lazy" decoding="async"
                 class="w-full h-48 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            {% elif archive.items.first.item_type == 'video' %}
+            <div class="w-full h-48 [*[data-view='list']_&]:h-full overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='video' %}
+            </div>
+            {% elif archive.items.first.item_type == 'audio' %}
+            <div class="w-full h-48 [*[data-view='list']_&]:h-full overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='audio' %}
+            </div>
+            {% elif archive.items.first.item_type == 'document' %}
+            <div class="w-full h-48 [*[data-view='list']_&]:h-full overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='document' %}
+            </div>
             {% else %}
-            <div
-                class="w-full h-48 [*[data-view='list']_&]:h-full bg-surface-alt flex items-center justify-center text-text-muted">
-                <i class="fas fa-archive text-4xl [*[data-view='list']_&]:text-2xl"></i>
+            <div class="w-full h-48 [*[data-view='list']_&]:h-full overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='text' %}
             </div>
             {% endif %}
         </a>

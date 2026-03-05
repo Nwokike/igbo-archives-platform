@@ -80,7 +80,7 @@
 .message-content blockquote {
     border-left: 3px solid #B8974F;
     padding-left: 1rem;
-    font-italic: italic;
+    font-style: italic;
     margin: 1rem 0;
     color: #6B5D52;
 }

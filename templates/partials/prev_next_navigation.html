@@ -5,10 +5,26 @@
             <i class="fas fa-arrow-left mr-1"></i> Previous
         </span>
         <div class="flex items-center gap-3">
-            {% if previous.image or previous.featured_image or previous.cover_image %}
-            <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                <img src="{% if previous.image %}{{ previous.image.url }}{% elif previous.featured_image %}{{ previous.featured_image.url }}{% else %}{{ previous.cover_image.url }}{% endif %}"
+            {% if previous.image or previous.featured_image or previous.cover_image or previous.image_url %}
+            <div
+                class="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-surface-alt/50 flex justify-center items-center">
+                <img src="{% if previous.image %}{{ previous.image.url }}{% elif previous.featured_image %}{{ previous.featured_image.url }}{% elif previous.cover_image %}{{ previous.cover_image.url }}{% else %}{{ previous.image_url }}{% endif %}"
                     alt="" class="w-full h-full object-cover">
+            </div>
+            {% elif previous.featured_video or previous.video_url %}
+            <div
+                class="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-stone-900 flex justify-center items-center text-white/50 group-hover:text-white/80 transition-colors">
+                <i class="fas fa-play-circle text-lg"></i>
+            </div>
+            {% elif previous.featured_audio or previous.audio_url %}
+            <div
+                class="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-emerald-900/20 flex justify-center items-center text-emerald-700/60 group-hover:text-emerald-700/80 transition-colors">
+                <i class="fas fa-music text-lg"></i>
+            </div>
+            {% else %}
+            <div
+                class="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-surface-alt/50 flex justify-center items-center text-text-muted opacity-50 group-hover:opacity-100 transition-opacity">
+                <i class="fas fa-book-open text-lg"></i>
             </div>
             {% endif %}
             <span class="font-serif text-sm font-medium group-hover:text-accent transition-colors line-clamp-2">
@@ -31,10 +47,26 @@
                 {% if next.title %}{{ next.title|truncatewords:8 }}{% elif next.book_title %}{{
                 next.book_title|truncatewords:8 }}{% endif %}
             </span>
-            {% if next.image or next.featured_image or next.cover_image %}
-            <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                <img src="{% if next.image %}{{ next.image.url }}{% elif next.featured_image %}{{ next.featured_image.url }}{% else %}{{ next.cover_image.url }}{% endif %}"
+            {% if next.image or next.featured_image or next.cover_image or next.image_url %}
+            <div
+                class="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-surface-alt/50 flex justify-center items-center">
+                <img src="{% if next.image %}{{ next.image.url }}{% elif next.featured_image %}{{ next.featured_image.url }}{% elif next.cover_image %}{{ next.cover_image.url }}{% else %}{{ next.image_url }}{% endif %}"
                     alt="" class="w-full h-full object-cover">
+            </div>
+            {% elif next.featured_video or next.video_url %}
+            <div
+                class="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-stone-900 flex justify-center items-center text-white/50 group-hover:text-white/80 transition-colors">
+                <i class="fas fa-play-circle text-lg"></i>
+            </div>
+            {% elif next.featured_audio or next.audio_url %}
+            <div
+                class="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-emerald-900/20 flex justify-center items-center text-emerald-700/60 group-hover:text-emerald-700/80 transition-colors">
+                <i class="fas fa-music text-lg"></i>
+            </div>
+            {% else %}
+            <div
+                class="w-12 h-12 rounded overflow-hidden flex-shrink-0 bg-surface-alt/50 flex justify-center items-center text-text-muted opacity-50 group-hover:opacity-100 transition-opacity">
+                <i class="fas fa-book-open text-lg"></i>
             </div>
             {% endif %}
         </div>

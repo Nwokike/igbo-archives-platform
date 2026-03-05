@@ -54,7 +54,8 @@ class Message(models.Model):
         ]
     
     def __str__(self) -> str:
-        return f"Message from {self.sender.get_display_name()} in {self.thread.subject}"
+        sender_name = self.sender.get_display_name() if self.sender else "Deleted User"
+        return f"Message from {sender_name} in {self.thread.subject}"
 
 
 class Notification(models.Model):

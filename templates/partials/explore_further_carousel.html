@@ -1,0 +1,96 @@
+<!-- Explore Further Carousel -->
+{% if recommended %}
+<div class="relative group">
+    <button
+        class="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-text-muted hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
+        onclick="document.getElementById('exploreFurtherTrack').scrollBy({left: -300, behavior: 'smooth'})">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <div class="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth pb-2"
+        id="exploreFurtherTrack">
+        {% for item in recommended %}
+        <a href="{{ item.get_absolute_url|default:'#' }}" class="card card-hover flex-shrink-0 w-64 snap-start block">
+            {% if item.image or item.featured_image or item.cover_image or item.image_url %}
+            <div class="h-32 bg-surface-alt/50 relative overflow-hidden flex items-center justify-center">
+                <img src="{% if item.image %}{{ item.image.url }}{% elif item.featured_image %}{{ item.featured_image.url }}{% elif item.cover_image %}{{ item.cover_image.url }}{% else %}{{ item.image_url }}{% endif %}"
+                    alt="" class="w-full h-full object-cover">
+                {% if item.book_title %}
+                <div class="absolute top-2 right-2 badge badge-secondary text-[10px] uppercase shadow-sm">Book</div>
+                {% elif item.excerpt %}
+                <div class="absolute top-2 right-2 badge badge-primary text-[10px] uppercase shadow-sm">Lore</div>
+                {% elif item.archive_type %}
+                <div class="absolute top-2 right-2 badge bg-surface text-text text-[10px] uppercase shadow-sm">Archive
+                </div>
+                {% endif %}
+            </div>
+            {% elif item.featured_video or item.video_url %}
+            <div class="h-32 relative overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='video' %}
+                {% if item.book_title %}
+                <div class="absolute top-2 right-2 badge badge-secondary text-[10px] uppercase shadow-sm">Book</div>
+                {% elif item.excerpt %}
+                <div class="absolute top-2 right-2 badge badge-primary text-[10px] uppercase shadow-sm">Lore</div>
+                {% elif item.archive_type %}
+                <div class="absolute top-2 right-2 badge bg-surface text-text text-[10px] uppercase shadow-sm">Archive
+                </div>
+                {% endif %}
+            </div>
+            {% elif item.featured_audio or item.audio_url %}
+            <div class="h-32 relative overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='audio' %}
+                {% if item.book_title %}
+                <div class="absolute top-2 right-2 badge badge-secondary text-[10px] uppercase shadow-sm">Book</div>
+                {% elif item.excerpt %}
+                <div class="absolute top-2 right-2 badge badge-primary text-[10px] uppercase shadow-sm">Lore</div>
+                {% elif item.archive_type %}
+                <div class="absolute top-2 right-2 badge bg-surface text-text text-[10px] uppercase shadow-sm">Archive
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="h-32 relative overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='text' %}
+                {% if item.book_title %}
+                <div class="absolute top-2 right-2 badge badge-secondary text-[10px] uppercase shadow-sm">Book</div>
+                {% elif item.excerpt %}
+                <div class="absolute top-2 right-2 badge badge-primary text-[10px] uppercase shadow-sm">Lore</div>
+                {% elif item.archive_type %}
+                <div class="absolute top-2 right-2 badge bg-surface text-text text-[10px] uppercase shadow-sm">Archive
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h4 class="font-serif text-sm font-medium line-clamp-2 mb-1">
+                    {% if item.title %}
+                    {{ item.title|truncatewords:10 }}
+                    {% elif item.book_title %}
+                    {{ item.book_title|truncatewords:10 }}
+                    {% endif %}
+                </h4>
+                <p class="text-xs text-text-muted">
+                    {% if item.original_author %}
+                    By {{ item.original_author }}
+                    {% elif item.author and item.author.name %}
+                    By {{ item.author.name }}
+                    {% elif item.author and item.author.username %}
+                    By {{ item.author.full_name|default:item.author.username }}
+                    {% elif item.author %}
+                    By {{ item.author }}
+                    {% elif item.added_by %}
+                    By {{ item.added_by.get_display_name }}
+                    {% endif %}
+                </p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <button
+        class="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-text-muted hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
+        onclick="document.getElementById('exploreFurtherTrack').scrollBy({left: 300, behavior: 'smooth'})">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+</div>
+{% endif %}

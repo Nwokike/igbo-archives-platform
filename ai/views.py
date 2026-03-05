@@ -3,6 +3,7 @@ AI views for Igbo Archives.
 World-class cultural AI assistant - no visible provider branding.
 """
 import json
+import uuid
 import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -206,7 +207,6 @@ def generate_tts(request):
     result = tts_service.generate_audio(text, voice)
     
     if result['success']:
-        import uuid
         audio_id = str(uuid.uuid4())
         
         # Store audio bytes and content type in cache for 5 minutes
@@ -234,6 +234,7 @@ def generate_tts(request):
     })
 
 
+@login_required
 @require_GET
 def serve_tts_audio(request, audio_id):
     """Serve audio bytes directly from cache."""
@@ -253,29 +254,13 @@ def serve_tts_audio(request, audio_id):
 
 
 
-
-
-@login_required
-@require_GET
-def chat_history(request):
-    """Stateless: history is no longer provided."""
-    return JsonResponse({'sessions': []})
-
-
 @login_required
 @require_POST
-def delete_session(request):
-    """Stateless: delete is a no-op but returns success."""
-    return JsonResponse({'success': True})
-
-
-@login_required
-@require_POST
-def generate_insight_content(request):
-    """Generate or refine insight content using AI."""
+def generate_lore_content(request):
+    """Generate or refine lore content using AI."""
     
     # Rate limiting — consistent with analyze_archive (20/hour)
-    rate_key = f'ai_insight_gen_{request.user.id}'
+    rate_key = f'ai_lore_gen_{request.user.id}'
     gen_count = cache.get(rate_key, 0)
     if gen_count >= 20:
         return JsonResponse({'success': False, 'error': 'Generation limit reached. Please wait a while.'}, status=429)
@@ -324,10 +309,11 @@ def generate_insight_content(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
-        logger.error(f"Insight content generation error: {e}")
+        logger.error(f"Lore content generation error: {e}")
         return JsonResponse({'success': False, 'error': 'An unexpected error occurred. Please try again.'}, status=500)
 
 
 def coming_soon(request):
     """Legacy redirect to AI home."""
     return redirect('ai:home')
+

@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-import nh3
+try:
+    import nh3
+except ImportError:
+    nh3 = None
 from .models import BookRecommendation, UserBookRating
 
 # Allowed tags for admin preview
@@ -52,7 +55,15 @@ class BookRecommendationAdmin(admin.ModelAdmin):
     )
 
     def approve_books(self, request, queryset):
-        queryset.update(is_approved=True, is_published=True, pending_approval=False)
+        updated = queryset.update(is_approved=True, is_published=True, pending_approval=False)
+        # Notify each author
+        for book in queryset.select_related('added_by'):
+            try:
+                from core.notifications_utils import send_post_approved_notification
+                send_post_approved_notification(book, post_type='book recommendation')
+            except Exception:
+                pass
+        self.message_user(request, f"{updated} book(s) approved and published.")
     approve_books.short_description = "Approve and publish selected books"
 
     def publish_books(self, request, queryset):
@@ -67,6 +78,12 @@ class BookRecommendationAdmin(admin.ModelAdmin):
         """Render EditorJS content as HTML for admin preview with XSS protection."""
         if not obj.content_json or not isinstance(obj.content_json, dict):
             return "No content"
+        
+        if nh3 is None:
+            from django.utils.html import strip_tags
+            blocks = obj.content_json.get('blocks', [])
+            text_parts = [strip_tags(b.get('data', {}).get('text', '')) for b in blocks[:5]]
+            return mark_safe(f"<p>{'</p><p>'.join(text_parts)}</p>") if text_parts else "No content"
         
         blocks = obj.content_json.get('blocks', [])
         if not blocks:

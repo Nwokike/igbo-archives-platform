@@ -1,5 +1,5 @@
 """
-Shared helpers for Editor.js content handling across insights and books apps.
+Shared helpers for Editor.js content handling across lore and books apps.
 Centralizes JSON parsing, tag handling, slug generation, and workflow flags.
 """
 import json
@@ -266,3 +266,4 @@ def download_and_save_image_from_url(model_instance, image_field_name, url, max_
         return False
     
     return False
+

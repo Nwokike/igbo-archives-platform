@@ -39,11 +39,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
-            modals.forEach(function (modal) {
-                if (modal.classList.contains('active')) {
-                    modal.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
+            document.querySelectorAll('.modal-overlay.active').forEach(function (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
             });
         }
     });

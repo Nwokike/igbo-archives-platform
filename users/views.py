@@ -24,7 +24,7 @@ User = get_user_model()
 def dashboard(request):
     """User dashboard showing their content and activity."""
     from archives.models import Archive
-    from insights.models import InsightPost, EditSuggestion
+    from lore.models import LorePost
     from books.models import BookRecommendation
     from django.core.paginator import Paginator
     
@@ -32,16 +32,16 @@ def dashboard(request):
     
     messages_threads = user.message_threads.prefetch_related('participants')[:10]
     
-    # Insights with pagination
-    insights_queryset = InsightPost.objects.filter(
+    # lores with pagination
+    lores_queryset = LorePost.objects.filter(
         author=user
     ).filter(
         Q(is_published=True) | Q(pending_approval=True)
     ).order_by('-created_at')
-    insights_paginator = Paginator(insights_queryset, 20)
-    my_insights = insights_paginator.get_page(request.GET.get('insights_page', 1))
+    lores_paginator = Paginator(lores_queryset, 20)
+    my_lores = lores_paginator.get_page(request.GET.get('lores_page', 1))
     
-    my_drafts = InsightPost.objects.filter(
+    my_drafts = LorePost.objects.filter(
         author=user,
         is_published=False,
         pending_approval=False
@@ -69,29 +69,23 @@ def dashboard(request):
     archives_paginator = Paginator(archives_queryset, 20)
     my_archives = archives_paginator.get_page(request.GET.get('archives_page', 1))
     
-    edit_suggestions = EditSuggestion.objects.filter(
-        post__author=user,
-        is_approved=False,
-        is_rejected=False
-    ).select_related('post', 'suggested_by').order_by('-created_at')[:10]
     
     context = {
         'messages_threads': messages_threads,
-        'my_insights': my_insights,
-        'my_insights_count': InsightPost.objects.filter(author=user, is_published=True, is_approved=True).count(),
+        'my_lores': my_lores,
+        'my_lores_count': LorePost.objects.filter(author=user, is_published=True, is_approved=True).count(),
         'my_drafts': my_drafts,
         'my_drafts_count': my_drafts.count(),
         'my_book_recommendations': my_book_recommendations,
         'my_book_recommendations_count': live_books_count,
         'my_archives': my_archives,
         'my_archives_count': Archive.objects.filter(uploaded_by=user, is_approved=True).count(),
-        'edit_suggestions': edit_suggestions,
     }
     
     if request.htmx:
         target = request.GET.get('target')
-        if target == 'insights':
-            return render(request, 'users/partials/dashboard_insights.html', context)
+        if target == 'lores':
+            return render(request, 'users/partials/dashboard_lores.html', context)
         elif target == 'books':
             return render(request, 'users/partials/dashboard_books.html', context)
         elif target == 'archives':
@@ -105,7 +99,7 @@ def dashboard(request):
 def profile_view(request, username):
     """Public profile view - only shows approved content."""
     from archives.models import Archive
-    from insights.models import InsightPost
+    from lore.models import LorePost
     from books.models import BookRecommendation
     from django.core.paginator import Paginator
     
@@ -119,14 +113,14 @@ def profile_view(request, username):
     archives_paginator = Paginator(archives_queryset, 20)
     archives = archives_paginator.get_page(request.GET.get('archives_page', 1))
     
-    # Insights with pagination
-    insights_queryset = InsightPost.objects.filter(
+    # lores with pagination
+    lores_queryset = LorePost.objects.filter(
         author=user,
         is_published=True,
         is_approved=True
     ).order_by('-created_at')
-    insights_paginator = Paginator(insights_queryset, 20)
-    insights = insights_paginator.get_page(request.GET.get('insights_page', 1))
+    lores_paginator = Paginator(lores_queryset, 20)
+    lores = lores_paginator.get_page(request.GET.get('lores_page', 1))
     
     # Books with pagination
     books_queryset = BookRecommendation.objects.filter(
@@ -141,16 +135,16 @@ def profile_view(request, username):
         'profile_user': user,
         'user_archives': archives,
         'user_archives_count': archives_queryset.count(),
-        'user_insights': insights,
-        'user_insights_count': insights_queryset.count(),
+        'user_lores': lores,
+        'user_lores_count': lores_queryset.count(),
         'user_book_recommendations': book_recommendations,
         'user_book_recommendations_count': books_queryset.count(),
     }
     
     if request.htmx:
         target = request.GET.get('target')
-        if target == 'insights':
-            return render(request, 'users/partials/profile_insights.html', context)
+        if target == 'lores':
+            return render(request, 'users/partials/profile_lores.html', context)
         elif target == 'books':
             return render(request, 'users/partials/profile_books.html', context)
         elif target == 'archives':

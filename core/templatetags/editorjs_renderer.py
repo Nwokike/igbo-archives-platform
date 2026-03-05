@@ -144,7 +144,7 @@ def render_list(data):
         else:
             items_html.append(f'<li>{sanitize_html(item)}</li>')
     
-    return f'<{tag} class="{list_class} list-inside space-y-1 my-4 text-dark-umber">{"".join(items_html)}</{tag}>'
+    return f'<{tag} class="{list_class} list-inside space-y-1 my-4 text-text dark:text-text-dark">{"".join(items_html)}</{tag}>'
 
 
 def render_quote(data):
@@ -166,7 +166,7 @@ def render_quote(data):
 def render_code(data):
     """Render code block."""
     code = escape(data.get('code', ''))
-    return f'<pre class="bg-dark-brown text-heritage-cream rounded-lg p-4 my-4 overflow-x-auto"><code class="text-sm font-mono">{code}</code></pre>'
+    return f'<pre class="bg-gray-900 text-gray-100 dark:bg-gray-800 rounded-lg p-4 my-4 overflow-x-auto"><code class="text-sm font-mono">{code}</code></pre>'
 
 
 def render_image(data):
@@ -192,7 +192,7 @@ def render_image(data):
     
     img_classes = ['rounded-lg', 'max-w-full', 'h-auto', 'cursor-pointer', 'hover:opacity-90', 'transition-opacity']
     if with_border:
-        img_classes.append('border-2 border-sepia-pale')
+        img_classes.append('border-2 border-border dark:border-border-dark')
     if stretched:
         img_classes.append('w-full')
     
@@ -203,7 +203,7 @@ def render_image(data):
         wrapper_classes.append('text-center')
     
     # Build image tag with proper alt text and clickable link
-    img_tag = f'<img src="{safe_url}" alt="{alt_text}" class="{" ".join(img_classes)}" loading="lazy">'
+    img_tag = f'<img src="{safe_url}" alt="{escape(alt_text)}" class="{" ".join(img_classes)}" loading="lazy">'
     
     # Determine link URL: archive detail if from archive, otherwise full-size image
     if archive_slug:

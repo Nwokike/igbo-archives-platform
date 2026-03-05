@@ -132,7 +132,7 @@ def queue_for_digest(content_type, content_id, title, author_name, url):
     Queue content for weekly digest instead of instant email.
     
     Args:
-        content_type: 'archive', 'insight', or 'book'
+        content_type: 'archive', 'lore', or 'book'
         content_id: ID of the content
         title: Title of the content
         author_name: Name of the author/uploader
@@ -195,3 +195,4 @@ URL: {settings.SITE_URL}{url}
     queue_for_digest(post_type, post.id, title, author_name, url)
     
     send_admin_notification(subject, message)
+

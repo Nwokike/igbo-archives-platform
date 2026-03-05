@@ -11,7 +11,8 @@ Task Schedule:
 - 06:00 AM Sunday: Send weekly digest emails (max 290/batch)
 """
 
-from django.tasks import task
+from django_huey import db_task, periodic_task
+from huey import crontab
 from django.core.mail import send_mail
 from django.conf import settings
 import logging
@@ -19,7 +20,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@task()
+@db_task()
 def send_email_async(subject, message, recipient_list, from_email=None):
     """Send email asynchronously to reduce request latency"""
     try:
@@ -38,7 +39,7 @@ def send_email_async(subject, message, recipient_list, from_email=None):
         return False
 
 
-@task()
+@db_task()
 def send_push_notification_async(user_id, title, body, url=None):
     """Send push notification asynchronously"""
     try:
@@ -64,7 +65,7 @@ def send_push_notification_async(user_id, title, body, url=None):
         return False
 
 
-@task()
+@db_task()
 def broadcast_push_notification_task(title, body, url=None):
     """Broadcast push notification to all subscribed users in batches of 50."""
     try:
@@ -92,13 +93,13 @@ def broadcast_push_notification_task(title, body, url=None):
         return False
 
 
-@task()
+@db_task()
 def notify_post_approved(post_id, post_type):
     """Notify author when their post is approved"""
     try:
-        if post_type == 'insight':
-            from insights.models import InsightPost
-            post = InsightPost.objects.select_related('author').get(id=post_id)
+        if post_type == 'lore':
+            from lore.models import LorePost
+            post = LorePost.objects.select_related('author').get(id=post_id)
             author = post.author
             title = post.title
         elif post_type == 'book':
@@ -134,19 +135,24 @@ def notify_post_approved(post_id, post_type):
         return False
 
 
-@task()
+@db_task()
 def notify_post_rejected(post_id, post_type, reason=''):
     """Notify author when their post is rejected"""
     try:
-        if post_type == 'insight':
-            from insights.models import InsightPost
-            post = InsightPost.objects.select_related('author').get(id=post_id)
+        if post_type == 'lore':
+            from lore.models import LorePost
+            post = LorePost.objects.select_related('author').get(id=post_id)
             author = post.author
             title = post.title
         elif post_type == 'book':
             from books.models import BookRecommendation
             post = BookRecommendation.objects.select_related('added_by').get(id=post_id)
             author = post.added_by
+            title = post.title
+        elif post_type == 'archive':
+            from archives.models import Archive
+            post = Archive.objects.select_related('uploaded_by').get(id=post_id)
+            author = post.uploaded_by
             title = post.title
         else:
             return False
@@ -165,7 +171,7 @@ def notify_post_rejected(post_id, post_type, reason=''):
         return False
 
 
-@task()
+@periodic_task(crontab(minute='0', hour='3'))
 def daily_database_backup():
     """Run database and media backup daily at 3 AM"""
     try:
@@ -181,7 +187,7 @@ def daily_database_backup():
 
 
 
-@task()
+@periodic_task(crontab(minute='0', hour='4', day='1'))
 def cleanup_old_notifications():
     """Archive or delete read notifications older than 18 months to keep DB lean."""
     try:
@@ -204,7 +210,7 @@ def cleanup_old_notifications():
         return False
 
 
-@task()
+@periodic_task(crontab(minute='30', hour='4', day='1'))
 def cleanup_old_messages():
     """Archive very old message threads to keep messaging DB lean.
     
@@ -236,7 +242,7 @@ def cleanup_old_messages():
         return False
 
 
-@task()
+@db_task()
 def notify_indexnow(urls):
     """Notify search engines about new/updated content via IndexNow"""
     try:
@@ -255,7 +261,7 @@ def notify_indexnow(urls):
         return False
 
 
-@task()
+@periodic_task(crontab(minute='0', hour='6', day_of_week='0'))
 def send_weekly_digest():
     """
     Process weekly digest batch. Runs daily at 6 AM but only sends
@@ -317,7 +323,7 @@ def send_weekly_digest():
 
         # 5. Prepare content group by type
         archives = [i for i in pending_items if i.content_type == 'archive']
-        insights = [i for i in pending_items if i.content_type == 'insight']
+        lore = [i for i in pending_items if i.content_type == 'lore']
         books = [i for i in pending_items if i.content_type == 'book']
         
         # 6. Prepare template context
@@ -331,10 +337,10 @@ def send_weekly_digest():
             'site_url': site_url,
             'year': week_end.year,
             'new_archives': [{'title': i.title, 'author_name': i.author_name, 'url': i.url, 'archive_type': 'Archive'} for i in archives[:10]],
-            'new_insights': [{'title': i.title, 'author_name': i.author_name, 'url': i.url} for i in insights[:10]],
+            'new_lore': [{'title': i.title, 'author_name': i.author_name, 'url': i.url} for i in lore[:10]],
             'new_books': [{'title': i.title, 'author_name': i.author_name, 'url': i.url} for i in books[:10]],
             'new_archives_count': len(archives),
-            'new_insights_count': len(insights),
+            'new_lore_count': len(lore),
             'new_books_count': len(books),
         }
         
@@ -364,5 +370,6 @@ def send_weekly_digest():
     except Exception as e:
         logger.error(f"Weekly digest batch failed: {e}", exc_info=True)
         return False
+
 
 

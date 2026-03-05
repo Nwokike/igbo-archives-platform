@@ -1,4 +1,5 @@
 import random
+import logging
 from django.shortcuts import render
 from django.contrib import messages
 from django.conf import settings
@@ -6,6 +7,8 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.views.decorators.cache import never_cache
 from archives.models import Archive
+
+logger = logging.getLogger(__name__)
 
 
 def get_all_approved_archive_ids():
@@ -150,8 +153,6 @@ def offline(request):
 
 def health_check(request):
     """Health check endpoint with DB connectivity verification."""
-    import logging
-    logger = logging.getLogger(__name__)
     try:
         from django.db import connection
         with connection.cursor() as cursor:

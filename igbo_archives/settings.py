@@ -16,6 +16,8 @@ def get_bool_from_env(key, default_value='False'):
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- Core Security ---
+DEBUG = get_bool_from_env('DEBUG', 'False')
+
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     if DEBUG:
@@ -23,9 +25,8 @@ if not SECRET_KEY:
     else:
         raise ValueError("The SECRET_KEY environment variable must be set.")
 
-DEBUG = get_bool_from_env('DEBUG', 'False')
-
-ADMINS = [('Admin', os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng'))]
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng')
+ADMINS = [('Admin', ADMIN_EMAIL)]
 
 # --- Hosts & Trusted Origins ---
 if DEBUG:
@@ -35,7 +36,7 @@ else:
     ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
 
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng,https://www.igboarchives.com.ng').split(',') if o.strip()]
-SITE_URL = os.getenv('SITE_URL', 'https://igboarchives.com.ng')
+SITE_URL = os.getenv('SITE_URL', 'https://igboarchives.com.ng').rstrip('/')
 
 # --- Application Definition ---
 INSTALLED_APPS = [
@@ -66,13 +67,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_cleanup.apps.CleanupConfig',
+    'django_huey',
 
     # 4. Project Apps
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
     'archives.apps.ArchivesConfig',
-    'insights.apps.InsightsConfig',
     'books.apps.BooksConfig',
+    'lore.apps.LoreConfig',
     'ai.apps.AiConfig',
     'api.apps.ApiConfig',
 ]
@@ -361,14 +363,32 @@ DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
 DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
 DBBACKUP_CONNECTORS = {'default': {'CONNECTOR': 'dbbackup.db.sqlite.SqliteConnector'}}
 
-# --- Tasks (Django 6) ---
-TASKS = {
-    'default': {
-        'BACKEND': 'django.tasks.backends.immediate.ImmediateBackend',
-    },
+# --- Tasks / Background Limits (Huey) ---
+DJANGO_HUEY = {
+    'default': 'default',
+    'queues': {
+        'default': {
+            'huey_class': 'huey.SqliteHuey',
+            'name': 'default',
+            'filename': str(BASE_DIR / 'huey_tasks.sqlite3'),
+            'results': True,
+            'store_none': False,
+            'immediate': DEBUG,  
+            'utc': True,
+            'consumer': {
+                'workers': 2,
+                'worker_type': 'thread',  # low memory overhead, no gevent required
+                'initial_delay': 0.1,
+                'backoff': 1.15,
+                'max_delay': 10.0,
+                'scheduler_interval': 1,
+                'periodic': True,
+                'check_worker_health': True,
+                'health_check_interval': 1,
+            },
+        }
+    }
 }
-# Note: For production with persistent queue, consider 'django.tasks.backends.redis.RedisBackend'
-# or similar once infra is available. For now, immediate handles 1GB RAM constraints best.
 
 # --- Security Headers ---
 SESSION_COOKIE_AGE = 86400 * 7

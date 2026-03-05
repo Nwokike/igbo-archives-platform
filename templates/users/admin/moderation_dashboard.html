@@ -77,30 +77,31 @@
     <section class="mb-10">
         <h2
             class="font-serif text-xl font-semibold text-dark-brown mb-4 flex items-center gap-2 p-3 bg-heritage-cream/50 rounded-lg">
-            <i class="fas fa-lightbulb text-vintage-gold"></i> Pending Insights ({{ pending_insights.count }})
+            <i class="fas fa-lightbulb text-vintage-gold"></i> Pending lores ({{ pending_lores.count }})
         </h2>
 
-        {% if pending_insights %}
+        {% if pending_lores %}
         <div class="grid grid-cols-1 gap-4">
-            {% for post in pending_insights %}
+            {% for post in pending_lores %}
             <div class="card p-4 border-l-4 border-l-vintage-gold">
                 <div class="flex flex-col sm:flex-row sm:items-start gap-4">
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">{{ post.title }}</h3>
                         <p class="text-sm text-text-muted mb-2">
-                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d, Y"}}
+                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d,
+                            Y"}}
                         </p>
                         <div class="flex gap-2 mt-3">
-                            <a href="{% url 'insights:detail' post.slug %}" class="btn-secondary btn-sm"
+                            <a href="{% url 'lore:detail' post.slug %}" class="btn-secondary btn-sm"
                                 target="_blank">Review</a>
-                            <form action="{% url 'users:approve_insight' post.pk %}" method="POST" class="inline">
+                            <form action="{% url 'users:approve_lore' post.pk %}" method="POST" class="inline">
                                 {% csrf_token %}
                                 <button type="submit"
                                     class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">
                                     Approve
                                 </button>
                             </form>
-                            <a href="{% url 'users:reject_insight' post.pk %}"
+                            <a href="{% url 'users:reject_lore' post.pk %}"
                                 class="btn-secondary btn-sm text-red-600 hover:bg-red-50">Reject</a>
                         </div>
                     </div>
@@ -110,7 +111,7 @@
         </div>
         {% else %}
         <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-text-muted">
-            No pending insights.
+            No pending lores.
         </div>
         {% endif %}
     </section>
@@ -129,7 +130,8 @@
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">{{ review.title }}</h3>
                         <p class="text-sm text-text-muted">Book: {{ review.book_title }}</p>
-                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name }}</strong></p>
+                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name
+                                }}</strong></p>
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm"
                                 target="_blank">Review</a>

@@ -18,18 +18,7 @@ function shareProfile() {
     }
 }
 
-function showToast(message) {
-    var toast = document.createElement('div');
-    toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-dark-brown text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-up';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(function() {
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.3s';
-        setTimeout(function() { toast.remove(); }, 300);
-    }, 2000);
-}
+
 
 document.addEventListener('DOMContentLoaded', function() {
     var shareBtn = document.getElementById('share-btn');

@@ -4,17 +4,28 @@
 
 {% block title %}{{ book.book_title }} - Recommended Books{% endblock %}
 
-{% block meta_description %}{{ book.book_title }} by {{ book.author }} - {{ book.content|striptags|truncatewords:25 }}{%endblock %}
+{% block meta_description %}{{ book.book_title }} by {{ book.author }} - {{ content_excerpt|truncatewords:25 }}{% endblock %}
 
-<!-- Open Graph / Facebook -->
-{% block og_title %}{{ book.book_title }} by {{ book.author }} - Igbo Archives{% endblock %}
-{% block og_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
-{% block og_image %}{% if book.cover_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}{%else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}{% endif %}{% endblock %}
+{% block og_title %}{{ book.book_title }} by {{ book.author }} | Igbo Archives{% endblock %}
+{% block og_description %}{{ content_excerpt|truncatewords:50 }}{% endblock %}
+{% block og_image %}
+{% if book.cover_image %}
+{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
+{% endblock %}
+{% block og_type %}book{% endblock %}
 
-<!-- Twitter -->
-{% block twitter_title %}{{ book.book_title }} by {{ book.author }}{% endblock %}
-{% block twitter_description %}{{ book.content|striptags|truncatewords:50 }}{% endblock %}
-{% block twitter_image %}{% if book.cover_image %}{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url}}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}{% endif %}{%endblock %}
+{% block twitter_title %}{{ book.book_title }} by {{ book.author }} | Igbo Archives{% endblock %}
+{% block twitter_description %}{{ content_excerpt|truncatewords:50 }}{% endblock %}
+{% block twitter_image %}
+{% if book.cover_image %}
+{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editor.css' %}">
@@ -31,14 +42,14 @@
 
     <article class="lg:col-span-8">
         <header class="mb-6">
-            <h1 class="font-serif text-display-lg text-dark-brown mb-2">{{ book.book_title }}</h1>
-            <p class="text-xl text-vintage-beaver mb-4">by {{ book.author }}</p>
+            <h1 class="font-serif text-2xl lg:text-3xl font-bold mb-2">{{ book.book_title }}</h1>
+            <p class="text-xl text-text-muted mb-4">by {{ book.author }}</p>
 
             {% if book.average_rating %}
-            <div class="lg:hidden flex items-center gap-2 mb-4 text-vintage-gold">
+            <div class="lg:hidden flex items-center gap-2 mb-4 text-accent">
                 <span class="text-lg">★</span>
-                <span class="font-bold text-dark-brown">{{ book.average_rating|floatformat:1 }}</span>
-                <span class="text-sm text-vintage-beaver">({{ book.rating_count }} reviews)</span>
+                <span class="font-bold">{{ book.average_rating|floatformat:1 }}</span>
+                <span class="text-sm text-text-muted">({{ book.rating_count }} reviews)</span>
             </div>
             {% endif %}
         </header>
@@ -55,31 +66,43 @@
                 {% else %}
                 <div class="md:col-span-3">
                     {% endif %}
+                    <div class="card mb-6 shadow-sm border border-border/50">
+                        <div class="card-body flex items-center gap-4 p-4">
+                            <div
+                                class="w-12 h-12 rounded-full bg-secondary/10 flex flex-shrink-0 items-center justify-center text-xl font-serif text-secondary border-2 border-secondary/20 shadow-inner">
+                                {{ book.author|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <h4 class="font-serif font-semibold text-lg">{{ book.author }}</h4>
+                                <p class="text-xs text-text-muted">Book Author / Creator</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card h-full">
                         <div class="card-body">
-                            <h4 class="font-serif font-semibold text-dark-brown mb-3 border-b border-border/50 pb-2">
-                                Book Details</h4>
+                            <h4 class="font-serif font-semibold mb-3 border-b border-border/50 pb-2">
+                                Book Details
+                            </h4>
                             <dl class="space-y-3 text-sm">
-                                <div class="grid grid-cols-3">
-                                    <dt class="font-medium text-vintage-beaver">Author</dt>
-                                    <dd class="col-span-2 text-dark-umber font-medium">{{ book.author }}</dd>
-                                </div>
                                 {% if book.publisher %}
                                 <div class="grid grid-cols-3">
-                                    <dt class="font-medium text-vintage-beaver">Publisher</dt>
-                                    <dd class="col-span-2 text-dark-umber">{{ book.publisher }}</dd>
+                                    <dt class="font-medium text-text-muted">Publisher</dt>
+                                    <dd class="col-span-2">{{ book.publisher }}</dd>
                                 </div>
                                 {% endif %}
+
                                 {% if book.publication_year %}
                                 <div class="grid grid-cols-3">
-                                    <dt class="font-medium text-vintage-beaver">Year</dt>
-                                    <dd class="col-span-2 text-dark-umber">{{ book.publication_year }}</dd>
+                                    <dt class="font-medium text-text-muted">Year</dt>
+                                    <dd class="col-span-2">{{ book.publication_year }}</dd>
                                 </div>
                                 {% endif %}
+
                                 {% if book.isbn %}
                                 <div class="grid grid-cols-3">
-                                    <dt class="font-medium text-vintage-beaver">ISBN</dt>
-                                    <dd class="col-span-2 text-dark-umber font-mono">{{ book.isbn }}</dd>
+                                    <dt class="font-medium text-text-muted">ISBN</dt>
+                                    <dd class="col-span-2 font-mono">{{ book.isbn }}</dd>
                                 </div>
                                 {% endif %}
                             </dl>
@@ -113,7 +136,7 @@
                 </div>
             </div>
 
-            <hr class="border-sepia-pale/50 my-8">
+            <hr class="border-border/50 my-8">
 
             {% include 'partials/prev_next_navigation.html' with previous=previous_book next=next_book %}
             {% include 'partials/recommended_carousel.html' with recommended=related_books %}
@@ -125,5 +148,6 @@
             {% include 'books/partials/reviews_sidebar.html' %}
         </div>
     </aside>
+
 </div>
 {% endblock %}

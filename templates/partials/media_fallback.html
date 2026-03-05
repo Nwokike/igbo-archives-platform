@@ -1,0 +1,44 @@
+{% load static %}
+<div class="w-full h-full relative overflow-hidden flex items-center justify-center 
+    {% if type == 'video' %}
+        bg-gradient-to-br from-stone-900 via-stone-800 to-black text-white/70
+    {% elif type == 'audio' %}
+        bg-gradient-to-br from-emerald-900/60 via-emerald-800/40 to-emerald-950/80 text-emerald-700/80
+    {% elif type == 'document' %}
+        bg-gradient-to-br from-blue-900/30 via-slate-800/20 to-blue-950/40 text-blue-800/70
+    {% else %}
+        bg-gradient-to-br from-surface-alt via-surface to-surface-alt/80 text-text-muted
+    {% endif %}">
+
+    <!-- Decorative Mesh Background -->
+    <div class="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] 
+        {% if type == 'video' %}from-stone-600 via-transparent to-transparent
+        {% elif type == 'audio' %}from-emerald-400 via-transparent to-transparent
+        {% elif type == 'document' %}from-blue-400 via-transparent to-transparent
+        {% else %}from-text-muted via-transparent to-transparent{% endif %}">
+    </div>
+
+    <!-- Iconography -->
+    <div class="z-10 flex flex-col items-center justify-center group-hover:scale-110 transition-transform duration-500">
+        {% if type == 'video' %}
+        <i class="fas fa-play-circle text-5xl drop-shadow-lg mb-2"></i>
+        <span
+            class="text-[10px] font-bold uppercase tracking-widest opacity-80 backdrop-blur-sm bg-black/20 px-2 py-1 rounded">Watch</span>
+        {% elif type == 'audio' %}
+        <i class="fas fa-music text-4xl drop-shadow-md mb-2"></i>
+        <span
+            class="text-[10px] font-bold uppercase tracking-widest opacity-90 backdrop-blur-sm bg-emerald-900/10 px-2 py-1 rounded">Listen</span>
+        {% elif type == 'document' %}
+        <i class="fas fa-file-pdf text-4xl drop-shadow-md mb-2"></i>
+        <span
+            class="text-[10px] font-bold uppercase tracking-widest opacity-90 backdrop-blur-sm bg-blue-900/10 px-2 py-1 rounded">Read</span>
+        {% else %}
+        <i class="fas fa-book-open text-3xl drop-shadow-sm mb-2 opacity-60"></i>
+        <span class="text-[10px] font-bold uppercase tracking-widest opacity-60">Text</span>
+        {% endif %}
+    </div>
+
+    {% if type == 'video' %}
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 mix-blend-overlay"></div>
+    {% endif %}
+</div>

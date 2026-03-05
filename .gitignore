@@ -38,11 +38,18 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 db.sqlite3-wal
+
+# Tailwind build source files
+static/css/files/
 db.sqlite3-shm
 huey.db
 huey.db-journal
 huey.db-wal
 huey.db-shm
+huey_tasks.sqlite3
+huey_tasks.sqlite3-journal
+huey_tasks.sqlite3-wal
+huey_tasks.sqlite3-shm
 staticfiles/
 media/
 backups/

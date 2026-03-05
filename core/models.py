@@ -67,7 +67,7 @@ class DigestQueue(models.Model):
     """
     CONTENT_TYPE_CHOICES = [
         ('archive', 'New Archive'),
-        ('insight', 'New Insight'),
+        ('lore', 'New Lore'),
         ('book', 'New Book Recommendation'),
     ]
     
@@ -101,3 +101,4 @@ class DigestQueue(models.Model):
             processed=True,
             processed_at=timezone.now()
         )
+

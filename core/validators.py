@@ -38,10 +38,11 @@ ALLOWED_ARCHIVE_SORTS = {
     'z-a': '-title',
 }
 
-ALLOWED_INSIGHT_SORTS = {
+ALLOWED_LORE_SORTS = {
     'recently-added': '-created_at',
-    'newest': '-created_at',
     'oldest': 'created_at',
+    'a-z': 'title',
+    'z-a': '-title',
 }
 
 ALLOWED_BOOK_SORTS = {
@@ -55,3 +56,4 @@ ALLOWED_BOOK_SORTS = {
 def get_safe_sort(sort_param, allowed_sorts, default='-created_at'):
     """Get a safe sort parameter from whitelist."""
     return allowed_sorts.get(sort_param, default)
+

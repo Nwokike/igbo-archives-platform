@@ -9,17 +9,12 @@
     <title>{% block title %}Igbo Archives - Preserving the Past, Inspiring the Future{% endblock %}</title>
     <link rel="icon" type="image/png" href="{% static 'images/logos/logo-light.png' %}">
 
-    <a href="#main-content"
-        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded">Skip
-        to main content</a>
-
     {% if ENABLE_ANALYTICS and GOOGLE_ANALYTICS_ID %}
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
     <script src="{% static 'js/common/analytics.js' %}" data-ga-id="{{ GOOGLE_ANALYTICS_ID }}"></script>
     {% endif %}
 
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4026538242880905"
-        crossorigin="anonymous"></script>
+
 
     {% progressive_web_app_meta %}
 
@@ -55,7 +50,7 @@
     <meta property="og:title"
         content="{% block og_title %}Igbo Archives - Preserving the Past, Inspiring the Future{% endblock %}">
     <meta property="og:description"
-        content="{% block og_description %}Explore the rich cultural heritage of the Igbo people through our comprehensive digital archives, community insights, and educational resources.{% endblock %}">
+        content="{% block og_description %}Explore the rich cultural heritage of the Igbo people through our comprehensive digital archives, community lore, and educational resources.{% endblock %}">
     <meta property="og:image"
         content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}{% endblock %}">
     <meta property="og:image:width" content="{% block og_image_width %}1200{% endblock %}">
@@ -67,15 +62,12 @@
     <meta name="twitter:title"
         content="{% block twitter_title %}Igbo Archives - Preserving the Past, Inspiring the Future{% endblock %}">
     <meta name="twitter:description"
-        content="{% block twitter_description %}Explore the rich cultural heritage of the Igbo people through our comprehensive digital archives, community insights, and educational resources.{% endblock %}">
+        content="{% block twitter_description %}Explore the rich cultural heritage of the Igbo people through our comprehensive digital archives, community lore, and educational resources.{% endblock %}">
     <meta name="twitter:image"
         content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}{% endblock %}">
+    <meta name="twitter:site" content="@IgboArchives">
 
-    {% if ENABLE_ADSENSE %}
-    <script async
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ GOOGLE_ADSENSE_CLIENT_ID }}"
-        crossorigin="anonymous"></script>
-    {% endif %}
+
 
     <script type="application/ld+json">
     {
@@ -96,6 +88,10 @@
 </head>
 
 <body class="font-sans antialiased bg-surface text-text min-h-screen flex flex-col">
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded">Skip
+        to main content</a>
+
     <!-- PWA Install Button -->
     <button
         class="fixed bottom-24 right-4 z-40 w-12 h-12 bg-accent text-white rounded-full shadow-lg hover:bg-accent-hover hover:scale-110 transition-all duration-300 hidden items-center justify-center md:bottom-6"
@@ -205,19 +201,19 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-center gap-1 py-2">
                     <a href="{% url 'archives:list' %}"
-                        class="nav-link {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}active{% endif %}">
+                        class="nav-link {% if 'archives' in request.resolver_match.app_names|default:'' or request.path == '/' %}active{% endif %}">
                         <i class="fas fa-archive"></i> Archives
                     </a>
-                    <a href="{% url 'insights:list' %}"
-                        class="nav-link {% if 'insights' in request.resolver_match.app_names %}active{% endif %}">
-                        <i class="fas fa-lightbulb"></i> Insights
+                    <a href="{% url 'lore:list' %}"
+                        class="nav-link {% if 'lore' in request.resolver_match.app_names|default:'' %}active{% endif %}">
+                        <i class="fas fa-book-open"></i> Lore
                     </a>
                     <a href="{% url 'books:list' %}"
-                        class="nav-link {% if 'books' in request.resolver_match.app_names %}active{% endif %}">
+                        class="nav-link {% if 'books' in request.resolver_match.app_names|default:'' %}active{% endif %}">
                         <i class="fas fa-book"></i> Recommended Books
                     </a>
                     <a href="{% url 'ai:home' %}"
-                        class="nav-link {% if 'ai' in request.resolver_match.app_names %}active{% endif %}">
+                        class="nav-link {% if 'ai' in request.resolver_match.app_names|default:'' %}active{% endif %}">
                         <i class="fas fa-robot"></i> Igbo Archives AI
                     </a>
                 </div>
@@ -232,22 +228,22 @@
         aria-label="Mobile navigation">
         <div class="flex items-center justify-around py-2">
             <a href="{% url 'archives:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'archives' in request.resolver_match.app_names or request.path == '/' %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'archives' in request.resolver_match.app_names|default:'' or request.path == '/' %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
                 <i class="fas fa-archive text-base"></i>
                 <span class="text-[10px] font-medium">Archives</span>
             </a>
-            <a href="{% url 'insights:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'insights' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
-                <i class="fas fa-lightbulb text-base"></i>
-                <span class="text-[10px] font-medium">Insights</span>
+            <a href="{% url 'lore:list' %}"
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'lore' in request.resolver_match.app_names|default:'' %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
+                <i class="fas fa-book-open text-base"></i>
+                <span class="text-[10px] font-medium">Lore</span>
             </a>
             <a href="{% url 'books:list' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'books' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'books' in request.resolver_match.app_names|default:'' %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
                 <i class="fas fa-book text-base"></i>
                 <span class="text-[10px] font-medium">Books</span>
             </a>
             <a href="{% url 'ai:home' %}"
-                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'ai' in request.resolver_match.app_names %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
+                class="flex flex-col items-center gap-0.5 py-1.5 px-4 rounded-lg transition-all {% if 'ai' in request.resolver_match.app_names|default:'' %}text-accent bg-accent/10{% else %}text-text-muted hover:text-text dark:text-text-dark-muted dark:hover:text-text-dark{% endif %}">
                 <i class="fas fa-robot text-base"></i>
                 <span class="text-[10px] font-medium">AI</span>
             </a>
@@ -337,8 +333,8 @@
                     <div class="space-y-1.5">
                         <a href="{% url 'archives:list' %}"
                             class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Archives</a>
-                        <a href="{% url 'insights:list' %}"
-                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Insights</a>
+                        <a href="{% url 'lore:list' %}"
+                            class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Lore</a>
                         <a href="{% url 'books:list' %}"
                             class="block text-text-muted dark:text-text-dark-muted hover:text-text dark:hover:text-text-dark transition-colors text-sm">Books</a>
                         <a href="{% url 'ai:home' %}"
@@ -391,7 +387,7 @@
     <script src="{% static 'js/common/utils.js' %}" defer></script>
     <script src="{% static 'js/common/main.js' %}" defer></script>
     <script src="{% static 'js/common/notifications.js' %}" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     {% block page_js %}
     <script src="{% static 'js/common/comments.js' %}" defer></script>
     <script src="{% static 'js/common/modals.js' %}" defer></script>

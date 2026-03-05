@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Igbo Archives{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/editor.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mb-12">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="font-serif text-3xl font-bold">{{ title }}</h1>
+        <a href="{% if post %}{% url 'lore:detail' post.slug %}{% else %}{% url 'lore:list' %}{% endif %}"
+            class="btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-8" id="loreForm">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="card p-6">
+            <h3 class="font-serif text-xl font-bold mb-4">Lore Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-1" for="{{ form.title.id_for_label }}">Title *</label>
+                    {{ form.title }}
+                    {{ form.title.errors }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1" for="{{ form.category.id_for_label }}">Lore
+                        Type</label>
+                    {{ form.category }}
+                    {{ form.category.errors }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1"
+                        for="{{ form.original_author.id_for_label }}">Origin/Source</label>
+                    {{ form.original_author }}
+                    {{ form.original_author.errors }}
+                    <p class="text-xs text-text-muted mt-1">If this is a traditional story, leave blank or put
+                        "Traditional".</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1"
+                        for="{{ form.original_author_about.id_for_label }}">About the Author/Source <span
+                            class="text-text-muted font-normal text-xs">(Optional)</span></label>
+                    {{ form.original_author_about }}
+                    {{ form.original_author_about.errors }}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-1" for="{{ form.excerpt.id_for_label }}">Excerpt /
+                        Summary</label>
+                    {{ form.excerpt }}
+                    {{ form.excerpt.errors }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <h3 class="font-serif text-xl font-bold mb-4">Story Content (Editor)</h3>
+            <p class="text-sm text-text-muted mb-4">Use the block Editor below to write the lore. You can add headers,
+                quotes, lists, and markdown-style formatting.</p>
+
+            <div id="editorjs"
+                class="bg-surface border border-border rounded-lg min-h-[400px] p-4 font-sans text-base editor-container">
+            </div>
+            <input type="hidden" name="content_json" id="id_content_json" value="">
+            {% if post.content_json %}{{ post.content_json|json_script:"lore-initial-data" }}{% endif %}
+        </div>
+
+        <div class="card p-6">
+            <h3 class="font-serif text-xl font-bold mb-1">Featured Media (Optional)</h3>
+            <p class="text-sm text-text-muted mb-6">Provide either a file upload OR an external URL stream. URLs are
+                preferred to save storage.</p>
+
+            <div class="space-y-6">
+                <!-- Image -->
+                <div class="border border-border/50 rounded-lg p-4 bg-surface-alt/10">
+                    <h4 class="font-medium mb-3 flex items-center gap-2"><i class="fas fa-image text-accent"></i> Cover
+                        Image</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium mb-1 text-text-muted"
+                                for="{{ form.featured_image.id_for_label }}">Upload Image File</label>
+                            {{ form.featured_image }}
+                            {{ form.featured_image.errors }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1 text-text-muted"
+                                for="{{ form.image_url.id_for_label }}">...OR Stream URL</label>
+                            {{ form.image_url }}
+                            {{ form.image_url.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video -->
+                <div class="border border-border/50 rounded-lg p-4 bg-surface-alt/10">
+                    <h4 class="font-medium mb-3 flex items-center gap-2"><i class="fas fa-video text-accent"></i> Video
+                        Lore</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium mb-1 text-text-muted"
+                                for="{{ form.featured_video.id_for_label }}">Upload Video File</label>
+                            {{ form.featured_video }}
+                            {{ form.featured_video.errors }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1 text-text-muted"
+                                for="{{ form.video_url.id_for_label }}">...OR Stream URL</label>
+                            {{ form.video_url }}
+                            {{ form.video_url.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audio -->
+                <div class="border border-border/50 rounded-lg p-4 bg-surface-alt/10">
+                    <h4 class="font-medium mb-3 flex items-center gap-2"><i class="fas fa-music text-accent"></i> Audio
+                        Lore</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium mb-1 text-text-muted"
+                                for="{{ form.featured_audio.id_for_label }}">Upload Audio File</label>
+                            {{ form.featured_audio }}
+                            {{ form.featured_audio.errors }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1 text-text-muted"
+                                for="{{ form.audio_url.id_for_label }}">...OR Stream URL</label>
+                            {{ form.audio_url }}
+                            {{ form.audio_url.errors }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-1 text-text-muted" for="{{ form.alt_text.id_for_label }}">Alt
+                    Text (Accessibility)</label>
+                {{ form.alt_text }}
+                {{ form.alt_text.errors }}
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-border">
+            <a href="{% if post %}{% url 'lore:detail' post.slug %}{% else %}{% url 'lore:list' %}{% endif %}"
+                class="btn-ghost">Cancel</a>
+            <button type="submit" class="btn-primary px-8" id="submitBtn">
+                <i class="fas fa-save mr-2"></i> {{ submit_text }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'vendor/js/editorjs/editorjs.umd.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/header.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/list.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/quote.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/marker.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/embed.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/code.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/link.js' %}"></script>
+<script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
+<script src="{% static 'js/editor/editor.js' %}"></script>
+<script src="{% static 'js/editor/editor-toolbar.js' %}"></script>
+<script src="{% static 'js/author_autocomplete.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let editorData = {};
+        const dataEl = document.getElementById('lore-initial-data');
+        if (dataEl) {
+            try {
+                editorData = JSON.parse(dataEl.textContent);
+            } catch (e) {
+                console.error('Failed to parse existing content_json:', e);
+            }
+        }
+
+        const editor = window.IgboEditor.initSimple('editorjs', {
+            data: editorData,
+            placeholder: 'Write your story here...',
+            hasImageTool: false,
+            onChange: function (api, event) {
+                // Auto-sync not strictly needed, we handle on submit
+            }
+        });
+
+        editor.isReady.then(() => {
+            if (window.EditorToolbar) {
+                window.EditorToolbar.init(editor, 'editorjs', { hasImageTool: false });
+            }
+        });
+
+        const form = document.getElementById('loreForm');
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const oldText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+            submitBtn.disabled = true;
+
+            editor.save().then((outputData) => {
+                document.getElementById('id_content_json').value = JSON.stringify(outputData);
+                form.submit();
+            }).catch((error) => {
+                console.error('Saving failed: ', error);
+                submitBtn.innerHTML = oldText;
+                submitBtn.disabled = false;
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -33,8 +33,8 @@ urlpatterns = [
     # Admin / Moderation
     path('admin/moderation/', admin_views.moderation_dashboard, name='moderation_dashboard'),
     
-    path('admin/insights/<int:pk>/approve/', admin_views.approve_insight, name='approve_insight'),
-    path('admin/insights/<int:pk>/reject/', admin_views.reject_insight, name='reject_insight'),
+    path('admin/lore/<int:pk>/approve/', admin_views.approve_lore, name='approve_lore'),
+    path('admin/lore/<int:pk>/reject/', admin_views.reject_lore, name='reject_lore'),
     
     path('admin/books/<int:pk>/approve/', admin_views.approve_book_review, name='approve_book_review'),
     path('admin/books/<int:pk>/reject/', admin_views.reject_book_review, name='reject_book_review'),

@@ -6,15 +6,16 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="mb-8">
-        <h1 class="font-serif text-3xl font-bold text-dark-brown mb-2">Upload Cultural Archive</h1>
-        <p class="text-text-muted">Share photos, videos, or documents. You can upload up to 5 items in a single archive entry.</p>
+        <h1 class="font-serif text-3xl font-bold mb-2">Upload Cultural Archive</h1>
+        <p class="text-text-muted">Share photos, videos, or documents. You can upload up to 5 items in a single archive
+            entry.</p>
     </div>
 
     <div id="uploadError" class="alert alert-danger hidden mb-6"></div>
 
     <form method="post" enctype="multipart/form-data" id="archiveForm" class="space-y-8">
         {% csrf_token %}
-        
+
         {{ formset.management_form }}
 
         {% if form.non_field_errors %}
@@ -34,7 +35,7 @@
 
         <div class="card p-6 bg-white shadow-sm border border-border/50 rounded-xl">
             <h2 class="text-xl font-serif font-bold mb-4 pb-2 border-b border-border">1. Archive Details</h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="form-group col-span-full">
                     <label for="{{ form.title.id_for_label }}" class="form-label font-medium">Title *</label>
@@ -43,7 +44,8 @@
                 </div>
 
                 <div class="form-group col-span-full">
-                    <label for="{{ form.description.id_for_label }}" class="form-label font-medium">Description *</label>
+                    <label for="{{ form.description.id_for_label }}" class="form-label font-medium">Description
+                        *</label>
                     {{ form.description }}
                     {% if form.description.errors %}<div class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</div>{% endif %}
                     <p class="text-xs text-text-muted mt-1">Provide context, history, or significance.</p>
@@ -52,35 +54,50 @@
                 <div class="form-group">
                     <label for="{{ form.category.id_for_label }}" class="form-label font-medium">Category</label>
                     {{ form.category }}
-                    {% if form.category.errors %}<div class="text-red-600 text-sm mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+                    {% if form.category.errors %}<div class="text-red-600 text-sm mt-1">{{ form.category.errors.0 }}
+                    </div>{% endif %}
                 </div>
             </div>
         </div>
 
         <div class="card p-6 bg-white shadow-sm border border-border/50 rounded-xl">
             <h2 class="text-xl font-serif font-bold mb-4 pb-2 border-b border-border">2. Source & Origin</h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-group">
-                    <label for="{{ form.original_author.id_for_label }}" class="form-label font-medium">Original Author/Creator</label>
+                    <label for="{{ form.original_author.id_for_label }}" class="form-label font-medium">Original
+                        Author/Creator</label>
                     {{ form.original_author }}
                     {% if form.original_author.errors %}<div class="text-red-600 text-sm mt-1">{{ form.original_author.errors.0 }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.copyright_holder.id_for_label }}" class="form-label font-medium">Copyright Holder</label>
+                    <label for="{{ form.copyright_holder.id_for_label }}" class="form-label font-medium">Copyright
+                        Holder</label>
                     {{ form.copyright_holder }}
                     {% if form.copyright_holder.errors %}<div class="text-red-600 text-sm mt-1">{{ form.copyright_holder.errors.0 }}</div>{% endif %}
                 </div>
 
-                <div class="form-group">
-                    <label for="{{ form.circa_date.id_for_label }}" class="form-label font-medium">Date (Approximate)</label>
-                    {{ form.circa_date }}
-                    {% if form.circa_date.errors %}<div class="text-red-600 text-sm mt-1">{{ form.circa_date.errors.0 }}</div>{% endif %}
+                <div class="form-group col-span-full">
+                    <label for="{{ form.original_author_about.id_for_label }}" class="form-label font-medium">About the
+                        Author <span class="text-text-muted font-normal text-xs">(Optional)</span></label>
+                    {{ form.original_author_about }}
+                    {% if form.original_author_about.errors %}<div class="text-red-600 text-sm mt-1">{{ form.original_author_about.errors.0 }}</div>{% endif %}
+                    <p class="text-xs text-text-muted mt-1">Provide a brief biography of the author, creator, or source.
+                    </p>
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.date_created.id_for_label }}" class="form-label font-medium">Exact Date (if known)</label>
+                    <label for="{{ form.circa_date.id_for_label }}" class="form-label font-medium">Date
+                        (Approximate)</label>
+                    {{ form.circa_date }}
+                    {% if form.circa_date.errors %}<div class="text-red-600 text-sm mt-1">{{ form.circa_date.errors.0 }}
+                    </div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.date_created.id_for_label }}" class="form-label font-medium">Exact Date (if
+                        known)</label>
                     {{ form.date_created }}
                     {% if form.date_created.errors %}<div class="text-red-600 text-sm mt-1">{{ form.date_created.errors.0 }}</div>{% endif %}
                 </div>
@@ -92,13 +109,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.original_identity_number.id_for_label }}" class="form-label font-medium">Catalog/Ref Number</label>
+                    <label for="{{ form.original_identity_number.id_for_label }}"
+                        class="form-label font-medium">Catalog/Ref Number</label>
                     {{ form.original_identity_number }}
                     {% if form.original_identity_number.errors %}<div class="text-red-600 text-sm mt-1">{{ form.original_identity_number.errors.0 }}</div>{% endif %}
                 </div>
 
                 <div class="form-group col-span-full">
-                    <label for="{{ form.original_url.id_for_label }}" class="form-label font-medium">Original Source URL</label>
+                    <label for="{{ form.original_url.id_for_label }}" class="form-label font-medium">Original Source
+                        URL</label>
                     {{ form.original_url }}
                     {% if form.original_url.errors %}<div class="text-red-600 text-sm mt-1">{{ form.original_url.errors.0 }}</div>{% endif %}
                 </div>
@@ -106,7 +125,8 @@
         </div>
 
         <div class="card p-6 bg-accent/5 border border-accent/20 rounded-xl">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-accent/20">
+            <div
+                class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-accent/20">
                 <div>
                     <h2 class="text-xl font-serif font-bold text-dark-brown">3. Upload Items</h2>
                     <p class="text-sm text-text-muted">Add photos, videos, or audio files.</p>
@@ -119,13 +139,13 @@
 
             <div id="items-container" class="space-y-6">
                 {% for item_form in formset %}
-                <div class="item-row bg-white p-5 rounded-lg border border-border shadow-sm transition-all duration-300 {% if forloop.counter > 1 %}hidden{% endif %}" 
-                     data-index="{{ forloop.counter0 }}">
-                    
+                <div class="item-row bg-white p-5 rounded-lg border border-border shadow-sm transition-all duration-300 {% if forloop.counter > 1 %}hidden{% endif %}"
+                    data-index="{{ forloop.counter0 }}">
+
                     {{ item_form.id }} <div class="flex justify-between items-center mb-4">
                         <h4 class="font-bold text-lg text-accent">Item #{{ forloop.counter }}</h4>
                         {% if item_form.instance.pk %}
-                            <span class="badge badge-secondary">Editing Existing</span>
+                        <span class="badge badge-secondary">Editing Existing</span>
                         {% endif %}
                     </div>
 
@@ -144,32 +164,52 @@
                             </div>
 
                             <div class="file-inputs-container min-h-[80px]">
-                                <div class="file-group type-image {% if item_form.item_type.value != 'image' and item_form.item_type.value %}hidden{% endif %}">
-                                    <label class="form-label text-sm font-medium">Image File *</label>
+                                <div
+                                    class="file-group type-image {% if item_form.item_type.value != 'image' and item_form.item_type.value %}hidden{% endif %}">
+                                    <label class="form-label text-sm font-medium">Image File (OR URL) *</label>
                                     {{ item_form.image }}
                                     <p class="text-xs text-text-muted mt-1">JPG, PNG, WEBP (Max 5MB)</p>
                                     {% if item_form.image.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.image.errors.0 }}</div>{% endif %}
+                                    <div class="mt-2">
+                                        {{ item_form.image_url }}
+                                        {% if item_form.image_url.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.image_url.errors.0 }}</div>{% endif %}
+                                    </div>
                                 </div>
 
-                                <div class="file-group type-video {% if item_form.item_type.value != 'video' %}hidden{% endif %}">
-                                    <label class="form-label text-sm font-medium">Video File *</label>
+                                <div
+                                    class="file-group type-video {% if item_form.item_type.value != 'video' %}hidden{% endif %}">
+                                    <label class="form-label text-sm font-medium">Video File (OR URL) *</label>
                                     {{ item_form.video }}
                                     <p class="text-xs text-text-muted mt-1">MP4, WEBM (Max 50MB)</p>
                                     {% if item_form.video.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.video.errors.0 }}</div>{% endif %}
+                                    <div class="mt-2">
+                                        {{ item_form.video_url }}
+                                        {% if item_form.video_url.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.video_url.errors.0 }}</div>{% endif %}
+                                    </div>
                                 </div>
 
-                                <div class="file-group type-audio {% if item_form.item_type.value != 'audio' %}hidden{% endif %}">
-                                    <label class="form-label text-sm font-medium">Audio File *</label>
+                                <div
+                                    class="file-group type-audio {% if item_form.item_type.value != 'audio' %}hidden{% endif %}">
+                                    <label class="form-label text-sm font-medium">Audio File (OR URL) *</label>
                                     {{ item_form.audio }}
                                     <p class="text-xs text-text-muted mt-1">MP3, WAV (Max 10MB)</p>
                                     {% if item_form.audio.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.audio.errors.0 }}</div>{% endif %}
+                                    <div class="mt-2">
+                                        {{ item_form.audio_url }}
+                                        {% if item_form.audio_url.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.audio_url.errors.0 }}</div>{% endif %}
+                                    </div>
                                 </div>
 
-                                <div class="file-group type-document {% if item_form.item_type.value != 'document' %}hidden{% endif %}">
-                                    <label class="form-label text-sm font-medium">Document File *</label>
+                                <div
+                                    class="file-group type-document {% if item_form.item_type.value != 'document' %}hidden{% endif %}">
+                                    <label class="form-label text-sm font-medium">Document File (OR URL) *</label>
                                     {{ item_form.document }}
                                     <p class="text-xs text-text-muted mt-1">PDF, DOCX (Max 10MB)</p>
                                     {% if item_form.document.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.document.errors.0 }}</div>{% endif %}
+                                    <div class="mt-2">
+                                        {{ item_form.document_url }}
+                                        {% if item_form.document_url.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.document_url.errors.0 }}</div>{% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -201,12 +241,10 @@
             <a href="{% url 'archives:list' %}" class="btn-secondary text-center py-3">Cancel</a>
         </div>
     </form>
-
-    <datalist id="author-list"></datalist>
-    <datalist id="date-list"></datalist>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/archives/archives_create.js' %}"></script>
+<script src="{% static 'js/author_autocomplete.js' %}"></script>
 {% endblock %}

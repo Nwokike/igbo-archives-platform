@@ -128,6 +128,11 @@ This analysis is for archival documentation. **Format your response in Markdown*
                 if not path.exists():
                     return {'success': False, 'content': 'Image not found.'}
                 
+                # Guard against large files on low-memory VMs
+                file_size = path.stat().st_size
+                if file_size > 10 * 1024 * 1024:  # 10MB limit
+                    return {'success': False, 'content': 'Image is too large for analysis (max 10MB).'}
+                
                 with open(path, 'rb') as f:
                     image_data = f.read()
                 

@@ -1,24 +1,119 @@
-{% extends 'base.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}You are offline - Igbo Archives{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You are offline - Igbo Archives</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-{% block content %}
-<div class="min-h-[60vh] flex flex-col items-center justify-center text-center p-4 animate-fade-in-up">
-    <div class="w-24 h-24 bg-sepia-pale/20 rounded-full flex items-center justify-center mb-6">
-        <i class="fas fa-wifi-slash text-4xl text-vintage-beaver/50"></i>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #FAF6F0;
+            color: #3B2F2F;
+            padding: 1rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1a1512;
+                color: #e8ddd0;
+            }
+
+            .card {
+                background: #241e19;
+                border-color: #3d3229;
+            }
+
+            .subtitle {
+                color: #a89b8c;
+            }
+
+            .btn {
+                background: #B8974F;
+                color: #1a1512;
+            }
+
+            .btn:hover {
+                background: #d4af61;
+            }
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: rgba(184, 151, 79, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .subtitle {
+            color: #6B5D52;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #B8974F;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #9a7d3f;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>You are offline</h1>
+        <p class="subtitle">
+            It seems you've lost your internet connection.
+            Please check your network and try again.
+        </p>
+        <button class="btn" onclick="window.location.reload()">
+            ↻ Try Again
+        </button>
     </div>
+</body>
 
-    <h1 class="text-3xl md:text-4xl font-serif font-bold text-dark-brown mb-4">You are offline</h1>
-
-    <p class="text-lg text-vintage-beaver mb-8 max-w-md">
-        It seems you've lost your internet connection.
-        Please check your network and try again.
-    </p>
-
-    <button onclick="window.location.reload()" class="btn-primary flex items-center gap-2">
-        <i class="fas fa-redo-alt"></i>
-        <span>Try Again</span>
-    </button>
-</div>
-{% endblock %}
+</html>

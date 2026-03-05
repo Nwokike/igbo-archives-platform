@@ -3,13 +3,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
-from core.sitemaps import StaticPagesSitemap, ArchiveSitemap, InsightSitemap, BookSitemap, UserProfileSitemap
+from core.sitemaps import StaticPagesSitemap, ArchiveSitemap, BookSitemap, UserProfileSitemap, LoreSitemap
 from core.views import chrome_devtools_association
 
 sitemaps = {
     'static': StaticPagesSitemap,
     'archives': ArchiveSitemap,
-    'insights': InsightSitemap,
+    'lore': LoreSitemap,
     'books': BookSitemap,
     'users': UserProfileSitemap,
 }
@@ -22,7 +22,7 @@ urlpatterns = [
     path('profile/', include('users.urls')),
     path('api/', include('api.urls')),
     path('archives/', include('archives.urls')),
-    path('insights/', include('insights.urls')),
+    path('lore/', include('lore.urls')),
     path('books/', include('books.urls')),
     path('ai/', include('ai.urls')),
     path('comments/', include('django_comments.urls')),

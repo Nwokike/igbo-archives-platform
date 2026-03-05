@@ -12,7 +12,7 @@
         </h1>
         <p class="text-lg text-text-muted mb-8 max-w-2xl mx-auto">
             Explore the rich cultural heritage of the Igbo people through our comprehensive digital archives, community
-            insights, and educational resources.
+            lore, and educational resources.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="{% url 'archives:list' %}" class="btn-primary btn-lg w-full sm:w-auto">
@@ -64,9 +64,16 @@
                     class="w-full md:w-1/2 h-1/2 md:h-full relative order-1 md:order-2 overflow-hidden px-4 pt-4 md:pl-0 md:pt-12 md:pr-12 lg:pr-16 pb-4 md:pb-12">
                     <a href="{% url 'archives:detail' archive.slug|default:archive.pk %}"
                         class="block w-full h-full relative rounded-2xl overflow-hidden shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
+                        {% if archive.image %}
                         <img src="{{ archive.image.url }}" alt="{{ archive.alt_text }}"
                             class="w-full h-full object-cover transition-transform duration-[2000ms] ease-out group-[.swiper-slide-active]:scale-110"
                             loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                        {% else %}
+                        <div
+                            class="w-full h-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center">
+                            <i class="fas fa-image text-4xl text-text-muted"></i>
+                        </div>
+                        {% endif %}
                         <!-- Gradient Overlay -->
                         <div
                             class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 md:opacity-30 transition-opacity duration-500 group-hover:opacity-20">
@@ -123,10 +130,10 @@
                     class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                     <i class="fas fa-lightbulb text-2xl"></i>
                 </div>
-                <h3 class="font-serif text-xl font-semibold mb-3">Community Insights</h3>
+                <h3 class="font-serif text-xl font-semibold mb-3">Community Lore</h3>
                 <p class="text-text-muted text-sm mb-6">Read and share perspectives on Igbo culture, traditions, and
                     contemporary issues. Connect with writers preserving our heritage.</p>
-                <a href="{% url 'insights:list' %}" class="btn-primary">Read Insights</a>
+                <a href="{% url 'lore:list' %}" class="btn-primary">Read Lore</a>
             </div>
         </div>
 
@@ -151,7 +158,7 @@
                 </div>
                 <h3 class="font-serif text-xl font-semibold mb-3">Igbo Archives AI</h3>
                 <p class="text-text-muted text-sm mb-6">Chat with our AI assistant to learn about Igbo culture, get
-                    translations, analyze images, and receive personalized cultural insights.</p>
+                    translations, analyze images, and receive personalized cultural lore.</p>
                 <a href="{% url 'ai:home' %}" class="btn-primary">Try AI Assistant</a>
             </div>
         </div>

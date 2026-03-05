@@ -6,8 +6,8 @@
 {% block content %}
 <div class="max-w-3xl mx-auto">
     <div class="text-center mb-12">
-        <h1 class="font-serif text-display-xl text-dark-brown mb-4">Support Igbo Archives</h1>
-        <p class="text-lg text-vintage-beaver max-w-2xl mx-auto">
+        <h1 class="font-serif text-4xl md:text-5xl font-bold mb-4">Support Igbo Archives</h1>
+        <p class="text-lg text-text-muted max-w-2xl mx-auto">
             Help us preserve and celebrate Igbo culture for future generations. Your donation supports our mission to
             digitize cultural artifacts, create educational content, and build a vibrant community.
         </p>
@@ -15,11 +15,11 @@
 
     <div class="card mb-8">
         <div class="card-body p-8 text-center">
-            <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-vintage-gold/10 flex items-center justify-center">
-                <i class="fas fa-heart text-3xl text-vintage-gold"></i>
+            <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center">
+                <i class="fas fa-heart text-3xl text-accent"></i>
             </div>
-            <h2 class="font-serif text-2xl font-semibold text-dark-brown mb-4">Support Our Mission</h2>
-            <p class="text-dark-umber mb-6 max-w-lg mx-auto">
+            <h2 class="font-serif text-2xl font-semibold mb-4">Support Our Mission</h2>
+            <p class="text-text-muted mb-6 max-w-lg mx-auto">
                 Your contribution helps us preserve Igbo culture, digitize historical artifacts, create educational
                 content, and build a thriving community. Every donation, big or small, makes a lasting impact on our
                 mission to pass Igbo heritage to future generations.
@@ -28,9 +28,9 @@
             {% if enable_donations and paystack_public_key %}
             <div class="space-y-4">
                 <div class="max-w-md mx-auto">
-                    <label class="block text-sm text-vintage-beaver mb-2">Or enter custom amount (₦)</label>
+                    <label class="block text-sm text-text-muted mb-2">Or enter custom amount (₦)</label>
                     <input type="number" id="customAmount" min="100" placeholder="Enter amount"
-                        class="w-full px-4 py-3 rounded-lg border border-sepia-pale focus:border-vintage-gold focus:ring-2 focus:ring-vintage-gold/20 transition-all text-center text-lg font-semibold">
+                        class="w-full px-4 py-3 rounded-lg border border-border focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all text-center text-lg font-semibold">
                 </div>
 
                 <button id="donateBtn" class="btn-primary btn-lg" data-key="{{ paystack_public_key }}"
@@ -38,7 +38,7 @@
                     <i class="fas fa-heart"></i> Donate Now
                 </button>
 
-                <p class="text-sm text-vintage-beaver">
+                <p class="text-sm text-text-muted">
                     <i class="fas fa-shield-alt"></i> Secure payment powered by Paystack
                 </p>
             </div>
@@ -56,33 +56,30 @@
 
     <div class="card mb-8">
         <div class="card-body p-6">
-            <h2 class="font-serif text-xl font-semibold text-dark-brown text-center mb-6">Your Impact</h2>
+            <h2 class="font-serif text-xl font-semibold text-center mb-6">Your Impact</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                 <div>
-                    <div
-                        class="w-12 h-12 mx-auto mb-3 rounded-full bg-vintage-gold/10 flex items-center justify-center">
-                        <i class="fas fa-archive text-xl text-vintage-gold"></i>
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-accent/10 flex items-center justify-center">
+                        <i class="fas fa-archive text-xl text-accent"></i>
                     </div>
-                    <h3 class="font-semibold text-dark-brown mb-2">Digital Preservation</h3>
-                    <p class="text-sm text-vintage-beaver">Digitize and preserve historical documents, photos, and
+                    <h3 class="font-semibold mb-2">Digital Preservation</h3>
+                    <p class="text-sm text-text-muted">Digitize and preserve historical documents, photos, and
                         artifacts</p>
                 </div>
                 <div>
-                    <div
-                        class="w-12 h-12 mx-auto mb-3 rounded-full bg-vintage-gold/10 flex items-center justify-center">
-                        <i class="fas fa-graduation-cap text-xl text-vintage-gold"></i>
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-accent/10 flex items-center justify-center">
+                        <i class="fas fa-graduation-cap text-xl text-accent"></i>
                     </div>
-                    <h3 class="font-semibold text-dark-brown mb-2">Educational Content</h3>
-                    <p class="text-sm text-vintage-beaver">Create Igbo language lessons and cultural education resources
+                    <h3 class="font-semibold mb-2">Educational Content</h3>
+                    <p class="text-sm text-text-muted">Create Igbo language lessons and cultural education resources
                     </p>
                 </div>
                 <div>
-                    <div
-                        class="w-12 h-12 mx-auto mb-3 rounded-full bg-vintage-gold/10 flex items-center justify-center">
-                        <i class="fas fa-users text-xl text-vintage-gold"></i>
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-accent/10 flex items-center justify-center">
+                        <i class="fas fa-users text-xl text-accent"></i>
                     </div>
-                    <h3 class="font-semibold text-dark-brown mb-2">Community Building</h3>
-                    <p class="text-sm text-vintage-beaver">Connect Igbo people worldwide and foster cultural exchange
+                    <h3 class="font-semibold mb-2">Community Building</h3>
+                    <p class="text-sm text-text-muted">Connect Igbo people worldwide and foster cultural exchange
                     </p>
                 </div>
             </div>
@@ -91,46 +88,42 @@
 
     <div class="card">
         <div class="card-body p-6">
-            <h3 class="font-serif text-xl font-semibold text-dark-brown mb-4">Other Ways to Support</h3>
+            <h3 class="font-serif text-xl font-semibold mb-4">Other Ways to Support</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex items-start gap-4 p-4 rounded-lg bg-heritage-cream/50">
-                    <div
-                        class="w-10 h-10 flex-shrink-0 rounded-full bg-vintage-gold/10 flex items-center justify-center">
-                        <i class="fas fa-share-alt text-vintage-gold"></i>
+                <div class="flex items-start gap-4 p-4 rounded-lg bg-surface-alt dark:bg-surface-dark-alt">
+                    <div class="w-10 h-10 flex-shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
+                        <i class="fas fa-share-alt text-accent"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-dark-brown">Spread the Word</h4>
-                        <p class="text-sm text-vintage-beaver">Share Igbo Archives with your friends and family</p>
+                        <h4 class="font-semibold">Spread the Word</h4>
+                        <p class="text-sm text-text-muted">Share Igbo Archives with your friends and family</p>
                     </div>
                 </div>
-                <div class="flex items-start gap-4 p-4 rounded-lg bg-heritage-cream/50">
-                    <div
-                        class="w-10 h-10 flex-shrink-0 rounded-full bg-vintage-gold/10 flex items-center justify-center">
-                        <i class="fas fa-pen text-vintage-gold"></i>
+                <div class="flex items-start gap-4 p-4 rounded-lg bg-surface-alt dark:bg-surface-dark-alt">
+                    <div class="w-10 h-10 flex-shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
+                        <i class="fas fa-pen text-accent"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-dark-brown">Contribute Content</h4>
-                        <p class="text-sm text-vintage-beaver">Share insights, reviews, and cultural knowledge</p>
+                        <h4 class="font-semibold">Contribute Content</h4>
+                        <p class="text-sm text-text-muted">Share lore, reviews, and cultural knowledge</p>
                     </div>
                 </div>
-                <div class="flex items-start gap-4 p-4 rounded-lg bg-heritage-cream/50">
-                    <div
-                        class="w-10 h-10 flex-shrink-0 rounded-full bg-vintage-gold/10 flex items-center justify-center">
-                        <i class="fas fa-upload text-vintage-gold"></i>
+                <div class="flex items-start gap-4 p-4 rounded-lg bg-surface-alt dark:bg-surface-dark-alt">
+                    <div class="w-10 h-10 flex-shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
+                        <i class="fas fa-upload text-accent"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-dark-brown">Upload Archives</h4>
-                        <p class="text-sm text-vintage-beaver">Share historical photos and documents you own</p>
+                        <h4 class="font-semibold">Upload Archives</h4>
+                        <p class="text-sm text-text-muted">Share historical photos and documents you own</p>
                     </div>
                 </div>
-                <div class="flex items-start gap-4 p-4 rounded-lg bg-heritage-cream/50">
-                    <div
-                        class="w-10 h-10 flex-shrink-0 rounded-full bg-vintage-gold/10 flex items-center justify-center">
-                        <i class="fas fa-comments text-vintage-gold"></i>
+                <div class="flex items-start gap-4 p-4 rounded-lg bg-surface-alt dark:bg-surface-dark-alt">
+                    <div class="w-10 h-10 flex-shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
+                        <i class="fas fa-comments text-accent"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-dark-brown">Join the Discussion</h4>
-                        <p class="text-sm text-vintage-beaver">Engage with posts and share your perspective</p>
+                        <h4 class="font-semibold">Join the Discussion</h4>
+                        <p class="text-sm text-text-muted">Engage with posts and share your perspective</p>
                     </div>
                 </div>
             </div>

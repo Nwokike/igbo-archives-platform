@@ -21,7 +21,7 @@ User = get_user_model()
 class Category(models.Model):
     CATEGORY_TYPES = [
         ('archive', 'Archive'),
-        ('insight', 'Insight'),
+        ('lore', 'Lore'),
     ]
     
     name = models.CharField(max_length=100)
@@ -31,7 +31,7 @@ class Category(models.Model):
         max_length=20, 
         choices=CATEGORY_TYPES, 
         default='archive',
-        help_text="Is this for Archives or Insights?"
+        help_text="Is this for Archives or Lore?"
     )
     
     class Meta:
@@ -58,6 +58,17 @@ class Author(models.Model):
 
     def get_absolute_url(self):
         return reverse('archives:author_detail', args=[self.slug])
+
+class AuthorDescriptionRequest(models.Model):
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='description_requests')
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    proposed_description = models.TextField()
+    is_approved = models.BooleanField(default=False, help_text="Has this been approved by admin?")
+    is_rejected = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Description request for {self.author} by {self.requested_by}"
 
 
 class Archive(models.Model):
@@ -121,6 +132,12 @@ class Archive(models.Model):
         null=True,
         help_text="For audio-type archives (max 10MB)"
     )
+    
+    # URL Streaming alternatives
+    image_url = models.URLField(blank=True, help_text="External URL for image streaming")
+    video_url = models.URLField(blank=True, help_text="External URL for video streaming or YouTube embed")
+    document_url = models.URLField(blank=True, help_text="External URL for document access")
+    audio_url = models.URLField(blank=True, help_text="External URL for audio streaming")
     
     featured_image = models.ImageField(
         upload_to='archives/featured/',
@@ -373,6 +390,12 @@ class ArchiveItem(models.Model):
         null=True
     )
     
+    # URL Streaming alternatives
+    image_url = models.URLField(blank=True)
+    video_url = models.URLField(blank=True)
+    audio_url = models.URLField(blank=True)
+    document_url = models.URLField(blank=True)
+    
     # Item-specific metadata
     caption = models.CharField(max_length=500, blank=True, help_text="Caption for this item")
     description = models.TextField(blank=True, help_text="Description for this item")
@@ -403,3 +426,54 @@ class ArchiveItem(models.Model):
         elif self.item_type == 'document' and self.document:
             return self.document
         return None
+
+class ArchiveNote(models.Model):
+    """
+    Community Notes (Additional Context) for an archive using Editor.js.
+    """
+    archive = models.ForeignKey(Archive, on_delete=models.CASCADE, related_name='community_notes')
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='archive_notes')
+    
+    content_json = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Block-based content using Editor.js"
+    )
+    legacy_content = models.TextField(blank=True, help_text="Legacy HTML content")
+    
+    is_approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Note by {self.added_by} on {self.archive.title}"
+        
+    @property
+    def content(self):
+        return self.content_json if self.content_json else self.legacy_content
+
+class ArchiveNoteSuggestion(models.Model):
+    """
+    A suggestion to edit/append to an existing ArchiveNote.
+    The original note author must approve this.
+    """
+    note = models.ForeignKey(ArchiveNote, on_delete=models.CASCADE, related_name='suggestions')
+    suggested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='note_suggestions')
+    
+    suggestion_text = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Proposed block-based content using Editor.js"
+    )
+    
+    is_approved = models.BooleanField(default=False)
+    is_rejected = models.BooleanField(default=False)
+    rejection_reason = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Suggestion by {self.suggested_by} on {self.note}"

@@ -6,6 +6,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from unittest.mock import patch
 from archives.models import Archive, Category
 from core.validators import validate_image_size, validate_video_size
 
@@ -374,3 +375,67 @@ class ArchiveItemModelTests(TestCase):
         items = list(ArchiveItem.objects.filter(archive=self.archive).order_by('item_number'))
         self.assertEqual(items[0], item1)
         self.assertEqual(items[1], item2)
+
+
+class ArchiveNoteTests(TestCase):
+    """Tests for Community Notes functionality."""
+
+    def setUp(self):
+        self.user1 = User.objects.create_user(username='uploader', email='u@test.com', password='password')
+        self.user2 = User.objects.create_user(username='commenter', email='c@test.com', password='password')
+        self.category = Category.objects.create(name='Test Category', slug='test-category')
+        
+        self.archive = Archive.objects.create(
+            title='Note Test Archive',
+            description='Testing notes',
+            archive_type='image',
+            uploaded_by=self.user1,
+            category=self.category,
+            is_approved=True
+        )
+
+    def test_add_note_requires_login(self):
+        """Test that unauthenticated users cannot add a note."""
+        response = self.client.post(reverse('archives:add_note', kwargs={'slug': self.archive.slug}), {
+            'content_json': '{"blocks": [{"type": "paragraph", "data": {"text": "Hello"}}]}'
+        }, follow=True)
+        self.assertIn('login', response.request['PATH_INFO'])
+
+    @patch('core.turnstile.verify_turnstile')
+    def test_add_note_fails_turnstile(self, mock_turnstile):
+        """Test that adding a note fails if Turnstile validation fails."""
+        mock_turnstile.return_value = {'success': False}
+        self.client.login(username='commenter', password='password')
+        
+        response = self.client.post(reverse('archives:add_note', kwargs={'slug': self.archive.slug}), {
+            'content_json': '{"blocks": [{"type": "paragraph", "data": {"text": "Hello"}}]}',
+            'cf-turnstile-response': 'fake-token'
+        }, follow=True)
+        
+        from archives.models import ArchiveNote
+        self.assertEqual(ArchiveNote.objects.count(), 0)
+        messages = list(response.context['messages'])
+        self.assertTrue(any('Security check failed' in str(m) for m in messages))
+
+    @patch('core.notifications_utils.send_community_note_notification')
+    @patch('core.turnstile.verify_turnstile')
+    def test_add_note_success_triggers_notifications(self, mock_turnstile, mock_notify):
+        """Test that a valid note is saved and triggers the notification utility."""
+        mock_turnstile.return_value = {'success': True}
+        self.client.login(username='commenter', password='password')
+        
+        response = self.client.post(reverse('archives:add_note', kwargs={'slug': self.archive.slug}), {
+            'content_json': '{"blocks": [{"type": "paragraph", "data": {"text": "Hello"}}]}',
+            'cf-turnstile-response': 'good-token'
+        }, follow=True)
+        
+        from archives.models import ArchiveNote
+        self.assertEqual(ArchiveNote.objects.count(), 1)
+        note = ArchiveNote.objects.first()
+        self.assertEqual(note.added_by, self.user2)
+        
+        # Verify notification was called
+        mock_notify.assert_called_once_with(note, self.archive)
+        
+        messages = list(response.context['messages'])
+        self.assertTrue(any('has been added' in str(m) for m in messages))

@@ -21,6 +21,15 @@ class ArchiveForm(forms.ModelForm):
         })
     )
     
+    original_author_about = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-textarea',
+            'rows': 3,
+            'placeholder': 'Provide a brief biography or description for the Original Author.'
+        })
+    )
+    
     class Meta:
         model = Archive
         # Exclude file fields and archive_type (inferred from first item)
@@ -29,7 +38,8 @@ class ArchiveForm(forms.ModelForm):
             'item_count', 
             'copyright_holder', 
             'original_author', 'original_url', 'original_identity_number',
-            'location', 'date_created', 'circa_date', 
+            'location', 'date_created', 'circa_date',
+            'image_url', 'video_url', 'document_url', 'audio_url'
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-input'}),
@@ -116,6 +126,34 @@ class ArchiveForm(forms.ModelForm):
         
         return idno
 
+    def save(self, commit=True):
+        """Overridden to handle Author creation linked to the original_author string."""
+        instance = super().save(commit=False)
+        
+        # Try to match the original_author text to a true Author profile
+        original_author_name = self.cleaned_data.get('original_author')
+        author_about_text = self.cleaned_data.get('original_author_about')
+        
+        if original_author_name:
+            from archives.models import Author
+            # get_or_create an author profile for this string
+            author_obj, created = Author.objects.get_or_create(
+                name__iexact=original_author_name,
+                defaults={'name': original_author_name}
+            )
+            
+            # If the user supplied a bio and the author doesn't have one, or just created it
+            if author_about_text and not author_obj.description:
+                author_obj.description = author_about_text
+                author_obj.save()
+            
+            # Link the newly found/created author to the Archive explicitly
+            instance.author = author_obj
+
+        if commit:
+            instance.save()
+            
+        return instance
 
 class ArchiveItemForm(forms.ModelForm):
     """
@@ -123,7 +161,12 @@ class ArchiveItemForm(forms.ModelForm):
     """
     class Meta:
         model = ArchiveItem
-        fields = ['item_type', 'image', 'video', 'audio', 'document', 'caption', 'alt_text']
+        fields = [
+            'item_type', 
+            'image', 'video', 'audio', 'document',
+            'image_url', 'video_url', 'audio_url', 'document_url',
+            'caption', 'alt_text'
+        ]
         widgets = {
             'item_type': forms.Select(attrs={'class': 'form-select item-type-select'}),
             'caption': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Caption for this specific item'}),
@@ -132,6 +175,10 @@ class ArchiveItemForm(forms.ModelForm):
             'video': forms.FileInput(attrs={'class': 'form-input item-file-input', 'accept': '.mp4,.webm,.ogg,.mov'}),
             'audio': forms.FileInput(attrs={'class': 'form-input item-file-input', 'accept': '.mp3,.wav,.ogg,.m4a'}),
             'document': forms.FileInput(attrs={'class': 'form-input item-file-input', 'accept': '.pdf,.doc,.docx,.txt'}),
+            'image_url': forms.URLInput(attrs={'class': 'form-input item-url-input', 'placeholder': 'https://...'}),
+            'video_url': forms.URLInput(attrs={'class': 'form-input item-url-input', 'placeholder': 'https://...'}),
+            'audio_url': forms.URLInput(attrs={'class': 'form-input item-url-input', 'placeholder': 'https://...'}),
+            'document_url': forms.URLInput(attrs={'class': 'form-input item-url-input', 'placeholder': 'https://...'}),
         }
 
     def clean(self):
@@ -147,18 +194,24 @@ class ArchiveItemForm(forms.ModelForm):
         video = cleaned_data.get('video') or (self.instance.video if self.instance.pk else None)
         audio = cleaned_data.get('audio') or (self.instance.audio if self.instance.pk else None)
         document = cleaned_data.get('document') or (self.instance.document if self.instance.pk else None)
+        
+        # Check URL alternatives
+        image_url = cleaned_data.get('image_url')
+        video_url = cleaned_data.get('video_url')
+        audio_url = cleaned_data.get('audio_url')
+        document_url = cleaned_data.get('document_url')
 
         if item_type == 'image':
-            if not image:
-                raise ValidationError('Image file is required for image type items.')
+            if not image and not image_url:
+                raise ValidationError('Image file OR URL is required for image type items.')
             if not cleaned_data.get('alt_text'):
                 raise ValidationError('Alt text is required for images.')
-        elif item_type == 'video' and not video:
-            raise ValidationError('Video file is required for video type items.')
-        elif item_type == 'audio' and not audio:
-            raise ValidationError('Audio file is required for audio type items.')
-        elif item_type == 'document' and not document:
-            raise ValidationError('Document file is required for document type items.')
+        elif item_type == 'video' and not video and not video_url:
+            raise ValidationError('Video file OR URL is required for video type items.')
+        elif item_type == 'audio' and not audio and not audio_url:
+            raise ValidationError('Audio file OR URL is required for audio type items.')
+        elif item_type == 'document' and not document and not document_url:
+            raise ValidationError('Document file OR URL is required for document type items.')
             
         return cleaned_data
 
@@ -173,3 +226,34 @@ ArchiveItemFormSet = inlineformset_factory(
     can_delete=True,
     validate_max=True
 )
+
+from .models import ArchiveNote, ArchiveNoteSuggestion
+
+class ArchiveNoteForm(forms.ModelForm):
+    """Form to add or edit Community Notes using the same Editor.js structure as Books."""
+    
+    # We don't strictly bind the Editor.js content_json directly to a Django widget
+    # because Editor.js requires a specific DOM container. We parse the hidden input manually in the view.
+    # Therefore, no specific fields are needed here besides what is handled via AJAX/templates.
+    class Meta:
+        model = ArchiveNote
+        fields = []
+
+class ArchiveNoteSuggestionForm(forms.ModelForm):
+    class Meta:
+        model = ArchiveNoteSuggestion
+        fields = []
+
+from .models import AuthorDescriptionRequest
+
+class AuthorDescriptionRequestForm(forms.ModelForm):
+    class Meta:
+        model = AuthorDescriptionRequest
+        fields = ['proposed_description']
+        widgets = {
+            'proposed_description': forms.Textarea(attrs={
+                'class': 'form-textarea',
+                'rows': 4,
+                'placeholder': 'Provide a detailed biography or description for this author/creator.'
+            })
+        }

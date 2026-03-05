@@ -15,7 +15,7 @@ def _get_post_author(post):
         return post.uploaded_by
     if hasattr(post, 'reviewer'): # For some review types
         return post.reviewer
-    if hasattr(post, 'author'): # For InsightPost
+    if hasattr(post, 'author'): # For LorePost
         return post.author
     return None
 
@@ -79,7 +79,7 @@ def _send_notification_and_push(recipient, sender, verb, description, target_obj
 
 # --- NOTIFICATION FUNCTIONS ---
 
-def send_post_approved_notification(post, post_type='insight'):
+def send_post_approved_notification(post, post_type='lore'):
     author = _get_post_author(post)
     if not author:
         return
@@ -102,7 +102,7 @@ def send_post_approved_notification(post, post_type='insight'):
         send_email_notification(author.email, f'Your {post_type.title()} has been approved!', description)
 
 
-def send_post_submitted_notification(post, post_type='insight'):
+def send_post_submitted_notification(post, post_type='lore'):
     """
     Notify the user that their submission was received.
     """
@@ -125,7 +125,7 @@ def send_post_submitted_notification(post, post_type='insight'):
     )
 
 
-def send_post_rejected_notification(post, reason, post_type='insight'):
+def send_post_rejected_notification(post, reason, post_type='lore'):
     author = _get_post_author(post)
     if not author:
         return
@@ -194,6 +194,68 @@ def send_new_review_notification(review, book):
         push_url=_get_absolute_url(book)
     )
 
+def send_community_note_notification(note, archive):
+    """
+    Specific notification for Community Notes on Archives.
+    """
+    post_author = archive.uploaded_by
+    if not post_author or note.added_by == post_author:
+        return
+
+    note_author_name = note.added_by.get_display_name()
+    archive_title = archive.title
+    
+    description = f'{note_author_name} added contextual notes to "{archive_title}"'
+    
+    _send_notification_and_push(
+        recipient=post_author,
+        sender=note.added_by,
+        verb='added a Community Note',
+        description=description,
+        target_object=archive,
+        push_head="New Community Note",
+        push_body=description,
+        push_url=_get_absolute_url(archive)
+    )
+    
+    if hasattr(post_author, 'email') and post_author.email:
+        subject = f'New Community Note on "{archive_title}"'
+        send_email_notification(post_author.email, subject, description)
+
+def send_admin_notification(subject, description, target_url=None):
+    """
+    Utility to notify site administrators via Email and potentially In-App if applicable.
+    Uses settings.ADMINS or queries for Superusers.
+    """
+    from django.conf import settings
+    from django.contrib.auth import get_user_model
+    from core.tasks import send_email_async
+    import logging
+
+    logger = logging.getLogger(__name__)
+    User = get_user_model()
+    
+    admin_emails = []
+    
+    if hasattr(settings, 'ADMINS') and settings.ADMINS:
+        admin_emails = [email for name, email in settings.ADMINS]
+    else:
+        superusers = User.objects.filter(is_superuser=True)
+        admin_emails = [su.email for su in superusers if su.email]
+
+    if admin_emails:
+        message = description
+        if target_url:
+            message += f"\n\nReview link: {settings.SITE_URL}{target_url}"
+        
+        try:
+            send_email_async(
+                subject=subject,
+                message=message,
+                recipient_list=admin_emails
+            )
+        except Exception as e:
+            logger.error(f"Failed to queue admin notification email: {e}")
 
 def send_comment_reply_notification(comment, parent_comment):
     if not parent_comment.user:
@@ -229,13 +291,13 @@ def send_message_notification(message, recipient):
         description=description,
         target_object=message.thread,
         push_head="New Message",
-        push_body=f'{message.sender.full_name} sent you a message.',
+        push_body=f'{message.sender.get_display_name()} sent you a message.',
         push_url=reverse('users:thread', args=[message.thread.id])
     )
     
     # Simplified email logic for brevity in this step
     if recipient.email:
-        subject = f'New message from {message.sender.full_name}'
+        subject = f'New message from {message.sender.get_display_name()}'
         send_email_notification(recipient.email, subject, description)
 
 

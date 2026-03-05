@@ -1,7 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from archives.models import Archive
-from insights.models import InsightPost
+from lore.models import LorePost
 from books.models import BookRecommendation
 from django.contrib.auth import get_user_model
 
@@ -44,13 +44,13 @@ class ArchiveSitemap(Sitemap):
         return reverse('archives:detail', args=[obj.slug])
 
 
-class InsightSitemap(Sitemap):
+class LoreSitemap(Sitemap):
     protocol = 'https'
     changefreq = "daily"
     priority = 0.9
     
     def items(self):
-        return InsightPost.objects.filter(
+        return LorePost.objects.filter(
             is_published=True, is_approved=True
         ).only('id', 'slug', 'updated_at')
     
@@ -58,7 +58,7 @@ class InsightSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return reverse('insights:detail', args=[obj.slug])
+        return reverse('lore:detail', args=[obj.slug])
 
 
 class BookSitemap(Sitemap):
@@ -84,7 +84,7 @@ class UserProfileSitemap(Sitemap):
     priority = 0.5
     
     def items(self):
-        return User.objects.filter(is_active=True, is_staff=True).only('id', 'username', 'last_login', 'date_joined')
+        return User.objects.filter(is_active=True).only('id', 'username', 'last_login', 'date_joined')
     
     def location(self, obj):
         return reverse('users:profile', args=[obj.username])

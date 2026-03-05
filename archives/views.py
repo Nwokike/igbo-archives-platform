@@ -147,7 +147,43 @@ def archive_detail(request, pk=None, slug=None):
     recommended = get_random_recommendations(archive.pk, count=9)
     
     archive_items = archive.items.all().order_by('item_number')
+
+    ai_correlations = cache.get(f'archive_explore_further_{archive.id}')
     
+    if not ai_correlations and archive.is_approved:
+        from core.similarity import get_similar_items
+        from books.models import BookRecommendation
+        from lore.models import LorePost
+        import json
+        
+        target_text = f"{archive.title} {archive.description} {archive.caption or ''}"
+        
+        books_qs = BookRecommendation.objects.filter(is_approved=True)
+        recommended_books = get_similar_items(
+            target_text, 
+            books_qs, 
+            limit=9, 
+            text_field=lambda b: f"{b.book_title} {b.author} {b.title} {b.content_json}"
+        )
+        
+        lores_qs = LorePost.objects.filter(is_approved=True)
+        recommended_lores = get_similar_items(
+            target_text, 
+            lores_qs, 
+            limit=9, 
+            text_field=lambda l: f"{l.title} {l.excerpt} {l.content_json}"
+        )
+        
+        if recommended_books or recommended_lores:
+            # Combine books and lores into one mixed list
+            combined_items = recommended_books + recommended_lores
+            ai_correlations = {
+                'intro': "Discover related books and stories to deepen your understanding.",
+                'items': combined_items
+            }
+            # Cache for a relatively long time, e.g. 1 hour, so it's snappy but still updates automatically
+            cache.set(f'archive_explore_further_{archive.id}', ai_correlations, timeout=3600)
+
     context = {
         'archive': archive,
         'archive_items': archive_items,
@@ -155,6 +191,7 @@ def archive_detail(request, pk=None, slug=None):
         'previous_archive': previous_archive,
         'next_archive': next_archive,
         'recommended': recommended,
+        'ai_correlations': ai_correlations,
     }
     
     return render(request, 'archives/detail.html', context)
@@ -171,9 +208,13 @@ def author_detail(request, slug):
     paginator = Paginator(archives_list, 12)
     page_obj = paginator.get_page(request.GET.get('page'))
     
+    from .forms import AuthorDescriptionRequestForm
+    desc_form = AuthorDescriptionRequestForm()
+    
     context = {
         'author': author,
         'archives': page_obj,
+        'desc_form': desc_form,
     }
     return render(request, 'archives/author_detail.html', context)
 
@@ -252,19 +293,14 @@ def archive_create(request):
                 
                 # Email Notification (async via Huey)
                 try:
-                    from .tasks import send_archive_notification_email
-                    staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
-                    if staff_emails:
-                        send_archive_notification_email(
-                            subject=f"New Archive Submitted: {archive.title}",
-                            message_body=(
-                                f"A new archive has been submitted by {request.user.get_full_name() or request.user.username}.\n\n"
-                                f"Title: {archive.title}\n"
-                                f"Description: {archive.description[:200]}...\n\n"
-                                f"Review it here: {request.scheme}://{request.get_host()}/users/admin/moderation/"
-                            ),
-                            staff_emails=staff_emails,
-                        )
+                    from core.notifications_utils import send_admin_notification
+                    subject = f'New Archive Uploaded: {archive.title}'
+                    message = (
+                        f"A new archive has been submitted by {request.user.get_display_name()}.\n\n"
+                        f"Title: {archive.title}\n"
+                        f"Description: {archive.description[:200]}...\n"
+                    )
+                    send_admin_notification(subject, message, target_url="/users/admin/moderation/")
                 except Exception as e:
                     logger.warning(f"Failed to schedule notification email: {e}")
                 
@@ -339,15 +375,15 @@ def archive_edit(request, pk=None, slug=None):
                     try:
                         staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
                         if staff_emails:
-                            send_mail(
+                            from core.tasks import send_email_async
+                            send_email_async(
                                 subject=f"Archive Updated (Review Needed): {archive.title}",
                                 message=f"User {request.user.username} updated an archive. Please re-review.",
-                                from_email=settings.DEFAULT_FROM_EMAIL,
                                 recipient_list=staff_emails,
-                                fail_silently=True
                             )
                     except Exception:
                         pass
+                
                 
                 messages.success(request, 'Archive updated successfully!')
                 if archive.slug:
@@ -393,3 +429,153 @@ def archive_delete(request, pk=None, slug=None):
         return redirect('users:dashboard')
     
     return render(request, 'archives/delete.html', {'archive': archive})
+
+# --- Community Notes Views ---
+
+@login_required
+def add_archive_note(request, slug):
+    """Add a new community note to an archive."""
+    archive = get_object_or_404(Archive, slug=slug, is_approved=True)
+    
+    if request.method == 'POST':
+        from core.turnstile import verify_turnstile
+        token = request.POST.get('cf-turnstile-response')
+        turnstile_result = verify_turnstile(token)
+        
+        if not turnstile_result.get('success', False):
+            messages.error(request, 'Security check failed. Please refresh and try again.')
+            return redirect('archives:detail', slug=slug)
+
+        content_json = request.POST.get('content_json')
+        if not content_json or content_json == '{}':
+            messages.error(request, 'Note content cannot be empty.')
+            return redirect('archives:detail', slug=slug)
+            
+        from .models import ArchiveNote
+        note = ArchiveNote.objects.create(
+            archive=archive,
+            added_by=request.user,
+            content_json=content_json,
+            is_approved=True 
+        )
+        
+        # Notify the original uploader of the archive
+        from core.notifications_utils import send_community_note_notification, send_admin_notification
+        send_community_note_notification(note, archive)
+        
+        # Notify admins
+        send_admin_notification(
+            subject=f"New Community Note on {archive.title}",
+            description=f"{request.user.get_display_name()} added a new community note to the archive '{archive.title}'.",
+            target_url=archive.get_absolute_url()
+        )
+            
+        messages.success(request, 'Your note has been added to this archive.')
+        
+    return redirect('archives:detail', slug=slug)
+
+@login_required
+def suggest_note_edit(request, note_id):
+    """Submit a suggestion to edit an existing note. Notifies the original note author."""
+    from .models import ArchiveNote, ArchiveNoteSuggestion
+    note = get_object_or_404(ArchiveNote, id=note_id)
+    archive = note.archive
+    
+    if request.method == 'POST':
+        suggestion_text = request.POST.get('content_json')
+        if not suggestion_text or suggestion_text == '{}':
+            messages.error(request, 'Suggestion cannot be empty.')
+            return redirect('archives:detail', slug=archive.slug)
+            
+        suggestion = ArchiveNoteSuggestion.objects.create(
+            note=note,
+            suggested_by=request.user,
+            suggestion_text=suggestion_text
+        )
+        
+        # Notify original note author via Push + App notification
+        if note.added_by and note.added_by != request.user:
+            from users.models import Notification
+            Notification.objects.create(
+                recipient=note.added_by,
+                verb='Someone suggested an edit to your Community Note',
+                description=f'{request.user.get_display_name()} suggested a modification to your note on "{archive.title}". Check your dashboard.',
+            )
+            
+        messages.success(request, 'Your suggestion has been sent to the note author for review.')
+        
+    return redirect('archives:detail', slug=archive.slug)
+
+@login_required
+def submit_author_description(request, slug):
+    """Handle submissions to add or edit an Author's description."""
+    author = get_object_or_404(Author, slug=slug)
+    
+    if request.method == 'POST':
+        from .forms import AuthorDescriptionRequestForm
+        form = AuthorDescriptionRequestForm(request.POST)
+        if form.is_valid():
+            req = form.save(commit=False)
+            req.author = author
+            req.requested_by = request.user
+            
+            # Auto-approve if author has no existing description
+            if not author.description:
+                req.is_approved = True
+                req.save()
+                author.description = req.proposed_description
+                author.save()
+                messages.success(request, 'Thank you! Your description has been automatically approved and appended to the author profile.')
+            else:
+                req.save()
+                # Notify admin via async task
+                try:
+                    from .tasks import send_archive_notification_email
+                    staff_users = User.objects.filter(is_staff=True, is_active=True).values_list('email', flat=True)
+                    staff_emails = [email for email in staff_users if email]
+                    if staff_emails:
+                        send_archive_notification_email(
+                            f"Author Biography Edit Request: {author.name}",
+                            f"User {request.user.username} has submitted an updated biography for {author.name}.\n\nReview it in the admin panel.",
+                            staff_emails
+                        )
+                except Exception as e:
+                    logger.error(f"Failed to send author desc notification: {e}")
+                    
+                messages.success(request, 'Your proposed biography edit has been submitted to moderators for review.')
+                
+    return redirect('archives:author_detail', slug=slug)
+
+@login_required
+def author_suggestions(request):
+    """
+    Returns a JSON list of matching authors for autocomplete in forms.
+    """
+    from django.http import JsonResponse
+    from archives.models import Author, Archive
+    from books.models import BookRecommendation
+    from lore.models import LorePost
+    
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse({'authors': []})
+        
+    authors = list(Author.objects.filter(name__icontains=query).order_by('name')[:10])
+    
+    # Collect existing names from other models to suggest legacy authors
+    existing_names = {a.name.lower() for a in authors}
+    
+    books = BookRecommendation.objects.filter(author__icontains=query).values_list('author', flat=True).distinct()[:10]
+    archives_qs = Archive.objects.filter(original_author__icontains=query).values_list('original_author', flat=True).distinct()[:10]
+    lores = LorePost.objects.filter(original_author__icontains=query).values_list('original_author', flat=True).distinct()[:10]
+    
+    results = [{'name': a.name, 'description': a.description or ''} for a in authors]
+    
+    for name in list(books) + list(archives_qs) + list(lores):
+        if name and name.lower() not in existing_names:
+            results.append({'name': name, 'description': ''})
+            existing_names.add(name.lower())
+            
+    # Keep it clean and limited to exactly 10
+    results = sorted(results, key=lambda x: x['name'])[:10]
+    return JsonResponse({'authors': results})

@@ -39,6 +39,7 @@
                 { icon: 'fa-paragraph', title: 'Add Paragraph', action: this.insertParagraph.bind(this) },
                 { icon: 'fa-list-ul', title: 'Add Bulleted List', action: this.insertList.bind(this, 'unordered') },
                 { icon: 'fa-list-ol', title: 'Add Numbered List', action: this.insertList.bind(this, 'ordered') },
+                { icon: 'fa-link', title: 'Add Link Tool', action: this.insertLink.bind(this) },
                 { type: 'divider' },
                 { icon: 'fa-quote-left', title: 'Add Quote', action: this.insertQuote.bind(this) },
                 { icon: 'fa-code', title: 'Add Code Block', action: this.insertCode.bind(this) },
@@ -95,6 +96,13 @@
         insertQuote: function () {
             if (!this.editor) return;
             this.editor.blocks.insert('quote', { text: '', caption: '' });
+            this.focusLastBlock();
+        },
+
+        insertLink: function () {
+            if (!this.editor) return;
+            // Native Editor.js tool 'link' or generic link block insertion
+            this.editor.blocks.insert('link', { link: '' });
             this.focusLastBlock();
         },
 

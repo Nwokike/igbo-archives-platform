@@ -189,39 +189,9 @@
             }, 100);
         }
 
-        // --- Grid/List View Toggle ---
-        const gridViewBtn = document.getElementById('gridViewBtn');
-        const listViewBtn = document.getElementById('listViewBtn');
-        const contentContainer = document.getElementById('archiveGrid') ||
-            document.getElementById('insightsGrid') ||
-            document.getElementById('reviewsGrid');
 
-        if (contentContainer && gridViewBtn && listViewBtn) {
-            const pageType = contentContainer.id.replace('Grid', '');
+        // Grid/List View Toggle — handled by view-toggle.js
 
-            const toggleView = (view) => {
-                const isGrid = view === 'grid';
-                contentContainer.className = isGrid ? 'archive-view-grid' : 'archive-view-list';
-                gridViewBtn.classList.toggle('active', isGrid);
-                listViewBtn.classList.toggle('active', !isGrid);
-                try {
-                    localStorage.setItem(pageType + 'View', view);
-                } catch (storageError) {
-                    // Silently fail if localStorage is blocked by tracking prevention
-                }
-            };
-
-            gridViewBtn.addEventListener('click', () => toggleView('grid'));
-            listViewBtn.addEventListener('click', () => toggleView('list'));
-
-            let savedView = 'grid';
-            try {
-                savedView = localStorage.getItem(pageType + 'View') || 'grid';
-            } catch (storageError) {
-                // Silently fail if localStorage is blocked by tracking prevention
-            }
-            toggleView(savedView);
-        }
 
         // --- Carousel Logic ---
         const carousel = document.getElementById('featuredCarousel');
