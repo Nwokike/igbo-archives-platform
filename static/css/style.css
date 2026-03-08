@@ -360,6 +360,33 @@ html:not(.dark) .logo-dark {
     user-select: all;
 }
 
+/* Tab Panels Visibility */
+.tab-panel.hidden {
+    display: none;
+}
+
+.tab-panel.block {
+    display: block;
+}
+
+/* Custom scrollbar for wide dashboard elements */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: rgba(107, 93, 82, 0.1);
+    border-radius: 10px;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+}
+
 
 
 /* Toast Notification */

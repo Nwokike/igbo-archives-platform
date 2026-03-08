@@ -3,7 +3,7 @@
 <div id="token-section" class="card">
     {% if just_created %}
     <div class="alert alert-success mb-3">
-        <i class="fas fa-check-circle"></i> Token generated! Copy it now — it won't be shown again.
+        <i class="fas fa-check-circle"></i> Token generated!
     </div>
     {% endif %}
     {% if just_revoked %}
@@ -15,7 +15,7 @@
     {% if token %}
     <div class="flex items-center gap-3 flex-wrap">
         <code class="token-display" id="apiToken">{{ token.key }}</code>
-        <button type="button" class="btn-secondary btn-sm" onclick="copyToken()" title="Copy">
+        <button type="button" class="btn-secondary btn-sm" onclick="copyToClipboard('{{ token.key }}')" title="Copy">
             <i class="fas fa-copy"></i> Copy
         </button>
     </div>
