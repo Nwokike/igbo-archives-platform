@@ -126,13 +126,6 @@
         {% include 'partials/prev_next_navigation.html' with previous=previous_post next=next_post %}
 
         {% include 'partials/recommended_carousel.html' with recommended=recommended %}
-
-        <!-- Discussion Section -->
-        <section class="mt-8">
-            <hr class="divider mb-8">
-            <h3 class="font-serif text-xl font-semibold mb-6">Discussion</h3>
-            {% render_comment_list for post %}
-            {% render_comment_form for post %}
         </section>
     </article>
 
@@ -182,17 +175,13 @@
                 </div>
             </div>
 
-            {% if post.category %}
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="font-serif font-semibold mb-2">Category</h4>
-                    <a href="{% url 'lore:list' %}?type={{ post.category.slug }}"
-                        class="badge badge-primary hover:bg-accent hover:text-white transition-colors no-underline">
-                        {{ post.category.name }}
-                    </a>
-                </div>
-            </div>
-            {% endif %}
+<!-- Discussion Section -->
+            <section class="mt-8">
+                <hr class="divider mb-8">
+                <h3 class="font-serif text-xl font-semibold mb-6">Discussion</h3>
+                {% render_comment_list for post %}
+                {% render_comment_form for post %}
+            </section>
         </div>
     </aside>
 

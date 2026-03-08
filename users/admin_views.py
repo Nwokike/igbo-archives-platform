@@ -6,7 +6,7 @@ from django.conf import settings
 import logging
 from lore.models import LorePost
 from books.models import BookRecommendation
-from archives.models import Archive
+from archives.models import Archive, AuthorDescriptionRequest, ArchiveNote
 from core.notifications_utils import send_post_approved_notification, send_post_rejected_notification
 
 logger = logging.getLogger(__name__)
@@ -27,10 +27,22 @@ def moderation_dashboard(request):
         is_approved=False
     ).select_related('uploaded_by', 'category').order_by('-created_at')
     
+    # ADDED: Pending Author Edits
+    pending_author_edits = AuthorDescriptionRequest.objects.filter(
+        is_approved=False, is_rejected=False
+    ).select_related('author', 'requested_by').order_by('-created_at')
+
+    # ADDED: Pending Community Notes
+    pending_notes = ArchiveNote.objects.filter(
+        is_approved=False
+    ).select_related('added_by', 'archive').order_by('-created_at')
+
     context = {
         'pending_lores': pending_lores,
         'pending_books': pending_books,
         'pending_archives': pending_archives,
+        'pending_author_edits': pending_author_edits,
+        'pending_notes': pending_notes,
     }
     
     return render(request, 'users/admin/moderation_dashboard.html', context)
@@ -181,3 +193,57 @@ def reject_archive(request, pk):
         messages.info(request, f'Archive "{archive.title}" rejected.')
         return redirect('users:moderation_dashboard')
     return render(request, 'users/admin/reject_post.html', {'post': archive, 'post_type': 'archive'})
+
+# --- NEW: Author Edit Moderation ---
+@staff_member_required
+@require_POST
+def approve_author_edit(request, pk):
+    from django.db import transaction
+    try:
+        with transaction.atomic():
+            edit_req = AuthorDescriptionRequest.objects.select_for_update().get(pk=pk, is_approved=False)
+            edit_req.is_approved = True
+            edit_req.save()
+            
+            author = edit_req.author
+            author.description = edit_req.proposed_description
+            author.save()
+    except AuthorDescriptionRequest.DoesNotExist:
+        messages.warning(request, 'Author edit request not found or already approved.')
+        return redirect('users:moderation_dashboard')
+    
+    messages.success(request, f'Biography for "{author.name}" approved.')
+    return redirect('users:moderation_dashboard')
+
+@staff_member_required
+@require_POST
+def reject_author_edit(request, pk):
+    edit_req = get_object_or_404(AuthorDescriptionRequest, pk=pk)
+    edit_req.is_rejected = True
+    edit_req.save()
+    messages.info(request, f'Biography edit for "{edit_req.author.name}" rejected.')
+    return redirect('users:moderation_dashboard')
+
+# --- NEW: Community Note Moderation ---
+@staff_member_required
+@require_POST
+def approve_archive_note(request, pk):
+    try:
+        note = ArchiveNote.objects.get(pk=pk, is_approved=False)
+        note.is_approved = True
+        note.save()
+    except ArchiveNote.DoesNotExist:
+        messages.warning(request, 'Community note not found or already approved.')
+        return redirect('users:moderation_dashboard')
+    
+    messages.success(request, f'Community note on "{note.archive.title}" approved.')
+    return redirect('users:moderation_dashboard')
+
+@staff_member_required
+@require_POST
+def reject_archive_note(request, pk):
+    note = get_object_or_404(ArchiveNote, pk=pk)
+    archive_title = note.archive.title
+    note.delete()  # Rejection for notes currently just deletes them
+    messages.info(request, f'Community note on "{archive_title}" rejected.')
+    return redirect('users:moderation_dashboard')

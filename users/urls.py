@@ -49,6 +49,14 @@ urlpatterns = [
     path('admin/archives/<int:pk>/approve/', admin_views.approve_archive, name='approve_archive'),
     path('admin/archives/<int:pk>/reject/', admin_views.reject_archive, name='reject_archive'),
 
+    # NEW: Author Edit Moderation URLs
+    path('admin/author-edits/<int:pk>/approve/', admin_views.approve_author_edit, name='approve_author_edit'),
+    path('admin/author-edits/<int:pk>/reject/', admin_views.reject_author_edit, name='reject_author_edit'),
+
+    # NEW: Community Note Moderation URLs
+    path('admin/archive-notes/<int:pk>/approve/', admin_views.approve_archive_note, name='approve_archive_note'),
+    path('admin/archive-notes/<int:pk>/reject/', admin_views.reject_archive_note, name='reject_archive_note'),
+
     path('<str:username>/', _validate_username(views.profile_view), name='profile'),
     path('<str:username>/edit/', _validate_username(views.profile_edit), name='profile_edit'),
 ]

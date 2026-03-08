@@ -68,7 +68,10 @@ def archive_list(request):
     )
     
     if category := request.GET.get('category'):
-        archives = archives.filter(category__slug=category)
+        if category.isdigit():
+            archives = archives.filter(category__id=category)
+        else:
+            archives = archives.filter(category__slug=category)
     
     if author_query := request.GET.get('author'):
         archives = archives.filter(
@@ -126,10 +129,9 @@ def archive_detail(request, pk=None, slug=None):
     
     if not archive.is_approved:
         if request.user.is_authenticated and (archive.uploaded_by == request.user or request.user.is_staff):
-            if archive.slug:
-                return redirect('archives:edit', slug=archive.slug)
-            return redirect('archives:edit', pk=archive.pk)
-        raise Http404("Archive not found")
+            pass # Allow owner or staff to see the detail page even if unapproved
+        else:
+            raise Http404("Archive not found")
     
     similar_archives = Archive.objects.filter(
         is_approved=True,
@@ -327,11 +329,16 @@ def archive_create(request):
 def archive_edit(request, pk=None, slug=None):
     """Edit an existing archive."""
     if slug:
-        archive = get_object_or_404(Archive, slug=slug, uploaded_by=request.user)
+        archive = get_object_or_404(Archive, slug=slug)
     elif pk:
-        archive = get_object_or_404(Archive, pk=pk, uploaded_by=request.user)
+        archive = get_object_or_404(Archive, pk=pk)
     else:
         raise Http404("Archive not found")
+    
+    # Permission check: owner or staff
+    if archive.uploaded_by != request.user and not request.user.is_staff:
+        messages.error(request, "You do not have permission to edit this archive.")
+        return redirect('archives:detail', slug=archive.slug if archive.slug else archive.pk)
     
     if request.method == 'POST':
         form = ArchiveForm(request.POST, instance=archive)
@@ -345,10 +352,7 @@ def archive_edit(request, pk=None, slug=None):
                 if archive.title != old_title or not archive.slug:
                     archive.slug = generate_unique_slug(archive.title, Archive, exclude_pk=archive.pk)
                 
-                
                 archive.save()
-                
-                # REMOVED: form.save_m2m() (Tags are gone)
                 
                 items = formset.save(commit=False)
                 
@@ -358,11 +362,10 @@ def archive_edit(request, pk=None, slug=None):
                 for i, item in enumerate(items):
                     item.archive = archive
                     if not item.item_number:
-                        max_num = archive.items.aggregate(models.Max('item_number'))['item_number__max'] or 0
+                        from django.db.models import Max
+                        max_num = archive.items.aggregate(Max('item_number'))['item_number__max'] or 0
                         item.item_number = max_num + 1
                     item.save()
-                
-                # Signals handle sync_parent_archive_with_first_item automatically
                 
                 if archive.is_approved:
                     # Reset approval if edited
@@ -371,8 +374,6 @@ def archive_edit(request, pk=None, slug=None):
                     cache.delete('all_approved_archive_ids')
                     cache.delete('archive_categories')
                     
-                    # Notify admin of re-submission (Optional, re-using logic)
-                    # Notify admin of re-submission
                     try:
                         from core.notifications_utils import send_admin_notification
                         send_admin_notification(
@@ -383,7 +384,6 @@ def archive_edit(request, pk=None, slug=None):
                     except Exception:
                         pass
                 
-                
                 messages.success(request, 'Archive updated successfully!')
                 if archive.slug:
                     return redirect('archives:detail', slug=archive.slug)
@@ -391,7 +391,6 @@ def archive_edit(request, pk=None, slug=None):
         else:
             messages.error(request, 'Please check the form for errors.')
     else:
-        # REMOVED: initial tag parsing logic
         form = ArchiveForm(instance=archive)
         formset = ArchiveItemFormSet(instance=archive)
     
@@ -408,11 +407,16 @@ def archive_edit(request, pk=None, slug=None):
 def archive_delete(request, pk=None, slug=None):
     """Delete an archive."""
     if slug:
-        archive = get_object_or_404(Archive, slug=slug, uploaded_by=request.user)
+        archive = get_object_or_404(Archive, slug=slug)
     elif pk:
-        archive = get_object_or_404(Archive, pk=pk, uploaded_by=request.user)
+        archive = get_object_or_404(Archive, pk=pk)
     else:
         raise Http404("Archive not found")
+    
+    # Permission check: owner or staff
+    if archive.uploaded_by != request.user and not request.user.is_staff:
+        messages.error(request, "You do not have permission to delete this archive.")
+        return redirect('archives:detail', slug=archive.slug if archive.slug else archive.pk)
     
     if archive.is_approved and not request.user.is_staff:
         messages.error(request, 'Approved archives cannot be deleted. Please contact an administrator.')

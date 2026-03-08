@@ -88,8 +88,7 @@
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">{{ post.title }}</h3>
                         <p class="text-sm text-text-muted mb-2">
-                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d,
-                            Y"}}
+                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d, Y"}}
                         </p>
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'lore:detail' post.slug %}" class="btn-secondary btn-sm"
@@ -130,8 +129,7 @@
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">{{ review.title }}</h3>
                         <p class="text-sm text-text-muted">Book: {{ review.book_title }}</p>
-                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name
-                                }}</strong></p>
+                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name }}</strong></p>
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm"
                                 target="_blank">Review</a>
@@ -153,6 +151,96 @@
         {% else %}
         <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-text-muted">
             No pending reviews.
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="mb-10">
+        <h2
+            class="font-serif text-xl font-semibold text-dark-brown mb-4 flex items-center gap-2 p-3 bg-heritage-cream/50 rounded-lg">
+            <i class="fas fa-user-edit text-accent"></i> Pending Author Edits ({{ pending_author_edits.count }})
+        </h2>
+
+        {% if pending_author_edits %}
+        <div class="grid grid-cols-1 gap-4">
+            {% for edit in pending_author_edits %}
+            <div class="card p-4">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-lg text-dark-brown">Edit Request for {{ edit.author.name }}</h3>
+                        <p class="text-sm text-text-muted mb-2">Requested by <strong>{{ edit.requested_by.get_display_name }}</strong> • {{ edit.created_at|date:"M d, Y" }}</p>
+                        <div class="bg-gray-50 p-3 rounded-lg text-sm text-dark-umber mb-3 italic">
+                            {{ edit.proposed_description|truncatewords:50 }}
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{{ edit.author.get_absolute_url }}" class="btn-secondary btn-sm"
+                                target="_blank">View Author Profile</a>
+                            <form action="{% url 'users:approve_author_edit' edit.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">
+                                    Approve
+                                </button>
+                            </form>
+                            <form action="{% url 'users:reject_author_edit' edit.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-secondary btn-sm text-red-600 hover:bg-red-50">
+                                    Reject
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-text-muted">
+            No pending author edits.
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="mb-10">
+        <h2
+            class="font-serif text-xl font-semibold text-dark-brown mb-4 flex items-center gap-2 p-3 bg-heritage-cream/50 rounded-lg">
+            <i class="fas fa-comment-dots text-accent"></i> Pending Community Notes ({{ pending_notes.count }})
+        </h2>
+
+        {% if pending_notes %}
+        <div class="grid grid-cols-1 gap-4">
+            {% for note in pending_notes %}
+            <div class="card p-4">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-lg text-dark-brown">Note on {{ note.archive.title }}</h3>
+                        <p class="text-sm text-text-muted mb-3">By <strong>{{ note.added_by.get_display_name }}</strong>
+                            • {{ note.created_at|date:"M d, Y" }}</p>
+                        <div class="flex gap-2">
+                            <a href="{{ note.archive.get_absolute_url }}" class="btn-secondary btn-sm"
+                                target="_blank">Review Note in Context</a>
+                            <form action="{% url 'users:approve_archive_note' note.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none">
+                                    Approve
+                                </button>
+                            </form>
+                            <form action="{% url 'users:reject_archive_note' note.pk %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-secondary btn-sm text-red-600 hover:bg-red-50">
+                                    Reject (Delete)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-text-muted">
+            No pending community notes.
         </div>
         {% endif %}
     </section>
