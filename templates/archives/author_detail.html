@@ -81,6 +81,15 @@
                             <div>
                                 <label class="block text-xs font-semibold mb-1 text-text-muted">Author Photo
                                     (Optional)</label>
+                                {% if author.image %}
+                                <div class="mb-2 relative group w-20 h-20">
+                                    <img src="{{ author.image.url }}" alt="{{ author.name }}"
+                                        class="w-20 h-20 rounded-lg object-cover border border-secondary/10">
+                                    <div
+                                        class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-[8px] text-white pointer-events-none">
+                                        Current Photo</div>
+                                </div>
+                                {% endif %}
                                 {{ desc_form.proposed_image }}
                                 <p class="text-[10px] text-text-muted/70 mt-1">Recommended: Square format, clear
                                     background.</p>

@@ -4,39 +4,40 @@
 {% load threadedcomments_tags %}
 
 {% block title %}{{ post.title }} - Lore{% endblock %}
-{% block meta_description %}{{ post.excerpt|truncatewords:25|default:"Discover Igbo cultural lore — proverbs, folklore, customs, and traditions shared by the community." }}{% endblock %}
+{% block meta_description %}{{ post.excerpt|truncatewords:25|default:"Discover Igbo cultural lore — proverbs, folklore,
+customs, and traditions shared by the community." }}{% endblock %}
 
 {% block og_title %}{{ post.title }} | Igbo Archives Lore{% endblock %}
 {% block og_description %}{{ post.excerpt|default:post.title|truncatewords:50 }}{% endblock %}
 {% block og_image %}
-    {% if post.featured_image %}
-        {% if "http" in post.featured_image.url %}
-            {{ post.featured_image.url }}
-        {% else %}
-            {{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}
-        {% endif %}
-    {% elif post.image_url %}
-        {{ post.image_url }}
-    {% else %}
-        {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
-    {% endif %}
+{% if post.featured_image %}
+{% if "http" in post.featured_image.url %}
+{{ post.featured_image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}
+{% endif %}
+{% elif post.image_url %}
+{{ post.image_url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
 {% endblock %}
 {% block og_type %}article{% endblock %}
 
 {% block twitter_title %}{{ post.title }} | Igbo Archives Lore{% endblock %}
 {% block twitter_description %}{{ post.excerpt|default:post.title|truncatewords:50 }}{% endblock %}
 {% block twitter_image %}
-    {% if post.featured_image %}
-        {% if "http" in post.featured_image.url %}
-            {{ post.featured_image.url }}
-        {% else %}
-            {{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}
-        {% endif %}
-    {% elif post.image_url %}
-        {{ post.image_url }}
-    {% else %}
-        {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
-    {% endif %}
+{% if post.featured_image %}
+{% if "http" in post.featured_image.url %}
+{{ post.featured_image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}
+{% endif %}
+{% elif post.image_url %}
+{{ post.image_url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -59,24 +60,28 @@
 
             {% if post.original_author %}
             <div class="text-lg text-text-muted mb-6 font-serif flex items-center gap-2">
-                <i class="fas fa-feather-alt text-accent"></i> Originally by 
+                <i class="fas fa-feather-alt text-accent"></i> Originally by
                 {% if author_profile %}
-                    <a href="{% url 'archives:author_detail' author_profile.slug %}" class="hover:text-accent font-medium transition-colors underline decoration-border hover:decoration-accent underline-offset-4">
-                        {{ post.original_author }}
-                    </a>
+                <a href="{% url 'archives:author_detail' author_profile.slug %}"
+                    class="hover:text-accent font-medium transition-colors underline decoration-border hover:decoration-accent underline-offset-4">
+                    {{ post.original_author }}
+                </a>
                 {% else %}
-                    <a href="{% url 'lore:list' %}?author={{ post.original_author|urlencode }}" class="hover:text-accent font-medium transition-colors underline decoration-border hover:decoration-accent underline-offset-4">
-                        {{ post.original_author }}
-                    </a>
+                <a href="{% url 'lore:list' %}?author={{ post.original_author|urlencode }}"
+                    class="hover:text-accent font-medium transition-colors underline decoration-border hover:decoration-accent underline-offset-4">
+                    {{ post.original_author }}
+                </a>
                 {% endif %}
             </div>
             {% endif %}
         </header>
 
-        {% if post.featured_image or post.image_url or post.featured_video or post.video_url or post.featured_audio or post.audio_url %}
+        {% if post.featured_image or post.image_url or post.featured_video or post.video_url or post.featured_audio or
+        post.audio_url %}
         <div class="mb-8 card overflow-hidden border border-border/50 bg-black/5">
-            <div class="relative w-full overflow-hidden flex flex-col justify-center items-center bg-black min-h-[400px] max-h-[600px]">
-                
+            <div
+                class="relative w-full overflow-hidden flex flex-col justify-center items-center bg-black min-h-[400px] max-h-[600px]">
+
                 {% if post.featured_video %}
                 <video controls class="w-full h-full max-h-[600px]" preload="metadata">
                     <source src="{{ post.featured_video.url }}" type="video/mp4">
@@ -145,7 +150,8 @@
     </article>
 
     <aside class="lg:col-span-4">
-        <div class="lg:sticky lg:top-24 space-y-6 lg:max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain pb-8 pr-2 sidebar-scroll">
+        <div
+            class="lg:sticky lg:top-24 space-y-6 lg:max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain pb-8 pr-2 sidebar-scroll">
 
             <div class="card shadow-sm border border-border/50">
                 <div class="card-body p-4 flex items-center gap-4">
@@ -153,23 +159,57 @@
                     <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.get_display_name }}"
                         class="w-12 h-12 rounded-full object-cover">
                     {% else %}
-                    <div class="w-12 h-12 rounded-full bg-accent/20 flex flex-shrink-0 items-center justify-center text-accent font-bold text-xl">
+                    <div
+                        class="w-12 h-12 rounded-full bg-secondary/5 flex flex-shrink-0 items-center justify-center text-text-muted/40 font-bold text-xl font-serif">
                         {{ post.author.get_display_name|slice:":1"|upper }}
                     </div>
                     {% endif %}
-                    
+
                     <div>
-                        <p class="text-xs text-text-muted mb-1">Shared by</p>
-                        <h4 class="font-bold text-text">
+                        <p class="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-1">Shared by</p>
+                        <h4 class="font-bold text-text text-sm">
                             <a href="{% url 'users:profile' post.author.username %}"
                                 class="hover:text-accent transition-colors">
                                 {{ post.author.get_display_name }}
                             </a>
                         </h4>
-                        <p class="text-xs text-text-muted mt-1">{{ post.created_at|date:"F d, Y" }}</p>
+                        <p class="text-[10px] text-text-muted mt-1">{{ post.created_at|date:"F d, Y" }}</p>
                     </div>
                 </div>
             </div>
+
+            {% if author_profile %}
+            <div class="card shadow-sm border border-border/50 bg-accent/[0.02]">
+                <div class="card-body p-4">
+                    <p class="text-[10px] text-accent uppercase font-bold tracking-wider mb-3">About the Author</p>
+                    <div class="flex items-center gap-3 mb-3">
+                        {% if author_profile.image %}
+                        <img src="{{ author_profile.image.url }}" alt="{{ author_profile.name }}"
+                            class="w-12 h-12 rounded-full object-cover border border-accent/10">
+                        {% else %}
+                        <div
+                            class="avatar avatar-lg bg-accent/10 text-accent font-serif text-xl flex items-center justify-center">
+                            {{ author_profile.name|slice:":1"|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'archives:author_detail' author_profile.slug %}"
+                                class="hover:text-accent font-bold transition-colors font-serif">
+                                {{ author_profile.name }}
+                            </a>
+                        </div>
+                    </div>
+                    {% if author_profile.description %}
+                    <p class="text-xs text-text-muted leading-relaxed line-clamp-3">
+                        {{ author_profile.description|striptags }}
+                    </p>
+                    <a href="{% url 'archives:author_detail' author_profile.slug %}"
+                        class="text-[10px] text-accent font-bold uppercase hover:underline mt-2 inline-block">Full
+                        Profile &rarr;</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
 
             <div class="card shadow-sm border border-border/50">
                 <div class="card-body p-4">

@@ -143,21 +143,21 @@ def book_detail(request, slug):
     elif book.legacy_content:
         content_excerpt = book.legacy_content[:300]
 
+    # Author profile lookup for bio/description
+    from archives.models import Author
+    author_profile = Author.objects.filter(name__iexact=book.author).first()
+
     context = {
         'book': book,
-        'content_excerpt': content_excerpt,
+        'author_profile': author_profile,
+        'reviews': reviews,
+        'user_rating': user_rating,
+        'related_books': related_books,
         'previous_book': previous_book,
         'next_book': next_book,
-        'related_books': related_books,
-        'user_rating': user_rating,
-        'reviews': reviews,
+        'content_excerpt': content_excerpt,
         'turnstile_site_key': getattr(settings, 'TURNSTILE_SITE_KEY', ''),
     }
-    
-    # Author profile lookup for bio/description
-    if book.author:
-        from archives.models import Author
-        context['author_profile'] = Author.objects.filter(name__iexact=book.author).first()
     
     return render(request, 'books/detail.html', context)
 

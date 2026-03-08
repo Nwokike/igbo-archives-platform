@@ -187,6 +187,11 @@ def archive_detail(request, pk=None, slug=None):
             # Cache for a relatively long time, e.g. 1 hour, so it's snappy but still updates automatically
             cache.set(f'archive_explore_further_{archive.id}', ai_correlations, timeout=3600)
 
+    # Author profile lookup for bio/description if not linked via FK
+    author_profile = archive.author
+    if not author_profile and archive.original_author:
+        author_profile = Author.objects.filter(name__iexact=archive.original_author).first()
+
     context = {
         'archive': archive,
         'archive_items': archive_items,
@@ -195,6 +200,7 @@ def archive_detail(request, pk=None, slug=None):
         'next_archive': next_archive,
         'recommended': recommended,
         'ai_correlations': ai_correlations,
+        'author_profile': author_profile,
     }
     
     return render(request, 'archives/detail.html', context)

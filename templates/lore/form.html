@@ -86,6 +86,13 @@
                 <div class="border border-border/50 rounded-lg p-4 bg-surface-alt/10">
                     <h4 class="font-medium mb-3 flex items-center gap-2"><i class="fas fa-image text-accent"></i> Cover
                         Image</h4>
+                    {% if post.featured_image %}
+                    <div class="mb-4">
+                        <p class="text-[10px] text-text-muted uppercase font-bold mb-1">Current Image:</p>
+                        <img src="{{ post.featured_image.url }}"
+                            class="w-32 h-32 rounded-lg object-cover border border-secondary/10">
+                    </div>
+                    {% endif %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium mb-1 text-text-muted"
@@ -106,6 +113,14 @@
                 <div class="border border-border/50 rounded-lg p-4 bg-surface-alt/10">
                     <h4 class="font-medium mb-3 flex items-center gap-2"><i class="fas fa-video text-accent"></i> Video
                         Lore</h4>
+                    {% if post.featured_video %}
+                    <div class="mb-4">
+                        <p class="text-[10px] text-text-muted uppercase font-bold mb-1">Current Video:</p>
+                        <video controls class="w-full max-w-sm rounded-lg border border-secondary/10">
+                            <source src="{{ post.featured_video.url }}" type="video/mp4">
+                        </video>
+                    </div>
+                    {% endif %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium mb-1 text-text-muted"
@@ -126,6 +141,14 @@
                 <div class="border border-border/50 rounded-lg p-4 bg-surface-alt/10">
                     <h4 class="font-medium mb-3 flex items-center gap-2"><i class="fas fa-music text-accent"></i> Audio
                         Lore</h4>
+                    {% if post.featured_audio %}
+                    <div class="mb-4">
+                        <p class="text-[10px] text-text-muted uppercase font-bold mb-1">Current Audio:</p>
+                        <audio controls class="w-full max-w-sm">
+                            <source src="{{ post.featured_audio.url }}">
+                        </audio>
+                    </div>
+                    {% endif %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium mb-1 text-text-muted"

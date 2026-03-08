@@ -88,7 +88,8 @@
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">{{ post.title }}</h3>
                         <p class="text-sm text-text-muted mb-2">
-                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d, Y"}}
+                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d,
+                            Y"}}
                         </p>
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'lore:detail' post.slug %}" class="btn-secondary btn-sm"
@@ -129,7 +130,8 @@
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">{{ review.title }}</h3>
                         <p class="text-sm text-text-muted">Book: {{ review.book_title }}</p>
-                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name }}</strong></p>
+                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name
+                                }}</strong></p>
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm"
                                 target="_blank">Review</a>
@@ -168,16 +170,37 @@
                 <div class="flex flex-col sm:flex-row sm:items-start gap-4">
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">Edit Request for {{ edit.author.name }}</h3>
-                        <p class="text-sm text-text-muted mb-2">Requested by <strong>{{ edit.requested_by.get_display_name }}</strong> • {{ edit.created_at|date:"M d, Y" }}</p>
+                        <p class="text-sm text-text-muted mb-2">Requested by <strong>{{
+                                edit.requested_by.get_display_name }}</strong> • {{ edit.created_at|date:"M d, Y" }}</p>
                         <div class="flex gap-4 mb-3">
                             <div class="flex-1 bg-gray-50 p-3 rounded-lg text-sm text-dark-umber italic">
                                 {{ edit.proposed_description|truncatewords:50 }}
+                                <div class="flex items-center gap-4 mt-3 pt-3 border-t border-secondary/5">
+                                    <div class="text-center">
+                                        <p class="text-[10px] text-text-muted uppercase font-bold mb-1">Current</p>
+                                        {% if edit.author.image %}
+                                        <img src="{{ edit.author.image.url }}" alt="Current"
+                                            class="w-16 h-16 rounded-lg object-cover border border-secondary/10">
+                                        {% else %}
+                                        <div
+                                            class="w-16 h-16 rounded-lg bg-secondary/5 flex items-center justify-center text-secondary/30 text-xs font-serif">
+                                            NONE</div>
+                                        {% endif %}
+                                    </div>
+                                    <i class="fas fa-arrow-right text-text-muted/30"></i>
+                                    <div class="text-center">
+                                        <p class="text-[10px] text-accent font-bold uppercase mb-1">Proposed</p>
+                                        {% if edit.proposed_image %}
+                                        <img src="{{ edit.proposed_image.url }}" alt="Proposed"
+                                            class="w-16 h-16 rounded-lg object-cover border-2 border-accent/20">
+                                        {% else %}
+                                        <div
+                                            class="w-16 h-16 rounded-lg bg-secondary/5 flex items-center justify-center text-text-muted/30 text-xs italic">
+                                            NO CHANGE</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
-                            {% if edit.proposed_image %}
-                            <div class="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                <img src="{{ edit.proposed_image.url }}" class="w-full h-full object-cover">
-                            </div>
-                            {% endif %}
                         </div>
                         <div class="flex gap-2">
                             <a href="{{ edit.author.get_absolute_url }}" class="btn-secondary btn-sm"

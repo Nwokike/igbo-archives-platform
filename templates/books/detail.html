@@ -9,30 +9,30 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
 {% block og_title %}{{ book.book_title }} by {{ book.author }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ content_excerpt|truncatewords:50 }}{% endblock %}
 {% block og_image %}
-    {% if book.cover_image %}
-        {% if "http" in book.cover_image.url %}
-            {{ book.cover_image.url }}
-        {% else %}
-            {{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
-        {% endif %}
-    {% else %}
-        {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
-    {% endif %}
+{% if book.cover_image %}
+{% if "http" in book.cover_image.url %}
+{{ book.cover_image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
+{% endif %}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
 {% endblock %}
 {% block og_type %}book{% endblock %}
 
 {% block twitter_title %}{{ book.book_title }} by {{ book.author }} | Igbo Archives{% endblock %}
 {% block twitter_description %}{{ content_excerpt|truncatewords:50 }}{% endblock %}
 {% block twitter_image %}
-    {% if book.cover_image %}
-        {% if "http" in book.cover_image.url %}
-            {{ book.cover_image.url }}
-        {% else %}
-            {{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
-        {% endif %}
-    {% else %}
-        {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
-    {% endif %}
+{% if book.cover_image %}
+{% if "http" in book.cover_image.url %}
+{{ book.cover_image.url }}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
+{% endif %}
+{% else %}
+{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -62,7 +62,7 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            
+
             {% if book.cover_image %}
             <div class="md:col-span-1">
                 <a href="{{ book.cover_image.url }}" target="_blank" class="block group">
@@ -73,20 +73,22 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
             {% endif %}
 
             <div class="{% if book.cover_image %}md:col-span-2{% else %}md:col-span-3{% endif %}">
-                
+
                 <div class="card mb-6 shadow-sm border border-border/50">
                     <div class="card-body p-4">
-                        <h4 class="font-serif font-semibold mb-3 text-sm text-text-muted uppercase tracking-wider">Book Author / Creator</h4>
+                        <h4 class="font-serif font-semibold mb-3 text-sm text-text-muted uppercase tracking-wider">Book
+                            Author / Creator</h4>
                         <div class="flex items-center gap-3 mb-3">
                             {% if author_profile and author_profile.image %}
                             <img src="{{ author_profile.image.url }}" alt="{{ book.author }}"
                                 class="w-12 h-12 rounded-full object-cover border-2 border-secondary/10">
                             {% else %}
-                            <div class="avatar avatar-lg bg-secondary/10 text-secondary border-2 border-secondary/20 flex items-center justify-center font-serif text-xl">
+                            <div
+                                class="avatar avatar-lg bg-secondary/10 text-secondary border-2 border-secondary/20 flex items-center justify-center font-serif text-xl">
                                 {{ book.author|slice:":1"|upper }}
                             </div>
                             {% endif %}
-                            
+
                             <div>
                                 {% if author_profile %}
                                 <a href="{% url 'archives:author_detail' author_profile.slug %}"
@@ -101,6 +103,14 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
                                 {% endif %}
                             </div>
                         </div>
+                        {% if author_profile and author_profile.description %}
+                        <p class="text-xs text-text-muted leading-relaxed line-clamp-3">
+                            {{ author_profile.description|striptags }}
+                        </p>
+                        <a href="{% url 'archives:author_detail' author_profile.slug %}"
+                            class="text-[10px] text-accent font-bold uppercase hover:underline mt-2 inline-block">Full
+                            Profile &rarr;</a>
+                        {% endif %}
 
                         {% if author_profile and author_profile.description %}
                         <p class="text-sm text-text-muted">{{ author_profile.description|truncatewords:25 }}</p>
@@ -110,7 +120,8 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
                         {% elif author_profile and not author_profile.description %}
                         <p class="text-xs text-text-muted italic mb-2">No biography available yet.</p>
                         <a href="{% url 'archives:author_detail' author_profile.slug %}"
-                            class="btn-ghost btn-sm text-xs mt-1 inline-flex items-center gap-1"><i class="fas fa-edit"></i>
+                            class="btn-ghost btn-sm text-xs mt-1 inline-flex items-center gap-1"><i
+                                class="fas fa-edit"></i>
                             Contribute Biography</a>
                         {% endif %}
                     </div>
