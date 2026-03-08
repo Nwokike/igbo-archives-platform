@@ -4,8 +4,7 @@
 {% load editorjs_renderer %}
 
 {% block title %}{{ archive.title }} - Archives{% endblock %}
-{% block meta_description %}{{ archive.description|truncatewords:25|default:"Explore this Igbo cultural archive —
-images, documents, audio, and video preserving Igbo heritage." }}{% endblock %}
+{% block meta_description %}{{ archive.description|truncatewords:25|default:"Explore this Igbo cultural archive — images, documents, audio, and video preserving Igbo heritage." }}{% endblock %}
 
 {% block og_title %}{{ archive.title }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ archive.description|truncatewords:50 }}{% endblock %}
@@ -396,8 +395,7 @@ images, documents, audio, and video preserving Igbo heritage." }}{% endblock %}
         <div
             class="lg:sticky lg:top-24 space-y-6 lg:max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain pb-8 pr-2 sidebar-scroll">
 
-            {% if archive.original_author or archive.author or archive.circa_date or archive.date_created or
-            archive.copyright_holder or archive.original_url or archive.original_identity_number %}
+            {% if archive.original_author or archive.author or archive.circa_date or archive.date_created or archive.copyright_holder or archive.original_url or archive.original_identity_number %}
             <div class="card">
                 <div class="card-body">
                     <h4 class="font-serif font-semibold mb-3">Archive Details</h4>
@@ -470,8 +468,7 @@ images, documents, audio, and video preserving Igbo heritage." }}{% endblock %}
                             class="w-12 h-12 rounded-full object-cover border-2 border-secondary/10">
                         {% else %}
                         <div class="avatar avatar-lg bg-secondary/10 text-secondary border-2 border-secondary/20">
-                            {% if archive.author %}{{ archive.author.name|slice:":1"|upper }}{% else %}{{
-                            archive.original_author|slice:":1"|upper }}{% endif %}
+                            {% if archive.author %}{{ archive.author.name|slice:":1"|upper }}{% else %}{{ archive.original_author|slice:":1"|upper }}{% endif %}
                         </div>
                         {% endif %}
                         <div>
@@ -565,8 +562,7 @@ images, documents, audio, and video preserving Igbo heritage." }}{% endblock %}
                                 </h5>
                                 <div class="flex items-center text-xs text-text-muted dark:text-text-dark-muted">
                                     <i class="far fa-calendar mr-1.5 opacity-70"></i>
-                                    {% if item.circa_date %}{{ item.circa_date }}{% elif item.date_created %}{{
-                                    item.date_created|date:"Y" }}{% else %}{{ item.created_at|date:"M Y" }}{% endif %}
+                                    {% if item.circa_date %}{{ item.circa_date }}{% elif item.date_created %}{{ item.date_created|date:"Y" }}{% else %}{{ item.created_at|date:"M Y" }}{% endif %}
                                 </div>
                             </div>
                         </a>

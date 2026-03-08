@@ -38,15 +38,13 @@
                 <div class="form-group col-span-full">
                     <label class="form-label font-medium">Title *</label>
                     {{ form.title }}
-                    {% if form.title.errors %}<div class="text-red-600 text-xs mt-1">{{ form.title.errors.0 }}</div>{%
-                    endif %}
+                    {% if form.title.errors %}<div class="text-red-600 text-xs mt-1">{{ form.title.errors.0 }}</div>{% endif %}
                 </div>
 
                 <div class="form-group col-span-full">
                     <label class="form-label font-medium">Description *</label>
                     {{ form.description }}
-                    {% if form.description.errors %}<div class="text-red-600 text-xs mt-1">{{ form.description.errors.0
-                        }}</div>{% endif %}
+                    {% if form.description.errors %}<div class="text-red-600 text-xs mt-1">{{ form.description.errors.0 }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
@@ -59,22 +57,15 @@
         <div class="card p-6 bg-white dark:bg-surface-dark shadow-sm border border-border/50 rounded-xl">
             <h2 class="text-lg font-serif font-bold mb-4 text-accent">2. Source & Rights</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="form-group"><label class="form-label font-medium">Original Author</label>{{
-                    form.original_author }}</div>
-                <div class="form-group"><label class="form-label font-medium">Copyright Holder</label>{{
-                    form.copyright_holder }}</div>
+                <div class="form-group"><label class="form-label font-medium">Original Author</label>{{ form.original_author }}</div>
+                <div class="form-group"><label class="form-label font-medium">Copyright Holder</label>{{ form.copyright_holder }}</div>
                 <div class="form-group col-span-full"><label class="form-label font-medium">About the Author <span
-                            class="text-text-muted font-normal text-xs">(Optional)</span></label>{{
-                    form.original_author_about }}</div>
-                <div class="form-group"><label class="form-label font-medium">Circa Date (e.g., c1950)</label>{{
-                    form.circa_date }}</div>
-                <div class="form-group"><label class="form-label font-medium">Exact Date</label>{{ form.date_created }}
-                </div>
+                            class="text-text-muted font-normal text-xs">(Optional)</span></label>{{ form.original_author_about }}</div>
+                <div class="form-group"><label class="form-label font-medium">Circa Date (e.g., c1950)</label>{{ form.circa_date }}</div>
+                <div class="form-group"><label class="form-label font-medium">Exact Date</label>{{ form.date_created }}</div>
                 <div class="form-group"><label class="form-label font-medium">Location</label>{{ form.location }}</div>
-                <div class="form-group"><label class="form-label font-medium">Ref/Catalog ID</label>{{
-                    form.original_identity_number }}</div>
-                <div class="form-group col-span-full"><label class="form-label font-medium">Source URL</label>{{
-                    form.original_url }}</div>
+                <div class="form-group"><label class="form-label font-medium">Ref/Catalog ID</label>{{ form.original_identity_number }}</div>
+                <div class="form-group col-span-full"><label class="form-label font-medium">Source URL</label>{{ form.original_url }}</div>
             </div>
         </div>
 
@@ -93,8 +84,7 @@
 
                     <div class="flex justify-between items-start mb-4 pb-2 border-b border-gray-100">
                         <h4 class="font-bold text-md text-accent">
-                            {% if item_form.instance.pk %}Item #{{ item_form.instance.item_number }}{% else %}New Item{%
-                            endif %}
+                            {% if item_form.instance.pk %}Item #{{ item_form.instance.item_number }}{% else %}New Item{% endif %}
                         </h4>
 
                         {% if formset.can_delete and item_form.instance.pk %}
@@ -139,36 +129,30 @@
                             <div class="file-inputs-container pt-2">
                                 <div
                                     class="file-group type-image {% if item_form.item_type.value != 'image' and item_form.item_type.value %}hidden{% endif %}">
-                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Image (OR
-                                        URL)</label> {{ item_form.image }}
+                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Image (OR URL)</label> {{ item_form.image }}
                                     <div class="mt-2">{{ item_form.image_url }}</div>
                                 </div>
                                 <div
                                     class="file-group type-video {% if item_form.item_type.value != 'video' %}hidden{% endif %}">
-                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Video (OR
-                                        URL)</label> {{ item_form.video }}
+                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Video (OR URL)</label> {{ item_form.video }}
                                     <div class="mt-2">{{ item_form.video_url }}</div>
                                 </div>
                                 <div
                                     class="file-group type-audio {% if item_form.item_type.value != 'audio' %}hidden{% endif %}">
-                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Audio (OR
-                                        URL)</label> {{ item_form.audio }}
+                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Audio (OR URL)</label> {{ item_form.audio }}
                                     <div class="mt-2">{{ item_form.audio_url }}</div>
                                 </div>
                                 <div
                                     class="file-group type-document {% if item_form.item_type.value != 'document' %}hidden{% endif %}">
-                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Document (OR
-                                        URL)</label> {{ item_form.document }}
+                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Document (OR URL)</label> {{ item_form.document }}
                                     <div class="mt-2">{{ item_form.document_url }}</div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="md:col-span-7 space-y-4">
-                            <div class="form-group"><label class="text-sm font-medium">Caption</label>{{
-                                item_form.caption }}</div>
-                            <div class="form-group"><label class="text-sm font-medium">Alt Text</label>{{
-                                item_form.alt_text }}</div>
+                            <div class="form-group"><label class="text-sm font-medium">Caption</label>{{ item_form.caption }}</div>
+                            <div class="form-group"><label class="text-sm font-medium">Alt Text</label>{{ item_form.alt_text }}</div>
                         </div>
                     </div>
                 </div>

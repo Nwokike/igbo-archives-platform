@@ -88,8 +88,7 @@
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">{{ post.title }}</h3>
                         <p class="text-sm text-text-muted mb-2">
-                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d,
-                            Y"}}
+                            By <strong>{{ post.author.get_display_name }}</strong> • {{ post.submitted_at|date:"M d, Y"}}
                         </p>
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'lore:detail' post.slug %}" class="btn-secondary btn-sm"
@@ -130,8 +129,7 @@
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">{{ review.title }}</h3>
                         <p class="text-sm text-text-muted">Book: {{ review.book_title }}</p>
-                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name
-                                }}</strong></p>
+                        <p class="text-sm text-text-muted mb-2">By <strong>{{ review.added_by.get_display_name }}</strong></p>
                         <div class="flex gap-2 mt-3">
                             <a href="{% url 'books:detail' review.slug %}" class="btn-secondary btn-sm"
                                 target="_blank">Review</a>
@@ -170,8 +168,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-start gap-4">
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">Edit Request for {{ edit.author.name }}</h3>
-                        <p class="text-sm text-text-muted mb-2">Requested by <strong>{{
-                                edit.requested_by.get_display_name }}</strong> • {{ edit.created_at|date:"M d, Y" }}</p>
+                        <p class="text-sm text-text-muted mb-2">Requested by <strong>{{ edit.requested_by.get_display_name }}</strong> • {{ edit.created_at|date:"M d, Y" }}</p>
                         <div class="flex gap-4 mb-3">
                             <div class="flex-1 bg-gray-50 p-3 rounded-lg text-sm text-dark-umber italic">
                                 {{ edit.proposed_description|truncatewords:50 }}

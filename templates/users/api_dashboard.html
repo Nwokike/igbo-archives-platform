@@ -2,224 +2,290 @@
 {% load static %}
 
 {% block title %}API & MCP — Igbo Archives{% endblock %}
-{% block meta_description %}Manage your API tokens and connect AI agents via MCP to the Igbo Archives platform.{% endblock %}
+{% block meta_description %}Manage your API tokens and connect AI agents via MCP to the Igbo Archives platform.{%
+endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="mb-4">
-        <h1 class="text-2xl font-bold">API & MCP Dashboard</h1>
-        <p class="text-muted">Connect your tools and AI agents to Igbo Archives.</p>
-    </div>
+<div class="mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+            <h1 class="font-serif text-2xl lg:text-3xl font-bold mb-2">API & MCP Dashboard</h1>
+            <p class="text-text-muted">Connect your tools and AI agents to the Igbo Archives platform.</p>
+        </div>
 
-    <!-- Tabs -->
-    <div class="tabs mb-4" id="apiTabs">
-        <button class="tab-btn active" data-tab="token-tab" onclick="switchTab(this)">
+        <div class="flex gap-3">
+            <a href="https://kiri.ng/docs/igbo-archives" class="btn-secondary btn-sm" target="_blank">
+                <i class="fas fa-external-link-alt"></i> External Docs
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="mb-6 tab-container">
+    <div class="flex flex-wrap gap-1 border-b border-border" role="tablist">
+        <button type="button" class="tab active" data-tab="token-tab">
             <i class="fas fa-key"></i> API Token
         </button>
-        <button class="tab-btn" data-tab="api-tab" onclick="switchTab(this)">
-            <i class="fas fa-book"></i> API Docs
+        <button type="button" class="tab" data-tab="api-tab">
+            <i class="fas fa-book"></i> API Reference
         </button>
-        <button class="tab-btn" data-tab="mcp-tab" onclick="switchTab(this)">
-            <i class="fas fa-robot"></i> MCP
+        <button type="button" class="tab" data-tab="mcp-tab">
+            <i class="fas fa-robot"></i> MCP Protocol
         </button>
     </div>
+</div>
 
+<div class="tab-content">
     <!-- Tab: API Token -->
-    <div class="tab-content active" id="token-tab">
-        <h2 class="text-lg font-semibold mb-3"><i class="fas fa-key text-primary"></i> Your API Token</h2>
-        <p class="text-sm text-muted mb-3">Use this token in the <code>Authorization</code> header for all API requests.
-        </p>
-        {% include "users/partials/api_token_display.html" %}
-    </div>
-
-    <!-- Tab: API Docs -->
-    <div class="tab-content" id="api-tab" style="display:none;">
-        <h2 class="text-lg font-semibold mb-3"><i class="fas fa-book text-primary"></i> REST API Reference</h2>
-
-        <div class="card mb-3">
-            <h3 class="font-semibold mb-2">Base URL</h3>
-            <code class="block p-2 bg-surface-secondary rounded">{{ api_base }}</code>
-        </div>
-
-        <div class="card mb-3">
-            <h3 class="font-semibold mb-2">Authentication</h3>
-            <p class="text-sm mb-2">Include your token in every request header:</p>
-            <pre class="code-block"><code>Authorization: Token YOUR_API_TOKEN</code></pre>
-        </div>
-
-        <div class="card mb-3">
-            <h3 class="font-semibold mb-2">Endpoints</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-border">
-                            <th class="text-left py-2 px-2">Method</th>
-                            <th class="text-left py-2 px-2">Endpoint</th>
-                            <th class="text-left py-2 px-2">Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/archives/</code></td>
-                            <td class="py-2 px-2">List approved archives</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/archives/{slug}/</code></td>
-                            <td class="py-2 px-2">Archive detail</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-primary">POST</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/archives/</code></td>
-                            <td class="py-2 px-2">Create archive (auth)</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/archives/featured/</code></td>
-                            <td class="py-2 px-2">Featured archives</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/archives/recent/</code></td>
-                            <td class="py-2 px-2">Recent archives</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td colspan="3" class="py-2 px-2 font-semibold text-primary">Books</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/books/</code></td>
-                            <td class="py-2 px-2">List books</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/books/{slug}/</code></td>
-                            <td class="py-2 px-2">Book detail</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-primary">POST</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/books/{slug}/rate/</code></td>
-                            <td class="py-2 px-2">Rate a book (auth)</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/books/top_rated/</code></td>
-                            <td class="py-2 px-2">Top-rated books</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td colspan="3" class="py-2 px-2 font-semibold text-primary">Lore</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/lore/</code></td>
-                            <td class="py-2 px-2">List lore posts</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/lore/{slug}/</code></td>
-                            <td class="py-2 px-2">Lore detail</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td colspan="3" class="py-2 px-2 font-semibold text-primary">Categories</td>
-                        </tr>
-                        <tr class="border-b border-border/50">
-                            <td class="py-2 px-2"><span class="badge badge-success">GET</span></td>
-                            <td class="py-2 px-2"><code>/api/v1/categories/</code></td>
-                            <td class="py-2 px-2">List categories</td>
-                        </tr>
-                    </tbody>
-                </table>
+    <div id="token-tab" class="tab-panel active block">
+        <div class="max-w-3xl">
+            <div class="flex items-center gap-2 mb-4">
+                <h3 class="font-serif text-xl font-bold">Your Personal Access Token</h3>
             </div>
-        </div>
+            <div class="card p-6 shadow-sm border border-border/50 rounded-xl bg-white dark:bg-surface-dark mb-6">
+                <p class="text-sm text-text-muted mb-6">Use this token in the <code
+                        class="bg-secondary/10 px-1 rounded text-accent">Authorization</code> header for all API
+                    requests to authenticate as <span class="font-bold">{{ user.get_display_name }}</span>.</p>
 
-        <div class="card mb-3">
-            <h3 class="font-semibold mb-2">Query Parameters</h3>
-            <ul class="text-sm space-y-1">
-                <li><code>?search=keyword</code> — Full-text search across title, description, caption</li>
-                <li><code>?type=image|video|audio|document</code> — Filter archives by type</li>
-                <li><code>?category=slug</code> — Filter archives by category slug</li>
-            </ul>
-        </div>
+                {% include "users/partials/api_token_display.html" %}
+            </div>
 
-        <div class="card">
-            <h3 class="font-semibold mb-2">Example: List Archives (cURL)</h3>
-            <pre class="code-block"><code>curl -H "Authorization: Token YOUR_API_TOKEN" \
-  {{ api_base }}archives/</code></pre>
-        </div>
-    </div>
-
-    <!-- Tab: MCP -->
-    <div class="tab-content" id="mcp-tab" style="display:none;">
-        <h2 class="text-lg font-semibold mb-3"><i class="fas fa-robot text-primary"></i> MCP (Model Context Protocol)
-        </h2>
-
-        <div class="card mb-3">
-            <h3 class="font-semibold mb-2">What is MCP?</h3>
-            <p class="text-sm text-muted">
-                MCP is an open standard that lets AI agents (like Claude, Cursor, or custom bots) discover and use your
-                platform's tools. Any MCP-compatible client can query archives, search books, and create lore posts
-                through structured commands.
-            </p>
-        </div>
-
-        <div class="card mb-3">
-            <h3 class="font-semibold mb-2">MCP Endpoint</h3>
-            <code class="block p-2 bg-surface-secondary rounded" id="mcpEndpoint">{{ mcp_endpoint }}</code>
-            <button type="button" class="btn-secondary btn-sm mt-2" onclick="copyMcpEndpoint()">
-                <i class="fas fa-copy"></i> Copy
-            </button>
-        </div>
-
-        <div class="card mb-3">
-            <h3 class="font-semibold mb-2">Available Tools</h3>
-            <div class="space-y-2 text-sm">
-                <div class="p-2 bg-surface-secondary rounded">
-                    <strong>archives</strong> — List, search, create, update, delete archives. Plus:
-                    <code>featured</code>, <code>recent</code>.
-                </div>
-                <div class="p-2 bg-surface-secondary rounded">
-                    <strong>books</strong> — List, search, create, update books. Plus: <code>top_rated</code>,
-                    <code>rate</code>, <code>ratings</code>.
-                </div>
-                <div class="p-2 bg-surface-secondary rounded">
-                    <strong>lore</strong> — List, search, create, update, delete lore posts.
-                </div>
-                <div class="p-2 bg-surface-secondary rounded">
-                    <strong>categories</strong> — List and view archive categories.
+            <div class="alert alert-info flex gap-3 text-sm">
+                <i class="fas fa-shield-alt text-xl mt-0.5"></i>
+                <div>
+                    <p class="font-bold mb-1">Security Recommendation</p>
+                    <p class="text-text-muted">Do not share your API token in public repositories or frontend code. It
+                        grants full access to your account's contribution capabilities.</p>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="card mb-3">
-            <h3 class="font-semibold mb-2">Connect from Claude Desktop</h3>
-            <p class="text-sm text-muted mb-2">Add this to your <code>claude_desktop_config.json</code>:</p>
-            <pre class="code-block"><code>{
+    <!-- Tab: API Reference -->
+    <div id="api-tab" class="tab-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-8 space-y-6">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">REST API Reference</h3>
+
+                    <div
+                        class="card overflow-hidden shadow-sm border border-border/50 rounded-xl bg-white dark:bg-surface-dark">
+                        <div class="p-4 bg-secondary/5 border-b border-border/50">
+                            <h4 class="font-bold text-sm uppercase tracking-wider text-text-muted">Authentication</h4>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-sm mb-4">Include your token in every request header using the
+                                <code>Token</code> prefix:
+                            </p>
+                            <div class="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-100 relative group">
+                                <code class="break-all">Authorization: Token YOUR_API_TOKEN</code>
+                                <button
+                                    class="absolute right-4 top-4 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onclick="copyToClipboard('Authorization: Token {{ user_token|default:'...' }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="card shadow-sm border border-border/50 rounded-xl bg-white dark:bg-surface-dark overflow-hidden">
+                    <div class="p-4 bg-secondary/5 border-b border-border/50">
+                        <h4 class="font-bold text-sm uppercase tracking-wider text-text-muted">Available Endpoints</h4>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50/50 text-text-muted uppercase text-[10px] font-bold">
+                                <tr>
+                                    <th class="py-3 px-4 border-b border-border/50">Method</th>
+                                    <th class="py-3 px-4 border-b border-border/50">Endpoint</th>
+                                    <th class="py-3 px-4 border-b border-border/50">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border/50">
+                                <tr>
+                                    <td class="py-3 px-4"><span
+                                            class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-bold text-[10px]">GET</span>
+                                    </td>
+                                    <td class="py-3 px-4 font-mono text-accent">/api/v1/archives/</td>
+                                    <td class="py-3 px-4 text-text-muted">List approved archives</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4"><span
+                                            class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold text-[10px]">POST</span>
+                                    </td>
+                                    <td class="py-3 px-4 font-mono text-accent">/api/v1/archives/</td>
+                                    <td class="py-3 px-4 text-text-muted">Create archive item</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4"><span
+                                            class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-bold text-[10px]">GET</span>
+                                    </td>
+                                    <td class="py-3 px-4 font-mono text-accent">/api/v1/books/</td>
+                                    <td class="py-3 px-4 text-text-muted">List recommend books</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4"><span
+                                            class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-bold text-[10px]">GET</span>
+                                    </td>
+                                    <td class="py-3 px-4 font-mono text-accent">/api/v1/lore/</td>
+                                    <td class="py-3 px-4 text-text-muted">List Igbo lore stories</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 bg-gray-50/50 border-t border-border/50 text-center">
+                        <a href="#" class="text-xs font-bold text-accent hover:underline uppercase">View Full API
+                            Documentation &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 space-y-6">
+                <div class="card p-6 shadow-sm border border-border/50 rounded-xl bg-white dark:bg-surface-dark">
+                    <h4 class="font-serif font-bold mb-4">Base API URL</h4>
+                    <div
+                        class="bg-secondary/5 rounded-lg p-3 font-mono text-sm text-accent break-all border border-secondary/10 mb-4">
+                        {{ api_base }}
+                    </div>
+                    <div class="space-y-3">
+                        <p class="text-xs text-text-muted font-bold uppercase tracking-wider">Useful Parameters</p>
+                        <ul class="text-xs space-y-2">
+                            <li class="flex gap-2">
+                                <code class="text-accent">?search=</code>
+                                <span class="text-text-muted">Keyword search</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <code class="text-accent">?type=</code>
+                                <span class="text-text-muted">Filter by media type</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <code class="text-accent">?category=</code>
+                                <span class="text-text-muted">Filter by category slug</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card p-6 shadow-sm border border-border/50 rounded-xl bg-accent/5 border-accent/10">
+                    <h4 class="font-serif font-bold mb-4 text-accent">Example Request</h4>
+                    <pre class="bg-gray-900 rounded-lg p-4 font-mono text-[10px] text-gray-100 overflow-x-auto"><code>curl -X GET \
+  {{ api_base }}archives/ \
+  -H "Authorization: Token YOUR_TOKEN"</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: MCP Protocol -->
+    <div id="mcp-tab" class="tab-panel hidden">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <div
+                    class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 text-accent text-2xl mb-4">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 class="font-serif text-3xl font-bold mb-3">Model Context Protocol</h3>
+                <p class="text-text-muted max-w-2xl mx-auto">Connect your favorite AI tools like Claude, Cursor, and
+                    IDEs directly to the Igbo cultural archives.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="card p-6 shadow-sm border border-border/50 rounded-xl bg-white dark:bg-surface-dark">
+                    <h4 class="font-serif font-bold mb-2">What is it?</h4>
+                    <p class="text-sm text-text-muted leading-relaxed">MCP is an open standard that lets AI agents
+                        discover and use platform tools. Any MCP-compatible client can query archives, search books, and
+                        interact with cultural lore through structured commands.</p>
+                </div>
+                <div class="card p-6 shadow-sm border border-border/50 rounded-xl bg-white dark:bg-surface-dark">
+                    <h4 class="font-serif font-bold mb-2">MCP Native Support</h4>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <span class="badge badge-secondary py-1 px-3">Claude Desktop</span>
+                        <span class="badge badge-secondary py-1 px-3">Cursor IDE</span>
+                        <span class="badge badge-secondary py-1 px-3">Visual Studio Code</span>
+                        <span class="badge badge-secondary py-1 px-3">Custom Agents</span>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="card shadow-sm border border-border/50 rounded-xl bg-white dark:bg-surface-dark overflow-hidden mb-8">
+                <div class="p-4 bg-secondary/5 border-b border-border/50 flex justify-between items-center">
+                    <h4 class="font-bold text-sm uppercase tracking-wider text-text-muted">Connection Endpoint</h4>
+                    <span class="badge badge-success text-[10px]">LIVE</span>
+                </div>
+                <div class="p-6">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="flex-1 bg-gray-50 dark:bg-surface-darker p-3 rounded-lg font-mono text-sm border border-border/50 text-accent"
+                            id="mcpEndpoint">
+                            {{ mcp_endpoint }}
+                        </div>
+                        <button class="btn-primary py-2 px-6" onclick="copyMcpEndpoint()">
+                            <i class="fas fa-copy mr-2"></i> Copy URL
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h4 class="font-serif font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-cog text-text-muted"></i> Claude Desktop Config
+                    </h4>
+                    <pre
+                        class="bg-gray-900 rounded-xl p-6 font-mono text-xs text-gray-100 border border-border/50 shadow-lg"><code>{
   "mcpServers": {
     "igbo-archives": {
       "url": "{{ mcp_endpoint }}",
       "headers": {
-        "Authorization": "Token YOUR_API_TOKEN"
+        "Authorization": "Token YOUR_TOKEN"
       }
     }
   }
 }</code></pre>
-        </div>
-
-        <div class="card">
-            <h3 class="font-semibold mb-2">Connect from Cursor / VS Code</h3>
-            <p class="text-sm text-muted mb-2">Add to your <code>.cursor/mcp.json</code> or VS Code MCP settings:</p>
-            <pre class="code-block"><code>{
+                </div>
+                <div>
+                    <h4 class="font-serif font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-terminal text-text-muted"></i> Cursor / VS Code Config
+                    </h4>
+                    <pre
+                        class="bg-gray-900 rounded-xl p-6 font-mono text-xs text-gray-100 border border-border/50 shadow-lg"><code>{
   "servers": {
     "igbo-archives": {
       "type": "http",
       "url": "{{ mcp_endpoint }}",
       "headers": {
-        "Authorization": "Token YOUR_API_TOKEN"
+        "Authorization": "Token YOUR_TOKEN"
       }
     }
   }
 }</code></pre>
+                </div>
+            </div>
+
+            <div class="card p-6 bg-secondary/5 border border-secondary/10 rounded-xl mb-12">
+                <h4 class="font-serif font-bold mb-4">Exposed Tools & Capabilities</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="p-3 bg-white dark:bg-surface-dark rounded-lg border border-border/50 shadow-sm">
+                        <i class="fas fa-archive text-accent mb-2 block"></i>
+                        <span class="text-[10px] font-bold uppercase">Archives</span>
+                    </div>
+                    <div class="p-3 bg-white dark:bg-surface-dark rounded-lg border border-border/50 shadow-sm">
+                        <i class="fas fa-book text-accent mb-2 block"></i>
+                        <span class="text-[10px] font-bold uppercase">Books</span>
+                    </div>
+                    <div class="p-3 bg-white dark:bg-surface-dark rounded-lg border border-border/50 shadow-sm">
+                        <i class="fas fa-lightbulb text-accent mb-2 block"></i>
+                        <span class="text-[10px] font-bold uppercase">Lore</span>
+                    </div>
+                    <div class="p-3 bg-white dark:bg-surface-dark rounded-lg border border-border/50 shadow-sm">
+                        <i class="fas fa-tags text-accent mb-2 block"></i>
+                        <span class="text-[10px] font-bold uppercase">Categories</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -227,44 +293,88 @@
 
 {% block extra_js %}
 <script>
-    // Tab switching
-    function switchTab(btn) {
-        document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => { c.style.display = 'none'; c.classList.remove('active'); });
-        btn.classList.add('active');
-        const tab = document.getElementById(btn.dataset.tab);
-        tab.style.display = 'block';
-        tab.classList.add('active');
-    }
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tab switching logic to match main dashboard
+        const tabs = document.querySelectorAll('.tab');
+        const panels = document.querySelectorAll('.tab-panel');
 
-    // Copy token to clipboard
-    function copyToken() {
-        const el = document.getElementById('apiToken');
-        if (el) {
-            navigator.clipboard.writeText(el.textContent.trim()).then(() => {
-                showToast('Token copied to clipboard!');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.getAttribute('data-tab');
+
+                // Remove active classes
+                tabs.forEach(t => t.classList.remove('active'));
+                panels.forEach(p => p.classList.add('hidden'));
+                panels.forEach(p => p.classList.remove('block'));
+
+                // Add active classes
+                tab.classList.add('active');
+                const targetPanel = document.getElementById(targetId);
+                targetPanel.classList.remove('hidden');
+                targetPanel.classList.add('block');
             });
-        }
+        });
+    });
+
+    // Copy to clipboard utility
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
     }
 
-    // Copy MCP endpoint
+    // Specialized copy for MCP endpoint
     function copyMcpEndpoint() {
         const el = document.getElementById('mcpEndpoint');
         if (el) {
-            navigator.clipboard.writeText(el.textContent.trim()).then(() => {
-                showToast('MCP endpoint copied!');
-            });
+            copyToClipboard(el.textContent.trim());
         }
     }
 
-    // Simple toast notification
+    // Simple toast notification matching project style
     function showToast(msg) {
         const toast = document.createElement('div');
-        toast.className = 'toast-notification';
-        toast.textContent = msg;
+        toast.className = 'toast-notification bg-dark-brown text-white p-3 rounded-lg shadow-xl fixed bottom-8 right-8 z-50 transform translate-y-20 opacity-0 transition-all duration-300';
+        toast.innerHTML = `<i class="fas fa-check-circle mr-2 text-accent"></i> ${msg}`;
         document.body.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2000);
+
+        // Trigger animation
+        setTimeout(() => {
+            toast.classList.remove('translate-y-20', 'opacity-0');
+        }, 10);
+
+        // Hide and remove
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 </script>
+
+<style>
+    /* Ensure tab visibility based on dashboard structure */
+    .tab-panel.hidden {
+        display: none;
+    }
+
+    .tab-panel.block {
+        display: block;
+    }
+
+    /* Custom scrollbar for wide tables/code blocks */
+    .overflow-x-auto::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .overflow-x-auto::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .overflow-x-auto::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+</style>
 {% endblock %}

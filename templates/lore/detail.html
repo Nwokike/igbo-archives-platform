@@ -4,8 +4,7 @@
 {% load threadedcomments_tags %}
 
 {% block title %}{{ post.title }} - Lore{% endblock %}
-{% block meta_description %}{{ post.excerpt|truncatewords:25|default:"Discover Igbo cultural lore — proverbs, folklore,
-customs, and traditions shared by the community." }}{% endblock %}
+{% block meta_description %}{{ post.excerpt|truncatewords:25|default:"Discover Igbo cultural lore — proverbs, folklore, customs, and traditions shared by the community." }}{% endblock %}
 
 {% block og_title %}{{ post.title }} | Igbo Archives Lore{% endblock %}
 {% block og_description %}{{ post.excerpt|default:post.title|truncatewords:50 }}{% endblock %}
@@ -76,8 +75,7 @@ customs, and traditions shared by the community." }}{% endblock %}
             {% endif %}
         </header>
 
-        {% if post.featured_image or post.image_url or post.featured_video or post.video_url or post.featured_audio or
-        post.audio_url %}
+        {% if post.featured_image or post.image_url or post.featured_video or post.video_url or post.featured_audio or post.audio_url %}
         <div class="mb-8 card overflow-hidden border border-border/50 bg-black/5">
             <div
                 class="relative w-full overflow-hidden flex flex-col justify-center items-center bg-black min-h-[400px] max-h-[600px]">

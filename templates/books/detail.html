@@ -103,14 +103,6 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
                                 {% endif %}
                             </div>
                         </div>
-                        {% if author_profile and author_profile.description %}
-                        <p class="text-xs text-text-muted leading-relaxed line-clamp-3">
-                            {{ author_profile.description|striptags }}
-                        </p>
-                        <a href="{% url 'archives:author_detail' author_profile.slug %}"
-                            class="text-[10px] text-accent font-bold uppercase hover:underline mt-2 inline-block">Full
-                            Profile &rarr;</a>
-                        {% endif %}
 
                         {% if author_profile and author_profile.description %}
                         <p class="text-sm text-text-muted">{{ author_profile.description|truncatewords:25 }}</p>
