@@ -1,50 +1,58 @@
-<div class="card group hover:-translate-y-1 transition-all duration-300">
-    {% if post.featured_image %}
-    <a href="{{ post.get_absolute_url }}" class="block h-48 overflow-hidden bg-surface-alt">
-        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}"
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-    </a>
-    {% elif post.image_url %}
-    <a href="{{ post.get_absolute_url }}" class="block h-48 overflow-hidden bg-surface-alt">
-        <img src="{{ post.image_url }}" alt="{{ post.title }}"
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-    </a>
-    {% elif post.featured_video or post.video_url %}
-    <a href="{{ post.get_absolute_url }}" class="block w-full h-48 overflow-hidden">
-        {% include 'partials/media_fallback.html' with type='video' %}
-    </a>
-    {% elif post.featured_audio or post.audio_url %}
-    <a href="{{ post.get_absolute_url }}" class="block w-full h-48 overflow-hidden">
-        {% include 'partials/media_fallback.html' with type='audio' %}
-    </a>
-    {% else %}
-    <a href="{{ post.get_absolute_url }}" class="block w-full h-48 overflow-hidden">
-        {% include 'partials/media_fallback.html' with type='text' %}
-    </a>
-    {% endif %}
-
-    <div class="card-body">
-        {% if post.category %}
-        <span class="text-xs font-bold uppercase tracking-wider text-accent mb-2 block">{{ post.category.name }}</span>
-        {% endif %}
-
-        <h3 class="font-serif text-xl font-bold mb-2 group-hover:text-accent transition-colors">
-            <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
-        </h3>
-
-        <p class="text-text-muted text-sm mb-4 line-clamp-3">
-            {{ post.excerpt|default:"Explore this piece of Igbo cultural lore..." }}
-        </p>
-
-        <div class="flex items-center justify-between border-t border-border/50 pt-4 mt-auto">
-            <div class="flex items-center gap-2 text-xs text-text-muted">
-                <i class="fas fa-user-circle"></i>
-                <span>{{ post.author.get_display_name|default:post.original_author|default:"Community" }}</span>
+<div class="card card-hover group block lore-item relative">
+    <div class="lore-card-inner flex flex-col [*[data-view='list']_&]:flex-row [*[data-view='list']_&]:h-48">
+        <!-- Image section -->
+        <a href="{{ post.get_absolute_url }}"
+            class="lore-img-wrapper overflow-hidden [*[data-view='list']_&]:w-56 [*[data-view='list']_&]:flex-shrink-0 [*[data-view='list']_&]:order-2 bg-surface-alt">
+            {% if post.featured_image %}
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" loading="lazy" decoding="async"
+                class="w-full h-48 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            {% elif post.image_url %}
+            <img src="{{ post.image_url }}" alt="{{ post.title }}" loading="lazy" decoding="async"
+                class="w-full h-48 [*[data-view='list']_&]:h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            {% elif post.featured_video or post.video_url %}
+            <div class="w-full h-48 [*[data-view='list']_&]:h-full overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='video' %}
             </div>
-            <a href="{{ post.get_absolute_url }}"
-                class="text-sm font-semibold text-text group-hover:text-accent transition-colors">
-                Read Story &rarr;
+            {% elif post.featured_audio or post.audio_url %}
+            <div class="w-full h-48 [*[data-view='list']_&]:h-full overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='audio' %}
+            </div>
+            {% else %}
+            <div class="w-full h-48 [*[data-view='list']_&]:h-full overflow-hidden">
+                {% include 'partials/media_fallback.html' with type='text' %}
+            </div>
+            {% endif %}
+        </a>
+
+        <!-- Content section -->
+        <div class="card-body flex-1 [*[data-view='list']_&]:py-3 [*[data-view='list']_&]:order-1 flex flex-col">
+            <a href="{{ post.get_absolute_url }}" class="block group/title">
+                <h3
+                    class="font-serif text-xl [*[data-view='list']_&]:text-lg font-bold mb-2 [*[data-view='list']_&]:mb-1 group-hover/title:text-accent transition-colors line-clamp-2 [*[data-view='list']_&]:line-clamp-1">
+                    {{ post.title }}
+                </h3>
             </a>
+
+            <p
+                class="text-text-muted text-sm mb-4 [*[data-view='list']_&]:mb-4 line-clamp-3 [*[data-view='list']_&]:line-clamp-4">
+                {{ post.excerpt|default:"Explore this piece of Igbo cultural lore..." }}
+            </p>
+
+            <div class="flex flex-wrap gap-2 items-center mt-auto">
+                {% if post.category %}
+                <a href="?type={{ post.category.slug }}" hx-get="{% url 'lore:list' %}?type={{ post.category.slug }}"
+                    hx-target="#loreGrid" hx-push-url="true"
+                    class="badge badge-primary hover:bg-accent hover:text-white transition-colors [*[data-view='list']_&]:text-xs">
+                    {{ post.category.name }}
+                </a>
+                {% endif %}
+
+                <span class="text-text-muted mx-1 text-xs">•</span>
+                <div class="flex items-center gap-1 text-xs text-text-muted">
+                    <i class="fas fa-user-circle text-[10px]"></i>
+                    <span>{{ post.author.get_display_name|default:post.original_author|default:"Community" }}</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
