@@ -11,7 +11,7 @@ class CustomSignupForm(SignupForm):
         max_length=200,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Enter your full name'
         })
     )
@@ -30,15 +30,15 @@ class CustomSignupForm(SignupForm):
             del self.fields['username']
         
         self.fields['email'].widget.attrs.update({
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Enter your email address'
         })
         self.fields['password1'].widget.attrs.update({
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Create a strong password'
         })
         self.fields['password2'].widget.attrs.update({
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Confirm your password'
         })
     
@@ -93,12 +93,12 @@ class CustomLoginForm(LoginForm):
         super().__init__(*args, **kwargs)
         
         self.fields['login'].widget.attrs.update({
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Enter your email address'
         })
         self.fields['login'].label = 'Email'
         self.fields['password'].widget.attrs.update({
-            'class': 'form-control',
+            'class': 'form-input',
             'placeholder': 'Enter your password'
         })
     
@@ -119,39 +119,39 @@ class CustomLoginForm(LoginForm):
 
 class ProfileEditForm(forms.ModelForm):
     twitter = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://twitter.com/username'
     }))
     facebook = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://facebook.com/username'
     }))
     linkedin = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://linkedin.com/in/username'
     }))
     instagram = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://instagram.com/username'
     }))
     youtube = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://youtube.com/@username'
     }))
     academia = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://academia.edu/username'
     }))
     researchgate = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://researchgate.net/profile/username'
     }))
     orcid = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://orcid.org/0000-0000-0000-0000'
     }))
     website = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-control',
+        'class': 'form-input',
         'placeholder': 'https://yourwebsite.com'
     }))
     
@@ -159,9 +159,9 @@ class ProfileEditForm(forms.ModelForm):
         model = CustomUser
         fields = ['full_name', 'bio', 'profile_picture']
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'profile_picture': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'full_name': forms.TextInput(attrs={'class': 'form-input'}),
+            'bio': forms.Textarea(attrs={'class': 'form-input', 'rows': 4}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/*'}),
         }
     
     def __init__(self, *args, **kwargs):

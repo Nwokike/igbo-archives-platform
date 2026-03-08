@@ -50,7 +50,8 @@ class Author(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            from core.editorjs_helpers import generate_unique_slug
+            self.slug = generate_unique_slug(self.name, Author)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -287,6 +288,8 @@ class Archive(models.Model):
         # Skip heavy logic when only specific fields are being updated (e.g. from signals)
         update_fields = kwargs.get('update_fields')
         if update_fields is None:
+            import nh3
+            self.description = nh3.clean(self.description)
             if not self.slug:
                 self._generate_slug()
             self._link_author()
@@ -453,7 +456,9 @@ class ArchiveNote(models.Model):
         
     @property
     def content(self):
-        return self.content_json if self.content_json else self.legacy_content
+        if self.content_json and (isinstance(self.content_json, dict) and self.content_json.get('blocks')):
+            return self.content_json
+        return self.legacy_content
 
 class ArchiveNoteSuggestion(models.Model):
     """

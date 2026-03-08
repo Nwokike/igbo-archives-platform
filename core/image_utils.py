@@ -54,7 +54,8 @@ def compress_image(image_file, max_size_mb=1.5, quality=85, max_dimension=2400):
             new_size = (int(width * ratio), int(height * ratio))
             img = img.resize(new_size, Image.Resampling.LANCZOS)
         
-        # Compress with iterative quality reduction
+        # Intentionally convert all uploads to JPEG for storage efficiency and consistent format
+        # PNGs with transparency will get a white background — acceptable for this platform's use case
         output = io.BytesIO()
         current_quality = quality
         

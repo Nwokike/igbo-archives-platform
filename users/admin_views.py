@@ -38,22 +38,30 @@ def moderation_dashboard(request):
 @staff_member_required
 @require_POST
 def approve_lore(request, pk):
-    post = get_object_or_404(LorePost, pk=pk)
-    post.is_published = True
-    post.is_approved = True
-    post.pending_approval = False
-    post.save()
+    from django.db import transaction
+    try:
+        with transaction.atomic():
+            post = LorePost.objects.select_for_update().get(pk=pk, is_approved=False)
+            post.is_published = True
+            post.is_approved = True
+            post.pending_approval = False
+            post.save(update_fields=['is_published', 'is_approved', 'pending_approval'])
+    except LorePost.DoesNotExist:
+        messages.warning(request, 'Lore post not found or already approved.')
+        return redirect('users:moderation_dashboard')
+    
+    author_name = post.author.get_display_name() if post.author else 'Unknown'
     send_post_approved_notification(post, 'lore')
     from core.notifications_utils import send_broadcast_notification
     send_broadcast_notification(
         f"New Lore: {post.title}", 
-        f"Read the latest heritage lore by {post.author.get_display_name()}", 
+        f"Read the latest heritage lore by {author_name}", 
         post.get_absolute_url()
     )
     
     # Queue for weekly digest
     from core.email_service import queue_for_digest
-    queue_for_digest('lore', post.id, post.title, post.author.get_display_name(), post.get_absolute_url())
+    queue_for_digest('lore', post.id, post.title, author_name, post.get_absolute_url())
     
     messages.success(request, f'Lore "{post.title}" approved.')
     return redirect('users:moderation_dashboard')
@@ -76,22 +84,30 @@ def reject_lore(request, pk):
 @staff_member_required
 @require_POST
 def approve_book_review(request, pk):
-    review = get_object_or_404(BookRecommendation, pk=pk)
-    review.is_published = True
-    review.is_approved = True
-    review.pending_approval = False
-    review.save()
+    from django.db import transaction
+    try:
+        with transaction.atomic():
+            review = BookRecommendation.objects.select_for_update().get(pk=pk, is_approved=False)
+            review.is_published = True
+            review.is_approved = True
+            review.pending_approval = False
+            review.save(update_fields=['is_published', 'is_approved', 'pending_approval'])
+    except BookRecommendation.DoesNotExist:
+        messages.warning(request, 'Book recommendation not found or already approved.')
+        return redirect('users:moderation_dashboard')
+    
+    added_by_name = review.added_by.get_display_name() if review.added_by else 'Unknown'
     send_post_approved_notification(review, 'book review')
     from core.notifications_utils import send_broadcast_notification
     send_broadcast_notification(
         f"New Book: {review.book_title}", 
-        f"A new book recommendation has been published by {review.added_by.get_display_name()}", 
+        f"A new book recommendation has been published by {added_by_name}", 
         review.get_absolute_url()
     )
     
     # Queue for weekly digest
     from core.email_service import queue_for_digest
-    queue_for_digest('book', review.id, review.book_title, review.added_by.get_display_name(), review.get_absolute_url())
+    queue_for_digest('book', review.id, review.book_title, added_by_name, review.get_absolute_url())
     
     messages.success(request, f'Review "{review.title}" approved.')
     return redirect('users:moderation_dashboard')
@@ -130,16 +146,17 @@ def approve_archive(request, pk):
     
     try:
         from core.notifications_utils import send_broadcast_notification
+        uploaded_by_name = archive.uploaded_by.get_display_name() if archive.uploaded_by else 'Unknown'
         send_post_approved_notification(archive, 'archive')
         send_broadcast_notification(
             f"New Archive: {archive.title}", 
-            f"Explore a new heritage archive from {archive.uploaded_by.get_display_name()}", 
+            f"Explore a new heritage archive from {uploaded_by_name}", 
             archive.get_absolute_url()
         )
         
         # Queue for weekly digest
         from core.email_service import queue_for_digest
-        queue_for_digest('archive', archive.id, archive.title, archive.uploaded_by.get_display_name(), archive.get_absolute_url())
+        queue_for_digest('archive', archive.id, archive.title, uploaded_by_name, archive.get_absolute_url())
     except Exception:
         logger.warning("Failed to send archive approval/broadcast notification")
         

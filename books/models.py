@@ -80,8 +80,10 @@ class BookRecommendation(models.Model):
     
     @property
     def content(self):
-        """Return content_json if available, otherwise legacy_content"""
-        return self.content_json if self.content_json else self.legacy_content
+        """Return content_json if it has blocks, otherwise legacy_content"""
+        if self.content_json and (isinstance(self.content_json, dict) and self.content_json.get('blocks')):
+            return self.content_json
+        return self.legacy_content
     
     @property
     def average_rating(self):

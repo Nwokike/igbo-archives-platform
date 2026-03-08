@@ -61,9 +61,8 @@ def get_similar_items(target_text, queryset, limit=3, text_field='title'):
 
     target_tf = _get_tf(target_tokens)
     
-    # Pre-fetch elements from DB (assuming the queryset is small enough, e.g. < 5000 rows. 
-    # For a 1GB RAM server, scanning a few thousand strings in memory takes milliseconds)
-    items = list(queryset)
+    # Limit corpus size for memory safety on 1GB RAM VM
+    items = list(queryset[:2000])
     if not items:
         return []
 

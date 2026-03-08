@@ -263,7 +263,7 @@ def archive_create(request):
                 if not archive.slug:
                     archive.slug = generate_unique_slug(archive.title, Archive)
                 
-                archive.description = nh3.clean(archive.description)
+                
                 archive.save()
                 
                 # REMOVED: form.save_m2m() (Tags are gone)
@@ -345,7 +345,7 @@ def archive_edit(request, pk=None, slug=None):
                 if archive.title != old_title or not archive.slug:
                     archive.slug = generate_unique_slug(archive.title, Archive, exclude_pk=archive.pk)
                 
-                archive.description = nh3.clean(archive.description)
+                
                 archive.save()
                 
                 # REMOVED: form.save_m2m() (Tags are gone)
@@ -372,15 +372,14 @@ def archive_edit(request, pk=None, slug=None):
                     cache.delete('archive_categories')
                     
                     # Notify admin of re-submission (Optional, re-using logic)
+                    # Notify admin of re-submission
                     try:
-                        staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
-                        if staff_emails:
-                            from core.tasks import send_email_async
-                            send_email_async(
-                                subject=f"Archive Updated (Review Needed): {archive.title}",
-                                message=f"User {request.user.username} updated an archive. Please re-review.",
-                                recipient_list=staff_emails,
-                            )
+                        from core.notifications_utils import send_admin_notification
+                        send_admin_notification(
+                            subject=f"Archive Updated (Review Needed): {archive.title}",
+                            description=f"User {request.user.username} updated an archive. Please re-review.",
+                            target_url="/users/admin/moderation/"
+                        )
                     except Exception:
                         pass
                 
@@ -456,7 +455,7 @@ def add_archive_note(request, slug):
             archive=archive,
             added_by=request.user,
             content_json=content_json,
-            is_approved=True 
+            is_approved=False  # Requires moderation before publishing
         )
         
         # Notify the original uploader of the archive
@@ -470,7 +469,7 @@ def add_archive_note(request, slug):
             target_url=archive.get_absolute_url()
         )
             
-        messages.success(request, 'Your note has been added to this archive.')
+        messages.success(request, 'Your note has been submitted and is pending moderation.')
         
     return redirect('archives:detail', slug=slug)
 
@@ -493,14 +492,18 @@ def suggest_note_edit(request, note_id):
             suggestion_text=suggestion_text
         )
         
-        # Notify original note author via Push + App notification
-        if note.added_by and note.added_by != request.user:
-            from users.models import Notification
-            Notification.objects.create(
-                recipient=note.added_by,
-                verb='Someone suggested an edit to your Community Note',
-                description=f'{request.user.get_display_name()} suggested a modification to your note on "{archive.title}". Check your dashboard.',
-            )
+        # Notify original note author via centralized notification system
+        from core.notifications_utils import _send_notification_and_push
+        _send_notification_and_push(
+            recipient=note.added_by,
+            sender=request.user,
+            verb='suggested an edit to your Community Note',
+            description=f'{request.user.get_display_name()} suggested a modification to your note on "{archive.title}". Check your dashboard.',
+            target_object=note,
+            push_head='Note Edit Suggestion',
+            push_body=f'{request.user.get_display_name()} suggested an edit to your note.',
+            push_url=archive.get_absolute_url()
+        )
             
         messages.success(request, 'Your suggestion has been sent to the note author for review.')
         
@@ -530,15 +533,11 @@ def submit_author_description(request, slug):
                 req.save()
                 # Notify admin via async task
                 try:
-                    from .tasks import send_archive_notification_email
-                    staff_users = User.objects.filter(is_staff=True, is_active=True).values_list('email', flat=True)
-                    staff_emails = [email for email in staff_users if email]
-                    if staff_emails:
-                        send_archive_notification_email(
-                            f"Author Biography Edit Request: {author.name}",
-                            f"User {request.user.username} has submitted an updated biography for {author.name}.\n\nReview it in the admin panel.",
-                            staff_emails
-                        )
+                    from core.notifications_utils import send_admin_notification
+                    send_admin_notification(
+                        subject=f"Author Biography Edit Request: {author.name}",
+                        description=f"User {request.user.username} has submitted an updated biography for {author.name}.\n\nReview it in the admin panel.",
+                    )
                 except Exception as e:
                     logger.error(f"Failed to send author desc notification: {e}")
                     

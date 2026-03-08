@@ -3,8 +3,7 @@
 {% load threadedcomments_tags %}
 
 {% block title %}{{ archive.title }} - Archives{% endblock %}
-
-{% block meta_description %}{{ archive.description|truncatewords:25 }}{% endblock %}
+{% block meta_description %}{{ archive.description|truncatewords:25|default:"Explore this Igbo cultural archive — images, documents, audio, and video preserving Igbo heritage." }}{% endblock %}
 
 {% block og_title %}{{ archive.title }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ archive.description|truncatewords:50 }}{% endblock %}
@@ -218,7 +217,7 @@
                     <input type="hidden" name="content_json" id="id_content_json_note">
 
                     <div class="turnstile-wrapper mb-4 scale-90 origin-left">
-                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                        {% include "partials/turnstile_sdk.html" %}
                         <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
                     </div>
 

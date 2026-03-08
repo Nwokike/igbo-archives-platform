@@ -7,12 +7,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Igbo Archives - Preserving the Past, Inspiring the Future{% endblock %}</title>
+    <meta name="description"
+        content="{% block meta_description %}Igbo Archives — a digital platform for preserving Igbo cultural heritage, history, and traditions through archives, books, and community insights.{% endblock %}">
     <link rel="icon" type="image/png" href="{% static 'images/logos/logo-light.png' %}">
 
-    {% if ENABLE_ANALYTICS and GOOGLE_ANALYTICS_ID %}
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
-    <script src="{% static 'js/common/analytics.js' %}" data-ga-id="{{ GOOGLE_ANALYTICS_ID }}"></script>
-    {% endif %}
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HNZ18KM0B8"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-HNZ18KM0B8');
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4026538242880905"
+        crossorigin="anonymous"></script>
 
 
 
@@ -21,7 +31,6 @@
     <script>
         // Capture PWA install prompt event early to prevent missing it
         window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('Early beforeinstallprompt capture');
             e.preventDefault();
             window.deferredPrompt = e;
         });
@@ -41,8 +50,7 @@
 
     {% block extra_css %}{% endblock %}
 
-    <meta name="description"
-        content="{% block meta_description %}Igbo Archives - A platform for Igbo cultural preservation and community engagement{% endblock %}">
+
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
@@ -131,7 +139,7 @@
                     <div class="relative dropdown" id="notificationDropdownContainer">
                         <button type="button" class="btn-ghost w-10 h-10 p-0 rounded-full relative"
                             id="notificationBell" aria-label="Notifications"
-                            data-url="{% url 'api:notification_list' %}">
+                            data-url="{% url 'users:notification_dropdown' %}">
                             <i class="fas fa-bell text-lg"></i>
                             {% if unread_notification_count > 0 %}
                             <span id="notificationBadge"
@@ -172,6 +180,9 @@
                             </a>
                             <a href="{% url 'users:profile_edit' user.username %}" class="dropdown-item">
                                 <i class="fas fa-edit w-4 text-center"></i> Edit Profile
+                            </a>
+                            <a href="{% url 'users:api_dashboard' %}" class="dropdown-item">
+                                <i class="fas fa-plug w-4 text-center"></i> API & MCP
                             </a>
                             <div class="my-2 border-t border-border"></div>
                             <a href="{% url 'account_logout' %}" class="dropdown-item text-red-600 hover:bg-red-50"

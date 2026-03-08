@@ -84,7 +84,7 @@
 
                     <!-- Cloudflare Turnstile -->
                     <div class="turnstile-wrapper">
-                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                        {% include "partials/turnstile_sdk.html" %}
                         <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
                     </div>
 
@@ -97,7 +97,7 @@
                             <div class="w-full border-t border-border"></div>
                         </div>
                         <div class="relative flex justify-center">
-                            <span class="bg-white px-4 text-sm text-text-muted">OR</span>
+                            <span class="bg-white dark:bg-surface-dark px-4 text-sm text-text-muted">OR</span>
                         </div>
                     </div>
 

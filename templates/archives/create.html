@@ -33,7 +33,7 @@
         </div>
         {% endif %}
 
-        <div class="card p-6 bg-white shadow-sm border border-border/50 rounded-xl">
+        <div class="card p-6 bg-white dark:bg-surface-dark shadow-sm border border-border/50 rounded-xl">
             <h2 class="text-xl font-serif font-bold mb-4 pb-2 border-b border-border">1. Archive Details</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -60,7 +60,7 @@
             </div>
         </div>
 
-        <div class="card p-6 bg-white shadow-sm border border-border/50 rounded-xl">
+        <div class="card p-6 bg-white dark:bg-surface-dark shadow-sm border border-border/50 rounded-xl">
             <h2 class="text-xl font-serif font-bold mb-4 pb-2 border-b border-border">2. Source & Origin</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -105,7 +105,8 @@
                 <div class="form-group">
                     <label for="{{ form.location.id_for_label }}" class="form-label font-medium">Location</label>
                     {{ form.location }}
-                    {% if form.location.errors %}<div class="text-red-600 text-sm mt-1">{{ form.location.errors.0 }}</div>{% endif %}
+                    {% if form.location.errors %}<div class="text-red-600 text-sm mt-1">{{ form.location.errors.0 }}
+                    </div>{% endif %}
                 </div>
 
                 <div class="form-group">
@@ -205,7 +206,7 @@
                                     <label class="form-label text-sm font-medium">Document File (OR URL) *</label>
                                     {{ item_form.document }}
                                     <p class="text-xs text-text-muted mt-1">PDF, DOCX (Max 10MB)</p>
-                                    {% if item_form.document.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.document.errors.0 }}</div>{% endif %}
+                                    {% if item_form.document.errors %}<div class="text-red-600 text-xs mt-1">{{  item_form.document.errors.0 }}</div>{% endif %}
                                     <div class="mt-2">
                                         {{ item_form.document_url }}
                                         {% if item_form.document_url.errors %}<div class="text-red-600 text-xs mt-1">{{ item_form.document_url.errors.0 }}</div>{% endif %}

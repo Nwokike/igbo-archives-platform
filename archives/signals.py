@@ -42,6 +42,8 @@ def update_parent_archive(archive):
             # We only auto-update the parent caption if it's currently empty
             if not archive.caption:
                 archive.caption = first_item.caption
+            if not archive.alt_text and first_item.alt_text:
+                archive.alt_text = first_item.alt_text
                 
             # Reset all media fields on the parent to clean state
             archive.image = None
@@ -62,7 +64,7 @@ def update_parent_archive(archive):
             # Save specific fields to avoid recursion
             archive.save(update_fields=[
                 'item_count', 'archive_type', 'image', 'video', 
-                'audio', 'document', 'caption'
+                'audio', 'document', 'caption', 'alt_text'
             ])
         
         else:

@@ -32,7 +32,7 @@ class BookRecommendationAdmin(admin.ModelAdmin):
     inlines = [UserBookRatingInline]
     
     # NEW: Bulk actions to save you time
-    actions = ['approve_books', 'publish_books', 'unpublish_books']
+    actions = ['approve_books', 'reject_books', 'publish_books', 'unpublish_books']
 
     fieldsets = (
         ('Book Info', {
@@ -50,21 +50,40 @@ class BookRecommendationAdmin(admin.ModelAdmin):
             'classes': ('wide',)
         }),
         ('Status', {
-            'fields': ('is_published', 'is_approved', 'pending_approval', 'submitted_at')
+            'fields': ('is_published', 'is_approved', 'pending_approval', 'is_rejected', 'rejection_reason', 'submitted_at')
         }),
     )
 
     def approve_books(self, request, queryset):
-        updated = queryset.update(is_approved=True, is_published=True, pending_approval=False)
-        # Notify each author
-        for book in queryset.select_related('added_by'):
-            try:
-                from core.notifications_utils import send_post_approved_notification
-                send_post_approved_notification(book, post_type='book recommendation')
-            except Exception:
-                pass
-        self.message_user(request, f"{updated} book(s) approved and published.")
+        from core.notifications_utils import send_post_approved_notification
+        from core.tasks import notify_indexnow
+        count = 0
+        for book in queryset.filter(is_approved=False):
+            book.is_approved = True
+            book.is_published = True
+            book.pending_approval = False
+            book.is_rejected = False
+            book.save(update_fields=['is_approved', 'is_published', 'pending_approval', 'is_rejected'])
+            send_post_approved_notification(book, post_type='book recommendation')
+            if book.slug:
+                notify_indexnow(f"https://igboarchives.com.ng/books/{book.slug}/")
+            count += 1
+        self.message_user(request, f"{count} book(s) approved, published, and notifications sent.")
     approve_books.short_description = "Approve and publish selected books"
+
+    def reject_books(self, request, queryset):
+        from core.notifications_utils import send_post_rejected_notification
+        count = 0
+        for book in queryset.filter(is_rejected=False):
+            book.is_approved = False
+            book.is_published = False
+            book.is_rejected = True
+            book.pending_approval = False
+            book.save(update_fields=['is_approved', 'is_published', 'is_rejected', 'pending_approval'])
+            send_post_rejected_notification(book, reason=book.rejection_reason or 'Did not meet guidelines', post_type='book recommendation')
+            count += 1
+        self.message_user(request, f"{count} book(s) rejected and notifications sent.")
+    reject_books.short_description = "Reject selected books"
 
     def publish_books(self, request, queryset):
         queryset.update(is_published=True)

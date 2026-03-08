@@ -17,6 +17,6 @@ Disallow: /api/
 # Allow public profiles and content
 Allow: /profile/*/
 Allow: /archives/
-Allow: /insights/
+Allow: /lore/
 Allow: /books/
-Allow: /ai/
+Disallow: /ai/

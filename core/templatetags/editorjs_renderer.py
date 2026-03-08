@@ -198,7 +198,7 @@ def render_image(data):
     
     wrapper_classes = ['my-6']
     if with_background:
-        wrapper_classes.append('bg-heritage-cream p-4 rounded-lg')
+        wrapper_classes.append('bg-surface-alt dark:bg-surface-dark-alt p-4 rounded-lg')
     if not stretched:
         wrapper_classes.append('text-center')
     
@@ -218,7 +218,7 @@ def render_image(data):
     html = f'<figure class="{" ".join(wrapper_classes)}">'
     html += img_tag
     if caption:
-        html += f'<figcaption class="text-sm text-vintage-beaver mt-2 text-center">{caption}</figcaption>'
+        html += f'<figcaption class="text-sm text-text-muted mt-2 text-center">{caption}</figcaption>'
     html += '</figure>'
     return html
 
@@ -242,7 +242,7 @@ def render_embed(data):
         is_safe = False
     
     if not is_safe:
-        return f'<p class="text-vintage-beaver italic">Embed not supported: {escape(embed)}</p>'
+        return f'<p class="text-text-muted italic">Embed not supported: {escape(embed)}</p>'
     
     safe_embed = escape(embed)
     
@@ -251,14 +251,14 @@ def render_embed(data):
     html += f'<iframe src="{safe_embed}" class="absolute top-0 left-0 w-full h-full" frameborder="0" allowfullscreen loading="lazy"></iframe>'
     html += '</div>'
     if caption:
-        html += f'<figcaption class="text-sm text-vintage-beaver mt-2 text-center">{caption}</figcaption>'
+        html += f'<figcaption class="text-sm text-text-muted mt-2 text-center">{caption}</figcaption>'
     html += '</figure>'
     return html
 
 
 def render_delimiter(data):
     """Render delimiter block."""
-    return '<hr class="my-8 border-t-2 border-sepia-pale">'
+    return '<hr class="my-8 border-t-2 border-border dark:border-border-dark">'
 
 
 def render_warning(data):
@@ -283,18 +283,18 @@ def render_table(data):
     if not content:
         return ''
     
-    html = '<div class="overflow-x-auto my-6"><table class="min-w-full border border-sepia-pale rounded-lg overflow-hidden">'
+    html = '<div class="overflow-x-auto my-6"><table class="min-w-full border border-border dark:border-border-dark rounded-lg overflow-hidden">'
     
     for i, row in enumerate(content):
         if i == 0 and with_headings:
-            html += '<thead class="bg-heritage-cream"><tr>'
+            html += '<thead class="bg-surface-alt dark:bg-surface-dark-alt"><tr>'
             for cell in row:
-                html += f'<th class="px-4 py-3 text-left text-dark-brown font-semibold border-b border-sepia-pale">{sanitize_html(cell)}</th>'
+                html += f'<th class="px-4 py-3 text-left text-text dark:text-text-dark font-semibold border-b border-border dark:border-border-dark">{sanitize_html(cell)}</th>'
             html += '</tr></thead><tbody>'
         else:
-            html += '<tr class="border-b border-sepia-pale/50 hover:bg-heritage-cream/50">'
+            html += '<tr class="border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-alt/50 dark:hover:bg-surface-dark-alt/50">'
             for cell in row:
-                html += f'<td class="px-4 py-3 text-dark-umber">{sanitize_html(cell)}</td>'
+                html += f'<td class="px-4 py-3 text-text dark:text-text-dark">{sanitize_html(cell)}</td>'
             html += '</tr>'
     
     if with_headings:
@@ -321,8 +321,8 @@ def render_checklist(data):
         text = sanitize_html(item.get('text', ''))
         checked = item.get('checked', False)
         icon = '☑' if checked else '☐'
-        style = 'line-through text-vintage-beaver' if checked else 'text-dark-umber'
-        html += f'<li class="flex items-start gap-2"><span class="text-vintage-gold">{icon}</span><span class="{style}">{text}</span></li>'
+        style = 'line-through text-text-muted' if checked else 'text-text dark:text-text-dark'
+        html += f'<li class="flex items-start gap-2"><span class="text-accent">{icon}</span><span class="{style}">{text}</span></li>'
     html += '</ul>'
     return html
 

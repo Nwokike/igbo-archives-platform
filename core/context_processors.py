@@ -26,12 +26,8 @@ def pwa_settings(request):
 def monetization_settings(request):
     """Expose monetization settings to templates."""
     return {
-        'ENABLE_ADSENSE': getattr(settings, 'ENABLE_ADSENSE', False),
-        'GOOGLE_ADSENSE_CLIENT_ID': getattr(settings, 'GOOGLE_ADSENSE_CLIENT_ID', ''),
         'ENABLE_DONATIONS': getattr(settings, 'ENABLE_DONATIONS', False),
         'PAYSTACK_PUBLIC_KEY': getattr(settings, 'PAYSTACK_PUBLIC_KEY', ''),
-        'ENABLE_ANALYTICS': getattr(settings, 'ENABLE_ANALYTICS', False),
-        'GOOGLE_ANALYTICS_ID': getattr(settings, 'GOOGLE_ANALYTICS_ID', ''),
     }
 
 

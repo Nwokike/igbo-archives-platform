@@ -1,15 +1,21 @@
 import random
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.contrib import messages
+from django.conf import settings
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import Http404
-from core.editorjs_helpers import generate_unique_slug
+from core.editorjs_helpers import generate_unique_slug, parse_editorjs_content, get_workflow_flags
 from archives.models import Category
 from .models import LorePost
 from .forms import LorePostForm
+import logging
+
+logger = logging.getLogger(__name__)
+User = get_user_model()
 
 def get_cached_lore_categories():
     categories = cache.get('lore_categories')
@@ -64,21 +70,35 @@ def lore_detail(request, slug):
     if not post.is_approved or not post.is_published:
         if request.user != post.author and not request.user.is_staff:
             raise Http404("Post not found.")
-            
+
+    # Previous / Next navigation
+    published_filter = Q(is_approved=True, is_published=True)
+    previous_post = LorePost.objects.filter(
+        published_filter, created_at__lt=post.created_at
+    ).order_by('-created_at').only('id', 'title', 'slug', 'featured_image', 'image_url').first()
+
+    next_post = LorePost.objects.filter(
+        published_filter, created_at__gt=post.created_at
+    ).order_by('created_at').only('id', 'title', 'slug', 'featured_image', 'image_url').first()
+
+    # "You May Also Like" — random selection from same category
     similar_ids = list(
         LorePost.objects.filter(
             category=post.category, is_approved=True, is_published=True
-        ).exclude(id=post.id).values_list('id', flat=True)
+        ).exclude(id=post.id).values_list('id', flat=True)[:200]
     )
     if similar_ids:
-        selected = random.sample(similar_ids, min(3, len(similar_ids)))
-        similar_posts = LorePost.objects.filter(id__in=selected).select_related('author', 'category')
+        selected = random.sample(similar_ids, min(6, len(similar_ids)))
+        recommended = LorePost.objects.filter(id__in=selected).select_related('author', 'category')
     else:
-        similar_posts = LorePost.objects.none()
+        recommended = LorePost.objects.none()
     
     context = {
         'post': post,
-        'similar_posts': similar_posts,
+        'previous_post': previous_post,
+        'next_post': next_post,
+        'recommended': recommended,
+        'turnstile_site_key': getattr(settings, 'TURNSTILE_SITE_KEY', ''),
     }
     return render(request, 'lore/detail.html', context)
 
@@ -87,14 +107,24 @@ def lore_create(request):
     if request.method == 'POST':
         form = LorePostForm(request.POST, request.FILES)
         content_json = request.POST.get('content_json')
+        action = request.POST.get('action')
         
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
             if content_json and content_json != '{}':
-                post.content_json = content_json
-            post.is_published = True
-            post.is_approved = False 
+                try:
+                    post.content_json = parse_editorjs_content(content_json)
+                except Exception as e:
+                    logger.warning(f"Editor.js parse failed, storing raw: {e}")
+                    post.content_json = content_json
+            
+            # Workflow flags (draft vs submit)
+            workflow = get_workflow_flags(action)
+            post.is_published = workflow['is_published']
+            post.is_approved = workflow['is_approved']
+            post.pending_approval = workflow['pending_approval']
+            post.submitted_at = workflow['submitted_at']
             
             post.slug = generate_unique_slug(post.title, LorePost)
             
@@ -104,10 +134,9 @@ def lore_create(request):
             
             if author_name:
                 from archives.models import Author
-                author_obj, created = Author.objects.get_or_create(
-                    name__iexact=author_name,
-                    defaults={'name': author_name}
-                )
+                author_obj = Author.objects.filter(name__iexact=author_name).first()
+                if not author_obj:
+                    author_obj = Author.objects.create(name=author_name)
                 if author_about_text and not author_obj.description:
                     author_obj.description = author_about_text
                     author_obj.save()
@@ -117,8 +146,29 @@ def lore_create(request):
             # Flush cache
             cache.delete('lore_categories')
             
-            messages.success(request, 'Your Lore post has been submitted and is pending administrator approval.')
-            return redirect('lore:detail', slug=post.slug)
+            if action == 'submit':
+                messages.success(request, 'Your Lore post has been submitted for approval!')
+                # Bell Notification
+                try:
+                    from core.notifications_utils import send_post_submitted_notification
+                    send_post_submitted_notification(post, post_type='lore post')
+                except Exception as e:
+                    logger.warning(f"Failed to send in-app notification: {e}")
+                
+                # Email notification (async)
+                try:
+                    from core.notifications_utils import send_admin_notification
+                    send_admin_notification(
+                        subject=f"New Lore Post: {post.title}",
+                        description=f"A new lore post has been submitted by {request.user.get_display_name()}.\n\nTitle: {post.title}",
+                        target_url="/users/admin/moderation/"
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to send notification email: {e}")
+            else:
+                messages.success(request, 'Your Lore post has been saved as a draft!')
+            
+            return redirect('users:dashboard')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -141,13 +191,35 @@ def lore_edit(request, slug):
     if request.method == 'POST':
         form = LorePostForm(request.POST, request.FILES, instance=post)
         content_json = request.POST.get('content_json')
+        action = request.POST.get('action')
         
         if form.is_valid():
             post = form.save(commit=False)
             if content_json and content_json != '{}':
-                post.content_json = content_json
+                try:
+                    post.content_json = parse_editorjs_content(content_json)
+                except Exception as e:
+                    logger.warning(f"Editor.js parse failed, storing raw: {e}")
+                    post.content_json = content_json
             
-            post.is_approved = False
+            if action == 'submit':
+                workflow = get_workflow_flags(action, is_submit=True)
+                post.pending_approval = workflow['pending_approval']
+                post.submitted_at = workflow['submitted_at']
+                post.is_published = workflow['is_published']
+                post.is_approved = workflow['is_approved']
+                messages.success(request, 'Your Lore post has been submitted for approval!')
+                # Bell Notification
+                try:
+                    from core.notifications_utils import send_post_submitted_notification
+                    send_post_submitted_notification(post, post_type='lore post')
+                except Exception as e:
+                    logger.warning(f"Failed to send in-app notification: {e}")
+            else:
+                if post.is_published and post.is_approved:
+                    post.pending_approval = True
+                    post.is_approved = False
+                messages.success(request, 'Your Lore post has been saved!')
             
             # Author profile creation logic
             author_name = form.cleaned_data.get('original_author')
@@ -155,11 +227,10 @@ def lore_edit(request, slug):
             
             if author_name:
                 from archives.models import Author
-                author_obj, created = Author.objects.get_or_create(
-                    name__iexact=author_name,
-                    defaults={'name': author_name}
-                )
-                if author_about_text:
+                author_obj = Author.objects.filter(name__iexact=author_name).first()
+                if not author_obj:
+                    author_obj = Author.objects.create(name=author_name)
+                if author_about_text and not author_obj.description:
                     author_obj.description = author_about_text
                     author_obj.save()
             
@@ -168,16 +239,33 @@ def lore_edit(request, slug):
             # Flush cache
             cache.delete('lore_categories')
             
-            messages.success(request, 'Your Lore post has been updated and is pending re-approval.')
-            return redirect('lore:detail', slug=post.slug)
+            # Email notification on resubmit (async)
+            if action == 'submit':
+                try:
+                    from core.notifications_utils import send_admin_notification
+                    send_admin_notification(
+                        subject=f"Lore Post Updated: {post.title}",
+                        description=f"User {request.user.username} updated a lore post. Please review.",
+                        target_url="/users/admin/moderation/"
+                    )
+                except Exception:
+                    pass
+            
+            return redirect('users:dashboard')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
         form = LorePostForm(instance=post)
         
+    import json
+    initial_content = ''
+    if post.content_json:
+        initial_content = json.dumps(post.content_json) if isinstance(post.content_json, dict) else post.content_json
+
     context = {
         'form': form,
         'post': post,
+        'initial_content': initial_content,
         'title': 'Edit Lore',
         'submit_text': 'Update Post'
     }
@@ -186,9 +274,14 @@ def lore_edit(request, slug):
 @login_required
 def lore_delete(request, slug):
     post = get_object_or_404(LorePost, slug=slug, author=request.user)
+    
+    if post.is_published and post.is_approved and not request.user.is_staff:
+        messages.error(request, 'Published lore posts cannot be deleted. Please contact an administrator.')
+        return redirect('lore:detail', slug=slug)
+    
     if request.method == 'POST':
         post.delete()
         cache.delete('lore_categories')
         messages.success(request, 'Lore post deleted successfully.')
-        return redirect('lore:list')
+        return redirect('users:dashboard')
     return render(request, 'lore/delete.html', {'post': post})

@@ -112,8 +112,8 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
             'copyright_holder', 'original_url', 'original_identity_number',
             'original_author',
             'image', 'video', 'audio', 'document', 'featured_image',
-            'item_count'
         ]
+        read_only_fields = ['item_count']
 
     def create(self, validated_data):
         from django.db import transaction
@@ -245,3 +245,21 @@ class LorePostSerializer(serializers.ModelSerializer):
             'featured_image', 'author',
             'created_at'
         ]
+
+
+class LorePostCreateSerializer(serializers.ModelSerializer):
+    """Write-serializer for creating/updating lore posts."""
+    
+    class Meta:
+        model = LorePost
+        fields = [
+            'title', 'excerpt', 'content_json',
+            'featured_image',
+        ]
+    
+    def create(self, validated_data):
+        from core.editorjs_helpers import generate_unique_slug
+        
+        title = validated_data.get('title', '')
+        validated_data['slug'] = generate_unique_slug(title, LorePost)
+        return super().create(validated_data)

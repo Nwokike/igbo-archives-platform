@@ -31,7 +31,7 @@ class LorePostAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at', 'content_preview')
     list_editable = ('is_published', 'is_approved')
     date_hierarchy = 'created_at'
-    actions = ['approve_posts', 'publish_posts', 'unpublish_posts']
+    actions = ['approve_posts', 'reject_posts', 'publish_posts', 'unpublish_posts']
 
     fieldsets = (
         (None, {
@@ -55,15 +55,37 @@ class LorePostAdmin(admin.ModelAdmin):
     )
 
     def approve_posts(self, request, queryset):
-        updated = queryset.update(is_approved=True, is_published=True, pending_approval=False, is_rejected=False)
-        for post in queryset.select_related('author'):
-            try:
-                from core.notifications_utils import send_post_approved_notification
-                send_post_approved_notification(post, post_type='lore')
-            except Exception:
-                pass
-        self.message_user(request, f"{updated} lore post(s) approved and published.")
+        from core.notifications_utils import send_post_approved_notification
+        from core.tasks import notify_indexnow
+        from django.core.cache import cache
+        count = 0
+        for post in queryset.filter(is_approved=False):
+            post.is_approved = True
+            post.is_published = True
+            post.pending_approval = False
+            post.is_rejected = False
+            post.save(update_fields=['is_approved', 'is_published', 'pending_approval', 'is_rejected'])
+            send_post_approved_notification(post, post_type='lore')
+            if post.slug:
+                notify_indexnow(f"https://igboarchives.com.ng/lore/{post.slug}/")
+            count += 1
+        cache.delete('lore_categories')
+        self.message_user(request, f"{count} lore post(s) approved, published, and notifications sent.")
     approve_posts.short_description = "Approve and publish selected lore posts"
+
+    def reject_posts(self, request, queryset):
+        from core.notifications_utils import send_post_rejected_notification
+        count = 0
+        for post in queryset.filter(is_rejected=False):
+            post.is_approved = False
+            post.is_published = False
+            post.is_rejected = True
+            post.pending_approval = False
+            post.save(update_fields=['is_approved', 'is_published', 'is_rejected', 'pending_approval'])
+            send_post_rejected_notification(post, reason=post.rejection_reason or 'Did not meet guidelines', post_type='lore')
+            count += 1
+        self.message_user(request, f"{count} lore post(s) rejected and notifications sent.")
+    reject_posts.short_description = "Reject selected lore posts"
 
     def publish_posts(self, request, queryset):
         queryset.update(is_published=True)

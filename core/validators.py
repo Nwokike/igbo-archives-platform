@@ -1,5 +1,5 @@
 """
-Shared validators for file uploads across all apps.
+Shared validators and sort whitelists for all apps.
 """
 from django.core.exceptions import ValidationError
 

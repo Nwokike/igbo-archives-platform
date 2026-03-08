@@ -125,6 +125,7 @@ Message:
                     )
                     messages.success(request, 'Thank you for your message! We will get back to you soon.')
                 except Exception as e:
+                    logger.error(f"Contact form email failed: {e}")
                     messages.error(request, 'There was an error sending your message. Please try again later.')
             else:
                 messages.info(request, 'Your message has been logged. We will get back to you soon.')
@@ -152,15 +153,16 @@ def offline(request):
 
 
 def health_check(request):
-    """Health check endpoint with DB connectivity verification."""
+    """Lightweight health check endpoint with DB connectivity verification."""
+    from django.http import JsonResponse
     try:
         from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute('SELECT 1')
     except Exception as e:
         logger.error(f"Health check DB failure: {e}")
-        return render(request, 'core/health.html', {'db_ok': False}, status=503)
-    return render(request, 'core/health.html', {'db_ok': True}, status=200)
+        return JsonResponse({'status': 'error', 'db': False}, status=503)
+    return JsonResponse({'status': 'ok', 'db': True})
 
 
 def bad_request_handler(request, exception):
@@ -199,3 +201,19 @@ def chrome_devtools_association(request):
     """
     from django.http import JsonResponse
     return JsonResponse({})
+
+
+def indexnow_key_verification(request, key):
+    """Serve IndexNow key verification file at /{key}.txt"""
+    from django.http import HttpResponse, Http404
+    expected_key = getattr(settings, 'INDEXNOW_API_KEY', '')
+    if not expected_key or key != expected_key:
+        raise Http404
+    return HttpResponse(expected_key, content_type='text/plain')
+
+
+def ads_txt(request):
+    """Serve ads.txt for Google AdSense verification."""
+    from django.http import HttpResponse
+    content = "google.com, pub-4026538242880905, DIRECT, f08c47fec0942fa0"
+    return HttpResponse(content, content_type='text/plain')

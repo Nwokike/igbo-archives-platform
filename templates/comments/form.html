@@ -68,7 +68,7 @@
         </div>
 
         <div class="turnstile-wrapper mb-4 scale-90 origin-left">
-            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+            {% include "partials/turnstile_sdk.html" %}
             <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
         </div>
 

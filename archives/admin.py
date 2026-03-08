@@ -28,14 +28,34 @@ class ArchiveItemInline(admin.StackedInline):
 
 @admin.action(description='✅ Approve selected archives')
 def approve_archives(modeladmin, request, queryset):
-    count = queryset.update(is_approved=True, is_rejected=False)
-    modeladmin.message_user(request, f'{count} archive(s) approved.')
+    from core.notifications_utils import send_post_approved_notification
+    from core.tasks import notify_indexnow
+    from django.core.cache import cache
+    count = 0
+    for archive in queryset.filter(is_approved=False):
+        archive.is_approved = True
+        archive.is_rejected = False
+        archive.save(update_fields=['is_approved', 'is_rejected'])
+        send_post_approved_notification(archive, post_type='archive')
+        if archive.slug:
+            notify_indexnow(f"https://igboarchives.com.ng/archives/{archive.slug}/")
+        count += 1
+    cache.delete('all_approved_archive_ids')
+    cache.delete('archive_categories')
+    modeladmin.message_user(request, f'{count} archive(s) approved and notifications sent.')
 
 
 @admin.action(description='❌ Reject selected archives')
 def reject_archives(modeladmin, request, queryset):
-    count = queryset.update(is_approved=False, is_rejected=True)
-    modeladmin.message_user(request, f'{count} archive(s) rejected.')
+    from core.notifications_utils import send_post_rejected_notification
+    count = 0
+    for archive in queryset.filter(is_rejected=False):
+        archive.is_approved = False
+        archive.is_rejected = True
+        archive.save(update_fields=['is_approved', 'is_rejected'])
+        send_post_rejected_notification(archive, reason=archive.rejection_reason or 'Did not meet guidelines', post_type='archive')
+        count += 1
+    modeladmin.message_user(request, f'{count} archive(s) rejected and notifications sent.')
 
 
 @admin.register(Archive)

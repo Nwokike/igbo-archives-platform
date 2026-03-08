@@ -1,56 +1,53 @@
 """
 IndexNow API Integration
-Instantly notify search engines (Bing, Yandex, etc.) when content is published or updated
+Instantly notify search engines (Bing, Yandex, etc.) when content is published or updated.
+
+IndexNow Protocol requires:
+1. An API key set in INDEXNOW_API_KEY env var
+2. A key verification file served at https://{host}/{key}.txt (handled by core.views.indexnow_key_verification)
+3. Submissions via POST to https://api.indexnow.org/indexnow with keyLocation
 """
 import requests
-import uuid
 import os
 from django.conf import settings
-from django.urls import reverse
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-def generate_api_key():
-    """Generate a unique API key for IndexNow"""
-    return str(uuid.uuid4())
 
 
 def get_indexnow_key():
     """Get IndexNow API key from settings. Returns None if not configured."""
     key = getattr(settings, 'INDEXNOW_API_KEY', None) or os.getenv('INDEXNOW_API_KEY')
     if not key:
-        logger.warning("INDEXNOW_API_KEY is not set. Generate with: python -c \"import uuid; print(uuid.uuid4())\"")
+        logger.warning("INDEXNOW_API_KEY is not set. Generate with: python -c \"import uuid; print(uuid.uuid4().hex)\"")
         return None
     return key
 
 
 def submit_url_to_indexnow(url, host=None):
     """
-    Submit a URL to IndexNow API for immediate indexing
+    Submit a URL to IndexNow API for immediate indexing.
     
     Args:
-        url: Full URL to submit (e.g., https://igboarchives.com/lore/my-post/)
-        host: Domain name (e.g., igboarchives.com)
+        url: Full URL to submit (e.g., https://igboarchives.com.ng/lore/my-post/)
+        host: Domain name (e.g., igboarchives.com.ng)
     """
     api_key = get_indexnow_key()
     if not api_key:
-        logger.warning("IndexNow API key not configured, skipping URL submission")
         return False
     
     if not host:
-        # Extract host from URL
         from urllib.parse import urlparse
         parsed = urlparse(url)
         host = parsed.netloc
     
-    # IndexNow API endpoint (can use Bing, Yandex, or others)
     endpoint = getattr(settings, 'INDEXNOW_API_URL', "https://api.indexnow.org/indexnow")
+    key_location = f"https://{host}/{api_key}.txt"
     
     payload = {
         "host": host,
         "key": api_key,
+        "keyLocation": key_location,
         "urlList": [url]
     }
     
@@ -58,7 +55,7 @@ def submit_url_to_indexnow(url, host=None):
         response = requests.post(
             endpoint,
             json=payload,
-            headers={'Content-Type': 'application/json'},
+            headers={'Content-Type': 'application/json; charset=utf-8'},
             timeout=10
         )
         
@@ -76,7 +73,7 @@ def submit_url_to_indexnow(url, host=None):
 
 def submit_urls_bulk(urls, host=None):
     """
-    Submit multiple URLs to IndexNow at once (up to 10,000 URLs)
+    Submit multiple URLs to IndexNow at once (up to 10,000 URLs per request).
     
     Args:
         urls: List of full URLs
@@ -84,7 +81,6 @@ def submit_urls_bulk(urls, host=None):
     """
     api_key = get_indexnow_key()
     if not api_key:
-        logger.warning("IndexNow API key not configured, skipping bulk URL submission")
         return False
     
     if not host and urls:
@@ -93,14 +89,15 @@ def submit_urls_bulk(urls, host=None):
         host = parsed.netloc
     
     endpoint = getattr(settings, 'INDEXNOW_API_URL', "https://api.indexnow.org/indexnow")
+    key_location = f"https://{host}/{api_key}.txt"
     
-    # IndexNow allows up to 10,000 URLs per request
     for i in range(0, len(urls), 10000):
         batch = urls[i:i+10000]
         
         payload = {
             "host": host,
             "key": api_key,
+            "keyLocation": key_location,
             "urlList": batch
         }
         
@@ -108,7 +105,7 @@ def submit_urls_bulk(urls, host=None):
             response = requests.post(
                 endpoint,
                 json=payload,
-                headers={'Content-Type': 'application/json'},
+                headers={'Content-Type': 'application/json; charset=utf-8'},
                 timeout=30
             )
             
@@ -119,5 +116,5 @@ def submit_urls_bulk(urls, host=None):
                 
         except Exception as e:
             logger.error(f"Error submitting bulk URLs to IndexNow: {str(e)}")
-
-
+    
+    return True

@@ -3,13 +3,14 @@ Book recommendation views for browsing and managing recommended Igbo books.
 Users can rate and review books - the app is for listing/recommending, not reviewing.
 """
 import json
-import uuid
+import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Avg, Count
+from django.http import Http404
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.safestring import mark_safe
@@ -28,9 +29,9 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-def get_related_books(book, count=9):
+def get_latest_books(book, count=9):
     """
-    Get related book recommendations.
+    Get latest book recommendations (excluding current book).
     """
     related = BookRecommendation.objects.filter(
         is_published=True,
@@ -95,8 +96,13 @@ def book_detail(request, slug):
     """Display a single book recommendation with user ratings."""
     book = get_object_or_404(
         BookRecommendation.objects.select_related('added_by'),
-        slug=slug, is_published=True, is_approved=True
+        slug=slug
     )
+    
+    # Allow owners and staff to see unapproved books, 404 for everyone else
+    if not book.is_published or not book.is_approved:
+        if not request.user.is_authenticated or (request.user != book.added_by and not request.user.is_staff):
+            raise Http404("Book not found")
     
     previous_book = BookRecommendation.objects.filter(
         is_published=True,
@@ -110,7 +116,7 @@ def book_detail(request, slug):
         created_at__gt=book.created_at
     ).order_by('created_at').only('id', 'title', 'slug').first()
     
-    related_books = get_related_books(book, 9)
+    related_books = get_latest_books(book, 9)
     
     # Get user's existing rating if logged in
     user_rating = None
@@ -128,7 +134,7 @@ def book_detail(request, slug):
         for block in blocks:
             text = block.get('data', {}).get('text', '')
             if text:
-                import re
+
                 clean = re.sub(r'<[^>]+>', '', text)
                 text_parts.append(clean)
                 if len(' '.join(text_parts)) > 200:
@@ -145,9 +151,13 @@ def book_detail(request, slug):
         'related_books': related_books,
         'user_rating': user_rating,
         'reviews': reviews,
-        # PASS KEY FOR INITIAL LOAD
         'turnstile_site_key': getattr(settings, 'TURNSTILE_SITE_KEY', ''),
     }
+    
+    # Author profile lookup for bio/description
+    if book.author:
+        from archives.models import Author
+        context['author_profile'] = Author.objects.filter(name__iexact=book.author).first()
     
     return render(request, 'books/detail.html', context)
 
@@ -224,10 +234,9 @@ def book_create(request):
         # Link author to central database profile
         if author_name:
             from archives.models import Author
-            author_obj, created = Author.objects.get_or_create(
-                name__iexact=author_name,
-                defaults={'name': author_name}
-            )
+            author_obj = Author.objects.filter(name__iexact=author_name).first()
+            if not author_obj:
+                author_obj = Author.objects.create(name=author_name)
             if author_about_text and not author_obj.description:
                 author_obj.description = author_about_text
                 author_obj.save()
@@ -257,16 +266,12 @@ def book_create(request):
             
             # Email notification (async)
             try:
-                from core.tasks import send_email_async
-                staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
-                if staff_emails:
-                    send_email_async(
-                        f"New Book Recommendation: {book.book_title}",
-                        f"A new book recommendation has been submitted by {request.user.get_full_name() or request.user.username}.\n\n"
-                        f"Book: {book.book_title}\nTitle: {book.title}\n\n"
-                        f"Review it here: {settings.SITE_URL}/users/admin/moderation/",
-                        staff_emails
-                    )
+                from core.notifications_utils import send_admin_notification
+                send_admin_notification(
+                    subject=f"New Book Recommendation: {book.book_title}",
+                    description=f"A new book recommendation has been submitted by {request.user.get_display_name()}.\n\nBook: {book.book_title}\nTitle: {book.title}",
+                    target_url="/users/admin/moderation/"
+                )
             except Exception as e:
                 logger.warning(f"Failed to send notification email: {e}")
         else:
@@ -291,13 +296,10 @@ def book_edit(request, slug):
         
         if author_name:
             from archives.models import Author
-            author_obj, created = Author.objects.get_or_create(
-                name__iexact=author_name,
-                defaults={'name': author_name}
-            )
-            # Only update description if they explicitly provided it and the profile doesn't have one 
-            # OR if they are updating it specifically here. For safety, we just overwrite if text is provided.
-            if author_about_text:
+            author_obj = Author.objects.filter(name__iexact=author_name).first()
+            if not author_obj:
+                author_obj = Author.objects.create(name=author_name)
+            if author_about_text and not author_obj.description:
                 author_obj.description = author_about_text
                 author_obj.save()
         
@@ -368,14 +370,12 @@ def book_edit(request, slug):
         # Email notification on resubmit (async)
         if action == 'submit':
             try:
-                from core.tasks import send_email_async
-                staff_emails = list(User.objects.filter(is_staff=True).exclude(email='').values_list('email', flat=True))
-                if staff_emails:
-                    send_email_async(
-                        f"Book Recommendation Updated: {book.book_title}",
-                        f"User {request.user.username} updated a book recommendation. Please review.",
-                        staff_emails
-                    )
+                from core.notifications_utils import send_admin_notification
+                send_admin_notification(
+                    subject=f"Book Recommendation Updated: {book.book_title}",
+                    description=f"User {request.user.username} updated a book recommendation. Please review.",
+                    target_url="/users/admin/moderation/"
+                )
             except Exception:
                 pass
         

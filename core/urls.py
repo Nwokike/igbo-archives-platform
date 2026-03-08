@@ -14,4 +14,6 @@ urlpatterns = [
     path('offline/', views.offline, name='offline'),
     path('health/', views.health_check, name='health'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
+    path('ads.txt', views.ads_txt, name='ads_txt'),
+    path('<str:key>.txt', views.indexnow_key_verification, name='indexnow_key'),
 ]

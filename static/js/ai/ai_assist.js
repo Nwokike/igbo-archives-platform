@@ -56,7 +56,7 @@
         loading.classList.remove('hidden');
 
         try {
-            const response = await fetch('/ai/generate-insight/', {
+            const response = await fetch('/ai/generate-lore/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

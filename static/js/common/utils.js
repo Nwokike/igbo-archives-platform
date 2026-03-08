@@ -65,3 +65,34 @@ function isSafeUrl(url) {
 window.getCookie = getCookie;
 window.escapeHtml = escapeHtml;
 window.isSafeUrl = isSafeUrl;
+
+/**
+ * Global form loading state handler.
+ * Disables submit buttons and shows spinner on form submission.
+ * Skip forms with data-no-loading attribute or Editor.js forms.
+ */
+document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (form.dataset.noLoading || form.querySelector('.codex-editor')) return;
+
+        var buttons = form.querySelectorAll('button[type="submit"], button[name="action"]');
+        buttons.forEach(function (btn) {
+            if (btn.disabled) return;
+            btn.disabled = true;
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (btn.textContent.trim() || 'Submitting...');
+        });
+
+        // Re-enable after 10s as safety net
+        setTimeout(function () {
+            buttons.forEach(function (btn) {
+                if (btn.dataset.originalText) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalText;
+                    delete btn.dataset.originalText;
+                }
+            });
+        }, 10000);
+    });
+});

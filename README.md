@@ -29,10 +29,11 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 - **YarnGPT TTS**: Nigerian-native text-to-speech for Igbo audio output
 - **Research**: Various engineering methods are used to reduce hallucinations, including DuckDuckGo and Google search and database read access to ground responses and cite sources.
 
-### 🔌 REST API
-- **RESTful Endpoints**: `/api/v1/archives/`, `/api/v1/books/`, `/api/v1/categories/`
-- **Token Auth**: Secure API token authentication
-- **Full Documentation**: See [docs/API.md](docs/API.md)
+### 🔌 REST API & MCP
+- **RESTful Endpoints**: `/api/v1/archives/`, `/api/v1/books/`, `/api/v1/lore/`, `/api/v1/categories/`
+- **Token Auth**: Secure API token authentication via user dashboard
+- **Model Context Protocol (MCP)**: Connect AI agents directly to cultural data
+- **Documentation**: [API Reference](docs/API.md) | [MCP Guide](docs/MCP.md)
 
 ### 👥 Community Features
 - **User Profiles**: Customizable profiles with social links
@@ -107,7 +108,7 @@ igbo-archives-platform/
 ├── igbo_archives/          # Django project settings
 │   ├── settings.py         # Main configuration
 │   ├── urls.py             # URL routing
-│   ├── sqlite_wal.py       # SQLite optimization
+│   ├── asgi.py             # ASGI entry point
 │   └── wsgi.py             # WSGI entry point
 ├── core/                   # Core functionality
 │   ├── templates/          # Base templates
@@ -117,7 +118,7 @@ igbo-archives-platform/
 │   └── validators.py       # Shared validators
 ├── users/                  # Authentication & profiles
 ├── archives/               # Cultural archives
-├── insights/               # Community articles
+├── lore/                   # Community lore & articles
 ├── books/                  # Book reviews
 ├── api/                    # API endpoints
 ├── ai/                     # AI assistant features

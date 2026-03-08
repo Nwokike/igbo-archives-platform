@@ -12,6 +12,7 @@ backlog = 256
 workers = min(2, (multiprocessing.cpu_count() * 2) + 1)
 worker_class = "sync"  # Use sync for SQLite (avoid gevent with SQLite)
 timeout = 30
+graceful_timeout = 30
 keepalive = 2
 
 # Memory management

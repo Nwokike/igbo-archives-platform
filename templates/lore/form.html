@@ -20,6 +20,7 @@
     <form method="post" enctype="multipart/form-data" class="space-y-8" id="loreForm">
         {% csrf_token %}
         {{ form.non_field_errors }}
+        <input type="hidden" name="action" id="formAction" value="draft">
 
         <div class="card p-6">
             <h3 class="font-serif text-xl font-bold mb-4">Lore Details</h3>
@@ -150,11 +151,14 @@
             </div>
         </div>
 
-        <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-border">
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8 pt-6 border-t border-border">
             <a href="{% if post %}{% url 'lore:detail' post.slug %}{% else %}{% url 'lore:list' %}{% endif %}"
-                class="btn-ghost">Cancel</a>
-            <button type="submit" class="btn-primary px-8" id="submitBtn">
-                <i class="fas fa-save mr-2"></i> {{ submit_text }}
+                class="btn-ghost order-3 sm:order-1">Cancel</a>
+            <button type="button" class="btn-secondary px-6 order-2" id="saveDraftBtn">
+                <i class="fas fa-save mr-2"></i> Save Draft
+            </button>
+            <button type="button" class="btn-primary px-8 order-1 sm:order-3" id="submitBtn">
+                <i class="fas fa-paper-plane mr-2"></i> Submit for Approval
             </button>
         </div>
     </form>
@@ -192,9 +196,7 @@
             data: editorData,
             placeholder: 'Write your story here...',
             hasImageTool: false,
-            onChange: function (api, event) {
-                // Auto-sync not strictly needed, we handle on submit
-            }
+            onChange: function (api, event) { }
         });
 
         editor.isReady.then(() => {
@@ -204,21 +206,38 @@
         });
 
         const form = document.getElementById('loreForm');
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
-            const oldText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+        const actionInput = document.getElementById('formAction');
+        const submitBtn = document.getElementById('submitBtn');
+        const draftBtn = document.getElementById('saveDraftBtn');
+
+        function submitForm(action) {
+            actionInput.value = action;
+            const btn = action === 'submit' ? submitBtn : draftBtn;
+            const oldText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+            btn.disabled = true;
             submitBtn.disabled = true;
+            draftBtn.disabled = true;
 
             editor.save().then((outputData) => {
                 document.getElementById('id_content_json').value = JSON.stringify(outputData);
                 form.submit();
             }).catch((error) => {
                 console.error('Saving failed: ', error);
-                submitBtn.innerHTML = oldText;
+                btn.innerHTML = oldText;
+                btn.disabled = false;
                 submitBtn.disabled = false;
+                draftBtn.disabled = false;
             });
+        }
+
+        submitBtn.addEventListener('click', function () { submitForm('submit'); });
+        draftBtn.addEventListener('click', function () { submitForm('draft'); });
+
+        // Prevent default form submit (Enter key)
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            submitForm('submit');
         });
     });
 </script>

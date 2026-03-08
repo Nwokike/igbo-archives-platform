@@ -1,13 +1,12 @@
 """
 Unit tests for the AI app.
-Tests AI models, chat functionality, and archive analysis.
+Tests AI views and service integration (stateless design).
 """
 import json
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from ai.models import ChatSession, ChatMessage, ArchiveAnalysis
 from archives.models import Archive
 
 User = get_user_model()
@@ -44,7 +43,6 @@ class AIViewTests(TestCase):
         """Test chat_send returns response without saving to DB."""
         self.client.login(username='testuser', password='testpass123')
         
-        # Mock chat_service.chat to avoid API calls during tests
         from unittest.mock import patch
         with patch('ai.views.chat_service.chat') as mocked_chat:
             mocked_chat.return_value = {'success': True, 'content': 'Test response'}
@@ -59,11 +57,7 @@ class AIViewTests(TestCase):
             data = json.loads(response.content)
             self.assertTrue(data['success'])
             self.assertEqual(data['message'], 'Test response')
-            self.assertEqual(data['session_id'], 0) # Should be dummy 0
-            
-            # Verify no models were created
-            self.assertEqual(ChatSession.objects.count(), 0)
-            self.assertEqual(ChatMessage.objects.count(), 0)
+            self.assertEqual(data['session_id'], 0)
 
     def test_chat_send_with_history(self):
         """Test chat_send correctly passes history to the service."""
@@ -102,7 +96,6 @@ class AIViewTests(TestCase):
         
         self.client.login(username='testuser', password='testpass123')
         
-        # Create archive with a real SimpleUploadedFile
         image_content = b"fake image data"
         uploaded_image = SimpleUploadedFile("test.jpg", image_content, content_type="image/jpeg")
         
@@ -126,10 +119,6 @@ class AIViewTests(TestCase):
             data = json.loads(response.content)
             self.assertTrue(data['success'])
             self.assertEqual(data['content'], 'Analysis results')
-            
-            # Verify no ArchiveAnalysis record was created
-            # Verify no ArchiveAnalysis record was created
-            self.assertEqual(ArchiveAnalysis.objects.count(), 0)
 
 
 from unittest.mock import patch
@@ -157,11 +146,9 @@ class TTSServiceTests(TestCase):
     @patch('ai.services.tts_service.TTSService._gemini_generate')
     def test_yarngpt_timeout_fallback(self, mock_gemini, mock_post):
         """Test that YarnGPT timeout triggers Gemini fallback."""
-        # Mock YarnGPT timeout error
         from requests.exceptions import Timeout
         mock_post.side_effect = Timeout("Operation timed out")
         
-        # Mock Gemini success
         mock_gemini.return_value = {
             'success': True, 
             'audio_bytes': b"gemini audio", 
@@ -169,12 +156,9 @@ class TTSServiceTests(TestCase):
         }
         
         with self.settings(YARNGPT_API_KEY='test_key'):
-            # Trigger audio generation
             result = self.tts.generate_audio("Hello world")
             
-            # Verify fallback happened
             self.assertTrue(result['success'])
             self.assertEqual(result['provider'], 'gemini')
-            self.assertEqual(mock_post.call_count, 2) # Should retry once before failing over
+            self.assertEqual(mock_post.call_count, 2)
             mock_gemini.assert_called_once()
-

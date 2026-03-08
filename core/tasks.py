@@ -1,14 +1,13 @@
 """
-Django Tasks for the Igbo Archives platform.
+Huey background tasks for the Igbo Archives platform.
 Memory-efficient async tasks for 1GB RAM constraint.
 
 Task Schedule:
-- 02:30 AM: Cleanup old chat sessions
 - 03:00 AM: Daily database and media backup
 - 04:00 AM: Cleanup old notifications (1st of month)
 - 04:30 AM: Cleanup old messages (1st of month)
-- 05:00 AM: Cleanup TTS audio files
-- 06:00 AM Sunday: Send weekly digest emails (max 290/batch)
+- 05:00 AM: Cleanup deactivated accounts older than 30 days (1st of month)
+- 06:00 AM Sunday: Send weekly digest emails (max 270/batch, Brevo 300/day limit)
 """
 
 from django_huey import db_task, periodic_task
@@ -93,82 +92,6 @@ def broadcast_push_notification_task(title, body, url=None):
         return False
 
 
-@db_task()
-def notify_post_approved(post_id, post_type):
-    """Notify author when their post is approved"""
-    try:
-        if post_type == 'lore':
-            from lore.models import LorePost
-            post = LorePost.objects.select_related('author').get(id=post_id)
-            author = post.author
-            title = post.title
-        elif post_type == 'book':
-            from books.models import BookRecommendation
-            post = BookRecommendation.objects.select_related('added_by').get(id=post_id)
-            author = post.added_by
-            title = post.title
-        elif post_type == 'archive':
-            from archives.models import Archive
-            post = Archive.objects.select_related('uploaded_by').get(id=post_id)
-            author = post.uploaded_by
-            title = post.title
-        else:
-            return False
-        
-        from users.models import Notification
-        Notification.objects.create(
-            recipient=author,
-            verb=f'Your {post_type} "{title}" has been approved and published!',
-            description=f'Your submission is now live on Igbo Archives.',
-        )
-        
-        if author.email:
-            send_email_async(
-                subject=f'Your {post_type} has been approved!',
-                message=f'Congratulations! Your {post_type} "{title}" has been approved and is now live on Igbo Archives.',
-                recipient_list=[author.email],
-            )
-        
-        return True
-    except Exception as e:
-        logger.error(f"Failed to notify post approval: {e}")
-        return False
-
-
-@db_task()
-def notify_post_rejected(post_id, post_type, reason=''):
-    """Notify author when their post is rejected"""
-    try:
-        if post_type == 'lore':
-            from lore.models import LorePost
-            post = LorePost.objects.select_related('author').get(id=post_id)
-            author = post.author
-            title = post.title
-        elif post_type == 'book':
-            from books.models import BookRecommendation
-            post = BookRecommendation.objects.select_related('added_by').get(id=post_id)
-            author = post.added_by
-            title = post.title
-        elif post_type == 'archive':
-            from archives.models import Archive
-            post = Archive.objects.select_related('uploaded_by').get(id=post_id)
-            author = post.uploaded_by
-            title = post.title
-        else:
-            return False
-        
-        from users.models import Notification
-        description = f'Reason: {reason}' if reason else 'Please review and resubmit.'
-        Notification.objects.create(
-            recipient=author,
-            verb=f'Your {post_type} "{title}" needs revision',
-            description=description,
-        )
-        
-        return True
-    except Exception as e:
-        logger.error(f"Failed to notify post rejection: {e}")
-        return False
 
 
 @periodic_task(crontab(minute='0', hour='3'))
@@ -239,6 +162,39 @@ def cleanup_old_messages():
         return True
     except Exception as e:
         logger.error(f"Message cleanup failed: {e}")
+        return False
+
+
+@periodic_task(crontab(minute='0', hour='5', day='1'))
+def cleanup_deactivated_accounts():
+    """Permanently delete soft-deleted accounts after 30-day grace period.
+    
+    Users who delete their account have is_active=False and deactivated_at set.
+    After 30 days, permanently remove the user and cascade-delete their content.
+    """
+    try:
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        User = get_user_model()
+        cutoff = timezone.now() - timedelta(days=30)
+        
+        deactivated = User.objects.filter(
+            is_active=False,
+            deactivated_at__isnull=False,
+            deactivated_at__lt=cutoff
+        )
+        
+        count = deactivated.count()
+        if count:
+            deactivated.delete()
+            logger.info(f"Account cleanup: {count} deactivated accounts permanently deleted")
+        else:
+            logger.info("Account cleanup: No expired deactivated accounts found")
+        return True
+    except Exception as e:
+        logger.error(f"Deactivated account cleanup failed: {e}")
         return False
 
 
@@ -361,8 +317,12 @@ def send_weekly_digest():
                 html_message=html_message
             ):
                 sent_count += 1
-                user.last_weekly_update_at = now
-                user.save(update_fields=['last_weekly_update_at'])
+        
+        # Bulk update all successfully-sent users in one query
+        if sent_count > 0:
+            from django.contrib.auth import get_user_model as _gum
+            sent_ids = [u.id for u in users_list[:sent_count]]
+            _gum().objects.filter(id__in=sent_ids).update(last_weekly_update_at=now)
         
         logger.info(f"Weekly digest batch: {sent_count} users notified")
         return True

@@ -265,7 +265,7 @@ def delete_account(request):
     
     Sets is_active=False and records deactivation timestamp.
     Account data is preserved for a 30-day grace period before permanent deletion
-    by the cleanup_old_chat_sessions periodic task.
+    by the cleanup_deactivated_accounts periodic task.
     """
     rate_key = f'delete_attempt_{request.user.id}'
     attempts = cache.get(rate_key, 0)

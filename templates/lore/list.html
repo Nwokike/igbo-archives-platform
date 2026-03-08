@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Cultural Lore - Igbo Archives{% endblock %}
+{% block meta_description %}Explore Igbo cultural lore — proverbs, folklore, customs, history, and traditions shared by the community.{% endblock %}
 
 {% block sub_navigation %}
 <nav class="border-b border-border bg-surface-alt/50">
@@ -73,36 +74,4 @@
 <div id="loreGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-view="grid">
     {% include "lore/partials/lore_grid.html" %}
 </div>
-
-<script>
-    (function () {
-        const gridBtn = document.getElementById('gridViewBtn');
-        const listBtn = document.getElementById('listViewBtn');
-        const grid = document.getElementById('loreGrid');
-
-        function setView(view) {
-            if (view === 'list') {
-                grid.className = 'grid grid-cols-1 gap-3';
-                grid.setAttribute('data-view', 'list');
-                listBtn.classList.add('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
-                gridBtn.classList.remove('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
-            } else {
-                grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
-                grid.setAttribute('data-view', 'grid');
-                gridBtn.classList.add('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
-                listBtn.classList.remove('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
-            }
-            localStorage.setItem('loreViewPreference', view);
-        }
-
-        if (gridBtn && listBtn) {
-            gridBtn.addEventListener('click', function () { setView('grid'); });
-            listBtn.addEventListener('click', function () { setView('list'); });
-
-            // Restore preference
-            const saved = localStorage.getItem('loreViewPreference');
-            if (saved) setView(saved);
-        }
-    })();
-</script>
 {% endblock %}

@@ -269,26 +269,32 @@ class ChatService:
         
         # Web search context — always search
         if use_web_search:
-            # Better search query: Include the last couple of messages to handle follow-ups ("who is he?", etc.)
-            search_query_parts = []
-            for msg in messages[-2:-1]: # Just the previous assistant/user message for context
-                 search_query_parts.append(msg['content'][:100])
-            search_query_parts.append(user_message)
+            # Use the user's actual question as the search query
+            search_query = user_message
             
-            search_query = " ".join(search_query_parts)
+            # Only add Igbo context if the query seems related to Igbo/Nigerian topics
+            # Do NOT pollute general knowledge queries
+            igbo_indicators = [
+                'igbo', 'ndi', 'ala', 'eze', 'nri', 'ozo', 'chi',
+                'odinani', 'biafra', 'nsibidi', 'uli', 'ogbanje',
+                'masquerade', 'mmanwu', 'ikenga', 'ofo', 'mbari',
+                'nkwo', 'eke', 'orie', 'afor', 'cultural heritage',
+                'tradition', 'proverb', 'folklore', 'clan', 'kindred',
+            ]
+            query_lower = search_query.lower()
+            is_igbo_related = any(term in query_lower for term in igbo_indicators)
             
-            # Add Igbo context if not already present
-            if 'igbo' not in search_query.lower():
-                search_query += " Igbo culture heritage"
+            if is_igbo_related and 'igbo' not in query_lower:
+                search_query += ' Igbo'
             
             logger.info(f"Triggering web search for: {search_query}")
             web_context = web_search(search_query, max_results=5)
             if web_context:
                 context_parts.append(web_context)
         
-        # If no context found at all, add an explicit note
+        # Build grounded context with clear instructions
         if not context_parts:
-            grounded_context = "NO RELEVANT CONTENT FOUND in database or web search. Answer based on your general knowledge about Igbo culture, but clearly state that you are using general knowledge and NOT referencing specific archives."
+            grounded_context = "NO RELEVANT CONTENT FOUND in the database or web search. Answer the user's question using your general knowledge. Be helpful and informative. If this is about Igbo culture, state that you are using general knowledge and not referencing specific archives."
         else:
             grounded_context = "\n\n".join(context_parts)
         
@@ -341,9 +347,9 @@ class ChatService:
                 try:
                     system_content = SYSTEM_PROMPT
                     if context:
-                        system_content += f"\n\n---\n## PROVIDED CONTEXT (cite ONLY from this):\n{context}\n---\n\nIMPORTANT: Use the icons (📦, 📝, 📚, 🌐) provided in the context for your citations. Only reference the links and titles shown above. Do NOT invent any URLs or titles not listed here. Format your entire response in Markdown."
+                        system_content += f"\n\n---\n## PROVIDED CONTEXT (use this to answer the user's question):\n{context}\n---\n\nIMPORTANT INSTRUCTIONS:\n1. Use the context above to give a HELPFUL, COMPLETE answer to the user's question.\n2. When citing database content, use the icons (📦, 📝, 📚) and the exact links/titles shown above.\n3. When citing web results, use the 🌐 icon and the exact source link shown above.\n4. If the context contains the answer, answer CONFIDENTLY — do not say 'I don't know' when the information is right there.\n5. Do NOT invent any URLs or titles not listed in the context.\n6. Format your entire response in Markdown."
                     else:
-                        system_content += "\n\nNo database or web results were found for this query. Answer using your general knowledge but do NOT fabricate any archive links. Format your entire response in Markdown."
+                        system_content += "\n\nNo database or web results were found for this query. Answer the user's question using your general knowledge. Be helpful and informative. Do NOT fabricate any archive links. Format your entire response in Markdown."
                     
                     full_messages = [{'role': 'system', 'content': system_content}]
                     full_messages.extend(messages[-3:])
@@ -391,9 +397,9 @@ class ChatService:
                 try:
                     system_content = SYSTEM_PROMPT
                     if context:
-                        system_content += f"\n\n---\n## PROVIDED CONTEXT (cite ONLY from this):\n{context}\n---\n\nIMPORTANT: Use the icons (📦, 📝, 📚, 🌐) provided in the context for your citations. Only reference the links and titles shown above. Do NOT invent any URLs or titles not listed here. Format your entire response in Markdown."
+                        system_content += f"\n\n---\n## PROVIDED CONTEXT (use this to answer the user's question):\n{context}\n---\n\nIMPORTANT INSTRUCTIONS:\n1. Use the context above to give a HELPFUL, COMPLETE answer to the user's question.\n2. When citing database content, use the icons (📦, 📝, 📚) and exact links/titles shown above.\n3. When citing web results, use 🌐 and the exact source link shown above.\n4. If the context contains the answer, answer CONFIDENTLY.\n5. Do NOT invent any URLs or titles not in the context.\n6. Format your response in Markdown."
                     else:
-                        system_content += "\n\nNo database or web results were found. Answer using general knowledge but do NOT fabricate any archive links. Format your response in Markdown."
+                        system_content += "\n\nNo database or web results were found. Answer using your general knowledge. Be helpful and informative. Do NOT fabricate any archive links. Format your response in Markdown."
                     
                     prompt_parts = [system_content, "\nConversation:"]
                     for msg in messages[-3:]:

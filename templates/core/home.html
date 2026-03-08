@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block title %}Igbo Archives - Preserving the Past, Inspiring the Future{% endblock %}
+{% block meta_description %}Explore the rich cultural heritage of the Igbo people through digital archives, community
+lore, book reviews, and educational resources.{% endblock %}
 
 {% block content %}
 <section
@@ -99,7 +101,6 @@
     </div>
 </section>
 
-<script src="{% static 'js/common/home_carousel.js' %}"></script>
 {% endif %}
 
 
@@ -245,4 +246,10 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+{% if featured_archives %}
+<script src="{% static 'js/common/home_carousel.js' %}"></script>
+{% endif %}
 {% endblock %}

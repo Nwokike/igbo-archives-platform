@@ -36,6 +36,10 @@ def notification_mark_read(request: HttpRequest, notification_id: int):
     
     notification.mark_as_read()
     
+    # Invalidate cached notification count so badge updates immediately
+    from django.core.cache import cache
+    cache.delete(f'notif_count_{request.user.id}')
+    
     if request.htmx or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'status': 'success'})
     

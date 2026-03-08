@@ -93,3 +93,28 @@
     margin: 0;
     font-size: 0.875rem;
 }
+
+/* Dark Mode Overrides */
+.dark .notification-dropdown-item:hover {
+    background: var(--background-hover, #2A231D);
+}
+
+.dark .notification-dropdown-item.unread {
+    background: var(--heritage-cream, #241E19);
+}
+
+.dark .notification-dropdown-item .notification-message {
+    color: var(--dark-brown, #EFE5D7);
+}
+
+.dark .notification-dropdown-footer {
+    background: var(--heritage-cream, #241E19);
+}
+
+.dark .notification-dropdown-footer:hover {
+    background: var(--sepia-pale, #3D2E1F);
+}
+
+.dark .mark-read-btn:hover {
+    background: var(--heritage-cream, #241E19);
+}

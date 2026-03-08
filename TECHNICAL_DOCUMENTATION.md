@@ -9,7 +9,7 @@ Igbo Archives is a Django-based cultural preservation platform dedicated to docu
 
 ### Backend Framework
 - **Django 6.0** with **Python 3.13+** as the core web framework (required)
-- **SQLite with WAL mode** for database storage, optimized for 1GB RAM constraints with custom configuration in `igbo_archives/sqlite_wal.py`
+- **SQLite with WAL mode** for database storage, optimized for 1GB RAM constraints via `init_command` in `settings.py` DATABASES config
 - **Gunicorn** for production WSGI serving with memory-optimized settings (2 workers, max 500 requests before restart)
 
 ### Application Structure
@@ -17,11 +17,11 @@ The project follows Django's app-based architecture with clear separation of con
 
 - **core**: Shared utilities, context processors, validators, static pages, and caching helpers
 - **archives**: Cultural archive management (images, videos, audio, documents) with category/tag organization
-- **insights**: Community articles with Editor.js block-based content, draft/publish workflow, and collaborative edit suggestions
+- **lore**: Community lore & articles with Editor.js block-based content, draft/publish workflow, and collaborative edit suggestions
 - **books**: Book review system with ratings and cover images
 - **users**: Custom user model extending AbstractUser, messaging system, notifications, and profile management
 - **ai**: AI assistant with chat sessions, archive analysis, and TTS capabilities
-- **api**: REST endpoints for Editor.js media browser, image uploads, and push notifications
+- **api**: REST endpoints (Archives, Books, Lore, Categories) and MCP server.
 
 ### Frontend Architecture
 - **HTMX** for dynamic page updates without full reloads
@@ -102,27 +102,20 @@ The project follows Django's app-based architecture with clear separation of con
 
 ### Background Tasks & Schedules
 
-#### Django Tasks (via `core/tasks.py`)
+#### Huey Tasks (via `core/tasks.py`)
+Background processing uses **Huey** with `SqliteHuey` backend. Django 6.0's native task framework was evaluated but lacks Worker support, so Huey remains the task runner.
 - **Daily Database Backup** (`daily_database_backup`): Runs at 3:00 AM
   - Uses `django-dbbackup` to create compressed backups
   - Cleans old backups (keeps 3 most recent)
   - Backups stored in Cloudflare R2
   
-- **Chat Session Cleanup** (`cleanup_old_chat_sessions`): Runs at 2:30 AM
-  - Deactivates sessions older than 30 days
-  - Hard deletes inactive sessions older than 90 days
-  
-- **TTS File Cleanup** (`cleanup_tts_files`): Runs at 5:00 AM
-  - Removes TTS audio files older than 24 hours
-  
+
 - **Notification Cleanup** (`cleanup_old_notifications`): Runs on 1st of month at 4:00 AM
   - Deletes read notifications older than 18 months
   
 - **Message Cleanup** (`cleanup_old_messages`): Runs on 1st of month at 4:30 AM
   - Deletes message threads with no activity for 2+ years where all messages are read
   
-- **Cache Expiration Check** (`clear_expired_cache`): Runs every 6 hours
-  - DatabaseCache auto-expires entries; this is a monitoring placeholder
 
 #### Management Commands
 - **`insights.delete_old_drafts`**: Deletes draft insights older than 30 days

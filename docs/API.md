@@ -17,14 +17,11 @@ Include the token in the Authorization header:
 Authorization: Token YOUR_API_TOKEN
 ```
 
-To get a token, use Django admin or run:
-```bash
-python manage.py drf_create_token <username>
-```
-
-### Session Authentication
-
-For browser-based clients with active Django session.
+**How to get a token:**
+You can generate and manage your API tokens directly from the **[API & MCP Dashboard](/profile/api-dashboard/)** in your user profile. This dashboard allows you to:
+- Generate new tokens
+- Revoke existing tokens
+- View your current rate limits
 
 ---
 
@@ -33,7 +30,7 @@ For browser-based clients with active Django session.
 | User Type | Limit |
 |-----------|-------|
 | Anonymous | 10 requests/hour |
-| Authenticated | 50 requests/hour |
+| Authenticated | 100 requests/hour |
 
 ---
 
@@ -153,18 +150,6 @@ Content-Type: multipart/form-data
 | `original_url` | string | No | Source URL |
 | `category_id` | integer | No | Category ID |
 
-#### Featured Archives
-
-```http
-GET /api/v1/archives/featured/
-```
-
-#### Recent Archives
-
-```http
-GET /api/v1/archives/recent/
-```
-
 ---
 
 ### Books
@@ -207,41 +192,73 @@ GET /api/v1/books/
 GET /api/v1/books/{slug}/
 ```
 
+---
+
+### Lore (Cultural Preservation)
+
+#### List Lore Posts
+
+```http
+GET /api/v1/lore/
+```
+
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search` | string | Search in title or excerpt |
+
+**Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "title": "The Origin of Yam",
+    "slug": "the-origin-of-yam",
+    "excerpt": "A traditional folklore about the discovery of yam...",
+    "author_name": "Onyeka Nwokike",
+    "category_name": "Folklore",
+    "featured_image": "/media/lore/yam.jpg",
+    "created_at": "2026-03-07T12:00:00Z"
+  }
+]
+```
+
+#### Get Lore Post Detail
+
+```http
+GET /api/v1/lore/{slug}/
+```
+
 **Response:**
 
 ```json
 {
   "id": 1,
-  "book_title": "Things Fall Apart",
-  "author": "Chinua Achebe",
-  "isbn": "978-0385474542",
-  "slug": "things-fall-apart",
-  "title": "A Masterpiece of African Literature",
+  "title": "The Origin of Yam",
+  "slug": "the-origin-of-yam",
   "content_json": {...},
-  "external_url": "https://amazon.com/...",
-  "cover_image": "/media/books/covers/things-fall-apart.jpg",
-  "cover_image_back": null,
-  "alternate_cover": null,
-  "publisher": "Anchor Books",
-  "publication_year": 1958,
-  "added_by": {
+  "excerpt": "A traditional folklore about the discovery of yam...",
+  "featured_image": "/media/lore/yam.jpg",
+  "author": {
     "id": 1,
-    "username": "johndoe",
-    "get_display_name": "John Doe"
+    "username": "nwokike",
+    "get_display_name": "Onyeka Nwokike"
   },
-  "average_rating": 4.8,
-  "rating_count": 42,
-  "is_published": true,
-  "is_approved": true,
-  "created_at": "2026-01-29T12:00:00Z",
-  "updated_at": "2026-01-30T10:00:00Z"
+  "category": {
+    "id": 2,
+    "name": "Folklore",
+    "slug": "folklore"
+  },
+  "created_at": "2026-03-07T12:00:00Z",
+  "updated_at": "2026-03-07T12:00:00Z"
 }
 ```
 
-#### Create Book Recommendation (Auth Required)
+#### Create Lore Post (Auth Required)
 
 ```http
-POST /api/v1/books/
+POST /api/v1/lore/
 Authorization: Token YOUR_TOKEN
 Content-Type: multipart/form-data
 ```
@@ -250,88 +267,11 @@ Content-Type: multipart/form-data
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `book_title` | string | Yes | Book title |
-| `author` | string | Yes | Book author |
-| `title` | string | Yes | Recommendation title |
-| `content_json` | object | No | EditorJS content |
-| `isbn` | string | No | ISBN/ASIN |
-| `external_url` | string | No | URL to book info/purchase |
-| `publisher` | string | No | Publisher name |
-| `publication_year` | integer | No | Publication year |
-| `cover_image` | file | No | Front cover image |
-| `cover_image_back` | file | No | Back cover image |
-| `alternate_cover` | file | No | Alternate edition cover |
-
-**Note:** Created books are pending approval and not immediately published.
-
-#### Update Book (Owner Only)
-
-```http
-PUT /api/v1/books/{slug}/
-Authorization: Token YOUR_TOKEN
-```
-
-#### Delete Book (Owner Only)
-
-```http
-DELETE /api/v1/books/{slug}/
-Authorization: Token YOUR_TOKEN
-```
-
-#### Top-Rated Books
-
-```http
-GET /api/v1/books/top_rated/
-```
-
-#### Rate a Book (Auth Required)
-
-```http
-POST /api/v1/books/{slug}/rate/
-Authorization: Token YOUR_TOKEN
-Content-Type: application/json
-```
-
-**Body:**
-
-```json
-{
-  "rating": 5,
-  "review_text": "An excellent book that captures..."
-}
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `rating` | integer | Yes | Rating 1-5 |
-| `review_text` | string | No | Optional review |
-
-**Response:** Returns the created/updated rating.
-
-#### Get Book Ratings
-
-```http
-GET /api/v1/books/{slug}/ratings/
-```
-
-**Response:**
-
-```json
-[
-  {
-    "id": 1,
-    "user": {
-      "id": 2,
-      "username": "reader",
-      "get_display_name": "Book Reader"
-    },
-    "rating": 5,
-    "review_text": "Excellent book!",
-    "created_at": "2026-01-30T12:00:00Z",
-    "updated_at": "2026-01-30T12:00:00Z"
-  }
-]
-```
+| `title` | string | Yes | Post title |
+| `content_json` | object | Yes | EditorJS content |
+| `excerpt` | string | No | Short summary |
+| `featured_image` | file | No | Cover image |
+| `category_id` | integer | No | Category ID |
 
 ---
 
@@ -361,6 +301,16 @@ GET /api/v1/categories/
 ```http
 GET /api/v1/categories/{slug}/
 ```
+
+---
+
+## Model Context Protocol (MCP)
+
+The Igbo Archives Platform supports the Model Context Protocol (MCP), allowing AI agents (like Claude or Cursor) to interact with our cultural data as tools.
+
+**Endpoint:** `/api/mcp/`
+
+For detailed instructions on connecting your AI tools to the Igbo Archives, see the **[MCP Documentation](/docs/MCP.md)**.
 
 ---
 

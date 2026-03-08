@@ -139,22 +139,22 @@ def analyze_archive(request):
     else:
         return JsonResponse({'error': 'No image to analyze'}, status=400)
 
-    # Use a temporary file to handle both local and cloud storage
+    # Read image bytes directly — avoid temp file I/O
+    try:
+        image_file.open('rb')
+        image_bytes = image_file.read()
+        image_file.close()
+    except Exception as e:
+        logger.error(f"Error reading image for archive analysis: {e}")
+        return JsonResponse({'error': 'Failed to process image. Please try again.'}, status=500)
+    
+    # Write to temp file (vision service requires file path)
     import tempfile
     import os
-    import shutil
     
     with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp:
-        try:
-            image_file.open('rb')
-            shutil.copyfileobj(image_file, tmp)
-            image_file.close()
-            tmp_path = tmp.name
-        except Exception as e:
-            if os.path.exists(tmp.name):
-                os.unlink(tmp.name)
-            logger.error(f"Error processing image for archive analysis: {e}")
-            return JsonResponse({'error': 'Failed to process image. Please try again.'}, status=500)
+        tmp.write(image_bytes)
+        tmp_path = tmp.name
     
     metadata = {
         'title': archive.title,
@@ -167,7 +167,6 @@ def analyze_archive(request):
     }
     
     try:
-        # Analyze
         result = vision_service.analyze(tmp_path, analysis_type, archive_context=metadata)
     finally:
         if os.path.exists(tmp_path):
@@ -209,12 +208,13 @@ def generate_tts(request):
     if result['success']:
         audio_id = str(uuid.uuid4())
         
-        # Store audio bytes and content type in cache for 5 minutes
+        # Store audio bytes and content type in cache for 60 seconds
+        # TTS files are tiny (few KB) and should be cleaned up quickly
         cache_data = {
             'bytes': result['audio_bytes'],
             'content_type': result['content_type']
         }
-        cache.set(f"tts_data_{audio_id}", cache_data, 300)
+        cache.set(f"tts_data_{audio_id}", cache_data, 60)
         
         # Construct serve URL
         from django.urls import reverse
@@ -250,6 +250,10 @@ def serve_tts_audio(request, audio_id):
     response['Content-Disposition'] = f'inline; filename="tts_{str(audio_id)[:8]}"'
     # Prevent caching by browser
     response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    
+    # Delete from cache immediately after serving
+    cache.delete(cache_key)
+    
     return response
 
 
@@ -296,9 +300,12 @@ def generate_lore_content(request):
         
         if response['success']:
             cache.set(rate_key, gen_count + 1, 3600)
+            # Sanitize AI output
+            import nh3
+            sanitized_content = nh3.clean(response['content'])
             return JsonResponse({
                 'success': True,
-                'content': response['content']
+                'content': sanitized_content
             })
         else:
             return JsonResponse({

@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from . import views
 from . import notifications_views
 from . import admin_views
+from . import api_views
 from .username_utils import RESERVED_USERNAMES
 
 app_name = 'users'
@@ -29,6 +30,11 @@ urlpatterns = [
     path('notifications/<int:notification_id>/mark-read/', notifications_views.notification_mark_read, name='notification_mark_read'),
     path('notifications/mark-all-read/', notifications_views.notification_mark_all_read, name='notification_mark_all_read'),
     path('notifications/dropdown/', notifications_views.notification_dropdown, name='notification_dropdown'),
+    
+    # API & MCP Dashboard
+    path('api-dashboard/', api_views.api_dashboard, name='api_dashboard'),
+    path('api-token/generate/', api_views.generate_api_token, name='generate_api_token'),
+    path('api-token/revoke/', api_views.revoke_api_token, name='revoke_api_token'),
     
     # Admin / Moderation
     path('admin/moderation/', admin_views.moderation_dashboard, name='moderation_dashboard'),

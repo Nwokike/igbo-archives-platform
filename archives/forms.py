@@ -136,11 +136,10 @@ class ArchiveForm(forms.ModelForm):
         
         if original_author_name:
             from archives.models import Author
-            # get_or_create an author profile for this string
-            author_obj, created = Author.objects.get_or_create(
-                name__iexact=original_author_name,
-                defaults={'name': original_author_name}
-            )
+            # Safe case-insensitive author lookup — avoids MultipleObjectsReturned
+            author_obj = Author.objects.filter(name__iexact=original_author_name).first()
+            if not author_obj:
+                author_obj = Author.objects.create(name=original_author_name)
             
             # If the user supplied a bio and the author doesn't have one, or just created it
             if author_about_text and not author_obj.description:

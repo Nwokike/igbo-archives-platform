@@ -338,19 +338,3 @@ def upload_media(request):
     except Exception as e:
         logger.error(f"Media upload error: {e}", exc_info=True)
         return JsonResponse({'success': 0, 'error': 'Upload failed. Please try again.'})
-
-
-@login_required
-def notification_list_api(request):
-    """Return top 5 unread notifications for the dropdown."""
-    # Rate limiting to prevent spam
-    rate_key = f'notif_rate_{request.user.id}'
-    current_count = cache.get(rate_key, 0)
-    if current_count >= NOTIFICATION_RATE_LIMIT:
-        return JsonResponse({'error': 'Too many requests. Please wait.'}, status=429)
-    cache.set(rate_key, current_count + 1, NOTIFICATION_RATE_WINDOW)
-    
-    notifications = request.user.notifications.filter(unread=True).order_by('-timestamp')[:5]
-    return render(request, 'users/partials/notification_dropdown.html', {
-        'notifications': notifications
-    })

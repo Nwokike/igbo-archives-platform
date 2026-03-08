@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.addEventListener('click', function (e) {
             if (e.target === modal) {
                 modal.classList.remove('active');
+                setTimeout(function () { modal.classList.add('hidden'); }, 200);
                 document.body.style.overflow = '';
             }
         });
@@ -41,6 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal-overlay.active').forEach(function (modal) {
                 modal.classList.remove('active');
+                setTimeout(function () { modal.classList.add('hidden'); }, 200);
                 document.body.style.overflow = '';
             });
         }

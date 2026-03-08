@@ -163,7 +163,7 @@
                     if (loadMoreContainer) {
                         if (hasMoreArchives) {
                             loadMoreContainer.innerHTML = '<button type="button" class="btn-secondary btn-sm" id="loadMoreArchivesBtn">Load More</button>';
-                            document.getElementById('loadMoreArchivesBtn').addEventListener('click', function() {
+                            document.getElementById('loadMoreArchivesBtn').addEventListener('click', function () {
                                 currentArchivePage++;
                                 loadArchives(true);
                             });
@@ -277,20 +277,9 @@
         if (fileHelp) fileHelp.textContent = c.help;
     };
 
+    // Use shared formatCaption from IgboEditor (editor.js)
     function formatCaption(caption, author, copyright) {
-        let parts = [];
-        if (caption && caption.trim()) parts.push(caption.trim());
-
-        let meta = [];
-        if (author && author.trim()) meta.push('Photo by ' + author.trim());
-        if (copyright && copyright.trim()) meta.push('© ' + copyright.trim());
-
-        if (meta.length > 0) {
-            let separator = parts.length > 0 ? ' | ' : '';
-            parts.push(separator + meta.join(' '));
-        }
-
-        return parts.join('');
+        return IgboEditor.formatCaption(caption, author, copyright);
     }
 
     window.uploadAndInsertMedia = function () {

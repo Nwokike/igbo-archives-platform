@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'csp', 
     'rest_framework',
     'rest_framework.authtoken',
+    'djangorestframework_mcp',
     'django_cleanup.apps.CleanupConfig',
     'django_huey',
 
@@ -137,7 +138,7 @@ DATABASES = {
     }
 }
 
-CONN_MAX_AGE = None  # Django 6.0 persistent connection pooling
+CONN_MAX_AGE = None  # Persistent connections — safe for SQLite (single-file DB, no connection pool overhead)
 CONN_HEALTH_CHECKS = True
 
 CACHES = {
@@ -325,11 +326,8 @@ GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')
 YARNGPT_API_KEY = os.getenv('YARNGPT_API_KEY', '')
 
-GOOGLE_ADSENSE_CLIENT_ID = os.getenv('GOOGLE_ADSENSE_CLIENT_ID', '')
-ENABLE_ADSENSE = bool(GOOGLE_ADSENSE_CLIENT_ID)
-GOOGLE_ANALYTICS_ID = os.getenv('GOOGLE_ANALYTICS_ID', '')
-ENABLE_ANALYTICS = bool(GOOGLE_ANALYTICS_ID)
-INDEXNOW_API_KEY = os.getenv('INDEXNOW_API_KEY', '')
+
+INDEXNOW_API_KEY = '801ef3778f8b4f0c9a094c826da7ab20'  # Public verification token, not a secret
 
 PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
@@ -433,7 +431,6 @@ CONTENT_SECURITY_POLICY = {
             "https://*.paystack.com",
             "https://js.paystack.co",
             "https://pagead2.googlesyndication.com",
-            "https://cdn.jsdelivr.net",
         ],
         'style-src': [
             "'self'",

@@ -30,7 +30,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Compatibility patch for django-dbbackup with Django 5.1+
+        # django-dbbackup 5.1.2 still uses get_storage_class which was removed in Django 5.1+
+        # This compatibility patch is required until django-dbbackup releases a Django 6.0-compatible version
         import django.core.files.storage
         if not hasattr(django.core.files.storage, 'get_storage_class'):
             from django.utils.module_loading import import_string

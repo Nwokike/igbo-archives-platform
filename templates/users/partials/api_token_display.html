@@ -1,0 +1,40 @@
+{% load static %}
+<!-- Token display partial — HTMX swappable -->
+<div id="token-section" class="card">
+    {% if just_created %}
+    <div class="alert alert-success mb-3">
+        <i class="fas fa-check-circle"></i> Token generated! Copy it now — it won't be shown again.
+    </div>
+    {% endif %}
+    {% if just_revoked %}
+    <div class="alert alert-warning mb-3">
+        <i class="fas fa-info-circle"></i> Token revoked successfully.
+    </div>
+    {% endif %}
+
+    {% if token %}
+    <div class="flex items-center gap-3 flex-wrap">
+        <code class="token-display" id="apiToken">{{ token.key }}</code>
+        <button type="button" class="btn-secondary btn-sm" onclick="copyToken()" title="Copy">
+            <i class="fas fa-copy"></i> Copy
+        </button>
+    </div>
+    <p class="text-sm text-muted mt-2">Created: {{ token.created|date:"M d, Y H:i" }}</p>
+    <form method="post" action="{% url 'users:revoke_api_token' %}" class="mt-3"
+        hx-post="{% url 'users:revoke_api_token' %}" hx-target="#token-section" hx-swap="outerHTML">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger btn-sm">
+            <i class="fas fa-ban"></i> Revoke Token
+        </button>
+    </form>
+    {% else %}
+    <p class="text-muted mb-3">No API token generated yet.</p>
+    <form method="post" action="{% url 'users:generate_api_token' %}" hx-post="{% url 'users:generate_api_token' %}"
+        hx-target="#token-section" hx-swap="outerHTML">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-key"></i> Generate API Token
+        </button>
+    </form>
+    {% endif %}
+</div>

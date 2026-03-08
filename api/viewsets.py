@@ -1,12 +1,14 @@
 """
 Django REST Framework ViewSets for Igbo Archives API.
-Provides RESTful API endpoints for Archive and BookRecommendation models.
+Provides RESTful API endpoints for Archive, BookRecommendation, and LorePost models.
+Also exposed as MCP tools for AI agent integration.
 """
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.cache import cache
 from django.db.models import Q, Avg, Count
+from djangorestframework_mcp.decorators import mcp_viewset
 
 from archives.models import Archive, Category
 from books.models import BookRecommendation, UserBookRating
@@ -14,7 +16,8 @@ from .serializers import (
     CategorySerializer,
     ArchiveListSerializer, ArchiveSerializer, ArchiveCreateSerializer,
     BookRecommendationListSerializer, BookRecommendationSerializer, BookRecommendationCreateSerializer,
-    UserBookRatingSerializer, UserBookRatingCreateSerializer
+    UserBookRatingSerializer, UserBookRatingCreateSerializer,
+    LorePostSerializer, LorePostCreateSerializer,
 )
 
 
@@ -32,6 +35,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return False
 
 
+@mcp_viewset(basename='categories')
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for archive categories.
@@ -44,6 +48,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'slug'
 
 
+@mcp_viewset(basename='archives')
 class ArchiveViewSet(viewsets.ModelViewSet):
     """
     API endpoint for archives.
@@ -101,19 +106,16 @@ class ArchiveViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        """Get featured archives — cached random selection (avoids ORDER BY RANDOM)."""
+        """Get featured archives — cached random selection."""
         cache_key = 'api_featured_archives'
         cached = cache.get(cache_key)
         if cached is not None:
             return Response(cached)
         
-        import random
-        image_ids = list(
-            Archive.objects.filter(is_approved=True, archive_type='image')
-            .values_list('id', flat=True)
-        )
-        selected_ids = random.sample(image_ids, min(10, len(image_ids))) if image_ids else []
-        featured = Archive.objects.filter(id__in=selected_ids).select_related('category', 'uploaded_by')
+        # Use database-level random on a limited queryset (memory-safe)
+        featured = Archive.objects.filter(
+            is_approved=True, archive_type='image'
+        ).select_related('category', 'uploaded_by').order_by('?')[:10]
         serializer = ArchiveListSerializer(featured, many=True)
         cache.set(cache_key, serializer.data, 600)  # Cache for 10 minutes
         return Response(serializer.data)
@@ -126,6 +128,7 @@ class ArchiveViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@mcp_viewset(basename='books')
 class BookRecommendationViewSet(viewsets.ModelViewSet):
     """
     API endpoint for book recommendations.
@@ -191,7 +194,16 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def rate(self, request, slug=None):
-        """Rate a book (create or update rating)."""
+        """Rate a book (create or update rating). Rate-limited per user."""
+        # Rate limiting: 5 ratings per hour per user
+        rate_key = f'api_rate_{request.user.id}'
+        rate_count = cache.get(rate_key, 0)
+        if rate_count >= 5:
+            return Response(
+                {'error': 'Rating limit reached. Please wait.'},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+        
         book = self.get_object()
         serializer = UserBookRatingCreateSerializer(data=request.data)
         
@@ -201,6 +213,7 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 defaults=serializer.validated_data
             )
+            cache.set(rate_key, rate_count + 1, 3600)
             response_serializer = UserBookRatingSerializer(rating)
             status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
             return Response(response_serializer.data, status=status_code)
@@ -214,3 +227,47 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
         ratings = book.ratings.select_related('user').order_by('-created_at')
         serializer = UserBookRatingSerializer(ratings, many=True)
         return Response(serializer.data)
+
+
+@mcp_viewset(basename='lore')
+class LorePostViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for lore posts.
+    
+    GET /api/v1/lore/ - List published lore posts
+    GET /api/v1/lore/{slug}/ - Lore post detail
+    POST /api/v1/lore/ - Create lore post (auth required)
+    PUT/PATCH /api/v1/lore/{slug}/ - Update post (owner only)
+    DELETE /api/v1/lore/{slug}/ - Delete post (owner only)
+    """
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    lookup_field = 'slug'
+    
+    def get_queryset(self):
+        from lore.models import LorePost
+        queryset = LorePost.objects.filter(
+            is_approved=True, is_published=True
+        ).select_related('author')
+        
+        # Search
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) |
+                Q(excerpt__icontains=search)
+            )
+        
+        return queryset
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return LorePostCreateSerializer
+        return LorePostSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user,
+            is_published=False,
+            is_approved=False,
+            pending_approval=True
+        )

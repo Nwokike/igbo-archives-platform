@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block title %}Recommended Igbo Books - Igbo Archives{% endblock %}
+{% block meta_description %}Discover recommended books on Igbo culture, history, language, and traditions.
+Community-curated reviews and reading lists.{% endblock %}
 
 {% block sub_navigation %}
 <nav class="border-b border-border bg-surface-alt/50">
@@ -10,7 +12,7 @@
             <div class="flex-1 min-w-[80px] sm:flex-none sm:w-24">
                 <select class="form-select text-xs" id="sortFilter" name="sort" hx-get="{% url 'books:list' %}"
                     hx-target="#booksGrid" hx-include="#searchInput,#authorFilter,#yearFilter" hx-push-url="true">
-                    <option value="recently-added" {% if request.GET.sort == 'recently-added' or not request.GET.sort%}selected{% endif %}>Recently Added</option>
+                    <option value="recently-added" {% if request.GET.sort == 'recently-added' or not request.GET.sort %}selected{% endif %}>Recently Added</option>
                     <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest</option>
                     <option value="oldest" {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest</option>
                 </select>
@@ -65,36 +67,4 @@
 <div id="booksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-view="grid">
     {% include "books/partials/book_grid.html" %}
 </div>
-
-<script>
-    (function () {
-        const gridBtn = document.getElementById('gridViewBtn');
-        const listBtn = document.getElementById('listViewBtn');
-        const grid = document.getElementById('booksGrid');
-
-        function setView(view) {
-            if (view === 'list') {
-                grid.className = 'grid grid-cols-1 gap-3';
-                grid.setAttribute('data-view', 'list');
-                listBtn.classList.add('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
-                gridBtn.classList.remove('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
-            } else {
-                grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
-                grid.setAttribute('data-view', 'grid');
-                gridBtn.classList.add('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
-                listBtn.classList.remove('active', 'bg-white', 'dark:bg-surface-dark', 'shadow-sm');
-            }
-            localStorage.setItem('booksViewPreference', view);
-        }
-
-        if (gridBtn && listBtn) {
-            gridBtn.addEventListener('click', function () { setView('grid'); });
-            listBtn.addEventListener('click', function () { setView('list'); });
-
-            // Restore preference
-            const saved = localStorage.getItem('booksViewPreference');
-            if (saved) setView(saved);
-        }
-    })();
-</script>
 {% endblock %}

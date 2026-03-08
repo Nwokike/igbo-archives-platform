@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load editorjs_renderer %}
+{% load threadedcomments_tags %}
 
 {% block title %}{{ post.title }} - Lore{% endblock %}
-
-{% block meta_description %}{{ post.excerpt|default:post.title|truncatewords:25 }}{% endblock %}
+{% block meta_description %}{{ post.excerpt|truncatewords:25|default:"Discover Igbo cultural lore — proverbs, folklore, customs, and traditions shared by the community." }}{% endblock %}
 
 {% block og_title %}{{ post.title }} | Igbo Archives Lore{% endblock %}
 {% block og_description %}{{ post.excerpt|default:post.title|truncatewords:50 }}{% endblock %}
@@ -105,23 +105,59 @@
         <div class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/50 rounded-xl border border-border/50">
             {% if user == post.author %}
             <a href="{% url 'lore:edit' post.slug %}" class="btn-primary btn-sm flex items-center gap-2">
-                <i class="fas fa-edit"></i> <span>Edit Lore</span>
+                <i class="fas fa-edit"></i> <span class="hidden sm:inline">Edit Lore</span>
             </a>
+            {% if not post.is_approved %}
             <a href="{% url 'lore:delete' post.slug %}"
                 class="btn-secondary btn-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                 onclick="return confirm('Are you sure you want to delete this post?');">
-                <i class="fas fa-trash"></i> <span>Delete</span>
+                <i class="fas fa-trash"></i> <span class="hidden sm:inline">Delete</span>
             </a>
+            {% endif %}
             {% endif %}
 
             <div class="ml-auto">
                 {% include 'partials/share_buttons.html' with title=post.title %}
             </div>
         </div>
+
+        <hr class="divider">
+
+        {% include 'partials/prev_next_navigation.html' with previous=previous_post next=next_post %}
+
+        {% include 'partials/recommended_carousel.html' with recommended=recommended %}
+
+        <!-- Discussion Section -->
+        <section class="mt-8">
+            <hr class="divider mb-8">
+            <h3 class="font-serif text-xl font-semibold mb-6">Discussion</h3>
+            {% render_comment_list for post %}
+            {% render_comment_form for post %}
+        </section>
     </article>
 
     <aside class="lg:col-span-4">
-        <div class="sticky top-24 space-y-6">
+        <div class="sticky top-32 space-y-6">
+
+            {% if post.original_author %}
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="font-serif font-semibold mb-3">Original Creator</h4>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="avatar avatar-lg bg-secondary/10 text-secondary border-2 border-secondary/20">
+                            {{ post.original_author|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <a href="{% url 'lore:list' %}?author={{ post.original_author|urlencode }}"
+                                class="hover:text-accent font-medium transition-colors text-lg">
+                                {{ post.original_author }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="card">
                 <div class="card-body flex items-center gap-4">
                     {% if post.author.profile_picture %}
@@ -135,28 +171,25 @@
                     {% endif %}
                     <div>
                         <p class="text-xs text-text-muted mb-1">Shared by</p>
-                        <h4 class="font-bold text-text">{{ post.author.get_display_name }}</h4>
+                        <h4 class="font-bold text-text">
+                            <a href="{% url 'users:profile' post.author.username %}"
+                                class="hover:text-accent transition-colors">
+                                {{ post.author.get_display_name }}
+                            </a>
+                        </h4>
                         <p class="text-xs text-text-muted mt-1">{{ post.created_at|date:"F d, Y" }}</p>
                     </div>
                 </div>
             </div>
 
-            {% if similar_posts %}
+            {% if post.category %}
             <div class="card">
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold mb-4 text-lg">Related Lore</h4>
-                    <div class="space-y-4">
-                        {% for item in similar_posts %}
-                        <a href="{{ item.get_absolute_url }}" class="group block">
-                            <h5 class="font-medium text-sm group-hover:text-accent transition-colors line-clamp-2 mb-1">
-                                {{ item.title }}
-                            </h5>
-                            {% if item.category %}
-                            <span class="text-xs text-accent uppercase tracking-wider">{{ item.category.name }}</span>
-                            {% endif %}
-                        </a>
-                        {% endfor %}
-                    </div>
+                    <h4 class="font-serif font-semibold mb-2">Category</h4>
+                    <a href="{% url 'lore:list' %}?type={{ post.category.slug }}"
+                        class="badge badge-primary hover:bg-accent hover:text-white transition-colors no-underline">
+                        {{ post.category.name }}
+                    </a>
                 </div>
             </div>
             {% endif %}

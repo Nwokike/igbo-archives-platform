@@ -145,49 +145,31 @@ This analysis is for archival documentation. **Format your response in Markdown*
                 }
                 mime_type = mime_types.get(suffix, 'image/jpeg')
                 
-                # STEP 1: Search Query Generation (Fast)
-                # Combine image observation with existing metadata to get a specialist search query
+                # Build web search grounding from metadata keywords (no separate API call)
                 meta_str = ""
+                search_keywords = ""
                 if archive_context:
                     meta_filtered = {k: v for k, v in archive_context.items() if v}
                     meta_str = f"Archive Metadata: {meta_filtered}"
+                    # Extract keywords from metadata for web grounding
+                    keyword_parts = [v for k, v in meta_filtered.items() if k in ('title', 'category', 'location') and v]
+                    if keyword_parts:
+                        search_keywords = " ".join(keyword_parts)
                 
-                id_prompt = (
-                    f"You are a specialist in Igbo heritage. Using this image and the provided metadata ({meta_str}), "
-                    "return ONLY 3-5 keywords that would help find deep historical or cultural details about this specific item on the web. "
-                    "Prioritize terms like specific names, clans, or traditional labels mentioned in metadata or seen in the image."
-                )
-                
-                id_response = client.models.generate_content(
-                    model=self.MODEL,
-                    contents=[
-                        types.Part.from_bytes(data=image_data, mime_type=mime_type),
-                        id_prompt
-                    ]
-                )
-                
-                keywords = id_response.text.strip().strip('.')
-                logger.info(f"Vision specialist grounding keywords: {keywords}")
-                
-                # STEP 2: Web Search Grounding
                 from .chat_service import web_search
                 web_context = ""
-                if keywords and len(keywords) > 3:
-                    # Logic similar to chat_service: add "Igbo culture" if not clearly present
-                    search_query = keywords
-                    if 'igbo' not in keywords.lower():
+                if search_keywords and len(search_keywords) > 3:
+                    search_query = search_keywords
+                    if 'igbo' not in search_query.lower():
                         search_query += " Igbo culture heritage"
-                    
                     web_context = web_search(search_query, max_results=5)
                 
-                # STEP 3: Final Specialist Analysis (Grounded)
+                # Build analysis prompt with all context in a SINGLE API call
                 analysis_prompt = self.ANALYSIS_PROMPTS.get(analysis_type, self.ANALYSIS_PROMPTS['describe'])
                 
-                # Incorporate all context into the final prompt
                 context_payload = []
                 if archive_context:
                     context_payload.append(f"### INTERNAL ARCHIVE DATA:\n{meta_str}\n")
-                
                 if web_context:
                     context_payload.append(f"### EXTERNAL GROUNDING (Use to avoid hallucination):\n{web_context}\n")
                 

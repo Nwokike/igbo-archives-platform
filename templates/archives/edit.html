@@ -31,7 +31,7 @@
         </div>
         {% endif %}
 
-        <div class="card p-6 bg-white shadow-sm border border-border/50 rounded-xl">
+        <div class="card p-6 bg-white dark:bg-surface-dark shadow-sm border border-border/50 rounded-xl">
             <h2 class="text-lg font-serif font-bold mb-4 text-accent">1. General Information</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -54,12 +54,13 @@
             </div>
         </div>
 
-        <div class="card p-6 bg-white shadow-sm border border-border/50 rounded-xl">
+        <div class="card p-6 bg-white dark:bg-surface-dark shadow-sm border border-border/50 rounded-xl">
             <h2 class="text-lg font-serif font-bold mb-4 text-accent">2. Source & Rights</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-group"><label class="form-label font-medium">Original Author</label>{{ form.original_author }}</div>
                 <div class="form-group"><label class="form-label font-medium">Copyright Holder</label>{{ form.copyright_holder }}</div>
-                <div class="form-group col-span-full"><label class="form-label font-medium">About the Author <span class="text-text-muted font-normal text-xs">(Optional)</span></label>{{ form.original_author_about }}</div>
+                <div class="form-group col-span-full"><label class="form-label font-medium">About the Author <span
+                            class="text-text-muted font-normal text-xs">(Optional)</span></label>{{ form.original_author_about }}</div>
                 <div class="form-group"><label class="form-label font-medium">Circa Date (e.g., c1950)</label>{{ form.circa_date }}</div>
                 <div class="form-group"><label class="form-label font-medium">Exact Date</label>{{ form.date_created }}</div>
                 <div class="form-group"><label class="form-label font-medium">Location</label>{{ form.location }}</div>
@@ -78,7 +79,7 @@
             <div id="items-container" class="space-y-6">
                 {% for item_form in formset %}
                 <div
-                    class="item-row bg-white p-5 rounded-lg border border-border shadow-sm transition-all duration-300">
+                    class="item-row bg-white dark:bg-surface-dark p-5 rounded-lg border border-border shadow-sm transition-all duration-300">
                     {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
 
                     <div class="flex justify-between items-start mb-4 pb-2 border-b border-gray-100">
@@ -120,14 +121,12 @@
                             <div class="file-inputs-container pt-2">
                                 <div
                                     class="file-group type-image {% if item_form.item_type.value != 'image' and item_form.item_type.value %}hidden{% endif %}">
-                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Image (OR
-                                        URL)</label> {{ item_form.image }}
+                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Image (OR URL)</label> {{ item_form.image }}
                                     <div class="mt-2">{{ item_form.image_url }}</div>
                                 </div>
                                 <div
                                     class="file-group type-video {% if item_form.item_type.value != 'video' %}hidden{% endif %}">
-                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Video (OR
-                                        URL)</label> {{ item_form.video }}
+                                    <label class="text-xs font-bold uppercase text-gray-500 mb-1">Replace Video (OR URL)</label> {{ item_form.video }}
                                     <div class="mt-2">{{ item_form.video_url }}</div>
                                 </div>
                                 <div

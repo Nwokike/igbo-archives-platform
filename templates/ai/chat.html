@@ -64,7 +64,7 @@
                     </div>
                     {% if message.role == 'assistant' %}
                     <button class="tts-btn mt-2 text-xs text-vintage-beaver hover:text-vintage-gold transition-colors"
-                        title="Listen">
+                        title="Listen" data-msg-id="server-{{ forloop.counter }}">
                         <i class="fas fa-volume-up"></i> Listen
                     </button>
                     {% endif %}
@@ -110,6 +110,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="{% static 'vendor/js/marked.min.js' %}"></script>
 <script src="{% static 'js/ai/ai-chat.js' %}"></script>
 {% endblock %}

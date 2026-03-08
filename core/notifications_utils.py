@@ -224,38 +224,19 @@ def send_community_note_notification(note, archive):
 
 def send_admin_notification(subject, description, target_url=None):
     """
-    Utility to notify site administrators via Email and potentially In-App if applicable.
-    Uses settings.ADMINS or queries for Superusers.
+    Notify site administrators. Delegates to email_service.send_admin_notification
+    for quota-tracked email sending. Appends target_url to message if provided.
     """
-    from django.conf import settings
-    from django.contrib.auth import get_user_model
-    from core.tasks import send_email_async
-    import logging
-
-    logger = logging.getLogger(__name__)
-    User = get_user_model()
+    message = description
+    if target_url:
+        site_url = getattr(settings, 'SITE_URL', '')
+        message += f"\n\nReview link: {site_url}{target_url}"
     
-    admin_emails = []
-    
-    if hasattr(settings, 'ADMINS') and settings.ADMINS:
-        admin_emails = [email for name, email in settings.ADMINS]
-    else:
-        superusers = User.objects.filter(is_superuser=True)
-        admin_emails = [su.email for su in superusers if su.email]
-
-    if admin_emails:
-        message = description
-        if target_url:
-            message += f"\n\nReview link: {settings.SITE_URL}{target_url}"
-        
-        try:
-            send_email_async(
-                subject=subject,
-                message=message,
-                recipient_list=admin_emails
-            )
-        except Exception as e:
-            logger.error(f"Failed to queue admin notification email: {e}")
+    try:
+        from core.email_service import send_admin_notification as _send_admin_email
+        _send_admin_email(subject, message)
+    except Exception as e:
+        logger.error(f"Failed to send admin notification: {e}")
 
 def send_comment_reply_notification(comment, parent_comment):
     if not parent_comment.user:
