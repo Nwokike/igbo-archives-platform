@@ -207,6 +207,9 @@ def approve_author_edit(request, pk):
             
             author = edit_req.author
             author.description = edit_req.proposed_description
+            if edit_req.proposed_image:
+                # Properly copy the file to the author's upload path
+                author.image.save(edit_req.proposed_image.name, edit_req.proposed_image.file, save=False)
             author.save()
     except AuthorDescriptionRequest.DoesNotExist:
         messages.warning(request, 'Author edit request not found or already approved.')
@@ -219,6 +222,10 @@ def approve_author_edit(request, pk):
 @require_POST
 def reject_author_edit(request, pk):
     edit_req = get_object_or_404(AuthorDescriptionRequest, pk=pk)
+    # Delete the proposed image from storage if it exists
+    if edit_req.proposed_image:
+        edit_req.proposed_image.delete(save=False)
+    
     edit_req.is_rejected = True
     edit_req.save()
     messages.info(request, f'Biography edit for "{edit_req.author.name}" rejected.')

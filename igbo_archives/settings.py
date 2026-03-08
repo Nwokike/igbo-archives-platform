@@ -454,6 +454,7 @@ CONTENT_SECURITY_POLICY = {
         'connect-src': [
             "'self'",
             "https://www.google-analytics.com",
+            "https://analytics.google.com",
             "https://api.indexnow.org",
             "https://challenges.cloudflare.com",
             "https://www.googletagmanager.com",
@@ -465,6 +466,7 @@ CONTENT_SECURITY_POLICY = {
             "https://*.paystack.co",
             "https://*.paystack.com",
             "https://stats.g.doubleclick.net",
+            "https://www.google.com",
         ],
         'frame-src': [
             "'self'",

@@ -9,22 +9,30 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
 {% block og_title %}{{ book.book_title }} by {{ book.author }} | Igbo Archives{% endblock %}
 {% block og_description %}{{ content_excerpt|truncatewords:50 }}{% endblock %}
 {% block og_image %}
-{% if book.cover_image %}
-{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
-{% else %}
-{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
-{% endif %}
+    {% if book.cover_image %}
+        {% if "http" in book.cover_image.url %}
+            {{ book.cover_image.url }}
+        {% else %}
+            {{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
+        {% endif %}
+    {% else %}
+        {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+    {% endif %}
 {% endblock %}
 {% block og_type %}book{% endblock %}
 
 {% block twitter_title %}{{ book.book_title }} by {{ book.author }} | Igbo Archives{% endblock %}
 {% block twitter_description %}{{ content_excerpt|truncatewords:50 }}{% endblock %}
 {% block twitter_image %}
-{% if book.cover_image %}
-{{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
-{% else %}
-{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
-{% endif %}
+    {% if book.cover_image %}
+        {% if "http" in book.cover_image.url %}
+            {{ book.cover_image.url }}
+        {% else %}
+            {{ request.scheme }}://{{ request.get_host }}{{ book.cover_image.url }}
+        {% endif %}
+    {% else %}
+        {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+    {% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -34,7 +42,6 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/reviews.js' %}" defer></script>
-{% include "partials/turnstile_sdk.html" %}
 {% endblock %}
 
 {% block content %}
@@ -55,6 +62,7 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            
             {% if book.cover_image %}
             <div class="md:col-span-1">
                 <a href="{{ book.cover_image.url }}" target="_blank" class="block group">
@@ -62,94 +70,112 @@ Discover recommended books on Igbo culture and heritage.{% endblock %}
                         class="w-full rounded-lg shadow-soft group-hover:scale-[1.02] transition-transform duration-300">
                 </a>
             </div>
-            <div class="md:col-span-2">
-                {% else %}
-                <div class="md:col-span-3">
-                    {% endif %}
-                    <div class="card mb-6 shadow-sm border border-border/50">
-                        <div class="card-body p-4">
-                            <div class="flex items-center gap-4 mb-3">
-                                <div
-                                    class="w-12 h-12 rounded-full bg-secondary/10 flex flex-shrink-0 items-center justify-center text-xl font-serif text-secondary border-2 border-secondary/20 shadow-inner">
-                                    {{ book.author|slice:":1"|upper }}
-                                </div>
-                                <div>
-                                    <a href="{% url 'books:list' %}?author={{ book.author|urlencode }}"
-                                        class="font-serif font-semibold text-lg hover:text-accent transition-colors">
-                                        {{ book.author }}
-                                    </a>
-                                    <p class="text-xs text-text-muted">Book Author / Creator</p>
-                                </div>
+            {% endif %}
+
+            <div class="{% if book.cover_image %}md:col-span-2{% else %}md:col-span-3{% endif %}">
+                
+                <div class="card mb-6 shadow-sm border border-border/50">
+                    <div class="card-body p-4">
+                        <h4 class="font-serif font-semibold mb-3 text-sm text-text-muted uppercase tracking-wider">Book Author / Creator</h4>
+                        <div class="flex items-center gap-3 mb-3">
+                            {% if author_profile and author_profile.image %}
+                            <img src="{{ author_profile.image.url }}" alt="{{ book.author }}"
+                                class="w-12 h-12 rounded-full object-cover border-2 border-secondary/10">
+                            {% else %}
+                            <div class="avatar avatar-lg bg-secondary/10 text-secondary border-2 border-secondary/20 flex items-center justify-center font-serif text-xl">
+                                {{ book.author|slice:":1"|upper }}
                             </div>
-                            {% if author_profile and author_profile.description %}
-                            <p class="text-sm text-text-muted leading-relaxed line-clamp-4">
-                                {{ author_profile.description }}
-                            </p>
                             {% endif %}
+                            
+                            <div>
+                                {% if author_profile %}
+                                <a href="{% url 'archives:author_detail' author_profile.slug %}"
+                                    class="hover:text-accent font-medium transition-colors text-lg font-serif">
+                                    {{ book.author }}
+                                </a>
+                                {% else %}
+                                <a href="{% url 'books:list' %}?author={{ book.author|urlencode }}"
+                                    class="hover:text-accent font-medium transition-colors text-lg font-serif">
+                                    {{ book.author }}
+                                </a>
+                                {% endif %}
+                            </div>
                         </div>
+
+                        {% if author_profile and author_profile.description %}
+                        <p class="text-sm text-text-muted">{{ author_profile.description|truncatewords:25 }}</p>
+                        <a href="{% url 'archives:author_detail' author_profile.slug %}"
+                            class="text-xs text-accent hover:underline mt-2 inline-block font-medium">Read full bio
+                            &rarr;</a>
+                        {% elif author_profile and not author_profile.description %}
+                        <p class="text-xs text-text-muted italic mb-2">No biography available yet.</p>
+                        <a href="{% url 'archives:author_detail' author_profile.slug %}"
+                            class="btn-ghost btn-sm text-xs mt-1 inline-flex items-center gap-1"><i class="fas fa-edit"></i>
+                            Contribute Biography</a>
+                        {% endif %}
                     </div>
+                </div>
 
-                    <div class="card h-full">
-                        <div class="card-body">
-                            <h4 class="font-serif font-semibold mb-3 border-b border-border/50 pb-2">
-                                Book Details
-                            </h4>
-                            <dl class="space-y-3 text-sm">
-                                {% if book.publisher %}
-                                <div class="grid grid-cols-3">
-                                    <dt class="font-medium text-text-muted">Publisher</dt>
-                                    <dd class="col-span-2">{{ book.publisher }}</dd>
-                                </div>
-                                {% endif %}
-
-                                {% if book.publication_year %}
-                                <div class="grid grid-cols-3">
-                                    <dt class="font-medium text-text-muted">Year</dt>
-                                    <dd class="col-span-2">{{ book.publication_year }}</dd>
-                                </div>
-                                {% endif %}
-
-                                {% if book.isbn %}
-                                <div class="grid grid-cols-3">
-                                    <dt class="font-medium text-text-muted">ISBN</dt>
-                                    <dd class="col-span-2 font-mono">{{ book.isbn }}</dd>
-                                </div>
-                                {% endif %}
-                            </dl>
-
-                            {% if book.external_url %}
-                            <a href="{{ book.external_url }}" target="_blank" rel="noopener noreferrer"
-                                class="btn-primary mt-6 inline-flex items-center gap-2 w-full justify-center md:w-auto">
-                                <i class="fas fa-book-open"></i>
-                                View Book Source
-                            </a>
+                <div class="card h-full border border-border/50">
+                    <div class="card-body p-4">
+                        <h4 class="font-serif font-semibold mb-3 border-b border-border/50 pb-2">
+                            Book Details
+                        </h4>
+                        <dl class="space-y-3 text-sm">
+                            {% if book.publisher %}
+                            <div class="grid grid-cols-3">
+                                <dt class="font-medium text-text-muted">Publisher</dt>
+                                <dd class="col-span-2">{{ book.publisher }}</dd>
+                            </div>
                             {% endif %}
-                        </div>
+
+                            {% if book.publication_year %}
+                            <div class="grid grid-cols-3">
+                                <dt class="font-medium text-text-muted">Year</dt>
+                                <dd class="col-span-2">{{ book.publication_year }}</dd>
+                            </div>
+                            {% endif %}
+
+                            {% if book.isbn %}
+                            <div class="grid grid-cols-3">
+                                <dt class="font-medium text-text-muted">ISBN</dt>
+                                <dd class="col-span-2 font-mono">{{ book.isbn }}</dd>
+                            </div>
+                            {% endif %}
+                        </dl>
+
+                        {% if book.external_url %}
+                        <a href="{{ book.external_url }}" target="_blank" rel="noopener noreferrer"
+                            class="btn-primary mt-6 inline-flex items-center gap-2 w-full justify-center md:w-auto">
+                            <i class="fas fa-book-open"></i>
+                            View Book Source
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
-                {{ book.content|render_editorjs }}
+        <div class="prose prose-lg max-w-none mb-8" id="contentContainer">
+            {{ book.content|render_editorjs }}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/30 rounded-xl border border-border/50">
+            {% if request.user == book.added_by %}
+            <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex items-center gap-2">
+                <i class="fas fa-edit"></i> <span>Edit Recommendation</span>
+            </a>
+            {% endif %}
+
+            <div class="ml-auto">
+                {% include 'partials/share_buttons.html' with title=book.book_title %}
             </div>
+        </div>
 
-            <div
-                class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/30 rounded-xl border border-border/50">
-                {% if user == book.added_by %}
-                <a href="{% url 'books:edit' book.slug %}" class="btn-primary btn-sm flex items-center gap-2">
-                    <i class="fas fa-edit"></i> <span>Edit Recommendation</span>
-                </a>
-                {% endif %}
+        <hr class="border-border/50 my-8">
 
-                <div class="ml-auto">
-                    {% include 'partials/share_buttons.html' with title=book.book_title %}
-                </div>
-            </div>
-
-            <hr class="border-border/50 my-8">
-
-            {% include 'partials/prev_next_navigation.html' with previous=previous_book next=next_book %}
-            {% include 'partials/recommended_carousel.html' with recommended=related_books %}
+        {% include 'partials/prev_next_navigation.html' with previous=previous_book next=next_book %}
+        {% include 'partials/recommended_carousel.html' with recommended=related_books %}
 
     </article>
 

@@ -69,7 +69,18 @@ def dashboard(request):
     archives_paginator = Paginator(archives_queryset, 20)
     my_archives = archives_paginator.get_page(request.GET.get('archives_page', 1))
     
+    # Suggestions (Current user's requests or suggestions received on their content)
+    from archives.models import AuthorDescriptionRequest, ArchiveNoteSuggestion
     
+    # Author edits submitted by the user
+    my_author_edits = AuthorDescriptionRequest.objects.filter(requested_by=user).order_by('-created_at')
+    
+    # Suggestions received on the user's community notes
+    received_note_suggestions = ArchiveNoteSuggestion.objects.filter(note__added_by=user).select_related('suggested_by', 'note__archive').order_by('-created_at')
+    
+    # Suggestions submitted by the user on other notes
+    my_note_suggestions = ArchiveNoteSuggestion.objects.filter(suggested_by=user).select_related('note__archive').order_by('-created_at')
+
     context = {
         'messages_threads': messages_threads,
         'my_lores': my_lores,
@@ -80,6 +91,10 @@ def dashboard(request):
         'my_book_recommendations_count': live_books_count,
         'my_archives': my_archives,
         'my_archives_count': Archive.objects.filter(uploaded_by=user, is_approved=True).count(),
+        'my_author_edits': my_author_edits,
+        'received_note_suggestions': received_note_suggestions,
+        'my_note_suggestions': my_note_suggestions,
+        'edit_suggestions_count': my_author_edits.count() + received_note_suggestions.count() + my_note_suggestions.count(),
     }
     
     if request.htmx:

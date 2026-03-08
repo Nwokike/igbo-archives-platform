@@ -1,4 +1,5 @@
 import re
+import json
 import logging
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -64,6 +65,12 @@ class AuthorDescriptionRequest(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='description_requests')
     requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     proposed_description = models.TextField()
+    proposed_image = models.ImageField(
+        upload_to='authors/suggestions/', 
+        blank=True, 
+        null=True,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']), validate_image_size]
+    )
     is_approved = models.BooleanField(default=False, help_text="Has this been approved by admin?")
     is_rejected = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -456,8 +463,16 @@ class ArchiveNote(models.Model):
         
     @property
     def content(self):
-        if self.content_json and (isinstance(self.content_json, dict) and self.content_json.get('blocks')):
-            return self.content_json
+        if self.content_json:
+            # If it's a string from a TextField/POST, it needs parsing
+            if isinstance(self.content_json, str):
+                try:
+                    return json.loads(self.content_json)
+                except (ValueError, TypeError):
+                    return self.legacy_content
+            # If it's already a dict (JSONField with proper decoder)
+            elif isinstance(self.content_json, dict) and self.content_json.get('blocks'):
+                return self.content_json
         return self.legacy_content
 
 class ArchiveNoteSuggestion(models.Model):

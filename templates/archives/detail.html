@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load threadedcomments_tags %}
+{% load editorjs_renderer %} 
 
 {% block title %}{{ archive.title }} - Archives{% endblock %}
 {% block meta_description %}{{ archive.description|truncatewords:25|default:"Explore this Igbo cultural archive — images, documents, audio, and video preserving Igbo heritage." }}{% endblock %}
@@ -9,9 +10,17 @@
 {% block og_description %}{{ archive.description|truncatewords:50 }}{% endblock %}
 {% block og_image %}
 {% if archive.image %}
+{% if "http" in archive.image.url %}
+{{ archive.image.url }}
+{% else %}
 {{ request.scheme }}://{{ request.get_host }}{{ archive.image.url }}
+{% endif %}
 {% elif archive.featured_image %}
+{% if "http" in archive.featured_image.url %}
+{{ archive.featured_image.url }}
+{% else %}
 {{ request.scheme }}://{{ request.get_host }}{{ archive.featured_image.url }}
+{% endif %}
 {% else %}
 {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
 {% endif %}
@@ -22,14 +31,17 @@
 {% block twitter_description %}{{ archive.description|truncatewords:50 }}{% endblock %}
 {% block twitter_image %}
 {% if archive.image %}
+{% if "http" in archive.image.url %}
+{{ archive.image.url }}
+{% else %}
 {{ request.scheme }}://{{ request.get_host }}{{ archive.image.url }}
+{% endif %}
 {% elif archive.image_url %}
 {{ archive.image_url }}
 {% else %}
 {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
 {% endif %}
 {% endblock %}
-
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editor.css' %}">
@@ -78,7 +90,6 @@
                             Your browser does not support the video tag.
                         </video>
                         {% elif item.item_type == 'video' and item.video_url %}
-                        <!-- Basic iframe for YouTube/Vimeo style links or raw URLs -->
                         <iframe src="{{ item.video_url }}" class="w-full h-full min-h-[400px]" frameborder="0"
                             allowfullscreen></iframe>
 
@@ -144,7 +155,6 @@
             <p class="whitespace-pre-wrap">{{ archive.description }}</p>
         </div>
 
-        <!-- Community Notes Section -->
         <div class="mt-8 mb-8 border-t border-border/50 pt-8" id="community-notes-section">
             <h3 class="font-serif text-2xl font-semibold mb-6 flex items-center gap-2">
                 <i class="fas fa-users text-accent"></i> Community Notes
@@ -179,16 +189,26 @@
                         </div>
 
                         <div class="prose prose-sm max-w-none editorjs-content">
-                            {% load editorjs_renderer %}
                             {{ note.content|render_editorjs }}
                         </div>
 
-                        {% if request.user.is_authenticated and request.user != note.added_by %}
-                        <div class="mt-4 flex justify-end">
+                        {{ note.content_json|json_script:note.id }}
+
+                        {% if request.user.is_authenticated %}
+                        <div class="mt-4 flex justify-end gap-2">
+                            {% if request.user == note.added_by or request.user.is_staff %}
+                            <button type="button" class="btn-ghost btn-sm text-xs edit-note-btn"
+                                data-note-id="{{ note.id }}" data-edit-url="{% url 'archives:edit_note' note.id %}">
+                                <i class="fas fa-edit mr-1"></i> Edit
+                            </button>
+                            {% endif %}
+
+                            {% if request.user != note.added_by %}
                             <button type="button" class="btn-ghost btn-sm text-xs suggest-edit-btn"
                                 data-note-id="{{ note.id }}">
                                 <i class="fas fa-edit mr-1"></i> Suggest Edit
                             </button>
+                            {% endif %}
                         </div>
                         {% endif %}
                     </div>
@@ -202,7 +222,7 @@
             </div>
             {% endif %}
 
-            {% if user.is_authenticated %}
+            {% if request.user.is_authenticated %}
             <div class="mt-6">
                 <button type="button" class="btn-secondary w-full" id="addNoteBtn">
                     <i class="fas fa-plus mr-2"></i> Add Context / Note
@@ -217,7 +237,6 @@
                     <input type="hidden" name="content_json" id="id_content_json_note">
 
                     <div class="turnstile-wrapper mb-4 scale-90 origin-left">
-                        {% include "partials/turnstile_sdk.html" %}
                         <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
                     </div>
 
@@ -235,7 +254,33 @@
             {% endif %}
         </div>
 
-        <!-- Explore Further (AI Powered) -->
+        <div id="editNoteModal"
+            class="modal-overlay hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+            <div class="modal bg-white dark:bg-surface-dark rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+                <div
+                    class="modal-header p-4 border-b border-border flex justify-between items-center bg-heritage-cream/50">
+                    <h3 class="font-serif text-lg font-semibold text-dark-brown">
+                        <i class="fas fa-edit text-accent mr-2"></i>Edit Community Note
+                    </h3>
+                    <button type="button" id="closeEditNoteModal" class="text-text-muted hover:text-text px-2 py-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="editNoteForm" method="post" action="" class="p-6">
+                    {% csrf_token %}
+                    <div id="editorjs-edit-note"
+                        class="bg-surface border border-border rounded-lg min-h-[250px] p-4 font-sans text-base mb-4">
+                    </div>
+                    <input type="hidden" name="content_json" id="id_content_json_edit_note">
+
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" class="btn-ghost" id="cancelEditNoteBtn">Cancel</button>
+                        <button type="submit" class="btn-primary" id="saveEditNoteBtn">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         {% if ai_correlations and ai_correlations.items %}
         <div class="mt-8 mb-8 border-t border-border/50 pt-8" id="explore-further-section">
             <h3 class="font-serif text-2xl font-semibold mb-4 flex items-center gap-2">
@@ -254,7 +299,7 @@
 
         <div
             class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/50 dark:bg-surface-dark-alt/50 rounded-xl border border-border/50">
-            {% if user == archive.uploaded_by %}
+            {% if request.user == archive.uploaded_by %}
             {% if archive.slug %}
             <a href="{% url 'archives:edit' archive.slug %}" class="btn-primary btn-sm flex items-center gap-2">
                 <i class="fas fa-edit"></i> <span class="hidden sm:inline">Edit</span>
@@ -280,7 +325,7 @@
             {% endif %}
             {% endif %}
 
-            {% if user.is_authenticated and archive.archive_type == 'image' %}
+            {% if request.user.is_authenticated and archive.archive_type == 'image' %}
             <button type="button" id="aiAnalyzeBtn" class="btn-secondary btn-sm flex items-center gap-2"
                 title="Get AI analysis of this image">
                 <i class="fas fa-brain"></i> <span class="hidden sm:inline">AI Analysis</span>
@@ -292,7 +337,7 @@
             </div>
         </div>
 
-        {% if user.is_authenticated and archive.archive_type == 'image' %}
+        {% if request.user.is_authenticated and archive.archive_type == 'image' %}
         <div id="aiAnalysisModal" class="modal-overlay">
             <div class="modal">
                 <div class="modal-header">
@@ -347,7 +392,7 @@
     </article>
 
     <aside class="lg:col-span-4">
-        <div class="sticky top-32 space-y-6">
+        <div class="lg:sticky lg:top-24 space-y-6 lg:max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain pb-8 pr-2 sidebar-scroll">
 
             {% if archive.original_author or archive.author or archive.circa_date or archive.date_created or archive.copyright_holder or archive.original_url or archive.original_identity_number %}
             <div class="card">
@@ -531,7 +576,6 @@
 {% endblock %}
 
 {% block extra_js %}
-{% load static %}
 <script src="{% static 'vendor/js/editorjs/editorjs.umd.js' %}"></script>
 <script src="{% static 'vendor/js/editorjs/header.js' %}"></script>
 <script src="{% static 'vendor/js/editorjs/list.js' %}"></script>
@@ -543,63 +587,9 @@
 <script src="{% static 'vendor/js/editorjs/delimiter.js' %}"></script>
 <script src="{% static 'js/editor/editor.js' %}"></script>
 <script src="{% static 'js/editor/editor-toolbar.js' %}"></script>
+<script src="{% static 'js/archives/archive-detail.js' %}"></script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (document.querySelector('.swiper-slide')) {
-            const swiper = new Swiper('.archive-swiper', {
-                loop: false,
-                autoHeight: true,
-                spaceBetween: 20,
-                navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
-                pagination: { el: '.swiper-pagination', clickable: true, dynamicBullets: true },
-            });
-        }
-
-        // Community Notes Editor Logic
-        const addBtn = document.getElementById('addNoteBtn');
-        const cancelBtn = document.getElementById('cancelNoteBtn');
-        const form = document.getElementById('noteForm');
-        let editorInstance = null;
-
-        if (addBtn && form) {
-            addBtn.addEventListener('click', () => {
-                form.classList.remove('hidden');
-                addBtn.classList.add('hidden');
-
-                if (!editorInstance) {
-                    editorInstance = window.IgboEditor.initSimple('editorjs-note', {
-                        placeholder: 'Write your context, history, or corrections here...',
-                        autofocus: true
-                    });
-
-                    setTimeout(function () {
-                        if (window.EditorToolbar && editorInstance) {
-                            window.EditorToolbar.init(editorInstance, 'editorjs-note', { hasImageTool: false });
-                        }
-                    }, 300);
-                }
-            });
-
-            cancelBtn.addEventListener('click', () => {
-                form.classList.add('hidden');
-                addBtn.classList.remove('hidden');
-            });
-
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                editorInstance.save().then((outputData) => {
-                    document.getElementById('id_content_json_note').value = JSON.stringify(outputData);
-                    this.submit();
-                }).catch((error) => {
-                    console.log('Saving failed: ', error);
-                });
-            });
-        }
-    });
-</script>
-
-{% if user.is_authenticated and archive.archive_type == 'image' %}
+{% if request.user.is_authenticated and archive.archive_type == 'image' %}
 <div id="archiveAnalysisConfig" class="hidden" data-archive-id="{{ archive.id }}"
     data-analyze-url="{% url 'ai:analyze_archive' %}"></div>
 <script src="{% static 'js/archives/archive-analysis.js' %}"></script>

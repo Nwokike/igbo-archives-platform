@@ -3,6 +3,7 @@ Archive views for browsing and managing cultural archives.
 """
 import random  # Non-cryptographic use for content recommendations
 import logging
+import json
 import nh3
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -210,12 +211,29 @@ def author_detail(request, slug):
     paginator = Paginator(archives_list, 12)
     page_obj = paginator.get_page(request.GET.get('page'))
     
+    from lore.models import LorePost
+    from books.models import BookRecommendation
+    
+    lore_posts = LorePost.objects.filter(
+        is_published=True,
+        is_approved=True,
+        original_author__iexact=author.name
+    ).select_related('category', 'author').order_by('-created_at')
+    
+    recommended_books = BookRecommendation.objects.filter(
+        is_published=True,
+        is_approved=True,
+        author__iexact=author.name
+    ).select_related('added_by').order_by('-created_at')
+    
     from .forms import AuthorDescriptionRequestForm
     desc_form = AuthorDescriptionRequestForm()
     
     context = {
         'author': author,
         'archives': page_obj,
+        'lore_posts': lore_posts,
+        'recommended_books': recommended_books,
         'desc_form': desc_form,
     }
     return render(request, 'archives/author_detail.html', context)
@@ -448,18 +466,18 @@ def add_archive_note(request, slug):
         if not turnstile_result.get('success', False):
             messages.error(request, 'Security check failed. Please refresh and try again.')
             return redirect('archives:detail', slug=slug)
-
         content_json = request.POST.get('content_json')
-        if not content_json or content_json == '{}':
-            messages.error(request, 'Note content cannot be empty.')
-            return redirect('archives:detail', slug=slug)
-            
+        try:
+            parsed_json = json.loads(content_json) if isinstance(content_json, str) else content_json
+        except (ValueError, TypeError):
+            parsed_json = {}
+
         from .models import ArchiveNote
         note = ArchiveNote.objects.create(
             archive=archive,
             added_by=request.user,
-            content_json=content_json,
-            is_approved=False  # Requires moderation before publishing
+            content_json=parsed_json,
+            is_approved=False  
         )
         
         # Notify the original uploader of the archive
@@ -486,14 +504,15 @@ def suggest_note_edit(request, note_id):
     
     if request.method == 'POST':
         suggestion_text = request.POST.get('content_json')
-        if not suggestion_text or suggestion_text == '{}':
-            messages.error(request, 'Suggestion cannot be empty.')
-            return redirect('archives:detail', slug=archive.slug)
-            
+        try:
+            parsed_json = json.loads(suggestion_text) if isinstance(suggestion_text, str) else suggestion_text
+        except (ValueError, TypeError):
+            parsed_json = {}
+
         suggestion = ArchiveNoteSuggestion.objects.create(
             note=note,
             suggested_by=request.user,
-            suggestion_text=suggestion_text
+            suggestion_text=parsed_json
         )
         
         # Notify original note author via centralized notification system
@@ -513,6 +532,33 @@ def suggest_note_edit(request, note_id):
         
     return redirect('archives:detail', slug=archive.slug)
 
+
+@login_required
+def edit_archive_note(request, pk):
+    """Allow owners to edit their own community notes."""
+    from .models import ArchiveNote
+    note = get_object_or_404(ArchiveNote, pk=pk)
+    
+    if note.added_by != request.user and not request.user.is_staff:
+        messages.error(request, "You can only edit your own notes.")
+        return redirect('archives:detail', slug=note.archive.slug)
+    
+    if request.method == 'POST':
+        content_json = request.POST.get('content_json')
+        if content_json and content_json != '{}':
+            try:
+                note.content_json = json.loads(content_json) if isinstance(content_json, str) else content_json
+                note.is_approved = False  # Re-moderation required
+                note.save()
+                messages.success(request, 'Your note has been updated and is pending re-moderation.')
+            except (ValueError, TypeError):
+                messages.error(request, 'Failed to save note content.')
+        else:
+            messages.error(request, 'Note content cannot be empty.')
+            
+    return redirect('archives:detail', slug=note.archive.slug)
+
+
 @login_required
 def submit_author_description(request, slug):
     """Handle submissions to add or edit an Author's description."""
@@ -520,7 +566,7 @@ def submit_author_description(request, slug):
     
     if request.method == 'POST':
         from .forms import AuthorDescriptionRequestForm
-        form = AuthorDescriptionRequestForm(request.POST)
+        form = AuthorDescriptionRequestForm(request.POST, request.FILES)
         if form.is_valid():
             req = form.save(commit=False)
             req.author = author
@@ -531,8 +577,11 @@ def submit_author_description(request, slug):
                 req.is_approved = True
                 req.save()
                 author.description = req.proposed_description
+                if req.proposed_image:
+                    # Properly copy the file to the author's upload path
+                    author.image.save(req.proposed_image.name, req.proposed_image.file, save=False)
                 author.save()
-                messages.success(request, 'Thank you! Your description has been automatically approved and appended to the author profile.')
+                messages.success(request, 'Thank you! Your description and photo have been automatically approved and updated.')
             else:
                 req.save()
                 # Notify admin via async task

@@ -169,8 +169,15 @@
                     <div class="flex-1">
                         <h3 class="font-bold text-lg text-dark-brown">Edit Request for {{ edit.author.name }}</h3>
                         <p class="text-sm text-text-muted mb-2">Requested by <strong>{{ edit.requested_by.get_display_name }}</strong> • {{ edit.created_at|date:"M d, Y" }}</p>
-                        <div class="bg-gray-50 p-3 rounded-lg text-sm text-dark-umber mb-3 italic">
-                            {{ edit.proposed_description|truncatewords:50 }}
+                        <div class="flex gap-4 mb-3">
+                            <div class="flex-1 bg-gray-50 p-3 rounded-lg text-sm text-dark-umber italic">
+                                {{ edit.proposed_description|truncatewords:50 }}
+                            </div>
+                            {% if edit.proposed_image %}
+                            <div class="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                <img src="{{ edit.proposed_image.url }}" class="w-full h-full object-cover">
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="flex gap-2">
                             <a href="{{ edit.author.get_absolute_url }}" class="btn-secondary btn-sm"

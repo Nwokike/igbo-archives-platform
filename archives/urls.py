@@ -22,6 +22,7 @@ urlpatterns = [
     
     # Community Notes
     path('<slug:slug>/add-note/', views.add_archive_note, name='add_note'),
+    path('note/<int:pk>/edit/', views.edit_archive_note, name='edit_note'),
     path('note/<int:note_id>/suggest/', views.suggest_note_edit, name='suggest_note_edit'),
     
     # Author Enhancements

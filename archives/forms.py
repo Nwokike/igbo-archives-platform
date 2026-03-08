@@ -248,11 +248,15 @@ from .models import AuthorDescriptionRequest
 class AuthorDescriptionRequestForm(forms.ModelForm):
     class Meta:
         model = AuthorDescriptionRequest
-        fields = ['proposed_description']
+        fields = ['proposed_description', 'proposed_image']
         widgets = {
             'proposed_description': forms.Textarea(attrs={
                 'class': 'form-textarea',
                 'rows': 4,
                 'placeholder': 'Provide a detailed biography or description for this author/creator.'
+            }),
+            'proposed_image': forms.FileInput(attrs={
+                'class': 'form-input',
+                'accept': 'image/*'
             })
         }

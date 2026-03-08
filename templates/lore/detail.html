@@ -9,28 +9,35 @@
 {% block og_title %}{{ post.title }} | Igbo Archives Lore{% endblock %}
 {% block og_description %}{{ post.excerpt|default:post.title|truncatewords:50 }}{% endblock %}
 {% block og_image %}
-{% if post.featured_image %}
-{{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}
-{% elif post.image_url %}
-{{ post.image_url }}
-{% else %}
-{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
-{% endif %}
+    {% if post.featured_image %}
+        {% if "http" in post.featured_image.url %}
+            {{ post.featured_image.url }}
+        {% else %}
+            {{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}
+        {% endif %}
+    {% elif post.image_url %}
+        {{ post.image_url }}
+    {% else %}
+        {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+    {% endif %}
 {% endblock %}
 {% block og_type %}article{% endblock %}
 
 {% block twitter_title %}{{ post.title }} | Igbo Archives Lore{% endblock %}
 {% block twitter_description %}{{ post.excerpt|default:post.title|truncatewords:50 }}{% endblock %}
 {% block twitter_image %}
-{% if post.featured_image %}
-{{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}
-{% elif post.image_url %}
-{{ post.image_url }}
-{% else %}
-{{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
-{% endif %}
+    {% if post.featured_image %}
+        {% if "http" in post.featured_image.url %}
+            {{ post.featured_image.url }}
+        {% else %}
+            {{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}
+        {% endif %}
+    {% elif post.image_url %}
+        {{ post.image_url }}
+    {% else %}
+        {{ request.scheme }}://{{ request.get_host }}{% static 'images/logos/logo-light.png' %}
+    {% endif %}
 {% endblock %}
-
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editor.css' %}">
@@ -52,15 +59,24 @@
 
             {% if post.original_author %}
             <div class="text-lg text-text-muted mb-6 font-serif flex items-center gap-2">
-                <i class="fas fa-feather-alt text-accent"></i> Originally by {{ post.original_author }}
+                <i class="fas fa-feather-alt text-accent"></i> Originally by 
+                {% if author_profile %}
+                    <a href="{% url 'archives:author_detail' author_profile.slug %}" class="hover:text-accent font-medium transition-colors underline decoration-border hover:decoration-accent underline-offset-4">
+                        {{ post.original_author }}
+                    </a>
+                {% else %}
+                    <a href="{% url 'lore:list' %}?author={{ post.original_author|urlencode }}" class="hover:text-accent font-medium transition-colors underline decoration-border hover:decoration-accent underline-offset-4">
+                        {{ post.original_author }}
+                    </a>
+                {% endif %}
             </div>
             {% endif %}
         </header>
 
         {% if post.featured_image or post.image_url or post.featured_video or post.video_url or post.featured_audio or post.audio_url %}
         <div class="mb-8 card overflow-hidden border border-border/50 bg-black/5">
-            <div
-                class="relative w-full overflow-hidden flex flex-col justify-center items-center bg-black min-h-[400px] max-h-[600px]">
+            <div class="relative w-full overflow-hidden flex flex-col justify-center items-center bg-black min-h-[400px] max-h-[600px]">
+                
                 {% if post.featured_video %}
                 <video controls class="w-full h-full max-h-[600px]" preload="metadata">
                     <source src="{{ post.featured_video.url }}" type="video/mp4">
@@ -103,7 +119,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 mb-8 p-3 bg-surface-alt/50 rounded-xl border border-border/50">
-            {% if user == post.author %}
+            {% if request.user == post.author %}
             <a href="{% url 'lore:edit' post.slug %}" class="btn-primary btn-sm flex items-center gap-2">
                 <i class="fas fa-edit"></i> <span class="hidden sm:inline">Edit Lore</span>
             </a>
@@ -124,44 +140,24 @@
         <hr class="divider">
 
         {% include 'partials/prev_next_navigation.html' with previous=previous_post next=next_post %}
-
         {% include 'partials/recommended_carousel.html' with recommended=recommended %}
-        </section>
+
     </article>
 
     <aside class="lg:col-span-4">
-        <div class="sticky top-32 space-y-6">
+        <div class="lg:sticky lg:top-24 space-y-6 lg:max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain pb-8 pr-2 sidebar-scroll">
 
-            {% if post.original_author %}
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="font-serif font-semibold mb-3">Original Creator</h4>
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="avatar avatar-lg bg-secondary/10 text-secondary border-2 border-secondary/20">
-                            {{ post.original_author|slice:":1"|upper }}
-                        </div>
-                        <div>
-                            <a href="{% url 'lore:list' %}?author={{ post.original_author|urlencode }}"
-                                class="hover:text-accent font-medium transition-colors text-lg">
-                                {{ post.original_author }}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="card">
-                <div class="card-body flex items-center gap-4">
+            <div class="card shadow-sm border border-border/50">
+                <div class="card-body p-4 flex items-center gap-4">
                     {% if post.author.profile_picture %}
                     <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.get_display_name }}"
                         class="w-12 h-12 rounded-full object-cover">
                     {% else %}
-                    <div
-                        class="w-12 h-12 rounded-full bg-accent/20 flex flex-shrink-0 items-center justify-center text-accent font-bold text-xl">
+                    <div class="w-12 h-12 rounded-full bg-accent/20 flex flex-shrink-0 items-center justify-center text-accent font-bold text-xl">
                         {{ post.author.get_display_name|slice:":1"|upper }}
                     </div>
                     {% endif %}
+                    
                     <div>
                         <p class="text-xs text-text-muted mb-1">Shared by</p>
                         <h4 class="font-bold text-text">
@@ -175,13 +171,18 @@
                 </div>
             </div>
 
-<!-- Discussion Section -->
-            <section class="mt-8">
-                <hr class="divider mb-8">
-                <h3 class="font-serif text-xl font-semibold mb-6">Discussion</h3>
-                {% render_comment_list for post %}
-                {% render_comment_form for post %}
-            </section>
+            <div class="card shadow-sm border border-border/50">
+                <div class="card-body p-4">
+                    <h4 class="font-serif font-semibold mb-4 text-sm text-text-muted uppercase tracking-wider">
+                        <i class="fas fa-comments mr-2"></i> Discussion
+                    </h4>
+                    <div class="space-y-4">
+                        {% render_comment_list for post %}
+                        {% render_comment_form for post %}
+                    </div>
+                </div>
+            </div>
+
         </div>
     </aside>
 

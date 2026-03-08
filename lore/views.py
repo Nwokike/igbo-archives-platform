@@ -93,8 +93,15 @@ def lore_detail(request, slug):
     else:
         recommended = LorePost.objects.none()
     
+    # Author profile lookup for bio/description
+    author_profile = None
+    if post.original_author:
+        from archives.models import Author
+        author_profile = Author.objects.filter(name__iexact=post.original_author).first()
+
     context = {
         'post': post,
+        'author_profile': author_profile,
         'previous_post': previous_post,
         'next_post': next_post,
         'recommended': recommended,

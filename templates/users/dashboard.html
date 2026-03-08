@@ -49,7 +49,7 @@
         </button>
         <button type="button" class="tab" data-tab="suggestions">
             <i class="fas fa-comment-dots"></i> Suggestions
-            <span class="badge badge-warning ml-1">{{ edit_suggestions.count }}</span>
+            <span class="badge badge-warning ml-1">{{ edit_suggestions_count }}</span>
         </button>
     </div>
 </div>
@@ -130,31 +130,83 @@
         {% include 'users/partials/dashboard_archives.html' %}
     </div>
 
-    <div id="suggestions" class="tab-panel">
-        {% if edit_suggestions %}
-        <div class="space-y-3">
-            {% for suggestion in edit_suggestions %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="flex items-start justify-between gap-4 mb-2">
-                        <h4 class="font-serif font-semibold">{{ suggestion.lore.title }}</h4>
-                        <span
-                            class="badge {% if suggestion.status == 'pending' %}badge-warning{% elif suggestion.status == 'approved' %}badge-success{% else %}badge-secondary{% endif %}">
-                            {{ suggestion.get_status_display }}
-                        </span>
+    <div id="suggestions" class="tab-panel hidden">
+        <div class="space-y-8">
+            {% if my_author_edits %}
+            <div>
+                <h3 class="font-serif text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-user-edit text-accent"></i> My Author Bio Suggestions
+                </h3>
+                <div class="space-y-3">
+                    {% for edit in my_author_edits %}
+                    <div class="card p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold">{{ edit.author.name }}</h4>
+                            <span class="badge badge-secondary text-xs">
+                                {% if edit.is_approved %}Approved{% elif edit.is_rejected %}Rejected{% else %}Pending{% endif %}
+                            </span>
+                        </div>
+                        <p class="text-sm text-text-muted line-clamp-2 italic">"{{ edit.proposed_description|truncatewords:20 }}"</p>
+                        <p class="text-[10px] text-text-muted mt-2">Submitted on {{ edit.created_at|date:"M d, Y" }}</p>
                     </div>
-                    <p class="text-sm text-text-muted mb-2">From: {{ suggestion.suggested_by.get_display_name }}</p>
-                    <p class="text-sm">{{ suggestion.suggestion|truncatewords:30 }}</p>
+                    {% endfor %}
                 </div>
             </div>
-            {% endfor %}
+            {% endif %}
+
+            {% if received_note_suggestions %}
+            <div>
+                <h3 class="font-serif text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-inbox text-vintage-gold"></i> Suggestions Received on My Notes
+                </h3>
+                <div class="space-y-3">
+                    {% for suggestion in received_note_suggestions %}
+                    <div class="card p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold">On: {{ suggestion.note.archive.title }}</h4>
+                            <span class="badge badge-warning text-xs">Action Required</span>
+                        </div>
+                        <p class="text-sm text-text-muted mb-2">From: {{ suggestion.suggested_by.get_display_name }}</p>
+                        <div class="bg-gray-50 p-3 rounded text-sm italic mb-3">
+                            {{ suggestion.suggestion_text|truncatewords:30 }}
+                        </div>
+                        <a href="{{ suggestion.note.archive.get_absolute_url }}" class="btn-secondary btn-sm">Review
+                            Suggestion</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if my_note_suggestions %}
+            <div>
+                <h3 class="font-serif text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-paper-plane text-accent"></i> My Note Edit Suggestions
+                </h3>
+                <div class="space-y-3">
+                    {% for suggestion in my_note_suggestions %}
+                    <div class="card p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold">Note on: {{ suggestion.note.archive.title }}</h4>
+                            <span class="badge badge-secondary text-xs">
+                                {% if suggestion.is_approved %}Approved{% elif suggestion.is_rejected %}Rejected{% else %}Pending{% endif %}
+                            </span>
+                        </div>
+                        <p class="text-xs text-text-muted mb-2">To: {{ suggestion.note.added_by.get_display_name }}</p>
+                        <p class="text-[10px] text-text-muted italic">Submitted on {{ suggestion.created_at|date:"M d, Y" }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if not my_author_edits and not received_note_suggestions and not my_note_suggestions %}
+            <div class="text-center py-12 text-text-muted">
+                <i class="fas fa-comment-dots text-4xl mb-4 opacity-30"></i>
+                <p>No active suggestions or requests.</p>
+            </div>
+            {% endif %}
         </div>
-        {% else %}
-        <div class="text-center py-12 text-text-muted">
-            <i class="fas fa-comment-dots text-4xl mb-4 opacity-30"></i>
-            <p>No edit suggestions.</p>
-        </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
