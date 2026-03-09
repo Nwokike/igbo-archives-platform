@@ -1,6 +1,6 @@
 [project]
 name = "igbo-archives-platform"
-version = "1.0"
+version = "1.0.0"
 description = "Preserving Igbo history and culture"
 readme = "README.md"
 requires-python = ">=3.13"

@@ -73,7 +73,10 @@ class ArchiveAnalysis {
 
             if (data.success) {
                 if (typeof marked !== 'undefined') {
-                    this.result.innerHTML = marked.parse(data.content);
+                    this.result.innerHTML = marked.parse(data.content, {
+                        breaks: true,
+                        gfm: true
+                    });
                 } else {
                     this.result.innerHTML = data.content.replace(/\n/g, '<br>');
                 }
