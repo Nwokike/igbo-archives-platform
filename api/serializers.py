@@ -121,7 +121,7 @@ class ArchiveSerializer(serializers.ModelSerializer):
             'category', 'author', 'original_author', 'uploaded_by',
             'items',
             'tags',
-            'views_count', 'is_featured', 'created_at', 'updated_at'
+            'created_at', 'updated_at'
         ]
 
     def get_tags(self, obj):

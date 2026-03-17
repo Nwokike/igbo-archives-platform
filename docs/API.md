@@ -116,8 +116,6 @@ GET /api/v1/archives/{slug}/
       "description": "Detailed carving on the forehead."
     }
   ],
-  "views_count": 150,
-  "is_featured": true,
   "created_at": "2026-01-29T12:00:00Z",
   "updated_at": "2026-01-29T14:30:00Z"
 }
