@@ -4,7 +4,7 @@ from django.core.files.base import ContentFile
 import os
 import requests
 from urllib.parse import urlparse
-from archives.models import Archive, ArchiveItem, Category, Author
+from archives.models import Archive, ArchiveItem, Category, Author, ArchiveNote
 from books.models import BookRecommendation, UserBookRating
 from lore.models import LorePost
 
@@ -221,6 +221,30 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
             item.save()
 
         return archive
+
+
+class ArchiveNoteSerializer(serializers.ModelSerializer):
+    """Read-Serializer for Archive Community Notes."""
+    added_by = UserSerializer(read_only=True)
+    archive_id = serializers.PrimaryKeyRelatedField(source='archive', read_only=True)
+    
+    class Meta:
+        model = ArchiveNote
+        fields = [
+            'id', 'archive_id', 'content', 'added_by', 
+            'is_approved', 'created_at', 'updated_at'
+        ]
+
+
+class ArchiveNoteCreateSerializer(serializers.ModelSerializer):
+    """Write-serializer for creating/appending notes to an archive."""
+    archive_id = serializers.PrimaryKeyRelatedField(
+        queryset=Archive.objects.all(), source='archive'
+    )
+    
+    class Meta:
+        model = ArchiveNote
+        fields = ['archive_id', 'content_json', 'legacy_content']
 
 
 # Book Recommendation Serializers

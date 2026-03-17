@@ -33,6 +33,9 @@ The following tools are exposed via the MCP endpoint:
 - `archives_list`: List and filter approved cultural archives.
 - `archives_retrieve`: Get full details of a specific archive.
 - `archives_create`: Upload new archival material (Auth required).
+- `archive_notes_list`: List community notes attached to archives.
+- `archive_notes_retrieve`: Get details of a specific community note.
+- `archive_notes_create`: Append new contextual notes to an existing archive (Auth required).
 
 ### Lore
 - `lore_list`: Browse cultural lore, folklore, and proverbs.

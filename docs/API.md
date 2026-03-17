@@ -148,6 +148,52 @@ Content-Type: multipart/form-data
 | `original_url` | string | No | Source URL |
 | `category_id` | integer | No | Category ID |
 
+#### List Archive Notes
+
+```http
+GET /api/v1/archive-notes/
+```
+
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `archive_id` | integer | Filter notes by specific archive ID |
+
+**Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "archive_id": 1,
+    "content": "Traditional context about the mask...",
+    "added_by": {
+      "id": 1,
+      "username": "johndoe",
+      "get_display_name": "John Doe"
+    },
+    "is_approved": true,
+    "created_at": "2026-03-01T10:00:00Z",
+    "updated_at": "2026-03-01T10:00:00Z"
+  }
+]
+```
+
+#### Create Archive Note (Auth Required)
+
+```http
+POST /api/v1/archive-notes/
+Authorization: Token YOUR_TOKEN
+Content-Type: application/json
+```
+
+**Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `archive_id` | integer | Yes | ID of the parent Archive |
+| `content_json` | object/string | Yes | EditorJS JSON blocks or legacy text |
+
 ---
 
 ### Books

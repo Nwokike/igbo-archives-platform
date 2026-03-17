@@ -10,11 +10,12 @@ from django.core.cache import cache
 from django.db.models import Q, Avg, Count
 from djangorestframework_mcp.decorators import mcp_viewset
 
-from archives.models import Archive, Category
+from archives.models import Archive, Category, ArchiveNote
 from books.models import BookRecommendation, UserBookRating
 from .serializers import (
     CategorySerializer,
     ArchiveListSerializer, ArchiveSerializer, ArchiveCreateSerializer,
+    ArchiveNoteSerializer, ArchiveNoteCreateSerializer,
     BookRecommendationListSerializer, BookRecommendationSerializer, BookRecommendationCreateSerializer,
     UserBookRatingSerializer, UserBookRatingCreateSerializer,
     LorePostSerializer, LorePostCreateSerializer,
@@ -126,6 +127,41 @@ class ArchiveViewSet(viewsets.ModelViewSet):
         recent = self.get_queryset().order_by('-created_at')[:20]
         serializer = ArchiveListSerializer(recent, many=True)
         return Response(serializer.data)
+
+
+@mcp_viewset(basename='archive_notes')
+class ArchiveNoteViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for archive community notes.
+    
+    GET /api/v1/archive-notes/ - List approved notes
+    GET /api/v1/archive-notes/{id}/ - Note detail
+    POST /api/v1/archive-notes/ - Create a note (auth required)
+    PUT/PATCH /api/v1/archive-notes/{id}/ - Update note (owner only)
+    DELETE /api/v1/archive-notes/{id}/ - Delete note (owner only)
+    """
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    
+    def get_queryset(self):
+        queryset = ArchiveNote.objects.filter(is_approved=True).select_related('added_by', 'archive')
+        
+        # Filter by archive_id
+        archive_id = self.request.query_params.get('archive_id')
+        if archive_id:
+            queryset = queryset.filter(archive_id=archive_id)
+            
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ArchiveNoteCreateSerializer
+        return ArchiveNoteSerializer
+        
+    def perform_create(self, serializer):
+        serializer.save(
+            added_by=self.request.user,
+            is_approved=False
+        )
 
 
 @mcp_viewset(basename='books')
