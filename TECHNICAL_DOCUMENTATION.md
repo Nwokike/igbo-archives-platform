@@ -22,6 +22,8 @@ The project follows Django's app-based architecture with clear separation of con
 - **users**: Custom user model extending AbstractUser, messaging system, notifications, and profile management
 - **ai**: AI assistant with chat sessions, archive analysis, and TTS capabilities
 - **api**: REST endpoints (Archives, Books, Lore, Categories) and MCP server.
+  - **Omni-Ingestion Architecture**: Features a dynamic startup injector in `apps.py` that transparently patches `djangorestframework-mcp` to support DRF `ImageField` and `FileField` as URI strings.
+  - **AIFallbackMediaField**: A custom unified field in `serializers.py` that intercepts HTTP/HTTPS URLs provided by AI Agents, enforces rigorous safety constraints (50MB size limit, timeout), and streams media into native Django `ContentFile` objects without blocking Gunicorn workers.
 
 ### Frontend Architecture
 - **HTMX** for dynamic page updates without full reloads

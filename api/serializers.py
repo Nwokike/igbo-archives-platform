@@ -1,10 +1,65 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
+import os
+import requests
+from urllib.parse import urlparse
 from archives.models import Archive, ArchiveItem, Category, Author
 from books.models import BookRecommendation, UserBookRating
 from lore.models import LorePost
 
 User = get_user_model()
+
+class AIFallbackMediaField(serializers.FileField):
+    """
+    A unified media field built for the MCP integration.
+    - Native Web APIs (Editor.js): Accpets and passes through `UploadedFile` binaries.
+    - AI Agents (MCP): Accepts public HTTP/HTTPS URLs. It intercepts the URL,
+      enforces a strict safety limit (e.g., 50MB), streams the download, 
+      and converts it into a native Django `ContentFile` on the fly.
+    """
+    def __init__(self, **kwargs):
+        self.max_download_size = kwargs.pop('max_download_size', 50 * 1024 * 1024) # Default 50MB safety limit
+        kwargs.setdefault('allow_empty_file', True)
+        super().__init__(**kwargs)
+
+    def to_internal_value(self, data):
+        # 1. Standard web GUI upload (binary file)
+        if hasattr(data, 'read'):
+            return super().to_internal_value(data)
+            
+        # 2. AI Agent URL upload
+        if isinstance(data, str) and data.startswith(('http://', 'https://')):
+            try:
+                # Stream the download to prevent loading huge files into memory at once
+                response = requests.get(data, stream=True, timeout=10)
+                response.raise_for_status()
+                
+                # Verify Size (Defend against SSRF/Resource exhaustion)
+                content_length = response.headers.get('content-length')
+                if content_length and int(content_length) > self.max_download_size:
+                    raise serializers.ValidationError(f"File at URL exceeds the {self.max_download_size//(1024*1024)}MB limit.")
+                
+                # Extract original filename
+                parsed_url = urlparse(data)
+                file_name = os.path.basename(parsed_url.path)
+                
+                # Ensure we have a valid looking filename and extension
+                if not file_name or '.' not in file_name:
+                    content_type = response.headers.get('content-type', '')
+                    ext = content_type.split('/')[-1] if '/' in content_type else 'bin'
+                    ext = ext.split(';')[0].strip() # Clean up parameters
+                    file_name = f"ai_upload.{ext}"
+                    
+                # Return standard Django file object
+                return ContentFile(response.content, name=file_name)
+                
+            except requests.RequestException as e:
+                raise serializers.ValidationError(f"Could not fetch media from provided AI URL. Ensure the URL is public and valid. Underlying error: {e}")
+                
+        # 3. Invalid input fallback
+        raise serializers.ValidationError("Media must be either a valid HTTP/HTTPS URL or a standard file upload.")
+
 
 class UserSerializer(serializers.ModelSerializer):
     display_name = serializers.CharField(source='get_display_name', read_only=True)
@@ -103,6 +158,12 @@ class ArchiveCreateSerializer(serializers.ModelSerializer):
     both the Parent Archive and the first ArchiveItem.
     """
     category_id = serializers.IntegerField(required=False, allow_null=True)
+    image = AIFallbackMediaField(required=False, allow_null=True)
+    video = AIFallbackMediaField(required=False, allow_null=True)
+    audio = AIFallbackMediaField(required=False, allow_null=True)
+    document = AIFallbackMediaField(required=False, allow_null=True)
+    featured_image = AIFallbackMediaField(required=False, allow_null=True)
+    
     class Meta:
         model = Archive
         fields = [
@@ -199,6 +260,7 @@ class BookRecommendationSerializer(serializers.ModelSerializer):
 
 class BookRecommendationCreateSerializer(serializers.ModelSerializer):
     """Write-serializer for creating/updating book recommendations."""
+    cover_image = AIFallbackMediaField(required=False, allow_null=True)
     
     class Meta:
         model = BookRecommendation
@@ -249,6 +311,7 @@ class LorePostSerializer(serializers.ModelSerializer):
 
 class LorePostCreateSerializer(serializers.ModelSerializer):
     """Write-serializer for creating/updating lore posts."""
+    featured_image = AIFallbackMediaField(required=False, allow_null=True)
     
     class Meta:
         model = LorePost

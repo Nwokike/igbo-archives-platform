@@ -137,10 +137,10 @@ Content-Type: multipart/form-data
 |-------|------|----------|-------------|
 | `title` | string | Yes | Archive title |
 | `archive_type` | string | Yes | image, video, audio, document |
-| `image` | file | * | Image file (for image type) |
-| `video` | file | * | Video file (for video type) |
-| `audio` | file | * | Audio file (for audio type) |
-| `document` | file | * | Document file (for document type) |
+| `image` | file/url | * | Image file or public URL (for AI/MCP) |
+| `video` | file/url | * | Video file or public URL (for AI/MCP) |
+| `audio` | file/url | * | Audio file or public URL (for AI/MCP) |
+| `document` | file/url | * | Document file or public URL (for AI/MCP) |
 | `description` | string | No | Full description |
 | `caption` | string | No | Short caption |
 | `alt_text` | string | No | Accessibility text |
@@ -270,7 +270,7 @@ Content-Type: multipart/form-data
 | `title` | string | Yes | Post title |
 | `content_json` | object | Yes | EditorJS content |
 | `excerpt` | string | No | Short summary |
-| `featured_image` | file | No | Cover image |
+| `featured_image` | file/url | No | Cover image or public URL (for AI/MCP) |
 | `category_id` | integer | No | Category ID |
 
 ---

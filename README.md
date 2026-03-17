@@ -32,7 +32,8 @@ Igbo Archives is a community-driven cultural preservation platform dedicated to 
 ### 🔌 REST API & MCP
 - **RESTful Endpoints**: `/api/v1/archives/`, `/api/v1/books/`, `/api/v1/lore/`, `/api/v1/categories/`
 - **Token Auth**: Secure API token authentication via user dashboard
-- **Model Context Protocol (MCP)**: Connect AI agents directly to cultural data
+- **Model Context Protocol (MCP)**: Natively connect AI agents (Antigravity, Claude, Cursor) directly to cultural data
+- **Omni-Ingestion**: AI agents can seamlessly upload and create archives/books/lore using public URLs
 - **Documentation**: [API Reference](docs/API.md) | [MCP Guide](docs/MCP.md)
 
 ### 👥 Community Features

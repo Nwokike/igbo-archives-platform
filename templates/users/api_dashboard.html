@@ -283,6 +283,9 @@ fetch(url, options)
                     <div class="flex gap-1 bg-secondary/5 p-1 rounded-lg">
                         <button type="button"
                             class="mcp-config-tab active px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all hover:bg-white"
+                            data-mcp-client="antigravity">Antigravity</button>
+                        <button type="button"
+                            class="mcp-config-tab px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all hover:bg-white"
                             data-mcp-client="claude">Claude</button>
                         <button type="button"
                             class="mcp-config-tab px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all hover:bg-white"
@@ -294,8 +297,24 @@ fetch(url, options)
                 </div>
 
                 <div class="relative group">
+                    <!-- Antigravity -->
+                    <div class="mcp-config-panel block" id="mcp-antigravity">
+                        <pre
+                            class="bg-gray-900 rounded-xl p-6 font-mono text-xs text-gray-100 border border-border/50 shadow-lg overflow-x-auto"><code>{
+  "mcpServers": {
+    "igbo-archives": {
+      "serverUrl": "{{ mcp_endpoint }}",
+      "headers": {
+        "Authorization": "Token YOUR_KEY",
+        "Content-Type": "application/json"
+      }
+    }
+  }
+}</code></pre>
+                    </div>
+
                     <!-- Claude -->
-                    <div class="mcp-config-panel block" id="mcp-claude">
+                    <div class="mcp-config-panel hidden" id="mcp-claude">
                         <pre
                             class="bg-gray-900 rounded-xl p-6 font-mono text-xs text-gray-100 border border-border/50 shadow-lg overflow-x-auto"><code>{
   "mcpServers": {

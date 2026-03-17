@@ -7,7 +7,7 @@ The Igbo Archives Platform implements the **Model Context Protocol (MCP)**, whic
 Instead of copy-pasting data, an AI agent connected via MCP can:
 - **Search** for specific historical artifacts or proverbs.
 - **Retrieve** full details of cultural items to provide accurate information.
-- **Add** new contributions (with your permission and token).
+- **Add** new contributions (with your permission and token), including uploading media using public URLs.
 - **Preserve** cultural context by having direct access to the source material.
 
 ## Connection Endpoint
@@ -47,6 +47,23 @@ The following tools are exposed via the MCP endpoint:
 - `categories_list`: List all cultural categories.
 
 ## Client Configuration Examples
+
+### Antigravity / HTTP native clients
+Antigravity natively supports remote HTTP/SSE MCP servers. Add this configuration to your `mcp_config.json` file in your Antigravity Agent settings:
+
+```json
+{
+  "mcpServers": {
+    "igbo-archives": {
+      "serverUrl": "https://archives.kiri.ng/api/mcp/",
+      "headers": {
+        "Authorization": "Token YOUR_API_TOKEN",
+        "Content-Type": "application/json"
+      }
+    }
+  }
+}
+```
 
 ### Claude Desktop
 Add the following to your `claude_desktop_config.json`:
