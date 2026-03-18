@@ -1,292 +1,304 @@
-{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Igbo Archives - Weekly Update</title>
-    <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f4f1ed;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header img {
-            max-width: 120px;
-            height: auto;
-        }
-
-        .header h1 {
-            color: #ffffff;
-            margin: 15px 0 5px;
-            font-size: 24px;
-            font-family: 'Playfair Display', Georgia, serif;
-        }
-
-        .header p {
-            color: #f0e6d8;
-            margin: 0;
-            font-size: 14px;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .greeting {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-
-        .section {
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            color: #8B4513;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #f0e6d8;
-        }
-
-        .item {
-            background-color: #faf8f5;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-left: 4px solid #8B4513;
-        }
-
-        .item-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .item-title a {
-            color: #8B4513;
-            text-decoration: none;
-        }
-
-        .item-title a:hover {
-            text-decoration: underline;
-        }
-
-        .item-meta {
-            font-size: 13px;
-            color: #666;
-        }
-
-        .item-type {
-            display: inline-block;
-            background-color: #8B4513;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            text-transform: uppercase;
-            margin-right: 8px;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            background-color: #faf8f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 28px;
-            font-weight: 700;
-            color: #8B4513;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-        }
-
-        .cta {
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
-            color: #ffffff !important;
-            padding: 14px 30px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .footer {
-            background-color: #2d2520;
-            color: #b8a99a;
-            padding: 25px;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        .footer a {
-            color: #d4c4b0;
-        }
-
-        .social-links {
-            margin: 15px 0;
-        }
-
-        .social-links a {
-            display: inline-block;
-            margin: 0 8px;
-            color: #d4c4b0;
-            text-decoration: none;
-        }
-
-        .unsubscribe {
-            font-size: 11px;
-            color: #8b7d70;
-            margin-top: 15px;
-        }
-
-        .unsubscribe a {
-            color: #8b7d70;
-        }
-    </style>
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <title>Igbo Archives Weekly Update</title>
+    <!--[if mso]>
+    <xml>
+        <o:OfficeDocumentSettings>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
 </head>
 
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <img src="{{ site_url }}{% static 'images/logos/logo-light.png' %}" alt="Igbo Archives">
-            <h1>Weekly Update</h1>
-            <p>{{ week_start }} - {{ week_end }}</p>
-        </div>
-
-        <!-- Content -->
-        <div class="content">
-            <p class="greeting">Ndewo {{ user_name }},</p>
-            <p>Here's what's new on Igbo Archives this week. Thank you for being part of our community</p>
-
-            <!-- Stats Summary -->
-            {% if new_archives_count or new_lore_count or new_books_count %}
-            <div class="stats">
-                <div class="stat">
-                    <div class="stat-number">{{ new_archives_count|default:0 }}</div>
-                    <div class="stat-label">New Archives</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number">{{ new_lore_count|default:0 }}</div>
-                    <div class="stat-label">New Lore</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number">{{ new_books_count|default:0 }}</div>
-                    <div class="stat-label">New Books</div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- New Archives -->
-            {% if new_archives %}
-            <div class="section">
-                <h2 class="section-title">📸 New Archives</h2>
-                {% for item in new_archives %}
-                <div class="item">
-                    <div class="item-title">
-                        <span class="item-type">{{ item.archive_type }}</span>
-                        <a href="{{ site_url }}{{ item.url }}">{{ item.title }}</a>
-                    </div>
-                    <div class="item-meta">By {{ item.author_name }}</div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <!-- New Lore -->
-            {% if new_lore %}
-            <div class="section">
-                <h2 class="section-title">✍️ New Lore</h2>
-                {% for item in new_lore %}
-                <div class="item">
-                    <div class="item-title">
-                        <a href="{{ site_url }}{{ item.url }}">{{ item.title }}</a>
-                    </div>
-                    <div class="item-meta">By {{ item.author_name }}</div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <!-- New Books -->
-            {% if new_books %}
-            <div class="section">
-                <h2 class="section-title">📚 New Book Recommendations</h2>
-                {% for item in new_books %}
-                <div class="item">
-                    <div class="item-title">
-                        <a href="{{ site_url }}{{ item.url }}">{{ item.title }}</a>
-                    </div>
-                    <div class="item-meta">Reviewed by {{ item.author_name }}</div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <!-- CTA -->
-            <div class="cta">
-                <a href="{{ site_url }}" class="cta-button">Explore Igbo Archives</a>
-            </div>
-
-            {% if not new_archives and not new_lore and not new_books %}
-            <p style="text-align: center; color: #666;">
-                No new content this week, but you can still explore our growing collection of Igbo heritage.
-            </p>
-            {% endif %}
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <div class="social-links">
-                <a href="https://www.facebook.com/IgboArchives/">Facebook</a>
-                <a href="https://www.instagram.com/IgboArchives.com.ng/">Instagram</a>
-                <a href="https://x.com/IgboArchives">X (Twitter)</a>
-            </div>
-            <p>Igbo Archives - Preserving the Past, Inspiring the Future</p>
-            <p>© {{ year }} Igbo Archives. All rights reserved.</p>
-            <div class="unsubscribe">
-                <a href="{{ site_url }}/accounts/settings/">Manage email preferences</a>
-            </div>
-        </div>
+<body style="margin: 0; padding: 0; background-color: #F5F1E8; font-family: Georgia, 'Times New Roman', serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+    <!-- Preheader (hidden inbox preview text) -->
+    <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #F5F1E8;">
+        {% if new_archives_count or new_lore_count or new_books_count or new_notes_count %}This week: {{ new_archives_count|default:0 }} archives, {{ new_lore_count|default:0 }} lore, {{ new_books_count|default:0 }} books, {{ new_notes_count|default:0 }} notes{% else %}Explore our growing collection of Igbo heritage{% endif %}
     </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #F5F1E8;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <!--[if mso]><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="480"><tr><td><![endif]-->
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                    style="max-width: 480px; background-color: #FFFFFF; border-radius: 12px;">
+                    <!-- Logo -->
+                    <tr>
+                        <td align="center" style="padding: 32px 32px 16px;">
+                            <img src="https://igboarchives.com.ng/static/images/logos/logo-light.png"
+                                alt="Igbo Archives" width="160" style="max-width: 160px; height: auto; display: block; border: 0;">
+                        </td>
+                    </tr>
+                    <!-- Title -->
+                    <tr>
+                        <td style="padding: 0 32px 8px;">
+                            <h2 style="margin: 0; color: #3D2817; font-size: 20px; text-align: center; font-weight: 700; font-family: Georgia, 'Times New Roman', serif;">
+                                Your Weekly Update
+                            </h2>
+                            <p style="margin: 8px 0 0; color: #8B7355; font-size: 12px; text-align: center; font-family: Georgia, 'Times New Roman', serif;">
+                                {{ week_start }} &ndash; {{ week_end }}
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Greeting -->
+                    <tr>
+                        <td style="padding: 16px 32px 0;">
+                            <p style="margin: 0 0 12px; color: #5C4A3D; font-size: 15px; line-height: 1.6; text-align: center; font-family: Georgia, 'Times New Roman', serif;">
+                                Ndewo{% if user_first_name %} {{ user_first_name }}{% endif %}, here's what happened on Igbo Archives this week.
+                            </p>
+                        </td>
+                    </tr>
+
+                    {% if new_archives_count or new_lore_count or new_books_count or new_notes_count %}
+                    <!-- Stats Summary -->
+                    <tr>
+                        <td style="padding: 16px 32px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                                style="background-color: #FAF8F5; border-radius: 8px;">
+                                <tr>
+                                    <td align="center" width="25%" style="padding: 16px 4px;">
+                                        <p style="margin: 0; font-size: 24px; font-weight: 700; color: #C4A052; font-family: Georgia, serif;">{{ new_archives_count|default:0 }}</p>
+                                        <p style="margin: 4px 0 0; font-size: 10px; color: #8B7355; text-transform: uppercase; letter-spacing: 0.5px; font-family: Georgia, serif;">Archives</p>
+                                    </td>
+                                    <td align="center" width="25%" style="padding: 16px 4px;">
+                                        <p style="margin: 0; font-size: 24px; font-weight: 700; color: #C4A052; font-family: Georgia, serif;">{{ new_lore_count|default:0 }}</p>
+                                        <p style="margin: 4px 0 0; font-size: 10px; color: #8B7355; text-transform: uppercase; letter-spacing: 0.5px; font-family: Georgia, serif;">Lore</p>
+                                    </td>
+                                    <td align="center" width="25%" style="padding: 16px 4px;">
+                                        <p style="margin: 0; font-size: 24px; font-weight: 700; color: #C4A052; font-family: Georgia, serif;">{{ new_books_count|default:0 }}</p>
+                                        <p style="margin: 4px 0 0; font-size: 10px; color: #8B7355; text-transform: uppercase; letter-spacing: 0.5px; font-family: Georgia, serif;">Books</p>
+                                    </td>
+                                    <td align="center" width="25%" style="padding: 16px 4px;">
+                                        <p style="margin: 0; font-size: 24px; font-weight: 700; color: #C4A052; font-family: Georgia, serif;">{{ new_notes_count|default:0 }}</p>
+                                        <p style="margin: 4px 0 0; font-size: 10px; color: #8B7355; text-transform: uppercase; letter-spacing: 0.5px; font-family: Georgia, serif;">Notes</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- New Archives -->
+                    {% if new_archives %}
+                    <tr>
+                        <td style="padding: 8px 32px 0;">
+                            <p style="margin: 0 0 12px; color: #3D2817; font-size: 14px; font-weight: 700; border-bottom: 2px solid #E8E0D4; padding-bottom: 8px; font-family: Georgia, serif;">
+                                📸 New Archives
+                            </p>
+                        </td>
+                    </tr>
+                    {% for item in new_archives %}
+                    <tr>
+                        <td style="padding: 0 32px 8px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                                style="background-color: #FAF8F5; border-radius: 8px; border-left: 3px solid #C4A052;">
+                                <tr>
+                                    <td style="padding: 12px 14px;">
+                                        <a href="{{ site_url }}{{ item.url }}"
+                                            style="color: #3D2817; text-decoration: none; font-size: 14px; font-weight: 600; font-family: Georgia, serif;">
+                                            {{ item.title }}
+                                        </a>
+                                        <p style="margin: 4px 0 0; color: #8B7355; font-size: 12px; font-family: Georgia, serif;">
+                                            By {{ item.author_name }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!-- New Lore -->
+                    {% if new_lore %}
+                    <tr>
+                        <td style="padding: 12px 32px 0;">
+                            <p style="margin: 0 0 12px; color: #3D2817; font-size: 14px; font-weight: 700; border-bottom: 2px solid #E8E0D4; padding-bottom: 8px; font-family: Georgia, serif;">
+                                ✍️ New Lore
+                            </p>
+                        </td>
+                    </tr>
+                    {% for item in new_lore %}
+                    <tr>
+                        <td style="padding: 0 32px 8px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                                style="background-color: #FAF8F5; border-radius: 8px; border-left: 3px solid #C4A052;">
+                                <tr>
+                                    <td style="padding: 12px 14px;">
+                                        <a href="{{ site_url }}{{ item.url }}"
+                                            style="color: #3D2817; text-decoration: none; font-size: 14px; font-weight: 600; font-family: Georgia, serif;">
+                                            {{ item.title }}
+                                        </a>
+                                        <p style="margin: 4px 0 0; color: #8B7355; font-size: 12px; font-family: Georgia, serif;">
+                                            By {{ item.author_name }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!-- New Books -->
+                    {% if new_books %}
+                    <tr>
+                        <td style="padding: 12px 32px 0;">
+                            <p style="margin: 0 0 12px; color: #3D2817; font-size: 14px; font-weight: 700; border-bottom: 2px solid #E8E0D4; padding-bottom: 8px; font-family: Georgia, serif;">
+                                📚 New Book Recommendations
+                            </p>
+                        </td>
+                    </tr>
+                    {% for item in new_books %}
+                    <tr>
+                        <td style="padding: 0 32px 8px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                                style="background-color: #FAF8F5; border-radius: 8px; border-left: 3px solid #C4A052;">
+                                <tr>
+                                    <td style="padding: 12px 14px;">
+                                        <a href="{{ site_url }}{{ item.url }}"
+                                            style="color: #3D2817; text-decoration: none; font-size: 14px; font-weight: 600; font-family: Georgia, serif;">
+                                            {{ item.title }}
+                                        </a>
+                                        <p style="margin: 4px 0 0; color: #8B7355; font-size: 12px; font-family: Georgia, serif;">
+                                            By {{ item.author_name }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!-- New Community Notes -->
+                    {% if new_notes %}
+                    <tr>
+                        <td style="padding: 12px 32px 0;">
+                            <p style="margin: 0 0 12px; color: #3D2817; font-size: 14px; font-weight: 700; border-bottom: 2px solid #E8E0D4; padding-bottom: 8px; font-family: Georgia, serif;">
+                                📝 New Community Notes
+                            </p>
+                        </td>
+                    </tr>
+                    {% for item in new_notes %}
+                    <tr>
+                        <td style="padding: 0 32px 8px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                                style="background-color: #FAF8F5; border-radius: 8px; border-left: 3px solid #C4A052;">
+                                <tr>
+                                    <td style="padding: 12px 14px;">
+                                        <a href="{{ site_url }}{{ item.url }}"
+                                            style="color: #3D2817; text-decoration: none; font-size: 14px; font-weight: 600; font-family: Georgia, serif;">
+                                            Note on: {{ item.title }}
+                                        </a>
+                                        <p style="margin: 4px 0 0; color: #8B7355; font-size: 12px; font-family: Georgia, serif;">
+                                            By {{ item.author_name }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if not new_archives and not new_lore and not new_books and not new_notes %}
+                    <!-- Empty State -->
+                    <tr>
+                        <td style="padding: 16px 32px;">
+                            <p style="margin: 0; color: #8B7355; font-size: 14px; text-align: center; line-height: 1.6; font-family: Georgia, serif;">
+                                It was a quiet week, but our growing collection of Igbo heritage is always here for you to explore.
+                            </p>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- Primary CTA -->
+                    <tr>
+                        <td style="padding: 20px 32px 8px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td align="center">
+                                        <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ site_url }}" style="height:46px;v-text-anchor:middle;width:220px;" arcsize="17%" fillcolor="#C4A052" stroke="f"><w:anchorlock/><center style="color:#ffffff;font-family:Georgia,serif;font-size:15px;font-weight:600;">Explore Igbo Archives</center></v:roundrect><![endif]-->
+                                        <!--[if !mso]><!-->
+                                        <a href="{{ site_url }}"
+                                            style="display: inline-block; padding: 14px 32px; background-color: #C4A052; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: Georgia, serif; mso-hide: all;">
+                                            Explore Igbo Archives
+                                        </a>
+                                        <!--<![endif]-->
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Explore Quick Links -->
+                    <tr>
+                        <td style="padding: 16px 32px 8px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td align="center" width="33%" style="padding: 0 4px;">
+                                        <a href="{{ site_url }}/archives/"
+                                            style="display: block; padding: 10px 4px; background-color: #FAF8F5; border-radius: 8px; color: #3D2817; text-decoration: none; font-size: 12px; font-weight: 600; text-align: center; font-family: Georgia, serif;">
+                                            📸 Archives
+                                        </a>
+                                    </td>
+                                    <td align="center" width="33%" style="padding: 0 4px;">
+                                        <a href="{{ site_url }}/lore/"
+                                            style="display: block; padding: 10px 4px; background-color: #FAF8F5; border-radius: 8px; color: #3D2817; text-decoration: none; font-size: 12px; font-weight: 600; text-align: center; font-family: Georgia, serif;">
+                                            ✍️ Lore
+                                        </a>
+                                    </td>
+                                    <td align="center" width="33%" style="padding: 0 4px;">
+                                        <a href="{{ site_url }}/books/"
+                                            style="display: block; padding: 10px 4px; background-color: #FAF8F5; border-radius: 8px; color: #3D2817; text-decoration: none; font-size: 12px; font-weight: 600; text-align: center; font-family: Georgia, serif;">
+                                            📚 Books
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- AI Assistant Banner -->
+                    <tr>
+                        <td style="padding: 8px 32px 24px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                                style="background-color: #3D2817; border-radius: 8px;">
+                                <tr>
+                                    <td style="padding: 14px 16px;" align="center">
+                                        <a href="{{ site_url }}/ai/"
+                                            style="color: #FFFFFF; text-decoration: none; font-size: 13px; font-weight: 600; font-family: Georgia, serif;">
+                                            🤖 Ask our AI Assistant about Igbo culture &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; border-top: 1px solid #E8E0D4; text-align: center;">
+                            <p style="margin: 0 0 8px; color: #A89880; font-size: 11px; font-family: Georgia, serif;">
+                                Igbo Archives &mdash; Preserving the Past, Inspiring the Future.
+                            </p>
+                            <p style="margin: 0; color: #A89880; font-size: 11px; font-family: Georgia, serif;">
+                                <a href="{{ site_url }}/accounts/settings/" style="color: #8B7355; text-decoration: underline;">Manage email preferences</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <!--[if mso]></td></tr></table><![endif]-->
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

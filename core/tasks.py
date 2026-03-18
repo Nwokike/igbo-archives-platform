@@ -281,6 +281,19 @@ def send_weekly_digest():
         archives = [i for i in pending_items if i.content_type == 'archive']
         lore = [i for i in pending_items if i.content_type == 'lore']
         books = [i for i in pending_items if i.content_type == 'book']
+        notes_items = [i for i in pending_items if i.content_type == 'note']
+        
+        # Also query recently approved community notes directly
+        from archives.models import ArchiveNote
+        recent_notes = ArchiveNote.objects.filter(
+            is_approved=True,
+            created_at__gte=now - timedelta(days=7)
+        ).select_related('archive', 'added_by')[:10]
+        
+        # Build notes list from both queued items and direct query
+        notes_list = [{'title': n.archive.title, 'author_name': n.added_by.get_display_name() if n.added_by else 'Community', 'url': n.archive.get_absolute_url()} for n in recent_notes]
+        if notes_items:
+            notes_list += [{'title': i.title, 'author_name': i.author_name, 'url': i.url} for i in notes_items[:10]]
         
         # 6. Prepare template context
         week_end = now.date()
@@ -295,16 +308,18 @@ def send_weekly_digest():
             'new_archives': [{'title': i.title, 'author_name': i.author_name, 'url': i.url, 'archive_type': 'Archive'} for i in archives[:10]],
             'new_lore': [{'title': i.title, 'author_name': i.author_name, 'url': i.url} for i in lore[:10]],
             'new_books': [{'title': i.title, 'author_name': i.author_name, 'url': i.url} for i in books[:10]],
+            'new_notes': notes_list[:10],
             'new_archives_count': len(archives),
             'new_lore_count': len(lore),
             'new_books_count': len(books),
+            'new_notes_count': len(notes_list),
         }
         
         # 7. Send batch
         sent_count = 0
         for user in users_list:
             user_context = context.copy()
-            user_context['user_name'] = user.get_display_name()
+            user_context['user_first_name'] = user.full_name.split()[0] if user.full_name else ''
             
             html_message = render_to_string('email/weekly_digest.html', user_context)
             text_message = render_to_string('email/weekly_digest.txt', user_context)

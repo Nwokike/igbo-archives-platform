@@ -33,6 +33,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return obj.uploaded_by == request.user
         if hasattr(obj, 'added_by'):
             return obj.added_by == request.user
+        if hasattr(obj, 'author'):
+            return obj.author == request.user
         return False
 
 
@@ -104,6 +106,10 @@ class ArchiveViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(uploaded_by=self.request.user)
+        
+    def perform_update(self, serializer):
+        """Force updated archives back into the moderation queue."""
+        serializer.save(is_approved=False)
     
     @action(detail=False, methods=['get'])
     def featured(self, request):
@@ -163,6 +169,10 @@ class ArchiveNoteViewSet(viewsets.ModelViewSet):
             is_approved=False
         )
 
+    def perform_update(self, serializer):
+        """Force updated community notes back into the moderation queue."""
+        serializer.save(is_approved=False)
+
 
 @mcp_viewset(basename='books')
 class BookRecommendationViewSet(viewsets.ModelViewSet):
@@ -214,6 +224,14 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
         """Create with pending approval status."""
         serializer.save(
             added_by=self.request.user,
+            is_published=False,
+            is_approved=False,
+            pending_approval=True
+        )
+        
+    def perform_update(self, serializer):
+        """Force updated books back into the moderation queue."""
+        serializer.save(
             is_published=False,
             is_approved=False,
             pending_approval=True
@@ -303,6 +321,14 @@ class LorePostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
+            is_published=False,
+            is_approved=False,
+            pending_approval=True
+        )
+        
+    def perform_update(self, serializer):
+        """Force updated lore posts back into the moderation queue."""
+        serializer.save(
             is_published=False,
             is_approved=False,
             pending_approval=True

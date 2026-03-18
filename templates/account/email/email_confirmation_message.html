@@ -1,45 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <title>Verify Your Email - Igbo Archives</title>
+    <!--[if mso]>
+    <xml>
+        <o:OfficeDocumentSettings>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
 </head>
 
-<body style="margin: 0; padding: 0; background-color: #F5F1E8; font-family: Georgia, 'Times New Roman', serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #F5F1E8;">
+<body style="margin: 0; padding: 0; background-color: #F5F1E8; font-family: Georgia, 'Times New Roman', serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+    <!-- Preheader -->
+    <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #F5F1E8;">
+        Verify your email to activate your Igbo Archives account.
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #F5F1E8;">
         <tr>
             <td align="center" style="padding: 40px 20px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-                    style="max-width: 480px; background-color: #FFFFFF; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <!--[if mso]><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="480"><tr><td><![endif]-->
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                    style="max-width: 480px; background-color: #FFFFFF; border-radius: 12px;">
                     <!-- Logo -->
                     <tr>
                         <td align="center" style="padding: 32px 32px 24px;">
                             <img src="https://igboarchives.com.ng/static/images/logos/logo-light.png"
-                                alt="Igbo Archives" width="160" style="max-width: 160px; height: auto;">
+                                alt="Igbo Archives" width="160" style="max-width: 160px; height: auto; display: block; border: 0;">
                         </td>
                     </tr>
                     <!-- Content -->
                     <tr>
                         <td style="padding: 0 32px 32px;">
-                            <h2 style="margin: 0 0 16px; color: #3D2817; font-size: 18px; text-align: center;">Verify
+                            <h2 style="margin: 0 0 16px; color: #3D2817; font-size: 18px; text-align: center; font-family: Georgia, 'Times New Roman', serif;">Verify
                                 Your Email</h2>
                             <p
-                                style="margin: 0 0 24px; color: #5C4A3D; font-size: 15px; line-height: 1.6; text-align: center;">
+                                style="margin: 0 0 24px; color: #5C4A3D; font-size: 15px; line-height: 1.6; text-align: center; font-family: Georgia, 'Times New Roman', serif;">
                                 Hello{% if user.first_name %} {{ user.first_name }}{% endif %}, welcome! Please verify
                                 your email to activate your account.
                             </p>
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
                                     <td align="center">
+                                        <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ activate_url }}" style="height:46px;v-text-anchor:middle;width:180px;" arcsize="17%" fillcolor="#C4A052" stroke="f"><w:anchorlock/><center style="color:#ffffff;font-family:Georgia,serif;font-size:14px;font-weight:600;">Verify Email</center></v:roundrect><![endif]-->
+                                        <!--[if !mso]><!-->
                                         <a href="{{ activate_url }}"
-                                            style="display: inline-block; padding: 14px 32px; background-color: #C4A052; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                                            style="display: inline-block; padding: 14px 32px; background-color: #C4A052; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: Georgia, 'Times New Roman', serif;">
                                             Verify Email
                                         </a>
+                                        <!--<![endif]-->
                                     </td>
                                 </tr>
                             </table>
-                            <p style="margin: 24px 0 0; color: #8B7355; font-size: 13px; text-align: center;">
+                            <p style="margin: 24px 0 0; color: #8B7355; font-size: 13px; text-align: center; font-family: Georgia, 'Times New Roman', serif;">
                                 This link expires in {{ expiration_days }} days.
                             </p>
                         </td>
@@ -47,12 +66,13 @@
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 24px 32px; border-top: 1px solid #E8E0D4; text-align: center;">
-                            <p style="margin: 0; color: #A89880; font-size: 11px;">
+                            <p style="margin: 0; color: #A89880; font-size: 11px; font-family: Georgia, 'Times New Roman', serif;">
                                 If you didn't create this account, ignore this email.
                             </p>
                         </td>
                     </tr>
                 </table>
+                <!--[if mso]></td></tr></table><![endif]-->
             </td>
         </tr>
     </table>
