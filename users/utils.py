@@ -31,22 +31,17 @@ def _build_claim_email_context(user, name=None, mode='commenter'):
     # Mode-specific configuration
     if mode == 'onboarding':
         template = 'account/email/onboarding_email.html'
-        subject = "We rebuilt Igbo Archives — and your account is waiting"
+        subject = "Welcome to Igbo Archives"
         plain_message = (
             f"Hello {display_name},\n\n"
-            f"We owe you an apology. It's been a long silence, and we're sorry. "
-            f"When our WordPress site went down, we lost everything - posts, data, "
-            f"the community we were building together. It was painful.\n\n"
-            f"But we didn't give up. We spent months rebuilding from scratch, "
-            f"and the result is something far better. This time, YOU can shape it too.\n\n"
-            f"What you can do now:\n"
+            f"An account has been created for you on Igbo Archives.\n\n"
+            f"What you can do:\n"
             f"- Upload Archives: Share photos, videos, audio, and documents\n"
-            f"- Post Lore & Folklore: Write proverbs, origin stories, and cultural narratives\n"
+            f"- Post Lore & Folklore: Write proverbs, origin stories, and narratives\n"
             f"- Recommend Books: Add your own picks on Igbo history and culture\n"
-            f"- Add Community Notes: Contribute insights to any archive\n"
-            f"- Use the AI Assistant: Better than before - ask about Igbo culture\n"
-            f"- Connect via MCP: For AI-native devs - connect tools to our archives\n\n"
-            f"Your account is waiting. Set a password and you're in:\n{claim_url}"
+            f"- Use the AI Assistant: Ask about Igbo culture\n"
+            f"- Add Community Notes: Contribute insights to any archive\n\n"
+            f"Set a password and get started:\n{claim_url}"
         )
     else:
         template = 'account/email/claim_profile_email.html'
