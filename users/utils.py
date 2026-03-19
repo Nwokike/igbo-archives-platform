@@ -62,7 +62,7 @@ def _build_claim_email_context(user, name=None, mode='commenter'):
     return subject, plain_message, html_message
 
 
-def send_claim_profile_email(user, name=None, mode='commenter', from_email=None):
+def send_claim_profile_email(user, name=None, mode='commenter'):
     """
     Sends a profile claim/onboarding email to a user via email_service.
     Modes:
@@ -82,7 +82,6 @@ def send_claim_profile_email(user, name=None, mode='commenter', from_email=None)
             message=plain_message,
             email_type=f'claim_profile_{mode}',
             html_message=html_message,
-            from_email=from_email,
         )
         logger.info(f"Sent {mode} email to {user.email}")
         return True

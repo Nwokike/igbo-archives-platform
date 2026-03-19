@@ -56,7 +56,7 @@ def log_email(recipient_email, subject, email_type='instant', success=True):
     )
 
 
-def send_email(to_email, subject, message, email_type='instant', html_message=None, force=False, from_email=None):
+def send_email(to_email, subject, message, email_type='instant', html_message=None, force=False):
     """
     Send email with rate limiting.
     
@@ -90,7 +90,7 @@ def send_email(to_email, subject, message, email_type='instant', html_message=No
         send_mail(
             subject=f'Igbo Archives - {subject}',
             message=message,
-            from_email=from_email or settings.DEFAULT_FROM_EMAIL,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[to_email],
             html_message=html_message,
             fail_silently=False,
