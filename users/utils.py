@@ -31,8 +31,23 @@ def _build_claim_email_context(user, name=None, mode='commenter'):
     # Mode-specific configuration
     if mode == 'onboarding':
         template = 'account/email/onboarding_email.html'
-        subject = "Welcome back to the upgraded Igbo Archives"
-        plain_message = f"Hello {display_name},\n\nWe've upgraded the Igbo Archives platform! You can now review books, save archives, and more.\n\nComplete your profile to get started: {claim_url}"
+        subject = "We rebuilt Igbo Archives — and your account is waiting"
+        plain_message = (
+            f"Hello {display_name},\n\n"
+            f"We owe you an apology. It's been a long silence, and we're sorry. "
+            f"When our WordPress site went down, we lost everything - posts, data, "
+            f"the community we were building together. It was painful.\n\n"
+            f"But we didn't give up. We spent months rebuilding from scratch, "
+            f"and the result is something far better. This time, YOU can shape it too.\n\n"
+            f"What you can do now:\n"
+            f"- Upload Archives: Share photos, videos, audio, and documents\n"
+            f"- Post Lore & Folklore: Write proverbs, origin stories, and cultural narratives\n"
+            f"- Recommend Books: Add your own picks on Igbo history and culture\n"
+            f"- Add Community Notes: Contribute insights to any archive\n"
+            f"- Use the AI Assistant: Better than before - ask about Igbo culture\n"
+            f"- Connect via MCP: For AI-native devs - connect tools to our archives\n\n"
+            f"Your account is waiting. Set a password and you're in:\n{claim_url}"
+        )
     else:
         template = 'account/email/claim_profile_email.html'
         subject = "Regarding your activity on Igbo Archives"
@@ -47,7 +62,7 @@ def _build_claim_email_context(user, name=None, mode='commenter'):
     return subject, plain_message, html_message
 
 
-def send_claim_profile_email(user, name=None, mode='commenter'):
+def send_claim_profile_email(user, name=None, mode='commenter', from_email=None):
     """
     Sends a profile claim/onboarding email to a user via email_service.
     Modes:
@@ -67,6 +82,7 @@ def send_claim_profile_email(user, name=None, mode='commenter'):
             message=plain_message,
             email_type=f'claim_profile_{mode}',
             html_message=html_message,
+            from_email=from_email,
         )
         logger.info(f"Sent {mode} email to {user.email}")
         return True

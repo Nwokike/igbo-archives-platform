@@ -1,4 +1,4 @@
-Igbo Archives Weekly Update — {{ week_start }} to {{ week_end }}
+Igbo Archives Weekly Update - {{ week_start }} to {{ week_end }}
 
 Ndewo{% if user_first_name %} {{ user_first_name }}{% endif %},
 
@@ -47,5 +47,5 @@ Discover Books: {{ site_url }}/books/
 Ask our AI: {{ site_url }}/ai/
 
 ---
-Igbo Archives — Preserving the Past, Inspiring the Future.
+Igbo Archives - Preserving the Past, Inspiring the Future.
 To manage your email preferences, visit: {{ site_url }}/accounts/settings/
