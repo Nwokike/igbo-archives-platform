@@ -23,8 +23,8 @@ class EmailLogAdmin(admin.ModelAdmin):
     
     def success_badge(self, obj):
         if obj.success:
-            return format_html('<span style="color:green;">✓ Sent</span>')
-        return format_html('<span style="color:red;">✗ Failed</span>')
+            return format_html('<span style="color:green;">{}</span>', '✓ Sent')
+        return format_html('<span style="color:red;">{}</span>', '✗ Failed')
     success_badge.short_description = 'Status'
     
     def changelist_view(self, request, extra_context=None):
@@ -60,8 +60,8 @@ class DigestQueueAdmin(admin.ModelAdmin):
     
     def processed_status(self, obj):
         if obj.processed:
-            return format_html('<span style="color:gray;">✓ Sent</span>')
-        return format_html('<span style="color:orange;">⏳ Pending</span>')
+            return format_html('<span style="color:gray;">{}</span>', '✓ Sent')
+        return format_html('<span style="color:orange;">{}</span>', '⏳ Pending')
     processed_status.short_description = 'Status'
     
     @admin.action(description='Mark selected as processed')

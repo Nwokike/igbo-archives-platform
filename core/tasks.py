@@ -110,23 +110,22 @@ def daily_database_backup():
 
 
 
-@periodic_task(crontab(minute='0', hour='4', day='1'))
+@periodic_task(crontab(minute='0', hour='4'))
 def cleanup_old_notifications():
-    """Archive or delete read notifications older than 18 months to keep DB lean."""
+    """Archive or delete notifications older than 30 days to keep DB lean."""
     try:
         from users.models import Notification
         from django.utils import timezone
         from datetime import timedelta
         
-        cutoff = timezone.now() - timedelta(days=540)  # 18 months
+        cutoff = timezone.now() - timedelta(days=30)  # 30 days
         
-        # Delete read notifications older than cutoff
+        # Delete all notifications older than cutoff
         deleted_count, _ = Notification.objects.filter(
-            unread=False,
             timestamp__lt=cutoff
         ).delete()
         
-        logger.info(f"Notification cleanup: {deleted_count} old read notifications deleted")
+        logger.info(f"Notification cleanup: {deleted_count} old notifications deleted")
         return True
     except Exception as e:
         logger.error(f"Notification cleanup failed: {e}")
@@ -165,7 +164,7 @@ def cleanup_old_messages():
         return False
 
 
-@periodic_task(crontab(minute='0', hour='5', day='1'))
+@periodic_task(crontab(minute='0', hour='5'))
 def cleanup_old_system_logs():
     """Delete old system logs (EmailLog, DigestQueue) to prevent database bloat."""
     try:
