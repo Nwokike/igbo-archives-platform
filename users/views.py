@@ -296,12 +296,22 @@ def delete_account(request):
             username = request.user.username
             email = request.user.email
             logger.warning(f"User {username} ({email}) deactivated their account")
+            
+            # Reassign content to admin immediately
+            try:
+                from core.tasks import _reassign_user_content_to_admin
+                _reassign_user_content_to_admin(
+                    type(request.user).objects.filter(pk=request.user.pk)
+                )
+            except Exception as e:
+                logger.error(f"Content reassignment failed for {username}: {e}")
+            
             # Soft-delete: deactivate instead of destroying
             request.user.is_active = False
             request.user.deactivated_at = timezone.now()
             request.user.save(update_fields=['is_active', 'deactivated_at'])
             cache.delete(rate_key)
-            django_messages.success(request, 'Your account has been deactivated. It will be permanently deleted after 30 days.')
+            django_messages.success(request, 'Your account has been deactivated. Any content you created will be preserved. It will be permanently deleted after 30 days.')
             return redirect('core:home')
         else:
             cache.set(rate_key, attempts + 1, 3600)

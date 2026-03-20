@@ -43,11 +43,10 @@
                         for="{{ form.original_author.id_for_label }}">Origin/Source</label>
                     {{ form.original_author }}
                     {{ form.original_author.errors }}
-                    <p class="text-xs text-text-muted mt-1">If this is a traditional story, leave blank or put
-                        "Traditional".</p>
+                    <p class="text-xs text-text-muted mt-1">Leave empty if traditional.</p>
                 </div>
 
-                <div>
+                <div id="authorAboutWrapper" class="hidden">
                     <label class="block text-sm font-medium mb-1"
                         for="{{ form.original_author_about.id_for_label }}">About the Author/Source <span
                             class="text-text-muted font-normal text-xs">(Optional)</span></label>
@@ -262,6 +261,15 @@
             e.preventDefault();
             submitForm('submit');
         });
+
+        // Show About Author only when Origin/Source has text
+        const authorInput = document.getElementById('id_original_author');
+        const aboutWrapper = document.getElementById('authorAboutWrapper');
+        if (authorInput && aboutWrapper) {
+            const toggle = () => aboutWrapper.classList.toggle('hidden', !authorInput.value.trim());
+            toggle();
+            authorInput.addEventListener('input', toggle);
+        }
     });
 </script>
 {% endblock %}

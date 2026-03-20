@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const hideEditModal = () => {
         if (editNoteModal) {
             editNoteModal.classList.remove('active');
+            document.body.classList.remove('overflow-hidden');
             setTimeout(() => editNoteModal.classList.add('hidden'), 300);
         }
     };
@@ -119,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Force a reflow before adding .active to trigger transition
         void editNoteModal.offsetWidth;
         editNoteModal.classList.add('active');
+        document.body.classList.add('overflow-hidden');
 
         editForm.action = editUrl;
 

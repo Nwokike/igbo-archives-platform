@@ -222,6 +222,30 @@ def send_community_note_notification(note, archive):
         subject = f'New Community Note on "{archive_title}"'
         send_email_notification(post_author.email, subject, description)
 
+
+def send_note_approved_notification(note):
+    """Notify the note author when their community note is approved."""
+    author = note.added_by
+    if not author:
+        return
+
+    archive_title = note.archive.title
+    description = f'Your community note on "{archive_title}" has been approved and is now visible!'
+
+    _send_notification_and_push(
+        recipient=author,
+        sender=None,
+        verb='approved your community note',
+        description=description,
+        target_object=note.archive,
+        push_head="Note Approved!",
+        push_body=description,
+        push_url=_get_absolute_url(note.archive)
+    )
+
+    if hasattr(author, 'email') and author.email:
+        send_email_notification(author.email, f'Your Community Note on "{archive_title}" was approved', description)
+
 def send_admin_notification(subject, description, target_url=None):
     """
     Notify site administrators. Delegates to email_service.send_admin_notification

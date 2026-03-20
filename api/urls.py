@@ -10,6 +10,7 @@ app_name = 'api'
 router = DefaultRouter()
 router.register('archives', api_viewsets.ArchiveViewSet, basename='archive')
 router.register('archive-notes', api_viewsets.ArchiveNoteViewSet, basename='archive_note')
+router.register('authors', api_viewsets.AuthorViewSet, basename='author')
 router.register('books', api_viewsets.BookRecommendationViewSet, basename='book')
 router.register('categories', api_viewsets.CategoryViewSet, basename='category')
 router.register('lore', api_viewsets.LorePostViewSet, basename='lore')

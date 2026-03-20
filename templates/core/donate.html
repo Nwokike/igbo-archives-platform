@@ -28,7 +28,21 @@
             {% if enable_donations and paystack_public_key %}
             <div class="space-y-4">
                 <div class="max-w-md mx-auto">
-                    <label class="block text-sm text-text-muted mb-2">Or enter custom amount (₦)</label>
+                    <label class="block text-sm text-text-muted mb-2">Currency</label>
+                    <div class="flex rounded-lg border border-border overflow-hidden mb-3" id="currencyToggle">
+                        <button type="button" data-currency="NGN"
+                            class="currency-btn flex-1 py-2.5 px-4 text-sm font-semibold transition-colors bg-accent text-white">
+                            🇳🇬 NGN (₦)
+                        </button>
+                        <button type="button" data-currency="USD"
+                            class="currency-btn flex-1 py-2.5 px-4 text-sm font-semibold transition-colors bg-surface-alt text-text-muted">
+                            🇺🇸 USD ($)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="max-w-md mx-auto">
+                    <label class="block text-sm text-text-muted mb-2" id="amountLabel">Enter custom amount (₦)</label>
                     <input type="number" id="customAmount" min="100" placeholder="Enter amount"
                         class="w-full px-4 py-3 rounded-lg border border-border focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all text-center text-lg font-semibold">
                 </div>
@@ -40,6 +54,9 @@
 
                 <p class="text-sm text-text-muted">
                     <i class="fas fa-shield-alt"></i> Secure payment powered by Paystack
+                </p>
+                <p class="text-xs text-text-muted/70" id="currencyHint" style="display:none;">
+                    <i class="fas fa-info-circle"></i> If USD payment does not work, please try NGN instead.
                 </p>
             </div>
 

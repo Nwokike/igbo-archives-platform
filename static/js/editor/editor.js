@@ -299,6 +299,7 @@
                 holder: holderId,
                 placeholder: options.placeholder || 'Start writing your content...',
                 autofocus: options.autofocus !== false,
+                defaultBlock: 'paragraph',
                 tools: tools,
                 data: options.data || {},
                 onChange: function (api, event) {

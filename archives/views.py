@@ -6,6 +6,7 @@ import logging
 import json
 import nh3
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.cache import cache
@@ -326,7 +327,7 @@ def archive_create(request):
                         f"Title: {archive.title}\n"
                         f"Description: {archive.description[:200]}...\n"
                     )
-                    send_admin_notification(subject, message, target_url="/users/admin/moderation/")
+                    send_admin_notification(subject, message, target_url=reverse('users:moderation_dashboard'))
                 except Exception as e:
                     logger.warning(f"Failed to schedule notification email: {e}")
                 
@@ -403,7 +404,7 @@ def archive_edit(request, pk=None, slug=None):
                         send_admin_notification(
                             subject=f"Archive Updated (Review Needed): {archive.title}",
                             description=f"User {request.user.username} updated an archive. Please re-review.",
-                            target_url="/users/admin/moderation/"
+                            target_url=reverse('users:moderation_dashboard')
                         )
                     except Exception:
                         pass

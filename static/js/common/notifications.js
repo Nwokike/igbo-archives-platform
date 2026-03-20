@@ -151,22 +151,32 @@
      */
     function initEventDelegation() {
         var config = getConfig();
-        if (!config) return; // Not on a page with notifications
 
-        config.container.addEventListener('click', function (e) {
-            // "Mark read" button
-            var markReadBtn = e.target.closest('[data-action="mark-read"]');
-            if (markReadBtn) {
-                e.preventDefault();
-                e.stopPropagation(); // Don't follow the parent <a> link
-                var notificationId = markReadBtn.dataset.notificationId;
-                if (notificationId) {
-                    markNotificationRead(notificationId);
+        // Container-level delegation (for #notificationsList)
+        if (config) {
+            config.container.addEventListener('click', function (e) {
+                var markReadBtn = e.target.closest('[data-action="mark-read"]');
+                if (markReadBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var notificationId = markReadBtn.dataset.notificationId;
+                    if (notificationId) {
+                        markNotificationRead(notificationId);
+                    }
+                    return;
                 }
-                return;
-            }
 
-            // "Mark all read" button
+                var markAllBtn = e.target.closest('[data-action="mark-all-read"]');
+                if (markAllBtn) {
+                    e.preventDefault();
+                    markAllRead();
+                    return;
+                }
+            });
+        }
+
+        // Document-level delegation for buttons outside the container
+        document.addEventListener('click', function (e) {
             var markAllBtn = e.target.closest('[data-action="mark-all-read"]');
             if (markAllBtn) {
                 e.preventDefault();
@@ -184,6 +194,13 @@
     } else {
         initEventDelegation();
     }
+
+    // Re-init when HTMX swaps dropdown content
+    document.addEventListener('htmx:afterSwap', function (e) {
+        if (e.detail.target && e.detail.target.id === 'notificationDropdown') {
+            initEventDelegation();
+        }
+    });
 
     // Expose for any external callers that may need them
     window.markNotificationRead = markNotificationRead;

@@ -1,5 +1,6 @@
 import random
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.contrib import messages
@@ -168,7 +169,7 @@ def lore_create(request):
                     send_admin_notification(
                         subject=f"New Lore Post: {post.title}",
                         description=f"A new lore post has been submitted by {request.user.get_display_name()}.\n\nTitle: {post.title}",
-                        target_url="/users/admin/moderation/"
+                        target_url=reverse('users:moderation_dashboard')
                     )
                 except Exception as e:
                     logger.warning(f"Failed to send notification email: {e}")
@@ -253,7 +254,7 @@ def lore_edit(request, slug):
                     send_admin_notification(
                         subject=f"Lore Post Updated: {post.title}",
                         description=f"User {request.user.username} updated a lore post. Please review.",
-                        target_url="/users/admin/moderation/"
+                        target_url=reverse('users:moderation_dashboard')
                     )
                 except Exception:
                     pass

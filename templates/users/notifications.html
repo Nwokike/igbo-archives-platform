@@ -6,7 +6,7 @@
 <div class="max-w-3xl mx-auto">
     <div class="flex items-center justify-between mb-8">
         <h1 class="font-serif text-display-lg text-dark-brown">Notifications</h1>
-        <button class="btn-secondary btn-sm" onclick="markAllRead()">
+        <button class="btn-secondary btn-sm" data-action="mark-all-read">
             <i class="fas fa-check-double"></i> Mark All as Read
         </button>
     </div>
@@ -17,7 +17,10 @@
         <a href="?filter=read" class="tab-button {% if filter_type == 'read' %}active{% endif %}">Read</a>
     </div>
 
-    <div class="space-y-3">
+    <div id="notificationsList"
+         data-mark-read-url="{% url 'users:notification_mark_read' notification_id=0 %}"
+         data-mark-all-read-url="{% url 'users:notification_mark_all_read' %}"
+         class="space-y-3">
         {% for notification in notifications %}
         <div class="card {% if notification.unread %}border-l-4 border-l-vintage-gold bg-heritage-cream/50{% endif %} transition-all hover:shadow-md" id="notification-{{ notification.id }}">
             <div class="card-body flex items-start gap-4">
@@ -43,7 +46,7 @@
                     </p>
                 </div>
                 {% if notification.unread %}
-                <button class="btn-secondary btn-sm" onclick="markAsRead({{ notification.id }})">
+                <button class="btn-secondary btn-sm mark-read-btn" data-action="mark-read" data-notification-id="{{ notification.id }}">
                     <i class="fas fa-check"></i>
                 </button>
                 {% endif %}

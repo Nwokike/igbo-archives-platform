@@ -170,7 +170,7 @@ def cleanup_deactivated_accounts():
     """Permanently delete soft-deleted accounts after 30-day grace period.
     
     Users who delete their account have is_active=False and deactivated_at set.
-    After 30 days, permanently remove the user and cascade-delete their content.
+    After 30 days, reassign their content to admin, then permanently remove the user.
     """
     try:
         from django.contrib.auth import get_user_model
@@ -188,14 +188,134 @@ def cleanup_deactivated_accounts():
         
         count = deactivated.count()
         if count:
+            _reassign_user_content_to_admin(deactivated)
             deactivated.delete()
-            logger.info(f"Account cleanup: {count} deactivated accounts permanently deleted")
+            logger.info(f"Account cleanup: {count} deactivated accounts permanently deleted (content reassigned)")
         else:
             logger.info("Account cleanup: No expired deactivated accounts found")
         return True
     except Exception as e:
         logger.error(f"Deactivated account cleanup failed: {e}")
         return False
+
+
+@periodic_task(crontab(minute='0', hour='6', day='1'))
+def deactivate_idle_accounts():
+    """Deactivate accounts with no login for 12+ months.
+    
+    - At 11 months idle: send warning email
+    - At 12 months idle: deactivate account, reassign content to admin
+    """
+    try:
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        User = get_user_model()
+        now = timezone.now()
+        
+        # --- Phase 1: Warn users idle for 11 months ---
+        warn_cutoff = now - timedelta(days=335)  # ~11 months
+        deactivate_cutoff = now - timedelta(days=365)  # 12 months
+        
+        warn_users = User.objects.filter(
+            is_active=True,
+            last_login__lt=warn_cutoff,
+            last_login__gte=deactivate_cutoff,
+            deactivated_at__isnull=True
+        ).exclude(is_staff=True)
+        
+        warned_count = 0
+        for user in warn_users:
+            try:
+                from core.email_service import send_email
+                from django.template.loader import render_to_string
+                from django.conf import settings
+                
+                context = {
+                    'name': user.get_display_name(),
+                    'site_url': settings.SITE_URL,
+                    'login_url': f"{settings.SITE_URL}/accounts/login/"
+                }
+                
+                html_msg = render_to_string('emails/idle_account_warning.html', context)
+                plain_msg = (
+                    f'Hello {user.get_display_name()},\n\n'
+                    f'Your Igbo Archives account has been inactive for over 11 months. '
+                    f'If you do not log in within the next 30 days, your account will be '
+                    f'deactivated and any content you have contributed will be preserved '
+                    f'under the platform admin account.\n\n'
+                    f'To keep your account active, simply log in at {settings.SITE_URL}/accounts/login/\n\n'
+                    f'Thank you for being part of our community.\n'
+                    f'Igbo Archives Team'
+                )
+                
+                send_email(
+                    to_email=user.email,
+                    subject='Action Required: Your Igbo Archives account will be deactivated soon',
+                    message=plain_msg,
+                    email_type='instant',
+                    html_message=html_msg
+                )
+                warned_count += 1
+            except Exception as email_err:
+                logger.warning(f"Failed to send idle warning to {user.username}: {email_err}")
+        
+        if warned_count:
+            logger.info(f"Idle accounts: {warned_count} users warned about upcoming deactivation")
+        
+        # --- Phase 2: Delete users idle for 12+ months ---
+        idle_users = User.objects.filter(
+            is_active=True,
+            last_login__lt=deactivate_cutoff
+        ).exclude(is_staff=True)
+        
+        delete_count = idle_users.count()
+        if delete_count:
+            _reassign_user_content_to_admin(idle_users)
+            idle_users.delete()
+            logger.info(f"Idle accounts: {delete_count} accounts deleted (content reassigned)")
+        else:
+            logger.info("Idle accounts: No accounts idle for 12+ months found")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Idle account deletion failed: {e}")
+        return False
+
+
+def _reassign_user_content_to_admin(users_qs):
+    """Reassign all content from a queryset of users to the first superuser (admin).
+    
+    Handles: Archives, LorePosts, BookRecommendations, ArchiveNotes.
+    """
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    admin = User.objects.filter(is_superuser=True, is_active=True).order_by('id').first()
+    if not admin:
+        logger.warning("Content reassignment skipped: no active superuser found")
+        return
+    
+    user_ids = list(users_qs.values_list('id', flat=True))
+    if not user_ids:
+        return
+    
+    try:
+        from archives.models import Archive, ArchiveNote
+        from lore.models import LorePost
+        from books.models import BookRecommendation
+        
+        archives_count = Archive.objects.filter(uploaded_by_id__in=user_ids).update(uploaded_by=admin)
+        notes_count = ArchiveNote.objects.filter(added_by_id__in=user_ids).update(added_by=admin)
+        lore_count = LorePost.objects.filter(author_id__in=user_ids).update(author=admin)
+        books_count = BookRecommendation.objects.filter(added_by_id__in=user_ids).update(added_by=admin)
+        
+        total = archives_count + notes_count + lore_count + books_count
+        if total:
+            logger.info(f"Content reassigned to admin: {archives_count} archives, {lore_count} lore, {books_count} books, {notes_count} notes")
+    except Exception as e:
+        logger.error(f"Content reassignment failed: {e}")
 
 
 @db_task()

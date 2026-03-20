@@ -1,30 +1,62 @@
 /**
  * Donation Page Logic
- * Handles custom amount inputs and Paystack integration.
+ * Handles custom amount inputs, currency toggle, and Paystack integration.
  */
 document.addEventListener('DOMContentLoaded', () => {
     const customInput = document.getElementById('customAmount');
     const donateBtn = document.getElementById('donateBtn');
+    const amountLabel = document.getElementById('amountLabel');
+    const currencyHint = document.getElementById('currencyHint');
 
     if (!donateBtn || !customInput) return;
 
-    // Get config from global context or data attributes (assuming templated values are available globally or we parse them)
-    // For now, we'll try to get the key from the script tag data or a global variable if set.
-    // Ideally, pass these via data-attributes on a container.
-    const container = document.querySelector('.card-body');
-    // Wait, the template uses {{ paystack_public_key }} inside the inline script.
-    // We should look for a data attribute. I will add data attributes to the donate button in the next step.
+    // Currency state
+    let selectedCurrency = 'NGN';
+    const currencyConfig = {
+        NGN: { symbol: '₦', min: 100, label: 'Enter custom amount (₦)', multiplier: 100 },
+        USD: { symbol: '$', min: 1, label: 'Enter custom amount ($)', multiplier: 100 }
+    };
+
+    // Currency toggle
+    const toggleBtns = document.querySelectorAll('.currency-btn');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+            selectedCurrency = this.dataset.currency;
+            const config = currencyConfig[selectedCurrency];
+
+            // Update UI
+            customInput.min = config.min;
+            customInput.value = '';
+            customInput.placeholder = 'Enter amount';
+            if (amountLabel) amountLabel.textContent = config.label;
+
+            // Toggle active styling
+            toggleBtns.forEach(b => {
+                b.classList.remove('bg-accent', 'text-white');
+                b.classList.add('bg-surface-alt', 'text-text-muted');
+            });
+            this.classList.remove('bg-surface-alt', 'text-text-muted');
+            this.classList.add('bg-accent', 'text-white');
+
+            // Show/hide USD hint
+            if (currencyHint) {
+                currencyHint.style.display = selectedCurrency === 'USD' ? 'block' : 'none';
+            }
+        });
+    });
 
     donateBtn.addEventListener('click', function () {
+        const config = currencyConfig[selectedCurrency];
         const amount = parseInt(customInput.value) || 0;
         const publicKey = this.dataset.key;
         const userEmail = this.dataset.email;
 
-        if (amount < 100) {
+        if (amount < config.min) {
+            const msg = `Minimum donation amount is ${config.symbol}${config.min}`;
             if (window.showToast) {
-                window.showToast('Minimum donation amount is ₦100', 'warning');
+                window.showToast(msg, 'warning');
             } else {
-                alert('Minimum donation amount is ₦100');
+                alert(msg);
             }
             return;
         }
@@ -38,12 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const handler = PaystackPop.setup({
             key: publicKey,
             email: userEmail,
-            amount: amount * 100, // Paystack uses kobo
-            currency: 'NGN',
+            amount: amount * config.multiplier,
+            currency: selectedCurrency,
             ref: 'IA-' + Math.floor(Math.random() * 1000000000 + 1),
             metadata: {
                 custom_fields: [
-                    { display_name: "Donation Type", variable_name: "donation_type", value: "One-time" }
+                    { display_name: "Donation Type", variable_name: "donation_type", value: "One-time" },
+                    { display_name: "Currency", variable_name: "currency", value: selectedCurrency }
                 ]
             },
             callback: function (response) {

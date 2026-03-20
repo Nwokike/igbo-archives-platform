@@ -229,7 +229,7 @@
                     {% csrf_token %}
                     <h4 class="font-serif font-medium mb-3">Contribute Context</h4>
 
-                        <div id="editorjs-note" class="bg-surface border border-border rounded-lg min-h-[200px] p-4 font-sans text-base"></div>
+                        <div id="editorjs-note" class="editor-container bg-surface border border-border rounded-lg min-h-[200px] p-4 font-sans text-base"></div>
                     <input type="hidden" name="content_json" id="id_content_json_note">
 
                     <div class="turnstile-wrapper mb-4 scale-90 origin-left">
@@ -252,7 +252,7 @@
         </div>
 
         <div id="editNoteModal" class="modal-overlay hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-            <div class="modal bg-white dark:bg-surface-dark rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div class="modal bg-white dark:bg-surface-dark rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <div class="modal-header p-4 border-b border-border flex justify-between items-center bg-heritage-cream/50">
                     <h3 class="font-serif text-lg font-semibold text-dark-brown">
                         <i class="fas fa-edit text-accent mr-2"></i>Edit Community Note
@@ -261,9 +261,9 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <form id="editNoteForm" method="post" action="" class="p-6">
+                <form id="editNoteForm" method="post" action="" class="p-6 overflow-y-auto flex-1">
                     {% csrf_token %}
-                    <div id="editorjs-edit-note" class="bg-surface border border-border rounded-lg min-h-[250px] p-4 font-sans text-base mb-4"></div>
+                    <div id="editorjs-edit-note" class="editor-container bg-surface border border-border rounded-lg min-h-[250px] p-4 font-sans text-base mb-4"></div>
                     <input type="hidden" name="content_json" id="id_content_json_edit_note">
 
                     <div class="flex justify-end gap-3 pt-2">

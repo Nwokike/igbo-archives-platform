@@ -5,6 +5,7 @@ Users can rate and review books - the app is for listing/recommending, not revie
 import json
 import re
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -270,7 +271,7 @@ def book_create(request):
                 send_admin_notification(
                     subject=f"New Book Recommendation: {book.book_title}",
                     description=f"A new book recommendation has been submitted by {request.user.get_display_name()}.\n\nBook: {book.book_title}\nTitle: {book.title}",
-                    target_url="/users/admin/moderation/"
+                    target_url=reverse('users:moderation_dashboard')
                 )
             except Exception as e:
                 logger.warning(f"Failed to send notification email: {e}")
@@ -374,7 +375,7 @@ def book_edit(request, slug):
                 send_admin_notification(
                     subject=f"Book Recommendation Updated: {book.book_title}",
                     description=f"User {request.user.username} updated a book recommendation. Please review.",
-                    target_url="/users/admin/moderation/"
+                    target_url=reverse('users:moderation_dashboard')
                 )
             except Exception:
                 pass

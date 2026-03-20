@@ -243,6 +243,14 @@ def approve_archive_note(request, pk):
         messages.warning(request, 'Community note not found or already approved.')
         return redirect('users:moderation_dashboard')
     
+    # Notify the note author
+    try:
+        from core.notifications_utils import send_note_approved_notification
+        send_note_approved_notification(note)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Failed to send note approval notification: {e}")
+    
     messages.success(request, f'Community note on "{note.archive.title}" approved.')
     return redirect('users:moderation_dashboard')
 

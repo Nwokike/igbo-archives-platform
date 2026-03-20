@@ -67,6 +67,36 @@
     border-left-color: #3E342E;
 }
 
+/* ── EditorJS Content Link Styling ─────── */
+.editorjs-content a,
+.prose a,
+.ce-paragraph a,
+.community-note a {
+    color: #8B6914;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.2s;
+}
+
+.editorjs-content a:hover,
+.prose a:hover,
+.ce-paragraph a:hover,
+.community-note a:hover {
+    color: #B8974F;
+}
+
+.dark .editorjs-content a,
+.dark .ce-paragraph a,
+.dark .community-note a {
+    color: #D4A843;
+}
+
+.dark .editorjs-content a:hover,
+.dark .ce-paragraph a:hover,
+.dark .community-note a:hover {
+    color: #E8C463;
+}
+
 /* text-vintage-beaver is dim but still legible — no override needed */
 
 /* Custom Scrollbar (global) */

@@ -10,10 +10,10 @@ from django.core.cache import cache
 from django.db.models import Q, Avg, Count
 from djangorestframework_mcp.decorators import mcp_viewset
 
-from archives.models import Archive, Category, ArchiveNote
+from archives.models import Archive, Category, ArchiveNote, Author
 from books.models import BookRecommendation, UserBookRating
 from .serializers import (
-    CategorySerializer,
+    CategorySerializer, AuthorSerializer,
     ArchiveListSerializer, ArchiveSerializer, ArchiveCreateSerializer,
     ArchiveNoteSerializer, ArchiveNoteCreateSerializer,
     BookRecommendationListSerializer, BookRecommendationSerializer, BookRecommendationCreateSerializer,
@@ -49,6 +49,31 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'slug'
+
+
+@mcp_viewset(basename='authors')
+class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for authors in the Igbo Archives database.
+    
+    IMPORTANT FOR AI AGENTS: Before creating content (archives, lore, books),
+    use this endpoint to check if an author already exists and get the exact
+    name string. This prevents duplicate Author records.
+    
+    GET /api/v1/authors/ - List all authors
+    GET /api/v1/authors/?search=chinua - Search authors by name
+    GET /api/v1/authors/{slug}/ - Author detail
+    """
+    serializer_class = AuthorSerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_field = 'slug'
+    
+    def get_queryset(self):
+        queryset = Author.objects.all().order_by('name')
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        return queryset
 
 
 @mcp_viewset(basename='archives')
