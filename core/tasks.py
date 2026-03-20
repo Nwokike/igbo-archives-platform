@@ -166,6 +166,32 @@ def cleanup_old_messages():
 
 
 @periodic_task(crontab(minute='0', hour='5', day='1'))
+def cleanup_old_system_logs():
+    """Delete old system logs (EmailLog, DigestQueue) to prevent database bloat."""
+    try:
+        from core.models import EmailLog, DigestQueue
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        cutoff = timezone.now() - timedelta(days=30)  # Keep logs for 30 days
+        
+        # Clean old EmailLogs
+        deleted_emails, _ = EmailLog.objects.filter(sent_at__lt=cutoff).delete()
+        
+        # Clean processed DigestQueue items
+        deleted_digests, _ = DigestQueue.objects.filter(
+            processed=True,
+            processed_at__lt=cutoff
+        ).delete()
+        
+        logger.info(f"System logs cleanup: {deleted_emails} EmailLogs and {deleted_digests} DigestQueue items deleted")
+        return True
+    except Exception as e:
+        logger.error(f"System logs cleanup failed: {e}")
+        return False
+
+
+@periodic_task(crontab(minute='0', hour='5', day='1'))
 def cleanup_deactivated_accounts():
     """Permanently delete soft-deleted accounts after 30-day grace period.
     

@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'django_comments',
     'threadedcomments',
-    'taggit',
     'django_htmx',
     'pwa',
     'meta',
