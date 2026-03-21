@@ -130,7 +130,23 @@ class ArchiveViewSet(viewsets.ModelViewSet):
         return ArchiveSerializer
     
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user)
+        from django.urls import reverse
+        import logging
+        
+        archive = serializer.save(uploaded_by=self.request.user)
+        
+        # Notify admins
+        try:
+            from core.notifications_utils import send_admin_notification
+            subject = f'New Archive Uploaded: {archive.title}'
+            message = (
+                f"A new archive has been submitted by {self.request.user.get_display_name()}.\n\n"
+                f"Title: {archive.title}\n"
+                f"Description: {archive.description[:200]}...\n"
+            )
+            send_admin_notification(subject, message, target_url=reverse('users:moderation_dashboard'))
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to send notification email: {e}")
         
     def perform_update(self, serializer):
         """Force updated archives back into the moderation queue."""
@@ -189,10 +205,24 @@ class ArchiveNoteViewSet(viewsets.ModelViewSet):
         return ArchiveNoteSerializer
         
     def perform_create(self, serializer):
-        serializer.save(
+        import logging
+        note = serializer.save(
             added_by=self.request.user,
             is_approved=False
         )
+        
+        # Notify original uploader and admins
+        try:
+            from core.notifications_utils import send_community_note_notification, send_admin_notification
+            send_community_note_notification(note, note.archive)
+            
+            send_admin_notification(
+                subject=f"New Community Note on {note.archive.title}",
+                description=f"{self.request.user.get_display_name()} added a new community note to the archive '{note.archive.title}'.",
+                target_url=note.archive.get_absolute_url()
+            )
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to send note notifications: {e}")
 
     def perform_update(self, serializer):
         """Force updated community notes back into the moderation queue."""
@@ -247,12 +277,27 @@ class BookRecommendationViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Create with pending approval status."""
-        serializer.save(
+        from django.urls import reverse
+        import logging
+        
+        book = serializer.save(
             added_by=self.request.user,
             is_published=False,
             is_approved=False,
             pending_approval=True
         )
+        
+        try:
+            from core.notifications_utils import send_post_submitted_notification, send_admin_notification
+            send_post_submitted_notification(book, post_type='book recommendation')
+            
+            send_admin_notification(
+                subject=f"New Book Recommendation: {book.book_title}",
+                description=f"A new book recommendation has been submitted by {self.request.user.get_display_name()}.\n\nBook: {book.book_title}\nTitle: {book.title}",
+                target_url=reverse('users:moderation_dashboard')
+            )
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to send notification email: {e}")
         
     def perform_update(self, serializer):
         """Force updated books back into the moderation queue."""
@@ -344,12 +389,27 @@ class LorePostViewSet(viewsets.ModelViewSet):
         return LorePostSerializer
     
     def perform_create(self, serializer):
-        serializer.save(
+        from django.urls import reverse
+        import logging
+        
+        post = serializer.save(
             author=self.request.user,
             is_published=False,
             is_approved=False,
             pending_approval=True
         )
+        
+        try:
+            from core.notifications_utils import send_post_submitted_notification, send_admin_notification
+            send_post_submitted_notification(post, post_type='lore post')
+            
+            send_admin_notification(
+                subject=f"New Lore Post: {post.title}",
+                description=f"A new lore post has been submitted by {self.request.user.get_display_name()}.\n\nTitle: {post.title}",
+                target_url=reverse('users:moderation_dashboard')
+            )
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to send notification email: {e}")
         
     def perform_update(self, serializer):
         """Force updated lore posts back into the moderation queue."""

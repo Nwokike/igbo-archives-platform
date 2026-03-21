@@ -5,7 +5,7 @@
     <div class="card bg-surface-alt/50 dark:bg-surface-dark-alt/50 border-border/50">
         <div class="card-body">
             <h4 class="font-serif font-semibold mb-3 text-sm uppercase tracking-wider">Recommended By</h4>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 mb-3">
                 <a href="{% url 'users:profile' book.added_by.username %}" class="block shrink-0">
                     {% if book.added_by.profile_picture %}
                     <img src="{{ book.added_by.profile_picture.url }}" alt="{{ book.added_by.get_display_name }}"
@@ -17,16 +17,17 @@
                     </div>
                     {% endif %}
                 </a>
-                <div class="overflow-hidden">
+                <div>
                     <a href="{% url 'users:profile' book.added_by.username %}"
-                        class="hover:text-accent font-medium transition-colors truncate block">
+                        class="hover:text-accent font-medium transition-colors text-lg">
                         {{ book.added_by.get_display_name }}
                     </a>
-                    {% if book.added_by.bio %}
-                    <p class="text-xs text-text-muted line-clamp-1">{{ book.added_by.bio }}</p>
-                    {% endif %}
                 </div>
             </div>
+            {% if book.added_by.bio %}
+            <p class="text-sm text-text-muted">{{ book.added_by.bio|truncatewords:25 }}</p>
+            <a href="{% url 'users:profile' book.added_by.username %}" class="text-xs text-accent hover:underline mt-2 inline-block font-medium">View full profile &rarr;</a>
+            {% endif %}
         </div>
     </div>
 

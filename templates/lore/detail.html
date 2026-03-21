@@ -150,28 +150,35 @@
     <aside class="lg:col-span-4">
         <div class="lg:sticky lg:top-24 space-y-6">
 
-            <div class="card shadow-sm border border-border/50">
-                <div class="card-body p-4 flex items-center gap-4">
-                    {% if post.author.profile_picture %}
-                    <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.get_display_name }}"
-                        class="w-12 h-12 rounded-full object-cover">
-                    {% else %}
-                    <div
-                        class="w-12 h-12 rounded-full bg-secondary/5 flex flex-shrink-0 items-center justify-center text-text-muted/40 font-bold text-xl font-serif">
-                        {{ post.author.get_display_name|slice:":1"|upper }}
+            <div class="card bg-surface-alt/50 dark:bg-surface-dark-alt/50 border-border/50">
+                <div class="card-body p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-serif font-semibold text-sm uppercase tracking-wider">Shared By</h4>
+                        <span class="text-[10px] text-text-muted">{{ post.created_at|date:"F d, Y" }}</span>
                     </div>
-                    {% endif %}
-
-                    <div>
-                        <p class="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-1">Shared by</p>
-                        <h4 class="font-bold text-text text-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <a href="{% url 'users:profile' post.author.username %}" class="block shrink-0">
+                            {% if post.author.profile_picture %}
+                            <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.get_display_name }}"
+                                class="w-12 h-12 rounded-full object-cover border border-border">
+                            {% else %}
+                            <div
+                                class="w-12 h-12 rounded-full bg-surface-alt dark:bg-surface-dark-alt flex items-center justify-center text-lg font-semibold border border-border">
+                                {{ post.author.get_display_name|slice:":1"|upper }}
+                            </div>
+                            {% endif %}
+                        </a>
+                        <div>
                             <a href="{% url 'users:profile' post.author.username %}"
-                                class="hover:text-accent transition-colors">
+                                class="hover:text-accent font-medium transition-colors text-lg">
                                 {{ post.author.get_display_name }}
                             </a>
-                        </h4>
-                        <p class="text-[10px] text-text-muted mt-1">{{ post.created_at|date:"F d, Y" }}</p>
+                        </div>
                     </div>
+                    {% if post.author.bio %}
+                    <p class="text-sm text-text-muted">{{ post.author.bio|truncatewords:25 }}</p>
+                    <a href="{% url 'users:profile' post.author.username %}" class="text-xs text-accent hover:underline mt-2 inline-block font-medium">View full profile &rarr;</a>
+                    {% endif %}
                 </div>
             </div>
 

@@ -130,6 +130,7 @@ def send_admin_notification(subject, message, html_message=None):
 def queue_for_digest(content_type, content_id, title, author_name, url):
     """
     Queue content for weekly digest instead of instant email.
+    Only queues items if they haven't been queued before (prevents duplicates from edits).
     
     Args:
         content_type: 'archive', 'lore', or 'book'
@@ -139,6 +140,11 @@ def queue_for_digest(content_type, content_id, title, author_name, url):
         url: URL to the content
     """
     from core.models import DigestQueue
+    
+    # Check if this content was ever queued before
+    if DigestQueue.objects.filter(content_type=content_type, content_id=content_id).exists():
+        logger.info(f"Skipping digest queue for {content_type} '{title}': already queued previously")
+        return
     
     DigestQueue.objects.create(
         content_type=content_type,

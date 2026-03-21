@@ -482,25 +482,31 @@
             </div>
             {% endif %}
 
-            <div class="card">
+            <div class="card bg-surface-alt/50 dark:bg-surface-dark-alt/50 border-border/50">
                 <div class="card-body">
-                    <h4 class="font-serif font-semibold mb-3">About the Uploader</h4>
+                    <h4 class="font-serif font-semibold mb-3 text-sm uppercase tracking-wider">Shared By</h4>
                     <div class="flex items-center gap-3 mb-3">
-                        {% if archive.uploaded_by.profile_picture %}
-                            <img src="{{ archive.uploaded_by.profile_picture.url }}" alt="{{ archive.uploaded_by.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
-                        {% else %}
-                        <div class="avatar avatar-lg">
-                            {{ archive.uploaded_by.get_display_name|slice:":1"|upper }}
-                        </div>
-                        {% endif %}
+                        <a href="{% url 'users:profile' archive.uploaded_by.username %}" class="block shrink-0">
+                            {% if archive.uploaded_by.profile_picture %}
+                            <img src="{{ archive.uploaded_by.profile_picture.url }}" alt="{{ archive.uploaded_by.get_display_name }}"
+                                class="w-12 h-12 rounded-full object-cover border border-border">
+                            {% else %}
+                            <div
+                                class="w-12 h-12 rounded-full bg-surface-alt dark:bg-surface-dark-alt flex items-center justify-center text-lg font-semibold border border-border">
+                                {{ archive.uploaded_by.get_display_name|slice:":1"|upper }}
+                            </div>
+                            {% endif %}
+                        </a>
                         <div>
-                            <a href="{% url 'users:profile' archive.uploaded_by.username %}" class="hover:text-accent font-medium transition-colors">
+                            <a href="{% url 'users:profile' archive.uploaded_by.username %}"
+                                class="hover:text-accent font-medium transition-colors text-lg">
                                 {{ archive.uploaded_by.get_display_name }}
                             </a>
                         </div>
                     </div>
                     {% if archive.uploaded_by.bio %}
-                    <p class="text-sm text-text-muted">{{ archive.uploaded_by.bio|truncatewords:30 }}</p>
+                    <p class="text-sm text-text-muted">{{ archive.uploaded_by.bio|truncatewords:25 }}</p>
+                    <a href="{% url 'users:profile' archive.uploaded_by.username %}" class="text-xs text-accent hover:underline mt-2 inline-block font-medium">View full profile &rarr;</a>
                     {% endif %}
                 </div>
             </div>

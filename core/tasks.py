@@ -362,7 +362,7 @@ def notify_indexnow(urls):
         return False
 
 
-@periodic_task(crontab(minute='0', hour='6', day_of_week='0'))
+@periodic_task(crontab(minute='0', hour='6'))
 def send_weekly_digest():
     """
     Process weekly digest batch. Runs daily at 6 AM but only sends
@@ -387,41 +387,35 @@ def send_weekly_digest():
         if not pending_items:
             logger.info("No content for weekly digest")
             return True
+            
+        # 2. Check eligible users
+        last_week = now - timedelta(days=7)
+        eligible_users = User.objects.filter(
+            is_active=True
+        ).filter(
+            Q(last_weekly_update_at__lt=last_week) | Q(last_weekly_update_at__isnull=True)
+        ).exclude(email='')
         
-        # 2. Check remaining quota
+        if not eligible_users.exists():
+            # No users are pending an update right now. We are safely between full cycles.
+            # We don't mark items processed here because they are NEW items for next week!
+            logger.info("Digest queue: No eligible users right now. Waiting until 7 days accumulate.")
+            return True
+            
+        # 3. Check remaining quota
         remaining_quota = EmailLog.quota_remaining()
         if remaining_quota < 50:
             logger.warning("Email quota too low for digest batch today. Skipping.")
             return False
             
-        # 3. Determine batch size (target 270 as requested)
+        # 4. Determine batch size
         batch_limit = min(270, remaining_quota - 20)
-        
-        # 4. Get users who haven't received an update in the last 7 days
-        # This picks up users who haven't been notified yet for this "week" cycle
-        last_week = now - timedelta(days=7)
-        users_to_notify = User.objects.filter(
-            is_active=True
-        ).filter(
-            Q(last_weekly_update_at__lt=last_week) | Q(last_weekly_update_at__isnull=True)
-        ).exclude(email='').order_by('id')[:batch_limit]
-        
+        users_to_notify = eligible_users.order_by('id')[:batch_limit]
         users_list = list(users_to_notify)
         
         if not users_list:
-            # Check if ALL users are now up to date
-            remaining_users = User.objects.filter(
-                is_active=True
-            ).filter(
-                Q(last_weekly_update_at__lt=last_week) | Q(last_weekly_update_at__isnull=True)
-            ).exclude(email='').exists()
-            
-            if not remaining_users:
-                # Everyone is notified. Mark these items as processed so they don't appear in future weeks.
-                DigestQueue.mark_processed([i.id for i in pending_items])
-                logger.info("All users have received updates. Digest items marked as processed.")
             return True
-
+            
         # 5. Prepare content group by type
         archives = [i for i in pending_items if i.content_type == 'archive']
         lore = [i for i in pending_items if i.content_type == 'lore']
@@ -483,8 +477,18 @@ def send_weekly_digest():
             from django.contrib.auth import get_user_model as _gum
             sent_ids = [u.id for u in users_list[:sent_count]]
             _gum().objects.filter(id__in=sent_ids).update(last_weekly_update_at=now)
-        
+            
         logger.info(f"Weekly digest batch: {sent_count} users notified")
+        
+        # 8. Check if we just completed a digest cycle!
+        still_remaining = eligible_users.exclude(id__in=[u.id for u in users_list[:sent_count]]).exists()
+        
+        if not still_remaining:
+            # We just notified the very last eligible user! 
+            # Mark all currently pending items as processed so they don't get sent again next week.
+            DigestQueue.mark_processed([i.id for i in pending_items])
+            logger.info("All users have received updates. Digest items marked as processed.")
+            
         return True
         
     except Exception as e:

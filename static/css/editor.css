@@ -13,11 +13,8 @@
     border-bottom: none;
     border-radius: 12px 12px 0 0;
     align-items: center;
-    position: sticky;
-    top: 100px;
-    /* Header (~48px) + desktop nav (~40px) + breathing room */
+    position: relative;
     z-index: 40;
-    /* Below header z-50 */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
