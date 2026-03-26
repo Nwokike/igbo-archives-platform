@@ -14,7 +14,7 @@ Instead of copy-pasting data, an AI agent connected via MCP can:
 
 The MCP server is available at:
 ```
-https://archives.kiri.ng/api/mcp/
+https://igboarchives.com.ng/api/mcp/
 ```
 
 ## Authentication
@@ -58,7 +58,7 @@ Antigravity natively supports remote HTTP/SSE MCP servers. Add this configuratio
 {
   "mcpServers": {
     "igbo-archives": {
-      "serverUrl": "https://archives.kiri.ng/api/mcp/",
+      "serverUrl": "https://igboarchives.com.ng/api/mcp/",
       "headers": {
         "Authorization": "Token YOUR_API_TOKEN",
         "Content-Type": "application/json"
@@ -80,7 +80,7 @@ Add the following to your `claude_desktop_config.json`:
         "-X", "POST",
         "-H", "Authorization: Token YOUR_API_TOKEN",
         "-H", "Content-Type: application/json",
-        "https://archives.kiri.ng/api/mcp/"
+        "https://igboarchives.com.ng/api/mcp/"
       ]
     }
   }
@@ -101,6 +101,3 @@ When using AI agents to access cultural data, please be mindful of:
 - **Accuracy:** Verify AI-generated summaries against the primary archive data.
 - **Copyright:** Respect the licensing terms of individual contributions.
 - **Culture:** Use the data to preserve and celebrate Igbo heritage.
-
----
-Copyright © 2026 Kiri Research Labs
