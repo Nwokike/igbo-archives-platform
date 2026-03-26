@@ -377,7 +377,7 @@
     <aside class="lg:col-span-4">
         <div class="lg:sticky lg:top-24 space-y-6">
 
-            {% if archive.original_author or archive.author or archive.circa_date or archive.date_created or archive.copyright_holder or archive.original_url or archive.original_identity_number %}
+            {% if archive.original_author or archive.author or archive.circa_date or archive.date_created or archive.copyright_holder or archive.original_url or archive.original_identity_number or archive.location %}
             <div class="card">
                 <div class="card-body">
                     <h4 class="font-serif font-semibold mb-3">Archive Details</h4>
@@ -395,6 +395,13 @@
                         <div>
                             <dt class="font-medium">Date Created:</dt>
                             <dd class="text-text-muted">{{ archive.date_created|date:"F d, Y" }}</dd>
+                        </div>
+                        {% endif %}
+
+                        {% if archive.location %}
+                        <div>
+                            <dt class="font-medium">Location:</dt>
+                            <dd class="text-text-muted">{{ archive.location }}</dd>
                         </div>
                         {% endif %}
 
