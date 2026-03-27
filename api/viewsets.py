@@ -13,7 +13,7 @@ from djangorestframework_mcp.decorators import mcp_viewset
 from archives.models import Archive, Category, ArchiveNote, Author
 from books.models import BookRecommendation, UserBookRating
 from .serializers import (
-    CategorySerializer, AuthorSerializer,
+    CategorySerializer, AuthorSerializer, AuthorListSerializer,
     ArchiveListSerializer, ArchiveSerializer, ArchiveCreateSerializer,
     ArchiveNoteSerializer, ArchiveNoteCreateSerializer,
     BookRecommendationListSerializer, BookRecommendationSerializer, BookRecommendationCreateSerializer,
@@ -68,6 +68,11 @@ class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     lookup_field = 'slug'
     
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AuthorListSerializer
+        return AuthorSerializer
+
     def get_queryset(self):
         queryset = Author.objects.all().order_by('name')
         search = self.request.query_params.get('search')

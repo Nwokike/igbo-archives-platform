@@ -29,10 +29,20 @@ MCP uses the same **Token Authentication** as our REST API. You must include you
 
 The following tools are exposed via the MCP endpoint:
 
+### Authors
+- `authors_list`: List all available authors (Names only).
+- `authors_retrieve`: Get full bio and details of an author.
+
+### Categories
+- `categories_list`: List all cultural categories.
+- `categories_retrieve`: Get details of a specific category.
+
 ### Archives
 - `archives_list`: List and filter approved cultural archives.
 - `archives_retrieve`: Get full details of a specific archive.
 - `archives_create`: Upload new archival material (Auth required).
+- `archives_featured`: Get featured archives (cached random selection).
+- `archives_recent`: Get the most recently uploaded archives.
 - `archive_notes_list`: List community notes attached to archives.
 - `archive_notes_retrieve`: Get details of a specific community note.
 - `archive_notes_create`: Append new contextual notes to an existing archive (Auth required).
@@ -45,9 +55,9 @@ The following tools are exposed via the MCP endpoint:
 ### Books
 - `books_list`: Search recommended books on Igbo culture.
 - `books_retrieve`: Get book details and reviews.
-
-### Categories
-- `categories_list`: List all cultural categories.
+- `books_top_rated`: Get the highest rated books (min. 3 ratings).
+- `books_rate`: Rate a book (Auth required).
+- `books_ratings`: Get all ratings for a specific book.
 
 ## Client Configuration Examples
 

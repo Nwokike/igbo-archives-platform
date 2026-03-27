@@ -79,6 +79,11 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = Author
         fields = ['id', 'name', 'slug', 'description', 'image']
 
+class AuthorListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Author
+        fields = ['name']
+
 class ArchiveItemSerializer(serializers.ModelSerializer):
     """Serializer for individual items within an archive."""
     file_url = serializers.SerializerMethodField()
