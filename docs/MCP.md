@@ -5,10 +5,10 @@ The Igbo Archives Platform implements the **Model Context Protocol (MCP)**, whic
 ## Why use MCP?
 
 Instead of copy-pasting data, an AI agent connected via MCP can:
-- **Search** for specific historical artifacts or proverbs.
-- **Retrieve** full details of cultural items to provide accurate information.
-- **Add** new contributions (with your permission and token), including uploading media using public URLs.
-- **Preserve** cultural context by having direct access to the source material.
+- **Search** for specific historical artifacts or proverbs using the archives and lore tools.
+- **Retrieve** full details of cultural items, including nested metadata, to provide accurate information.
+- **Add** new contributions directly, including uploading media using public HTTP/HTTPS URLs.
+- **Preserve** cultural context by accessing the primary database source.
 
 ## Connection Endpoint
 
@@ -19,50 +19,52 @@ https://igboarchives.com.ng/api/mcp/
 
 ## Authentication
 
-MCP uses the same **Token Authentication** as our REST API. You must include your token in the configuration for your AI tool.
+MCP uses **Token Authentication**. You must include your token in the configuration for your AI tool.
 
 1. Go to your **[API & MCP Dashboard](/profile/api-dashboard/)**.
 2. Generate an API Token.
-3. Use this token in your client configuration.
+3. Use this token in the `Authorization` header of your client configuration.
 
 ## Available Tools
 
-The following tools are exposed via the MCP endpoint:
+The tools follow a `verb_noun` naming convention. When retrieving a specific item, you must wrap the identifier (slug or pk) inside a `kwargs` object in the arguments.
 
 ### Authors
-- `authors_list`: List all available authors (Names only).
-- `authors_retrieve`: Get full bio and details of an author.
+- `list_authors`: List all available authors.
+- `retrieve_authors`: Get full bio and details. Requires `{"kwargs": {"slug": "author-slug"}}`.
 
 ### Categories
-- `categories_list`: List all cultural categories.
-- `categories_retrieve`: Get details of a specific category.
+- `list_categories`: List all cultural categories.
+- `retrieve_categories`: Get category details. Requires `{"kwargs": {"slug": "category-slug"}}`.
 
 ### Archives
-- `archives_list`: List and filter approved cultural archives.
-- `archives_retrieve`: Get full details of a specific archive.
-- `archives_create`: Upload new archival material (Auth required).
-- `archives_featured`: Get featured archives (cached random selection).
-- `archives_recent`: Get the most recently uploaded archives.
-- `archive_notes_list`: List community notes attached to archives.
-- `archive_notes_retrieve`: Get details of a specific community note.
-- `archive_notes_create`: Append new contextual notes to an existing archive (Auth required).
+- `list_archives`: List and filter approved cultural archives.
+- `retrieve_archives`: Get full details of a specific archive. Requires `{"kwargs": {"slug": "archive-slug"}}`.
+- `create_archives`: Upload new archival material (Auth required). Supports passing public media URLs.
+- `featured_archives`: Get a cached random selection of featured archives.
+- `recent_archives`: Get the most recently uploaded archives.
+
+### Community Notes
+- `list_archive_notes`: List community notes attached to archives.
+- `retrieve_archive_notes`: Get details of a specific note. Requires `{"kwargs": {"pk": "note-id"}}`.
+- `create_archive_notes`: Append new contextual notes to an existing archive (Auth required).
 
 ### Lore
-- `lore_list`: Browse cultural lore, folklore, and proverbs.
-- `lore_retrieve`: Read full lore content.
-- `lore_create`: Contribute new lore (Auth required).
+- `list_lore`: Browse cultural lore, folklore, and proverbs.
+- `retrieve_lore`: Read full lore content. Requires `{"kwargs": {"slug": "lore-slug"}}`.
+- `create_lore`: Contribute new lore (Auth required).
 
 ### Books
-- `books_list`: Search recommended books on Igbo culture.
-- `books_retrieve`: Get book details and reviews.
-- `books_top_rated`: Get the highest rated books (min. 3 ratings).
-- `books_rate`: Rate a book (Auth required).
-- `books_ratings`: Get all ratings for a specific book.
+- `list_books`: Search recommended books on Igbo culture.
+- `retrieve_books`: Get book details and reviews. Requires `{"kwargs": {"slug": "book-slug"}}`.
+- `top_rated_books`: Get the highest rated books (minimum 3 ratings).
+- `rate_books`: Rate a book (Auth required).
+- `ratings_books`: Get all ratings for a specific book.
 
 ## Client Configuration Examples
 
 ### Antigravity / HTTP native clients
-Antigravity natively supports remote HTTP/SSE MCP servers. Add this configuration to your `mcp_config.json` file in your Antigravity Agent settings:
+Add this configuration to your `mcp_config.json` file:
 
 ```json
 {
@@ -96,12 +98,11 @@ Add the following to your `claude_desktop_config.json`:
   }
 }
 ```
-*(Note: Most MCP clients require a bridge or a specific implementation. Our server uses the standard JSON-RPC over HTTP transport.)*
 
 ### Cursor / IDEs
 In your IDE's MCP settings, add a new server:
 - **Name:** Igbo Archives
-- **Type:** SSE (Server-Sent Events) or HTTP
+- **Type:** HTTP
 - **URL:** `https://igboarchives.com.ng/api/mcp/`
 - **Headers:** `Authorization: Token YOUR_API_TOKEN`
 
