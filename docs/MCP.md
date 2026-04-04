@@ -102,7 +102,7 @@ Add the following to your `claude_desktop_config.json`:
 In your IDE's MCP settings, add a new server:
 - **Name:** Igbo Archives
 - **Type:** SSE (Server-Sent Events) or HTTP
-- **URL:** `https://archives.kiri.ng/api/mcp/`
+- **URL:** `https://igboarchives.com.ng/api/mcp/`
 - **Headers:** `Authorization: Token YOUR_API_TOKEN`
 
 ## Responsibility & Ethics
