@@ -80,9 +80,8 @@ def chat_send(request):
     # Append current message
     sanitized_history.append({'role': 'user', 'content': message_content})
     
-    # Get AI response with task-appropriate model
-    task_type = 'analysis' if mode == 'advanced' else 'chat'
-    result = chat_service.chat(sanitized_history, use_web_search=True, task_type=task_type)
+    # Get AI response
+    result = chat_service.chat(sanitized_history, use_web_search=True)
     
     # Update rate limit
     cache.set(rate_key, chat_count + 1, 3600)

@@ -1,0 +1,50 @@
+# AI Model Configuration for Igbo Archives
+
+model_list:
+  - model_name: kimi-k2
+    litellm_params:
+      model: groq/moonshotai/kimi-k2-instruct
+      api_key: "os.environ/GROQ_API_KEY"
+
+  - model_name: gpt-oss-120b
+    litellm_params:
+      model: groq/openai/gpt-oss-120b
+      api_key: "os.environ/GROQ_API_KEY"
+
+  - model_name: qwen3-32b
+    litellm_params:
+      model: groq/qwen/qwen3-32b
+      api_key: "os.environ/GROQ_API_KEY"
+
+  - model_name: llama-4-scout
+    litellm_params:
+      model: groq/meta-llama/llama-4-scout-17b-16e-instruct
+      api_key: "os.environ/GROQ_API_KEY"
+
+  - model_name: gemma-4-26b-a4b-it
+    litellm_params:
+      model: gemini/gemma-4-26b-a4b-it
+      api_key: "os.environ/GEMINI_API_KEY"
+
+  - model_name: gemma-4-31b-it
+    litellm_params:
+      model: gemini/gemma-4-31b-it
+      api_key: "os.environ/GEMINI_API_KEY"
+
+router_settings:
+  routing_strategy: simple-shuffle
+  set_verbose: false
+  num_retries: 1 
+  timeout: 90 
+  
+  model_group_alias:
+    chat-primary: kimi-k2
+    vision-primary: gemma-4-31b-it
+
+  # Declarative Fallback Chains based on the ORIGINAL requested model name
+  fallbacks:
+    # If a request for 'chat-primary' fails, cascade through these:
+    - chat-primary: ["gemma-4-31b-it", "gpt-oss-120b", "qwen3-32b", "gemma-4-26b-a4b-it"]
+    
+    # If a request for 'vision-primary' fails, cascade through these:
+    - vision-primary: ["gemma-4-26b-a4b-it", "llama-4-scout"]

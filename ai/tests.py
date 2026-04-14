@@ -1,13 +1,22 @@
 """
 Unit tests for the AI app.
-Tests AI views and service integration (stateless design).
+Tests AI views, service integration, and LiteLLM Router fallbacks.
 """
 import json
+import base64
+from pathlib import Path
+from unittest.mock import patch, MagicMock
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
+import litellm
+
 from archives.models import Archive
+from ai.services.chat_service import ChatService
+from ai.services.vision_service import VisionService
+from ai.services.tts_service import TTSService
 
 User = get_user_model()
 
@@ -43,7 +52,6 @@ class AIViewTests(TestCase):
         """Test chat_send returns response without saving to DB."""
         self.client.login(username='testuser', password='testpass123')
         
-        from unittest.mock import patch
         with patch('ai.views.chat_service.chat') as mocked_chat:
             mocked_chat.return_value = {'success': True, 'content': 'Test response'}
             
@@ -63,7 +71,6 @@ class AIViewTests(TestCase):
         """Test chat_send correctly passes history to the service."""
         self.client.login(username='testuser', password='testpass123')
         
-        from unittest.mock import patch
         with patch('ai.views.chat_service.chat') as mocked_chat:
             mocked_chat.return_value = {'success': True, 'content': 'Response'}
             
@@ -91,9 +98,6 @@ class AIViewTests(TestCase):
 
     def test_analyze_archive_stateless(self):
         """Test archive analysis without saving results to DB."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        from unittest.mock import patch
-        
         self.client.login(username='testuser', password='testpass123')
         
         image_content = b"fake image data"
@@ -121,12 +125,10 @@ class AIViewTests(TestCase):
             self.assertEqual(data['content'], 'Analysis results')
 
 
-from unittest.mock import patch
 class TTSServiceTests(TestCase):
-    """Tests for the TTS service and fallback logic."""
+    """Tests for the TTS service."""
     
     def setUp(self):
-        from ai.services.tts_service import TTSService
         self.tts = TTSService()
     
     @patch('ai.services.tts_service.requests.post')
@@ -143,22 +145,92 @@ class TTSServiceTests(TestCase):
             self.assertEqual(result['audio_bytes'], b"fake mp3 data")
 
     @patch('ai.services.tts_service.requests.post')
-    @patch('ai.services.tts_service.TTSService._gemini_generate')
-    def test_yarngpt_timeout_fallback(self, mock_gemini, mock_post):
-        """Test that YarnGPT timeout triggers Gemini fallback."""
+    def test_yarngpt_failure_no_fallback(self, mock_post):
+        """Test that YarnGPT failure does not trigger Gemini fallback."""
         from requests.exceptions import Timeout
         mock_post.side_effect = Timeout("Operation timed out")
-        
-        mock_gemini.return_value = {
-            'success': True, 
-            'audio_bytes': b"gemini audio", 
-            'provider': 'gemini'
-        }
         
         with self.settings(YARNGPT_API_KEY='test_key'):
             result = self.tts.generate_audio("Hello world")
             
+            self.assertFalse(result['success'])
+            self.assertEqual(result['error'], 'Operation timed out')
+
+
+class RouterIntegrationTests(TestCase):
+    """Tests for the LiteLLM Router configuration and behavior."""
+
+    def setUp(self):
+        self.chat_service = ChatService()
+        self.vision_service = VisionService()
+
+    def test_router_initialization(self):
+        """Verify that the router loads models from YAML correctly."""
+        self.assertTrue(self.chat_service.is_available)
+        self.assertTrue(self.vision_service.is_available)
+        
+        # Check if chat-primary exists in the model list
+        model_names = [m['model_name'] for m in self.chat_service.router.model_list]
+        self.assertIn('kimi-k2', model_names)
+        self.assertIn('gemma-4-31b-it', model_names)
+
+    @patch('litellm.router.Router.completion')
+    def test_chat_calls_primary_model(self, mock_completion):
+        """Verify that ChatService calls the 'chat-primary' alias."""
+        mock_completion.return_value = MagicMock(
+            choices=[MagicMock(message=MagicMock(content="Hello!"))],
+            model="kimi-k2"
+        )
+        
+        messages = [{'role': 'user', 'content': 'Hi'}]
+        result = self.chat_service.chat(messages, use_web_search=False)
+        
+        self.assertTrue(result['success'])
+        self.assertEqual(result['content'], "Hello!")
+        
+        # Verify the router was called with chat-primary
+        called_model = mock_completion.call_args[1].get('model')
+        self.assertEqual(called_model, 'chat-primary')
+
+    @patch('litellm.router.Router.completion')
+    def test_vision_calls_primary_model(self, mock_completion):
+        """Verify that VisionService calls the 'vision-primary' alias."""
+        mock_completion.return_value = MagicMock(
+            choices=[MagicMock(message=MagicMock(content="I see a cat."))],
+            model="gemma-4-31b-it"
+        )
+        
+        # Mock a small file for analysis
+        with patch('ai.services.vision_service.Path.exists', return_value=True), \
+             patch('ai.services.vision_service.open', MagicMock()), \
+             patch('ai.services.vision_service.base64.b64encode', return_value=b"fake"):
+            
+            result = self.vision_service.analyze("fake_path.jpg")
             self.assertTrue(result['success'])
-            self.assertEqual(result['provider'], 'gemini')
-            self.assertEqual(mock_post.call_count, 2)
-            mock_gemini.assert_called_once()
+            
+            # Verify the router was called with vision-primary
+            called_model = mock_completion.call_args[1].get('model')
+            self.assertEqual(called_model, 'vision-primary')
+
+    def test_fallback_definitions_in_router(self):
+        """Verify that fallbacks are correctly registered in the Router instance."""
+        fallbacks_list = self.chat_service.router.fallbacks
+        fallbacks = {}
+        if fallbacks_list:
+            for item in fallbacks_list:
+                fallbacks.update(item)
+        
+        # The key is now correctly the alias: 'chat-primary'
+        self.assertIn('chat-primary', fallbacks)
+        self.assertEqual(fallbacks['chat-primary'][0], 'gemma-4-31b-it')
+        
+        v_fallbacks_list = self.vision_service.router.fallbacks
+        v_fallbacks = {}
+        if v_fallbacks_list:
+            for item in v_fallbacks_list:
+                v_fallbacks.update(item)
+                
+        # The key is now correctly the alias: 'vision-primary'
+        self.assertIn('vision-primary', v_fallbacks)
+        self.assertEqual(v_fallbacks['vision-primary'][0], 'gemma-4-26b-a4b-it')
+        self.assertEqual(v_fallbacks['vision-primary'][1], 'llama-4-scout')
