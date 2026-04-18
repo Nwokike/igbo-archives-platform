@@ -123,7 +123,7 @@ class ArchiveViewSet(viewsets.ModelViewSet):
         
         # Only add prefetch_related for detail/retrieve (list doesn't need items/tags)
         if self.action in ('retrieve', 'update', 'partial_update'):
-            queryset = queryset.prefetch_related('tags', 'items')
+            queryset = queryset.prefetch_related('items')
         
         return queryset
     
