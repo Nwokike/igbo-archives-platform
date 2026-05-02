@@ -17,16 +17,8 @@ class SocialMediaPoster:
             return False
             
         try:
-            # We assume mastodon.social for now. If user has a different server, we'd add it to .env
-            # Actually, I should use the correct server. The user didn't provide a server URL in the payload. 
-            # I will default to https://mastodon.social unless otherwise specified.
             base_url = "https://mastodon.social"
             headers = {"Authorization": f"Bearer {self.mastodon_token}"}
-            
-            # If there's media, Mastodon requires uploading it first.
-            # To keep it completely simple and debt-free, we will just post the link in the message.
-            # Mastodon auto-expands OpenGraph tags from the link perfectly!
-            
             payload = {
                 "status": message,
                 "visibility": "public"
@@ -72,6 +64,7 @@ class SocialMediaPoster:
             return False
             
         try:
+            import time
             # Step 1: Create Media Container
             container_url = f"https://graph.facebook.com/v25.0/{self.ig_account_id}/media"
             container_payload = {
@@ -87,6 +80,9 @@ class SocialMediaPoster:
                 logger.error("Failed to get container ID from Instagram.")
                 return False
                 
+            logger.info(f"Container created ({container_id}), waiting 10s for Meta processing...")
+            time.sleep(10)
+                
             # Step 2: Publish Media Container
             publish_url = f"https://graph.facebook.com/v25.0/{self.ig_account_id}/media_publish"
             publish_payload = {
@@ -99,5 +95,7 @@ class SocialMediaPoster:
             logger.info("Successfully posted to Instagram.")
             return True
         except Exception as e:
-            logger.error(f"Failed to post to Instagram: {e} - Response: {getattr(e, 'response', '') and getattr(e.response, 'text', '')}")
+            err_text = getattr(e, 'response', None)
+            err_msg = err_text.text if err_text is not None else str(e)
+            logger.error(f"Failed to post to Instagram: {err_msg}")
             return False

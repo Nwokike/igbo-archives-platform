@@ -525,7 +525,7 @@ def post_to_social_media_task(app_label, model_name, object_id):
         # Build templates based on model type
         if model_name.lower() == 'archive':
             title = obj.title
-            desc = obj.description[:150] + "..." if len(obj.description) > 150 else obj.description
+            desc = obj.description
             message = f"New from the archives: {title}. {desc}"
             ig_caption = f"New from the archives: {title}.\n\n{desc}\n\nDiscover more at our website (link in bio)."
             
@@ -544,8 +544,8 @@ def post_to_social_media_task(app_label, model_name, object_id):
                 if isinstance(obj.content_json, dict) and 'blocks' in obj.content_json:
                     blocks = obj.content_json['blocks']
                     if blocks and len(blocks) > 0 and 'data' in blocks[0]:
-                        desc = blocks[0]['data'].get('text', '')[:150]
-                        if len(blocks[0]['data'].get('text', '')) > 150:
+                        desc = blocks[0]['data'].get('text', '')[:300]
+                        if len(blocks[0]['data'].get('text', '')) > 300:
                             desc += "..."
             except Exception:
                 pass
