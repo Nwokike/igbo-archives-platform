@@ -516,6 +516,10 @@ def post_to_social_media_task(app_label, model_name, object_id):
         else:
             post_link = site_url
             
+        def get_public_media_url(image_field):
+            if not image_field or not image_field.name: return None
+            return f"https://media.igboarchives.com.ng/{image_field.name}"
+            
         image_url = None
         
         # Build templates based on model type
@@ -526,9 +530,9 @@ def post_to_social_media_task(app_label, model_name, object_id):
             ig_caption = f"New from the archives: {title}.\n\n{desc}\n\nDiscover more at our website (link in bio)."
             
             if obj.archive_type == 'image' and obj.image:
-                image_url = f"{site_url}{obj.image.url}"
+                image_url = get_public_media_url(obj.image)
             elif obj.featured_image:
-                image_url = f"{site_url}{obj.featured_image.url}"
+                image_url = get_public_media_url(obj.featured_image)
                 
         elif model_name.lower() == 'bookrecommendation':
             title = obj.title
@@ -549,7 +553,7 @@ def post_to_social_media_task(app_label, model_name, object_id):
             message = f"Book Recommendation: {title} by {author}. {desc}"
             ig_caption = f"Book Recommendation: {title} by {author}.\n\n{desc}\n\nFind more book recommendations at our website (link in bio)."
             if obj.cover_image:
-                image_url = f"{site_url}{obj.cover_image.url}"
+                image_url = get_public_media_url(obj.cover_image)
                 
         elif model_name.lower() == 'lorepost':
             title = obj.title
@@ -557,7 +561,7 @@ def post_to_social_media_task(app_label, model_name, object_id):
             message = f"New Post: {title}. {desc}"
             ig_caption = f"New Post: {title}.\n\n{desc}\n\nRead the full story at our website (link in bio)."
             if obj.featured_image:
-                image_url = f"{site_url}{obj.featured_image.url}"
+                image_url = get_public_media_url(obj.featured_image)
         else:
             logger.warning(f"Unsupported model for social posting: {model_name}")
             return False
