@@ -180,9 +180,11 @@ if DEBUG:
     STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        "dbbackup": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {"location": BASE_DIR / 'backups'},
+        },
     }
-    DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR / 'backups'}
 else:
     if R2_CUSTOM_DOMAIN:
         MEDIA_URL = f'https://{R2_CUSTOM_DOMAIN}/'
@@ -204,18 +206,19 @@ else:
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
-    }
-
-    DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    DBBACKUP_STORAGE_OPTIONS = {
-        'access_key': os.getenv('R2_ACCESS_KEY_ID'),
-        'secret_key': os.getenv('R2_SECRET_ACCESS_KEY'),
-        'bucket_name': 'igboarchives-backup',
-        'endpoint_url': os.getenv('R2_ENDPOINT_URL'),
-        'default_acl': 'private',
-        'location': 'backups',
-        'addressing_style': 'path',
-        'signature_version': 's3v4',
+        "dbbackup": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "access_key": os.getenv("R2_ACCESS_KEY_ID"),
+                "secret_key": os.getenv("R2_SECRET_ACCESS_KEY"),
+                "bucket_name": "igboarchives-backup",
+                "endpoint_url": os.getenv("R2_ENDPOINT_URL"),
+                "default_acl": "private",
+                "location": "backups",
+                "addressing_style": "path",
+                "signature_version": "s3v4",
+            },
+        },
     }
 
 # --- Auth & AllAuth ---
