@@ -544,8 +544,8 @@ def post_to_social_media_task(app_label, model_name, object_id):
                 if isinstance(obj.content_json, dict) and 'blocks' in obj.content_json:
                     blocks = obj.content_json['blocks']
                     if blocks and len(blocks) > 0 and 'data' in blocks[0]:
-                        desc = blocks[0]['data'].get('text', '')[:300]
-                        if len(blocks[0]['data'].get('text', '')) > 300:
+                        desc = blocks[0]['data'].get('text', '')[:250]
+                        if len(blocks[0]['data'].get('text', '')) > 250:
                             desc += "..."
             except Exception:
                 pass
