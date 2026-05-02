@@ -12,7 +12,7 @@ class LorePost(models.Model):
     Replaces the old Insights app, intended for folktales, proverbs, parables, and cultural history.
     """
     title = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     
     # Text Content
     content_json = models.JSONField(

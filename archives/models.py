@@ -26,7 +26,7 @@ class Category(models.Model):
     ]
     
     name = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     type = models.CharField(
         max_length=20, 
