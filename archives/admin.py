@@ -55,7 +55,18 @@ def reject_archives(modeladmin, request, queryset):
         archive.save(update_fields=['is_approved', 'is_rejected'])
         send_post_rejected_notification(archive, reason=archive.rejection_reason or 'Did not meet guidelines', post_type='archive')
         count += 1
+        count += 1
     modeladmin.message_user(request, f'{count} archive(s) rejected and notifications sent.')
+
+
+@admin.action(description='📱 Post selected to Social Media (FB, IG, Mastodon)')
+def post_to_social_media_action(modeladmin, request, queryset):
+    from core.tasks import post_to_social_media_task
+    count = 0
+    for obj in queryset:
+        post_to_social_media_task(app_label=obj._meta.app_label, model_name=obj._meta.model_name, object_id=obj.id)
+        count += 1
+    modeladmin.message_user(request, f'{count} item(s) queued for social media posting.')
 
 
 @admin.register(Archive)
@@ -64,7 +75,7 @@ class ArchiveAdmin(admin.ModelAdmin):
     list_filter = ['archive_type', 'category', 'is_approved', 'is_rejected', 'item_count']
     search_fields = ['title', 'description', 'original_author']
     list_editable = ['category']
-    actions = [approve_archives, reject_archives]
+    actions = [approve_archives, reject_archives, post_to_social_media_action]
     inlines = [ArchiveItemInline]
     raw_id_fields = ['uploaded_by']
     readonly_fields = ['slug', 'sort_year', 'created_at', 'updated_at']

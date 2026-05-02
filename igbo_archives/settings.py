@@ -517,3 +517,10 @@ LOGGING = {
         },
     },
 }
+
+# --- Social Media Posting ---
+MASTODON_ACCESS_TOKEN = os.getenv('MASTODON_ACCESS_TOKEN', '')
+FACEBOOK_PAGE_ID = os.getenv('FACEBOOK_PAGE_ID', '')
+INSTAGRAM_ACCOUNT_ID = os.getenv('INSTAGRAM_ACCOUNT_ID', '')
+FACEBOOK_PAGE_ACCESS_TOKEN = os.getenv('FACEBOOK_PAGE_ACCESS_TOKEN', '')
+

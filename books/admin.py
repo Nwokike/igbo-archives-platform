@@ -32,7 +32,7 @@ class BookRecommendationAdmin(admin.ModelAdmin):
     inlines = [UserBookRatingInline]
     
     # NEW: Bulk actions to save you time
-    actions = ['approve_books', 'reject_books', 'publish_books', 'unpublish_books']
+    actions = ['approve_books', 'reject_books', 'publish_books', 'unpublish_books', 'post_to_social_media']
 
     fieldsets = (
         ('Book Info', {
@@ -92,6 +92,15 @@ class BookRecommendationAdmin(admin.ModelAdmin):
     def unpublish_books(self, request, queryset):
         queryset.update(is_published=False)
     unpublish_books.short_description = "Unpublish selected books"
+
+    def post_to_social_media(self, request, queryset):
+        from core.tasks import post_to_social_media_task
+        count = 0
+        for obj in queryset:
+            post_to_social_media_task(app_label=obj._meta.app_label, model_name=obj._meta.model_name, object_id=obj.id)
+            count += 1
+        self.message_user(request, f"{count} book(s) queued for social media posting.")
+    post_to_social_media.short_description = "📱 Post selected to Social Media (FB, IG, Mastodon)"
     
     def content_preview(self, obj):
         """Render EditorJS content as HTML for admin preview with XSS protection."""

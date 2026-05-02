@@ -76,3 +76,10 @@ def update_parent_archive(archive):
             archive.save(update_fields=['item_count', 'image', 'video', 'audio', 'document'])
     except Exception as e:
         logger.error(f"Failed to update parent archive {archive.pk}: {e}")
+
+@receiver(post_save, sender=Archive)
+def auto_post_archive_to_social(sender, instance, created, **kwargs):
+    if created:
+        from core.tasks import post_to_social_media_task
+        # Queue the social media posting task
+        post_to_social_media_task(app_label='archives', model_name='Archive', object_id=instance.id)

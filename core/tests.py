@@ -303,3 +303,38 @@ class BackgroundTaskTests(TestCase):
         
         self.assertTrue(result)
         mock_send_push.assert_called_once()
+
+
+class SocialMediaTaskTests(TestCase):
+    """Tests for social media auto-posting."""
+    
+    def setUp(self):
+        self.user = User.objects.create_user(username='socialtest', password='password')
+    
+    @patch('core.social_platforms.SocialMediaPoster')
+    def test_archive_auto_post_task(self, mock_poster_class):
+        """Test that posting an archive formats correctly."""
+        from core.tasks import post_to_social_media_task
+        mock_poster_instance = MagicMock()
+        mock_poster_class.return_value = mock_poster_instance
+        
+        archive = Archive.objects.create(
+            title='Test Social Archive',
+            description='This is a description',
+            archive_type='document',
+            uploaded_by=self.user,
+            is_approved=True
+        )
+        
+        # The post_save signal automatically calls the task because created=True.
+        # We don't need to call .func() manually.
+        
+        mock_poster_instance.post_to_facebook.assert_called_once()
+        mock_poster_instance.post_to_mastodon.assert_called_once()
+        # No image, so IG should not be called
+        mock_poster_instance.post_to_instagram.assert_not_called()
+        
+        # Verify message content
+        args, kwargs = mock_poster_instance.post_to_mastodon.call_args
+        self.assertIn('Test Social Archive', kwargs['message'])
+        self.assertIn('This is a description', kwargs['message'])

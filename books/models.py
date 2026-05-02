@@ -141,3 +141,14 @@ class UserBookRating(models.Model):
     
     def __str__(self):
         return f"{self.user} rated {self.book.book_title}: {self.rating}/5"
+
+
+# --- Social Media Trigger ---
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=BookRecommendation)
+def auto_post_book_to_social(sender, instance, created, **kwargs):
+    if created:
+        from core.tasks import post_to_social_media_task
+        post_to_social_media_task(app_label='books', model_name='BookRecommendation', object_id=instance.id)

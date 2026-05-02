@@ -285,12 +285,13 @@ def upload_media(request):
                 except (Category.DoesNotExist, ValueError, TypeError):
                     logger.warning(f"Invalid category_id '{category_id}' for archive {archive.id}")
             
-            # Handle tags
-            if tags:
-                from taggit.utils import parse_tags
-                tag_list = parse_tags(tags)
-                if tag_list:
-                    archive.tags.add(*tag_list[:20])
+            # Handle category
+            if category_id:
+                try:
+                    archive.category = Category.objects.get(id=int(category_id))
+                    archive.save(update_fields=['category'])
+                except (Category.DoesNotExist, ValueError, TypeError):
+                    logger.warning(f"Invalid category_id '{category_id}' for archive {archive.id}")
 
             # 2. Create Archive Item (The specific media file — file lives here only)
             uploaded_file.seek(0)  # Ensure stream is at start

@@ -496,4 +496,87 @@ def send_weekly_digest():
         return False
 
 
-
+@db_task()
+def post_to_social_media_task(app_label, model_name, object_id):
+    """Background task to post content to Facebook, Instagram, and Mastodon."""
+    try:
+        from django.apps import apps
+        from core.social_platforms import SocialMediaPoster
+        from django.conf import settings
+        import json
+        
+        Model = apps.get_model(app_label, model_name)
+        obj = Model.objects.get(id=object_id)
+        
+        poster = SocialMediaPoster()
+        site_url = getattr(settings, 'SITE_URL', 'https://igboarchives.com.ng').rstrip('/')
+        
+        if hasattr(obj, 'get_absolute_url'):
+            post_link = f"{site_url}{obj.get_absolute_url()}"
+        else:
+            post_link = site_url
+            
+        image_url = None
+        
+        # Build templates based on model type
+        if model_name.lower() == 'archive':
+            title = obj.title
+            desc = obj.description[:150] + "..." if len(obj.description) > 150 else obj.description
+            message = f"New from the archives: {title}. {desc}"
+            ig_caption = f"New from the archives: {title}.\n\n{desc}\n\nDiscover more at our website (link in bio)."
+            
+            if obj.archive_type == 'image' and obj.image:
+                image_url = f"{site_url}{obj.image.url}"
+            elif obj.featured_image:
+                image_url = f"{site_url}{obj.featured_image.url}"
+                
+        elif model_name.lower() == 'bookrecommendation':
+            title = obj.title
+            author = obj.author
+            
+            # Safely extract text from Editor.js JSON
+            desc = ""
+            try:
+                if isinstance(obj.content_json, dict) and 'blocks' in obj.content_json:
+                    blocks = obj.content_json['blocks']
+                    if blocks and len(blocks) > 0 and 'data' in blocks[0]:
+                        desc = blocks[0]['data'].get('text', '')[:150]
+                        if len(blocks[0]['data'].get('text', '')) > 150:
+                            desc += "..."
+            except Exception:
+                pass
+                
+            message = f"Book Recommendation: {title} by {author}. {desc}"
+            ig_caption = f"Book Recommendation: {title} by {author}.\n\n{desc}\n\nFind more book recommendations at our website (link in bio)."
+            if obj.cover_image:
+                image_url = f"{site_url}{obj.cover_image.url}"
+                
+        elif model_name.lower() == 'lorepost':
+            title = obj.title
+            desc = obj.excerpt or ""
+            message = f"New Post: {title}. {desc}"
+            ig_caption = f"New Post: {title}.\n\n{desc}\n\nRead the full story at our website (link in bio)."
+            if obj.featured_image:
+                image_url = f"{site_url}{obj.featured_image.url}"
+        else:
+            logger.warning(f"Unsupported model for social posting: {model_name}")
+            return False
+            
+        # 1. Facebook
+        fb_msg = f"{message}\n\nRead more: {post_link}"
+        poster.post_to_facebook(message=fb_msg, link=post_link)
+        
+        # 2. Mastodon
+        mastodon_msg = f"{message}\n\n{post_link}"
+        poster.post_to_mastodon(message=mastodon_msg)
+        
+        # 3. Instagram
+        if image_url:
+            poster.post_to_instagram(image_url=image_url, caption=ig_caption)
+            
+        logger.info(f"Social media posting completed for {model_name} {object_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Social media auto-post failed for {app_label}.{model_name} {object_id}: {e}")
+        return False

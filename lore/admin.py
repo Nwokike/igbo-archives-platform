@@ -31,7 +31,7 @@ class LorePostAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at', 'content_preview')
     list_editable = ('is_published', 'is_approved')
     date_hierarchy = 'created_at'
-    actions = ['approve_posts', 'reject_posts', 'publish_posts', 'unpublish_posts']
+    actions = ['approve_posts', 'reject_posts', 'publish_posts', 'unpublish_posts', 'post_to_social_media']
 
     fieldsets = (
         (None, {
@@ -94,6 +94,15 @@ class LorePostAdmin(admin.ModelAdmin):
     def unpublish_posts(self, request, queryset):
         queryset.update(is_published=False)
     unpublish_posts.short_description = "Unpublish selected lore posts"
+
+    def post_to_social_media(self, request, queryset):
+        from core.tasks import post_to_social_media_task
+        count = 0
+        for obj in queryset:
+            post_to_social_media_task(app_label=obj._meta.app_label, model_name=obj._meta.model_name, object_id=obj.id)
+            count += 1
+        self.message_user(request, f"{count} lore post(s) queued for social media posting.")
+    post_to_social_media.short_description = "📱 Post selected to Social Media (FB, IG, Mastodon)"
 
     def content_preview(self, obj):
         """Render EditorJS content as preview text."""

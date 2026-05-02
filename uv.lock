@@ -140,18 +140,6 @@ wheels = [
 ]
 
 [[package]]
-name = "bleach"
-version = "6.3.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "webencodings" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/07/18/3c8523962314be6bf4c8989c79ad9531c825210dd13a8669f6b84336e8bd/bleach-6.3.0.tar.gz", hash = "sha256:6f3b91b1c0a02bb9a78b5a454c92506aa0fdf197e1d5e114d2e00c6f64306d22", size = 203533, upload-time = "2025-10-27T17:57:39.211Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/cd/3a/577b549de0cc09d95f11087ee63c739bba856cd3952697eec4c4bb91350a/bleach-6.3.0-py3-none-any.whl", hash = "sha256:fe10ec77c93ddf3d13a73b035abaac7a9f5e436513864ccdad516693213c65d6", size = 164437, upload-time = "2025-10-27T17:57:37.538Z" },
-]
-
-[[package]]
 name = "boto3"
 version = "1.42.43"
 source = { registry = "https://pypi.org/simple" }
@@ -629,18 +617,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-taggit"
-version = "6.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/34/a6/f1beaf8f552fe90c153cc039316ebab942c23dfbc88588dde081fefca816/django_taggit-6.1.0.tar.gz", hash = "sha256:c4d1199e6df34125dd36db5eb0efe545b254dec3980ce5dd80e6bab3e78757c3", size = 38151, upload-time = "2024-09-29T08:07:39.477Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/6b/34/4185c345530b91d05cb82e05d07148f481a5eb5dc2ac44e092b3daa6f206/django_taggit-6.1.0-py3-none-any.whl", hash = "sha256:ab776264bbc76cb3d7e49e1bf9054962457831bd21c3a42db9138b41956e4cf0", size = 75749, upload-time = "2024-09-29T08:07:14.612Z" },
-]
-
-[[package]]
 name = "django-threadedcomments"
 version = "2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -982,7 +958,6 @@ name = "igbo-archives-platform"
 version = "1.0.0"
 source = { editable = "." }
 dependencies = [
-    { name = "bleach" },
     { name = "boto3" },
     { name = "cryptography" },
     { name = "ddgs" },
@@ -997,12 +972,10 @@ dependencies = [
     { name = "django-pwa" },
     { name = "django-rest-framework-mcp" },
     { name = "django-storages" },
-    { name = "django-taggit" },
     { name = "django-threadedcomments" },
     { name = "django-webpush" },
     { name = "djangorestframework" },
     { name = "gunicorn" },
-    { name = "huey" },
     { name = "litellm" },
     { name = "nh3" },
     { name = "pillow" },
@@ -1023,7 +996,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bleach", specifier = "==6.3.0" },
     { name = "boto3", specifier = "==1.42.43" },
     { name = "coverage", marker = "extra == 'dev'", specifier = "==7.13.3" },
     { name = "cryptography", specifier = "==46.0.4" },
@@ -1039,12 +1011,10 @@ requires-dist = [
     { name = "django-pwa", specifier = "==2.0.1" },
     { name = "django-rest-framework-mcp", specifier = ">=0.1.0a4" },
     { name = "django-storages", specifier = "==1.14.6" },
-    { name = "django-taggit", specifier = "==6.1.0" },
     { name = "django-threadedcomments", specifier = "==2.0" },
     { name = "django-webpush", specifier = "==0.3.6" },
     { name = "djangorestframework", specifier = "==3.16.0" },
     { name = "gunicorn", specifier = "==25.0.3" },
-    { name = "huey", specifier = ">=2.6.0" },
     { name = "litellm", specifier = ">=1.83.0" },
     { name = "nh3", specifier = ">=0.3.2" },
     { name = "pillow", specifier = "==12.1.0" },
@@ -2234,15 +2204,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/c7/24/5f1b3bdffd70275f6661c76461e25f024d5a38a46f04aaca912426a2b1d3/urllib3-2.6.3.tar.gz", hash = "sha256:1b62b6884944a57dbe321509ab94fd4d3b307075e0c2eae991ac71ee15ad38ed", size = 435556, upload-time = "2026-01-07T16:24:43.925Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/39/08/aaaad47bc4e9dc8c725e68f9d04865dbcb2052843ff09c97b08904852d84/urllib3-2.6.3-py3-none-any.whl", hash = "sha256:bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4", size = 131584, upload-time = "2026-01-07T16:24:42.685Z" },
-]
-
-[[package]]
-name = "webencodings"
-version = "0.5.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0b/02/ae6ceac1baeda530866a85075641cec12989bd8d31af6d5ab4a3e8c92f47/webencodings-0.5.1.tar.gz", hash = "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923", size = 9721, upload-time = "2017-04-05T20:21:34.189Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f4/24/2a3e3df732393fed8b3ebf2ec078f05546de641fe1b667ee316ec1dcf3b7/webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78", size = 11774, upload-time = "2017-04-05T20:21:32.581Z" },
 ]
 
 [[package]]

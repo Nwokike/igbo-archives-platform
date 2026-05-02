@@ -109,3 +109,14 @@ class LorePost(models.Model):
         if self.content_json and (isinstance(self.content_json, dict) and self.content_json.get('blocks')):
             return self.content_json
         return self.legacy_content
+
+
+# --- Social Media Trigger ---
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=LorePost)
+def auto_post_lore_to_social(sender, instance, created, **kwargs):
+    if created:
+        from core.tasks import post_to_social_media_task
+        post_to_social_media_task(app_label='lore', model_name='LorePost', object_id=instance.id)
