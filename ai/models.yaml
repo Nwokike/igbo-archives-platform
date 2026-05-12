@@ -1,11 +1,6 @@
 # AI Model Configuration for Igbo Archives
 
 model_list:
-  - model_name: kimi-k2
-    litellm_params:
-      model: groq/moonshotai/kimi-k2-instruct
-      api_key: "os.environ/GROQ_API_KEY"
-
   - model_name: gpt-oss-120b
     litellm_params:
       model: groq/openai/gpt-oss-120b
@@ -38,13 +33,13 @@ router_settings:
   timeout: 90 
   
   model_group_alias:
-    chat-primary: kimi-k2
+    chat-primary: gpt-oss-120b
     vision-primary: gemma-4-31b-it
 
-  # Declarative Fallback Chains based on the ORIGINAL requested model name
+  # Declarative Fallback Chains
   fallbacks:
-    # If a request for 'chat-primary' fails, cascade through these:
-    - chat-primary: ["gemma-4-31b-it", "gpt-oss-120b", "qwen3-32b", "gemma-4-26b-a4b-it"]
+    # GPT OSS is now primary; falling back to Gemma and Qwen alternatives
+    - chat-primary: ["gemma-4-31b-it", "qwen3-32b", "gemma-4-26b-a4b-it"]
     
-    # If a request for 'vision-primary' fails, cascade through these:
+    # If vision-primary fails, cascade through these:
     - vision-primary: ["gemma-4-26b-a4b-it", "llama-4-scout"]
