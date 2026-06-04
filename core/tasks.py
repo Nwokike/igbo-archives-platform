@@ -509,7 +509,6 @@ def send_weekly_digest():
 def post_to_social_media_task(app_label, model_name, object_id):
     """Background task to post content to Facebook, Instagram, and Mastodon."""
     try:
-
         from django.apps import apps
         from django.conf import settings
 

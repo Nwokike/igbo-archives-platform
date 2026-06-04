@@ -33,13 +33,6 @@ dependencies = [
     "pyyaml>=6.0.3",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest==9.0.2",
-    "pytest-django==4.11.1",
-    "ruff==0.15.0",
-    "coverage==7.13.3",
-]
 
 [build-system]
 requires = ["setuptools"]
@@ -55,5 +48,10 @@ ignore = ["E501"]  # line length handled by formatter
 
 [dependency-groups]
 dev = [
+    "coverage>=7.13.3",
+    "pytest>=9.0.2",
+    "pytest-django>=4.11.1",
     "ruff>=0.15.0",
 ]
+
+

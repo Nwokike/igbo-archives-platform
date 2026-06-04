@@ -174,7 +174,6 @@ def archive_detail(request, pk=None, slug=None):
     ai_correlations = cache.get(f"archive_explore_further_{archive.id}")
 
     if not ai_correlations and archive.is_approved:
-
         from books.models import BookRecommendation
         from core.similarity import get_similar_items
         from lore.models import LorePost
