@@ -360,7 +360,7 @@ META_DEFAULT_IMAGE = '/static/images/logos/og-image.png'
 # --- Backup ---
 DBBACKUP_CLEANUP_KEEP = 3
 DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
-DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{datetime}.{extension}'
+DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{databasename}-{datetime}.{extension}'
 DBBACKUP_CONNECTORS = {'default': {'CONNECTOR': 'dbbackup.db.sqlite.SqliteConnector'}}
 
 # --- Tasks / Background Limits (Huey) ---
