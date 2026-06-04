@@ -1,58 +1,61 @@
-from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.urls import reverse
+
 from core.validators import validate_image_size
 
 
 class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=200, blank=True)
     bio = models.TextField(blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True, validators=[validate_image_size])
+    profile_picture = models.ImageField(
+        upload_to="profile_pictures/", blank=True, null=True, validators=[validate_image_size]
+    )
     social_links = models.JSONField(default=dict, blank=True)
     last_weekly_update_at = models.DateTimeField(null=True, blank=True)
-    deactivated_at = models.DateTimeField(null=True, blank=True, help_text='Set when user soft-deletes their account')
-    
+    deactivated_at = models.DateTimeField(null=True, blank=True, help_text="Set when user soft-deletes their account")
+
     def __str__(self):
         return self.full_name or self.email or self.username
-    
+
     def get_display_name(self):
-        return self.full_name or (self.email.split('@')[0] if self.email else self.username)
-    
+        return self.full_name or (self.email.split("@")[0] if self.email else self.username)
+
     def get_absolute_url(self):
         """Return the URL for this user's profile."""
-        return reverse('users:profile', args=[self.username])
+        return reverse("users:profile", args=[self.username])
 
 
 class Thread(models.Model):
-    participants = models.ManyToManyField(CustomUser, related_name='message_threads')
+    participants = models.ManyToManyField(CustomUser, related_name="message_threads")
     subject = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
-        ordering = ['-updated_at']
-    
+        ordering = ["-updated_at"]
+
     def __str__(self) -> str:
         return str(self.subject)
 
 
 class Message(models.Model):
-    thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='messages')
+    thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
-    
+
     class Meta:
-        ordering = ['created_at']
+        ordering = ["created_at"]
         indexes = [
-            models.Index(fields=['thread', 'is_read'], name='msg_thread_read_idx'),
-            models.Index(fields=['sender', '-created_at'], name='msg_sender_date_idx'),
+            models.Index(fields=["thread", "is_read"], name="msg_thread_read_idx"),
+            models.Index(fields=["sender", "-created_at"], name="msg_sender_date_idx"),
         ]
-    
+
     def __str__(self) -> str:
         sender_name = self.sender.get_display_name() if self.sender else "Deleted User"
         return f"Message from {sender_name} in {self.thread.subject}"
@@ -62,47 +65,35 @@ class Notification(models.Model):
     """
     Custom model to store in-app notifications, replacing django-notifications-hq.
     """
-    recipient = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='notifications'
-    )
-    
+
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
+
     sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='sent_notifications'
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="sent_notifications"
     )
-    
+
     unread = models.BooleanField(default=True, db_index=True)
-    
+
     verb = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    
+
     timestamp = models.DateTimeField(auto_now_add=True)
-    
-    content_type = models.ForeignKey(
-        ContentType, 
-        on_delete=models.CASCADE, 
-        null=True, 
-        blank=True
-    )
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
-    target = GenericForeignKey('content_type', 'object_id')
+    target = GenericForeignKey("content_type", "object_id")
 
     class Meta:
-        ordering = ('-timestamp',)
+        ordering = ("-timestamp",)
         indexes = [
-            models.Index(fields=['recipient', 'unread', '-timestamp'], name='notif_user_unread_idx'),
+            models.Index(fields=["recipient", "unread", "-timestamp"], name="notif_user_unread_idx"),
         ]
 
     def __str__(self):
-        return f'{self.recipient.username} - {self.verb}'
+        return f"{self.recipient.username} - {self.verb}"
 
     def mark_as_read(self):
         """Helper method to mark as read, used by views."""
         if self.unread:
             self.unread = False
-            self.save(update_fields=['unread'])
+            self.save(update_fields=["unread"])

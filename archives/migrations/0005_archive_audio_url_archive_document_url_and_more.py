@@ -6,97 +6,149 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('archives', '0004_remove_archive_arch_slug_idx_and_more'),
+        ("archives", "0004_remove_archive_arch_slug_idx_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='archive',
-            name='audio_url',
-            field=models.URLField(blank=True, help_text='External URL for audio streaming'),
+            model_name="archive",
+            name="audio_url",
+            field=models.URLField(blank=True, help_text="External URL for audio streaming"),
         ),
         migrations.AddField(
-            model_name='archive',
-            name='document_url',
-            field=models.URLField(blank=True, help_text='External URL for document access'),
+            model_name="archive",
+            name="document_url",
+            field=models.URLField(blank=True, help_text="External URL for document access"),
         ),
         migrations.AddField(
-            model_name='archive',
-            name='image_url',
-            field=models.URLField(blank=True, help_text='External URL for image streaming'),
+            model_name="archive",
+            name="image_url",
+            field=models.URLField(blank=True, help_text="External URL for image streaming"),
         ),
         migrations.AddField(
-            model_name='archive',
-            name='video_url',
-            field=models.URLField(blank=True, help_text='External URL for video streaming or YouTube embed'),
+            model_name="archive",
+            name="video_url",
+            field=models.URLField(blank=True, help_text="External URL for video streaming or YouTube embed"),
         ),
         migrations.AddField(
-            model_name='archiveitem',
-            name='audio_url',
+            model_name="archiveitem",
+            name="audio_url",
             field=models.URLField(blank=True),
         ),
         migrations.AddField(
-            model_name='archiveitem',
-            name='document_url',
+            model_name="archiveitem",
+            name="document_url",
             field=models.URLField(blank=True),
         ),
         migrations.AddField(
-            model_name='archiveitem',
-            name='image_url',
+            model_name="archiveitem",
+            name="image_url",
             field=models.URLField(blank=True),
         ),
         migrations.AddField(
-            model_name='archiveitem',
-            name='video_url',
+            model_name="archiveitem",
+            name="video_url",
             field=models.URLField(blank=True),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='type',
-            field=models.CharField(choices=[('archive', 'Archive'), ('lore', 'Lore')], default='archive', help_text='Is this for Archives or Lore?', max_length=20),
+            model_name="category",
+            name="type",
+            field=models.CharField(
+                choices=[("archive", "Archive"), ("lore", "Lore")],
+                default="archive",
+                help_text="Is this for Archives or Lore?",
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
-            name='ArchiveNote',
+            name="ArchiveNote",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('content_json', models.JSONField(blank=True, help_text='Block-based content using Editor.js', null=True)),
-                ('legacy_content', models.TextField(blank=True, help_text='Legacy HTML content')),
-                ('is_approved', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('added_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='archive_notes', to=settings.AUTH_USER_MODEL)),
-                ('archive', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='community_notes', to='archives.archive')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "content_json",
+                    models.JSONField(blank=True, help_text="Block-based content using Editor.js", null=True),
+                ),
+                ("legacy_content", models.TextField(blank=True, help_text="Legacy HTML content")),
+                ("is_approved", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "added_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="archive_notes",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "archive",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="community_notes",
+                        to="archives.archive",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ArchiveNoteSuggestion',
+            name="ArchiveNoteSuggestion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('suggestion_text', models.JSONField(blank=True, help_text='Proposed block-based content using Editor.js', null=True)),
-                ('is_approved', models.BooleanField(default=False)),
-                ('is_rejected', models.BooleanField(default=False)),
-                ('rejection_reason', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('note', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='suggestions', to='archives.archivenote')),
-                ('suggested_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='note_suggestions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "suggestion_text",
+                    models.JSONField(blank=True, help_text="Proposed block-based content using Editor.js", null=True),
+                ),
+                ("is_approved", models.BooleanField(default=False)),
+                ("is_rejected", models.BooleanField(default=False)),
+                ("rejection_reason", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "note",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="suggestions",
+                        to="archives.archivenote",
+                    ),
+                ),
+                (
+                    "suggested_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="note_suggestions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='AuthorDescriptionRequest',
+            name="AuthorDescriptionRequest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('proposed_description', models.TextField()),
-                ('is_approved', models.BooleanField(default=False, help_text='Has this been approved by admin?')),
-                ('is_rejected', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='description_requests', to='archives.author')),
-                ('requested_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("proposed_description", models.TextField()),
+                ("is_approved", models.BooleanField(default=False, help_text="Has this been approved by admin?")),
+                ("is_rejected", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="description_requests",
+                        to="archives.author",
+                    ),
+                ),
+                (
+                    "requested_by",
+                    models.ForeignKey(
+                        null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
         ),
     ]

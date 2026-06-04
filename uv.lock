@@ -994,6 +994,11 @@ dev = [
     { name = "ruff" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = "==1.42.43" },
@@ -1028,6 +1033,9 @@ requires-dist = [
     { name = "whitenoise", specifier = "==6.11.0" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff", specifier = ">=0.15.0" }]
 
 [[package]]
 name = "importlib-metadata"

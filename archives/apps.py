@@ -1,8 +1,9 @@
 from django.apps import AppConfig
 
+
 class ArchivesConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'archives'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "archives"
 
     def ready(self):
-        import archives.signals
+        pass

@@ -6,16 +6,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('books', '0003_bookrecommendation_is_rejected_and_more'),
+        ("books", "0003_bookrecommendation_is_rejected_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='bookrecommendation',
-            name='added_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='book_recommendations', to=settings.AUTH_USER_MODEL),
+            model_name="bookrecommendation",
+            name="added_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="book_recommendations",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

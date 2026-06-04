@@ -1,31 +1,32 @@
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
+from django.http import HttpRequest, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
 from .models import Notification
-from django.http import JsonResponse, HttpRequest
 
 
 @login_required
 def notifications_list(request: HttpRequest):
     """Display all notifications for the logged-in user"""
     notifications_query = request.user.notifications.all()
-    
-    filter_type = request.GET.get('filter', 'all')
-    if filter_type == 'unread':
+
+    filter_type = request.GET.get("filter", "all")
+    if filter_type == "unread":
         notifications_query = notifications_query.filter(unread=True)
-    elif filter_type == 'read':
+    elif filter_type == "read":
         notifications_query = notifications_query.filter(unread=False)
-    
+
     paginator = Paginator(notifications_query, 20)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     context = {
-        'notifications': page_obj,
-        'filter_type': filter_type,
+        "notifications": page_obj,
+        "filter_type": filter_type,
     }
-    
-    return render(request, 'users/notifications.html', context)
+
+    return render(request, "users/notifications.html", context)
 
 
 @login_required
@@ -33,17 +34,18 @@ def notifications_list(request: HttpRequest):
 def notification_mark_read(request: HttpRequest, notification_id: int):
     """Mark a single notification as read"""
     notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
-    
+
     notification.mark_as_read()
-    
+
     # Invalidate cached notification count so badge updates immediately
     from django.core.cache import cache
-    cache.delete(f'notif_count_{request.user.id}')
-    
-    if request.htmx or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'status': 'success'})
-    
-    return redirect('users:notifications')
+
+    cache.delete(f"notif_count_{request.user.id}")
+
+    if request.htmx or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"status": "success"})
+
+    return redirect("users:notifications")
 
 
 @login_required
@@ -53,20 +55,21 @@ def notification_mark_all_read(request: HttpRequest):
     request.user.notifications.filter(unread=True).update(unread=False)
     # Invalidate the cached notification count so badge updates immediately
     from django.core.cache import cache
-    cache.delete(f'notif_count_{request.user.id}')
-    
+
+    cache.delete(f"notif_count_{request.user.id}")
+
     # Check for AJAX/JSON request more robustly
     is_ajax = (
-        request.htmx or
-        request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
-        request.content_type == 'application/json' or
-        'application/json' in request.headers.get('Accept', '')
+        request.htmx
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or request.content_type == "application/json"
+        or "application/json" in request.headers.get("Accept", "")
     )
-    
+
     if is_ajax:
-        return JsonResponse({'status': 'success'})
-    
-    return redirect('users:notifications')
+        return JsonResponse({"status": "success"})
+
+    return redirect("users:notifications")
 
 
 @login_required
@@ -75,10 +78,10 @@ def notification_dropdown(request: HttpRequest):
     unread_qs = request.user.notifications.filter(unread=True)
     unread_count = unread_qs.count()
     notifications = unread_qs[:5]
-    
+
     context = {
-        'notifications': notifications,
-        'unread_count': unread_count,
+        "notifications": notifications,
+        "unread_count": unread_count,
     }
-    
-    return render(request, 'users/partials/notification_dropdown.html', context)
+
+    return render(request, "users/partials/notification_dropdown.html", context)

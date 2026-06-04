@@ -2,14 +2,28 @@
 Shared username generation utilities.
 Used by forms.py (signup) and signals.py (shadow accounts).
 """
+
 import re
 
 # Reserved usernames that would conflict with URL patterns
-RESERVED_USERNAMES = frozenset({
-    'admin', 'messages', 'dashboard', 'delete-account',
-    'notifications', 'login', 'logout', 'signup', 'register',
-    'settings', 'api', 'static', 'media', 'accounts',
-})
+RESERVED_USERNAMES = frozenset(
+    {
+        "admin",
+        "messages",
+        "dashboard",
+        "delete-account",
+        "notifications",
+        "login",
+        "logout",
+        "signup",
+        "register",
+        "settings",
+        "api",
+        "static",
+        "media",
+        "accounts",
+    }
+)
 
 
 def generate_unique_username(email):
@@ -20,13 +34,13 @@ def generate_unique_username(email):
     """
     from users.models import CustomUser
 
-    base = re.sub(r'[^a-zA-Z0-9]', '', email.split('@')[0])[:30]
+    base = re.sub(r"[^a-zA-Z0-9]", "", email.split("@")[0])[:30]
     # Fallback if the local part was all special characters
     if not base:
-        base = 'user'
+        base = "user"
     # Avoid reserved usernames
     if base.lower() in RESERVED_USERNAMES:
-        base = f'{base}_u'
+        base = f"{base}_u"
 
     username = base
     counter = 1
@@ -35,6 +49,7 @@ def generate_unique_username(email):
         counter += 1
         if counter > 1000:
             import uuid
+
             username = f"{base}_{uuid.uuid4().hex[:8]}"
             break
 

@@ -2,9 +2,10 @@
 Shared AI service constants for Igbo Archives.
 Consolidates system prompts and configuration used across services.
 """
+
 from django.conf import settings
 
-SITE_URL = getattr(settings, 'SITE_URL', 'https://igboarchives.com.ng')
+SITE_URL = getattr(settings, "SITE_URL", "https://igboarchives.com.ng")
 
 # Single source of truth for AI system prompt
 SYSTEM_PROMPT = f"""You are the **Igbo Archives AI**, an intelligent assistant specialized in Igbo culture, history, language, and heritage on the Igbo Archives platform ({SITE_URL}).
@@ -53,4 +54,3 @@ TITLE_PROMPT = "Generate a very short title (max 5 words) for this conversation.
 
 # Generic error message for user-facing responses (never leak internal details)
 GENERIC_AI_ERROR = "Sorry, I encountered a temporary issue. Please try again."
-

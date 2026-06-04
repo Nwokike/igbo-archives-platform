@@ -1,13 +1,16 @@
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from .models import Message
-# Import your new, fixed utility function
-from core.notifications_utils import send_message_notification
-from django_comments.signals import comment_was_posted
-from django.conf import settings
 import logging
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django_comments.signals import comment_was_posted
+
+# Import your new, fixed utility function
+from core.notifications_utils import send_message_notification
+
+from .models import Message
+
 logger = logging.getLogger(__name__)
+
 
 @receiver(post_save, sender=Message)
 def notify_message_recipient(sender, instance, created, **kwargs):
@@ -18,7 +21,7 @@ def notify_message_recipient(sender, instance, created, **kwargs):
     if created:
         # Get all participants in the thread EXCEPT the person who sent the message
         recipients = instance.thread.participants.exclude(id=instance.sender.id)
-        
+
         for recipient in recipients:
             try:
                 # Call your new util function
@@ -26,6 +29,7 @@ def notify_message_recipient(sender, instance, created, **kwargs):
                 send_message_notification(instance, recipient)
             except Exception as e:
                 logger.error(f"Error in signal sending message notification: {str(e)}")
+
 
 @receiver(comment_was_posted)
 def send_guest_invitation_email(sender, comment, request, **kwargs):
@@ -50,32 +54,31 @@ def send_guest_invitation_email(sender, comment, request, **kwargs):
         if existing_user:
             # Security: DO NOT link the comment to the existing user automatically.
             # This prevents spoofing (someone posting as admin@example.com).
-            
+
             # Check if this user has no usable password (incomplete profile)
             if not existing_user.has_usable_password():
-                 pass # We could re-send the claim email here if we wanted
-            
+                pass  # We could re-send the claim email here if we wanted
+
             logger.info(f"Guest comment from existing email {email} - Not linking to prevent spoofing.")
-            return 
+            return
 
         # Create new shadow user with shared utility
         from users.username_utils import generate_unique_username
+
         username = generate_unique_username(email)
 
         user = CustomUser.objects.create_user(
-            username=username,
-            email=email,
-            password=None,
-            full_name=comment.user_name or 'Guest'
+            username=username, email=email, password=None, full_name=comment.user_name or "Guest"
         )
-        
+
         # Link comment to the NEW user (safe, because we just created it)
         comment.user = user
         comment.save()
 
         # Send Claim Profile Email using utility
         from users.utils import send_claim_profile_email
-        send_claim_profile_email(user, name=comment.user_name, mode='commenter')
+
+        send_claim_profile_email(user, name=comment.user_name, mode="commenter")
 
     except Exception as e:
         logger.error(f"Error in send_guest_invitation_email: {str(e)}")

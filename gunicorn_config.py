@@ -2,6 +2,7 @@
 Gunicorn configuration for Igbo Archives
 Optimized for 1GB RAM Google Cloud VM deployment
 """
+
 import multiprocessing
 
 # Server socket

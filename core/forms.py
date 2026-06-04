@@ -1,48 +1,51 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from threadedcomments.forms import ThreadedCommentForm
-from django.conf import settings
+
 from .turnstile import verify_turnstile
 
 
 def _verify_turnstile_for_form(form_instance):
     """Shared Turnstile verification logic for forms with a `request` attribute."""
-    token = form_instance.cleaned_data.get('cf_turnstile_response') or form_instance.data.get('cf-turnstile-response', '')
-    
+    token = form_instance.cleaned_data.get("cf_turnstile_response") or form_instance.data.get(
+        "cf-turnstile-response", ""
+    )
+
     remote_ip = None
     if form_instance.request:
-        remote_ip = form_instance.request.META.get('HTTP_CF_CONNECTING_IP') or \
-                   form_instance.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
-                   form_instance.request.META.get('REMOTE_ADDR')
-    
+        remote_ip = (
+            form_instance.request.META.get("HTTP_CF_CONNECTING_IP")
+            or form_instance.request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+            or form_instance.request.META.get("REMOTE_ADDR")
+        )
+
     result = verify_turnstile(token, remote_ip)
-    if not result.get('success'):
-        raise ValidationError('Please complete the security verification.')
+    if not result.get("success"):
+        raise ValidationError("Please complete the security verification.")
 
 
 class TurnstileCommentForm(ThreadedCommentForm):
     """Comment form with Cloudflare Turnstile for ALL users."""
-    
+
     # Hidden field to receive the Turnstile token
-    cf_turnstile_response = forms.CharField(
-        widget=forms.HiddenInput(),
-        required=False
-    )
-    
+    cf_turnstile_response = forms.CharField(widget=forms.HiddenInput(), required=False)
+
     def __init__(self, *args, **kwargs):
         # Extract request from kwargs if passed
-        self.request = kwargs.pop('request', None)
+        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
-        
+
         # Style the existing fields
-        self.fields['name'].widget.attrs.update({'class': 'modern-input', 'placeholder': 'Your name *'})
-        self.fields['name'].label = 'Name'
-        self.fields['email'].widget.attrs.update({'class': 'modern-input', 'placeholder': 'Email (optional)'})
-        self.fields['email'].label = 'Email'
-        self.fields['email'].required = False
-        self.fields['comment'].widget.attrs.update({'class': 'modern-comment-input', 'rows': 3, 'placeholder': 'Share your thoughts...'})
-        self.fields['comment'].label = 'Comment'
-    
+        self.fields["name"].widget.attrs.update({"class": "modern-input", "placeholder": "Your name *"})
+        self.fields["name"].label = "Name"
+        self.fields["email"].widget.attrs.update({"class": "modern-input", "placeholder": "Email (optional)"})
+        self.fields["email"].label = "Email"
+        self.fields["email"].required = False
+        self.fields["comment"].widget.attrs.update(
+            {"class": "modern-comment-input", "rows": 3, "placeholder": "Share your thoughts..."}
+        )
+        self.fields["comment"].label = "Comment"
+
     def clean(self):
         cleaned_data = super().clean()
         _verify_turnstile_for_form(self)
@@ -51,69 +54,48 @@ class TurnstileCommentForm(ThreadedCommentForm):
 
 class ContactForm(forms.Form):
     """Contact form with proper validation, honeypot protection, and Turnstile."""
-    
+
     name = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Your name'
-        })
+        max_length=100, widget=forms.TextInput(attrs={"class": "form-input", "placeholder": "Your name"})
     )
     email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Your email address'
-        })
+        widget=forms.EmailInput(attrs={"class": "form-input", "placeholder": "Your email address"})
     )
     subject = forms.CharField(
-        max_length=200,
-        widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Subject'
-        })
+        max_length=200, widget=forms.TextInput(attrs={"class": "form-input", "placeholder": "Subject"})
     )
     message = forms.CharField(
         max_length=5000,
-        widget=forms.Textarea(attrs={
-            'class': 'form-textarea',
-            'rows': 6,
-            'placeholder': 'Your message'
-        })
+        widget=forms.Textarea(attrs={"class": "form-textarea", "rows": 6, "placeholder": "Your message"}),
     )
     # Honeypot field - should remain empty
     website = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'hidden',
-            'style': 'display: none;',
-            'autocomplete': 'off',
-            'tabindex': '-1'
-        })
+        widget=forms.TextInput(
+            attrs={"class": "hidden", "style": "display: none;", "autocomplete": "off", "tabindex": "-1"}
+        ),
     )
     # Hidden field for Turnstile token
-    cf_turnstile_response = forms.CharField(
-        required=False,
-        widget=forms.HiddenInput()
-    )
-    
+    cf_turnstile_response = forms.CharField(required=False, widget=forms.HiddenInput())
+
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
+        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
-    
+
     def clean_website(self):
         """Honeypot validation - reject if filled"""
-        website = self.cleaned_data.get('website', '')
+        website = self.cleaned_data.get("website", "")
         if website:
-            raise ValidationError('Spam detected.')
+            raise ValidationError("Spam detected.")
         return website
-    
+
     def clean_message(self):
         """Basic content validation"""
-        message = self.cleaned_data.get('message', '')
+        message = self.cleaned_data.get("message", "")
         if len(message) < 10:
-            raise ValidationError('Message is too short.')
+            raise ValidationError("Message is too short.")
         return message
-    
+
     def clean(self):
         """Validate Turnstile token"""
         cleaned_data = super().clean()

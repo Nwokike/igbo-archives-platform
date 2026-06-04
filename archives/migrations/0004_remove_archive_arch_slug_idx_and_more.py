@@ -6,33 +6,40 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('archives', '0003_archive_is_rejected_archive_rejection_reason'),
+        ("archives", "0003_archive_is_rejected_archive_rejection_reason"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='archive',
-            name='arch_slug_idx',
+            model_name="archive",
+            name="arch_slug_idx",
         ),
         migrations.RemoveIndex(
-            model_name='archive',
-            name='arch_circa_date_idx',
+            model_name="archive",
+            name="arch_circa_date_idx",
         ),
         migrations.RemoveIndex(
-            model_name='archive',
-            name='arch_location_idx',
+            model_name="archive",
+            name="arch_location_idx",
         ),
         migrations.AlterField(
-            model_name='archive',
-            name='slug',
-            field=models.SlugField(blank=True, default='', help_text='URL-friendly version of title', max_length=255, unique=True),
+            model_name="archive",
+            name="slug",
+            field=models.SlugField(
+                blank=True, default="", help_text="URL-friendly version of title", max_length=255, unique=True
+            ),
         ),
         migrations.AlterField(
-            model_name='archive',
-            name='uploaded_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='archives', to=settings.AUTH_USER_MODEL),
+            model_name="archive",
+            name="uploaded_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="archives",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

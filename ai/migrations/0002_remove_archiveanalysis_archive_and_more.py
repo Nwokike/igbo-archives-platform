@@ -4,35 +4,34 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('ai', '0001_initial'),
+        ("ai", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='archiveanalysis',
-            name='archive',
+            model_name="archiveanalysis",
+            name="archive",
         ),
         migrations.RemoveField(
-            model_name='archiveanalysis',
-            name='user',
+            model_name="archiveanalysis",
+            name="user",
         ),
         migrations.RemoveField(
-            model_name='chatmessage',
-            name='session',
+            model_name="chatmessage",
+            name="session",
         ),
         migrations.RemoveIndex(
-            model_name='chatsession',
-            name='ai_chatsess_user_id_19e151_idx',
+            model_name="chatsession",
+            name="ai_chatsess_user_id_19e151_idx",
         ),
         migrations.DeleteModel(
-            name='ArchiveAnalysis',
+            name="ArchiveAnalysis",
         ),
         migrations.DeleteModel(
-            name='ChatMessage',
+            name="ChatMessage",
         ),
         migrations.DeleteModel(
-            name='ChatSession',
+            name="ChatSession",
         ),
     ]

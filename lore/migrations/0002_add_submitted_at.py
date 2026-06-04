@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lore', '0001_initial'),
+        ("lore", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='lorepost',
-            name='submitted_at',
-            field=models.DateTimeField(blank=True, help_text='When submitted for approval', null=True),
+            model_name="lorepost",
+            name="submitted_at",
+            field=models.DateTimeField(blank=True, help_text="When submitted for approval", null=True),
         ),
     ]

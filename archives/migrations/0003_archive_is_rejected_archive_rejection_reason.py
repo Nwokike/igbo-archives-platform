@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('archives', '0002_archive_sort_year_archive_arch_sort_year_idx'),
+        ("archives", "0002_archive_sort_year_archive_arch_sort_year_idx"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='archive',
-            name='is_rejected',
-            field=models.BooleanField(default=False, help_text='Set to true if admin rejects the archive'),
+            model_name="archive",
+            name="is_rejected",
+            field=models.BooleanField(default=False, help_text="Set to true if admin rejects the archive"),
         ),
         migrations.AddField(
-            model_name='archive',
-            name='rejection_reason',
-            field=models.TextField(blank=True, help_text='Internal reason for rejection'),
+            model_name="archive",
+            name="rejection_reason",
+            field=models.TextField(blank=True, help_text="Internal reason for rejection"),
         ),
     ]

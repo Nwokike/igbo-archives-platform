@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('books', '0004_alter_bookrecommendation_added_by'),
+        ("books", "0004_alter_bookrecommendation_added_by"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='bookrecommendation',
-            name='slug',
+            model_name="bookrecommendation",
+            name="slug",
             field=models.SlugField(max_length=255, unique=True),
         ),
     ]

@@ -52,3 +52,8 @@ line-length = 120
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]
 ignore = ["E501"]  # line length handled by formatter
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.0",
+]

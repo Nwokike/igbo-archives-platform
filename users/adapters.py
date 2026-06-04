@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         """
@@ -18,16 +19,16 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             return
 
         # If not connected, check if we have a user with this email
-        email = sociallogin.account.extra_data.get('email') or sociallogin.user.email
-        
+        email = sociallogin.account.extra_data.get("email") or sociallogin.user.email
+
         if email:
             try:
                 # Look for an existing user with this email (case-insensitive)
                 user = User.objects.get(email__iexact=email)
-                
+
                 # If found, connect this new social account to the existing user
                 sociallogin.connect(request, user)
-                
+
             except User.DoesNotExist:
                 # No existing user, proceed with standard signup
                 pass

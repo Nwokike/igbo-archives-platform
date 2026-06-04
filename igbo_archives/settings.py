@@ -4,136 +4,141 @@ Django settings for Igbo Archives project.
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # --- Environment Setup ---
 load_dotenv()
 
-def get_bool_from_env(key, default_value='False'):
+
+def get_bool_from_env(key, default_value="False"):
     """Helper to convert environment variable strings to booleans safely."""
-    return str(os.getenv(key, default_value)).lower() in ('true', '1', 't', 'y', 'yes')
+    return str(os.getenv(key, default_value)).lower() in ("true", "1", "t", "y", "yes")
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- Core Security ---
-DEBUG = get_bool_from_env('DEBUG', 'False')
+DEBUG = get_bool_from_env("DEBUG", "False")
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     if DEBUG:
-        SECRET_KEY = 'insecure-dev-key-do-not-use-in-production'
+        SECRET_KEY = "insecure-dev-key-do-not-use-in-production"
     else:
         raise ValueError("The SECRET_KEY environment variable must be set.")
 
-ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@igboarchives.com.ng')
-ADMINS = [('Admin', ADMIN_EMAIL)]
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@igboarchives.com.ng")
+ADMINS = [("Admin", ADMIN_EMAIL)]
 
 # --- Hosts & Trusted Origins ---
 if DEBUG:
-    ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']  # SECURITY: never deploy with DEBUG=True
+    ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1"]  # SECURITY: never deploy with DEBUG=True
 else:
-    allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'igboarchives.com.ng,www.igboarchives.com.ng')
-    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+    allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "igboarchives.com.ng,www.igboarchives.com.ng")
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(",") if h.strip()]
 
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://igboarchives.com.ng,https://www.igboarchives.com.ng').split(',') if o.strip()]
-SITE_URL = os.getenv('SITE_URL', 'https://igboarchives.com.ng').rstrip('/')
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("CSRF_TRUSTED_ORIGINS", "https://igboarchives.com.ng,https://www.igboarchives.com.ng").split(",")
+    if o.strip()
+]
+SITE_URL = os.getenv("SITE_URL", "https://igboarchives.com.ng").rstrip("/")
 
 # --- Application Definition ---
 INSTALLED_APPS = [
-    'whitenoise.runserver_nostatic',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'django.contrib.sitemaps',
-
+    "whitenoise.runserver_nostatic",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.sitemaps",
     # 3. Third-Party Apps
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'django_comments',
-    'threadedcomments',
-    'django_htmx',
-    'pwa',
-    'meta',
-    'dbbackup',
-    'webpush',
-    'csp', 
-    'rest_framework',
-    'rest_framework.authtoken',
-    'djangorestframework_mcp',
-    'django_cleanup.apps.CleanupConfig',
-    'django_huey',
-
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "django_comments",
+    "threadedcomments",
+    "django_htmx",
+    "pwa",
+    "meta",
+    "dbbackup",
+    "webpush",
+    "csp",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "djangorestframework_mcp",
+    "django_cleanup.apps.CleanupConfig",
+    "django_huey",
     # 4. Project Apps
-    'core.apps.CoreConfig',
-    'users.apps.UsersConfig',
-    'archives.apps.ArchivesConfig',
-    'books.apps.BooksConfig',
-    'lore.apps.LoreConfig',
-    'ai.apps.AiConfig',
-    'api.apps.ApiConfig',
+    "core.apps.CoreConfig",
+    "users.apps.UsersConfig",
+    "archives.apps.ArchivesConfig",
+    "books.apps.BooksConfig",
+    "lore.apps.LoreConfig",
+    "ai.apps.AiConfig",
+    "api.apps.ApiConfig",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'csp.middleware.CSPMiddleware', 
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
-    'django_htmx.middleware.HtmxMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "csp.middleware.CSPMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
 ]
 
-ROOT_URLCONF = 'igbo_archives.urls'
+ROOT_URLCONF = "igbo_archives.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.media',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.media",
                 # Custom
-                'core.context_processors.pwa_settings',
-                'core.context_processors.monetization_settings',
-                'core.context_processors.notification_count',
+                "core.context_processors.pwa_settings",
+                "core.context_processors.monetization_settings",
+                "core.context_processors.notification_count",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'igbo_archives.wsgi.application'
+WSGI_APPLICATION = "igbo_archives.wsgi.application"
 
 # --- Database & Caching ---
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'timeout': 30,
-            'transaction_mode': 'IMMEDIATE',
-            'init_command': (
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            "timeout": 30,
+            "transaction_mode": "IMMEDIATE",
+            "init_command": (
                 "PRAGMA journal_mode=WAL;"
                 "PRAGMA synchronous=NORMAL;"
                 "PRAGMA cache_size=-32000;"
                 "PRAGMA foreign_keys=ON;"
                 "PRAGMA busy_timeout=5000;"
             ),
-        }
+        },
     }
 }
 
@@ -141,39 +146,39 @@ CONN_MAX_AGE = None  # Persistent connections — safe for SQLite (single-file D
 CONN_HEALTH_CHECKS = True
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'cache_table',
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-            'CULL_FREQUENCY': 3,
-        }
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "cache_table",
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,
+            "CULL_FREQUENCY": 3,
+        },
     }
 }
 
 # --- Password Validation ---
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # --- Internationalization ---
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
 # --- Static & Media Files (Storage) ---
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
-R2_CUSTOM_DOMAIN = os.getenv('R2_CUSTOM_DOMAIN', '')
+R2_CUSTOM_DOMAIN = os.getenv("R2_CUSTOM_DOMAIN", "")
 
 # Unified STORAGES config
 if DEBUG:
@@ -182,12 +187,12 @@ if DEBUG:
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
         "dbbackup": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
-            "OPTIONS": {"location": BASE_DIR / 'backups'},
+            "OPTIONS": {"location": BASE_DIR / "backups"},
         },
     }
 else:
     if R2_CUSTOM_DOMAIN:
-        MEDIA_URL = f'https://{R2_CUSTOM_DOMAIN}/'
+        MEDIA_URL = f"https://{R2_CUSTOM_DOMAIN}/"
 
     STORAGES = {
         "default": {
@@ -222,47 +227,47 @@ else:
     }
 
 # --- Auth & AllAuth ---
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_USER_MODEL = 'users.CustomUser'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+AUTH_USER_MODEL = "users.CustomUser"
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-LOGIN_REDIRECT_URL = '/profile/dashboard/'
-LOGOUT_REDIRECT_URL = '/'
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+LOGIN_REDIRECT_URL = "/profile/dashboard/"
+LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGOUT_ON_GET = False
-ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True  
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 ACCOUNT_FORMS = {
-    'signup': 'users.forms.CustomSignupForm',
-    'login': 'users.forms.CustomLoginForm',
+    "signup": "users.forms.CustomSignupForm",
+    "login": "users.forms.CustomLoginForm",
 }
 
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
-            'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
+    "google": {
+        "APP": {
+            "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
+            "secret": os.getenv("GOOGLE_CLIENT_SECRET", ""),
         },
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'}
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
     }
 }
 
 SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
+SOCIALACCOUNT_ADAPTER = "users.adapters.CustomSocialAccountAdapter"
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
@@ -271,151 +276,151 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB — safe for 1GB RAM VM
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB — actual files go to disk via TemporaryFileUploadHandler
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 FILE_UPLOAD_HANDLERS = [
-    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
 ]
 
 # --- API (DRF) ---
 REST_FRAMEWORK = {
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '10/hour',
-        'user': '50/hour',
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "10/hour",
+        "user": "50/hour",
     },
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 100,
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 100,
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
 }
 
 # --- PWA Settings ---
-PWA_APP_NAME = 'Igbo Archives'
-PWA_APP_SHORT_NAME = 'IgboArchives'
-PWA_APP_DESCRIPTION = 'Preserving the Past, Inspiring the Future'
-PWA_APP_THEME_COLOR = '#3D2817'
-PWA_APP_BACKGROUND_COLOR = '#FFFFFF'
-PWA_APP_DISPLAY = 'standalone'
-PWA_APP_SCOPE = '/'
-PWA_APP_ORIENTATION = 'any'
-PWA_APP_START_URL = '/'
+PWA_APP_NAME = "Igbo Archives"
+PWA_APP_SHORT_NAME = "IgboArchives"
+PWA_APP_DESCRIPTION = "Preserving the Past, Inspiring the Future"
+PWA_APP_THEME_COLOR = "#3D2817"
+PWA_APP_BACKGROUND_COLOR = "#FFFFFF"
+PWA_APP_DISPLAY = "standalone"
+PWA_APP_SCOPE = "/"
+PWA_APP_ORIENTATION = "any"
+PWA_APP_START_URL = "/"
 PWA_APP_ICONS = [
-    {'src': '/static/images/logos/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
-    {'src': '/static/images/logos/icon-512.png', 'sizes': '512x512', 'type': 'image/png'},
+    {"src": "/static/images/logos/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/static/images/logos/icon-512.png", "sizes": "512x512", "type": "image/png"},
 ]
 PWA_APP_ICONS_APPLE = [
-    {'src': '/static/images/logos/icon-192.png', 'sizes': '192x192'},
+    {"src": "/static/images/logos/icon-192.png", "sizes": "192x192"},
 ]
-PWA_SERVICE_WORKER_PATH = BASE_DIR / 'static' / 'serviceworker.js'
+PWA_SERVICE_WORKER_PATH = BASE_DIR / "static" / "serviceworker.js"
 
 # --- API Keys & Integrations ---
-TURNSTILE_SITE_KEY = os.getenv('TURNSTILE_SITE_KEY', '')
-TURNSTILE_SECRET_KEY = os.getenv('TURNSTILE_SECRET_KEY', '')
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "")
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "")
 
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": os.getenv('VAPID_PUBLIC_KEY', ''),
-    "VAPID_PRIVATE_KEY": os.getenv('VAPID_PRIVATE_KEY', ''),
-    "VAPID_ADMIN_EMAIL": os.getenv('ADMIN_EMAIL', ADMINS[0][1])
+    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY", ""),
+    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY", ""),
+    "VAPID_ADMIN_EMAIL": os.getenv("ADMIN_EMAIL", ADMINS[0][1]),
 }
-COMMENTS_APP = 'threadedcomments'
+COMMENTS_APP = "threadedcomments"
 
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-GEMINI_API_KEYS = os.getenv('GEMINI_API_KEYS', '')
-GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
-GROQ_API_KEYS = os.getenv('GROQ_API_KEYS', '')
-YARNGPT_API_KEY = os.getenv('YARNGPT_API_KEY', '')
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_API_KEYS = os.getenv("GEMINI_API_KEYS", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_API_KEYS = os.getenv("GROQ_API_KEYS", "")
+YARNGPT_API_KEY = os.getenv("YARNGPT_API_KEY", "")
 
 
-INDEXNOW_API_KEY = '801ef3778f8b4f0c9a094c826da7ab20'  # Public verification token, not a secret
+INDEXNOW_API_KEY = "801ef3778f8b4f0c9a094c826da7ab20"  # Public verification token, not a secret
 
-PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
-PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
+PAYSTACK_PUBLIC_KEY = os.getenv("PAYSTACK_PUBLIC_KEY", "")
+PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY", "")
 ENABLE_DONATIONS = bool(PAYSTACK_SECRET_KEY)
 
 # --- Email ---
-if os.getenv('BREVO_EMAIL_USER') and os.getenv('BREVO_SMTP_KEY'):
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp-relay.brevo.com'
+if os.getenv("BREVO_EMAIL_USER") and os.getenv("BREVO_SMTP_KEY"):
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp-relay.brevo.com"
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = os.getenv('BREVO_EMAIL_USER')
-    EMAIL_HOST_PASSWORD = os.getenv('BREVO_SMTP_KEY')
+    EMAIL_HOST_USER = os.getenv("BREVO_EMAIL_USER")
+    EMAIL_HOST_PASSWORD = os.getenv("BREVO_SMTP_KEY")
 else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@igboarchives.com.ng')
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@igboarchives.com.ng")
 
 # --- Meta ---
-META_SITE_PROTOCOL = 'https'
+META_SITE_PROTOCOL = "https"
 META_USE_OG_PROPERTIES = True
 META_USE_TWITTER_PROPERTIES = True
 META_USE_SCHEMAORG_PROPERTIES = True
-META_SITE_TYPE = 'website'
-META_SITE_NAME = 'Igbo Archives'
-META_DEFAULT_KEYWORDS = ['Igbo culture', 'Nigerian heritage', 'Igbo history', 'cultural preservation']
-META_DEFAULT_IMAGE = '/static/images/logos/og-image.png'
+META_SITE_TYPE = "website"
+META_SITE_NAME = "Igbo Archives"
+META_DEFAULT_KEYWORDS = ["Igbo culture", "Nigerian heritage", "Igbo history", "cultural preservation"]
+META_DEFAULT_IMAGE = "/static/images/logos/og-image.png"
 
 # --- Backup ---
 DBBACKUP_CLEANUP_KEEP = 3
-DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H-%M-%S'
-DBBACKUP_FILENAME_TEMPLATE = 'igbo-archives-{databasename}-{datetime}.{extension}'
-DBBACKUP_CONNECTORS = {'default': {'CONNECTOR': 'dbbackup.db.sqlite.SqliteConnector'}}
+DBBACKUP_DATE_FORMAT = "%Y-%m-%d-%H-%M-%S"
+DBBACKUP_FILENAME_TEMPLATE = "igbo-archives-{databasename}-{datetime}.{extension}"
+DBBACKUP_CONNECTORS = {"default": {"CONNECTOR": "dbbackup.db.sqlite.SqliteConnector"}}
 
 # --- Tasks / Background Limits (Huey) ---
 DJANGO_HUEY = {
-    'default': 'default',
-    'queues': {
-        'default': {
-            'huey_class': 'huey.SqliteHuey',
-            'name': 'default',
-            'filename': str(BASE_DIR / 'huey_tasks.sqlite3'),
-            'results': True,
-            'store_none': False,
-            'immediate': DEBUG,  
-            'utc': True,
-            'consumer': {
-                'workers': 2,
-                'worker_type': 'thread',  # low memory overhead, no gevent required
-                'initial_delay': 0.1,
-                'backoff': 1.15,
-                'max_delay': 10.0,
-                'scheduler_interval': 1,
-                'periodic': True,
-                'check_worker_health': True,
-                'health_check_interval': 1,
+    "default": "default",
+    "queues": {
+        "default": {
+            "huey_class": "huey.SqliteHuey",
+            "name": "default",
+            "filename": str(BASE_DIR / "huey_tasks.sqlite3"),
+            "results": True,
+            "store_none": False,
+            "immediate": DEBUG,
+            "utc": True,
+            "consumer": {
+                "workers": 2,
+                "worker_type": "thread",  # low memory overhead, no gevent required
+                "initial_delay": 0.1,
+                "backoff": 1.15,
+                "max_delay": 10.0,
+                "scheduler_interval": 1,
+                "periodic": True,
+                "check_worker_health": True,
+                "health_check_interval": 1,
             },
         }
-    }
+    },
 }
 
 # --- Security Headers ---
 SESSION_COOKIE_AGE = 86400 * 7
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
-SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
 if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
+    X_FRAME_OPTIONS = "DENY"
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # --- Content Security Policy (CSP) ---
 
 CONTENT_SECURITY_POLICY = {
-    'DIRECTIVES': {
-        'default-src': ["'self'"],
-        'script-src': [
+    "DIRECTIVES": {
+        "default-src": ["'self'"],
+        "script-src": [
             "'self'",
             "'unsafe-inline'",
             "https://*.google.com",
@@ -434,7 +439,7 @@ CONTENT_SECURITY_POLICY = {
             "https://js.paystack.co",
             "https://pagead2.googlesyndication.com",
         ],
-        'style-src': [
+        "style-src": [
             "'self'",
             "'unsafe-inline'",
             "https://fonts.googleapis.com",
@@ -443,17 +448,17 @@ CONTENT_SECURITY_POLICY = {
             "https://*.paystack.co",
             "https://*.paystack.com",
         ],
-        'font-src': [
+        "font-src": [
             "'self'",
             "https://fonts.gstatic.com",
         ],
-        'img-src': [
+        "img-src": [
             "'self'",
             "data:",
             "blob:",
             "https:",
         ],
-        'connect-src': [
+        "connect-src": [
             "'self'",
             "https://www.google-analytics.com",
             "https://analytics.google.com",
@@ -470,7 +475,7 @@ CONTENT_SECURITY_POLICY = {
             "https://stats.g.doubleclick.net",
             "https://www.google.com",
         ],
-        'frame-src': [
+        "frame-src": [
             "'self'",
             "https://challenges.cloudflare.com",
             "https://googleads.g.doubleclick.net",
@@ -483,44 +488,43 @@ CONTENT_SECURITY_POLICY = {
             "https://www.youtube.com",
             "https://player.vimeo.com",
         ],
-        'worker-src': ["'self'", "blob:"],
-        'manifest-src': ["'self'"],
-        'media-src': ["'self'", "https:", "data:", "blob:"],
+        "worker-src": ["'self'", "blob:"],
+        "manifest-src": ["'self'"],
+        "media-src": ["'self'", "https:", "data:", "blob:"],
     }
 }
 
 # --- Logging ---
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
         },
     },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
 }
 
 # --- Social Media Posting ---
-MASTODON_ACCESS_TOKEN = os.getenv('MASTODON_ACCESS_TOKEN', '')
-FACEBOOK_PAGE_ID = os.getenv('FACEBOOK_PAGE_ID', '')
-INSTAGRAM_ACCOUNT_ID = os.getenv('INSTAGRAM_ACCOUNT_ID', '')
-FACEBOOK_PAGE_ACCESS_TOKEN = os.getenv('FACEBOOK_PAGE_ACCESS_TOKEN', '')
-
+MASTODON_ACCESS_TOKEN = os.getenv("MASTODON_ACCESS_TOKEN", "")
+FACEBOOK_PAGE_ID = os.getenv("FACEBOOK_PAGE_ID", "")
+INSTAGRAM_ACCOUNT_ID = os.getenv("INSTAGRAM_ACCOUNT_ID", "")
+FACEBOOK_PAGE_ACCESS_TOKEN = os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN", "")

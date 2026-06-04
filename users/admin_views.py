@@ -1,210 +1,232 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.http import require_POST
-from django.contrib import messages
-from django.conf import settings
 import logging
-from lore.models import LorePost
+
+from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
+from archives.models import Archive, ArchiveNote, AuthorDescriptionRequest
 from books.models import BookRecommendation
-from archives.models import Archive, AuthorDescriptionRequest, ArchiveNote
 from core.notifications_utils import send_post_approved_notification, send_post_rejected_notification
+from lore.models import LorePost
 
 logger = logging.getLogger(__name__)
+
 
 @staff_member_required
 def moderation_dashboard(request):
     """Admin moderation dashboard showing pending posts"""
-    pending_lores = LorePost.objects.filter(
-        pending_approval=True, is_approved=False
-    ).select_related('author').order_by('-created_at')
-    
-    pending_books = BookRecommendation.objects.filter(
-        pending_approval=True, is_approved=False
-    ).select_related('added_by').order_by('-submitted_at')
+    pending_lores = (
+        LorePost.objects.filter(pending_approval=True, is_approved=False)
+        .select_related("author")
+        .order_by("-created_at")
+    )
+
+    pending_books = (
+        BookRecommendation.objects.filter(pending_approval=True, is_approved=False)
+        .select_related("added_by")
+        .order_by("-submitted_at")
+    )
 
     # ADDED: Pending Archives
-    pending_archives = Archive.objects.filter(
-        is_approved=False
-    ).select_related('uploaded_by', 'category').order_by('-created_at')
-    
+    pending_archives = (
+        Archive.objects.filter(is_approved=False).select_related("uploaded_by", "category").order_by("-created_at")
+    )
+
     # ADDED: Pending Author Edits
-    pending_author_edits = AuthorDescriptionRequest.objects.filter(
-        is_approved=False, is_rejected=False
-    ).select_related('author', 'requested_by').order_by('-created_at')
+    pending_author_edits = (
+        AuthorDescriptionRequest.objects.filter(is_approved=False, is_rejected=False)
+        .select_related("author", "requested_by")
+        .order_by("-created_at")
+    )
 
     # ADDED: Pending Community Notes
-    pending_notes = ArchiveNote.objects.filter(
-        is_approved=False
-    ).select_related('added_by', 'archive').order_by('-created_at')
+    pending_notes = (
+        ArchiveNote.objects.filter(is_approved=False).select_related("added_by", "archive").order_by("-created_at")
+    )
 
     context = {
-        'pending_lores': pending_lores,
-        'pending_books': pending_books,
-        'pending_archives': pending_archives,
-        'pending_author_edits': pending_author_edits,
-        'pending_notes': pending_notes,
+        "pending_lores": pending_lores,
+        "pending_books": pending_books,
+        "pending_archives": pending_archives,
+        "pending_author_edits": pending_author_edits,
+        "pending_notes": pending_notes,
     }
-    
-    return render(request, 'users/admin/moderation_dashboard.html', context)
+
+    return render(request, "users/admin/moderation_dashboard.html", context)
+
 
 @staff_member_required
 @require_POST
 def approve_lore(request, pk):
     from django.db import transaction
+
     try:
         with transaction.atomic():
             post = LorePost.objects.select_for_update().get(pk=pk, is_approved=False)
             post.is_published = True
             post.is_approved = True
             post.pending_approval = False
-            post.save(update_fields=['is_published', 'is_approved', 'pending_approval'])
+            post.save(update_fields=["is_published", "is_approved", "pending_approval"])
     except LorePost.DoesNotExist:
-        messages.warning(request, 'Lore post not found or already approved.')
-        return redirect('users:moderation_dashboard')
-    
-    author_name = post.author.get_display_name() if post.author else 'Unknown'
-    send_post_approved_notification(post, 'lore')
+        messages.warning(request, "Lore post not found or already approved.")
+        return redirect("users:moderation_dashboard")
+
+    author_name = post.author.get_display_name() if post.author else "Unknown"
+    send_post_approved_notification(post, "lore")
     from core.notifications_utils import send_broadcast_notification
+
     send_broadcast_notification(
-        f"New Lore: {post.title}", 
-        f"Read the latest heritage lore by {author_name}", 
-        post.get_absolute_url()
+        f"New Lore: {post.title}", f"Read the latest heritage lore by {author_name}", post.get_absolute_url()
     )
-    
+
     # Queue for weekly digest
     from core.email_service import queue_for_digest
-    queue_for_digest('lore', post.id, post.title, author_name, post.get_absolute_url())
-    
+
+    queue_for_digest("lore", post.id, post.title, author_name, post.get_absolute_url())
+
     messages.success(request, f'Lore "{post.title}" approved.')
-    return redirect('users:moderation_dashboard')
+    return redirect("users:moderation_dashboard")
+
 
 @staff_member_required
 def reject_lore(request, pk):
     post = get_object_or_404(LorePost, pk=pk)
-    if request.method == 'POST':
-        reason = request.POST.get('reason', '')
+    if request.method == "POST":
+        reason = request.POST.get("reason", "")
         post.pending_approval = False
         post.is_approved = False
         post.is_rejected = True
         post.rejection_reason = reason
         post.save()
-        send_post_rejected_notification(post, reason, 'lore')
+        send_post_rejected_notification(post, reason, "lore")
         messages.info(request, f'Lore "{post.title}" rejected.')
-        return redirect('users:moderation_dashboard')
-    return render(request, 'users/admin/reject_post.html', {'post': post, 'post_type': 'lore'})
+        return redirect("users:moderation_dashboard")
+    return render(request, "users/admin/reject_post.html", {"post": post, "post_type": "lore"})
+
 
 @staff_member_required
 @require_POST
 def approve_book_review(request, pk):
     from django.db import transaction
+
     try:
         with transaction.atomic():
             review = BookRecommendation.objects.select_for_update().get(pk=pk, is_approved=False)
             review.is_published = True
             review.is_approved = True
             review.pending_approval = False
-            review.save(update_fields=['is_published', 'is_approved', 'pending_approval'])
+            review.save(update_fields=["is_published", "is_approved", "pending_approval"])
     except BookRecommendation.DoesNotExist:
-        messages.warning(request, 'Book recommendation not found or already approved.')
-        return redirect('users:moderation_dashboard')
-    
-    added_by_name = review.added_by.get_display_name() if review.added_by else 'Unknown'
-    send_post_approved_notification(review, 'book review')
+        messages.warning(request, "Book recommendation not found or already approved.")
+        return redirect("users:moderation_dashboard")
+
+    added_by_name = review.added_by.get_display_name() if review.added_by else "Unknown"
+    send_post_approved_notification(review, "book review")
     from core.notifications_utils import send_broadcast_notification
+
     send_broadcast_notification(
-        f"New Book: {review.book_title}", 
-        f"A new book recommendation has been published by {added_by_name}", 
-        review.get_absolute_url()
+        f"New Book: {review.book_title}",
+        f"A new book recommendation has been published by {added_by_name}",
+        review.get_absolute_url(),
     )
-    
+
     # Queue for weekly digest
     from core.email_service import queue_for_digest
-    queue_for_digest('book', review.id, review.book_title, added_by_name, review.get_absolute_url())
-    
+
+    queue_for_digest("book", review.id, review.book_title, added_by_name, review.get_absolute_url())
+
     messages.success(request, f'Review "{review.title}" approved.')
-    return redirect('users:moderation_dashboard')
+    return redirect("users:moderation_dashboard")
+
 
 @staff_member_required
 def reject_book_review(request, pk):
     review = get_object_or_404(BookRecommendation, pk=pk)
-    if request.method == 'POST':
-        reason = request.POST.get('reason', '')
+    if request.method == "POST":
+        reason = request.POST.get("reason", "")
         review.pending_approval = False
         review.is_approved = False
         review.is_rejected = True
         review.rejection_reason = reason
         review.save()
-        send_post_rejected_notification(review, reason, 'book review')
+        send_post_rejected_notification(review, reason, "book review")
         messages.info(request, f'Review "{review.title}" rejected.')
-        return redirect('users:moderation_dashboard')
-    return render(request, 'users/admin/reject_post.html', {'post': review, 'post_type': 'book review'})
+        return redirect("users:moderation_dashboard")
+    return render(request, "users/admin/reject_post.html", {"post": review, "post_type": "book review"})
+
 
 # --- NEW: Archive Actions ---
 @staff_member_required
 @require_POST
 def approve_archive(request, pk):
-    from django.utils import timezone
     from django.db import transaction
-    
+    from django.utils import timezone
+
     try:
         with transaction.atomic():
             archive = Archive.objects.select_for_update().get(pk=pk, is_approved=False)
             archive.is_approved = True
             archive.updated_at = timezone.now()
-            archive.save(update_fields=['is_approved', 'updated_at'])
+            archive.save(update_fields=["is_approved", "updated_at"])
     except Archive.DoesNotExist:
-        messages.warning(request, 'Archive not found or already approved.')
-        return redirect('users:moderation_dashboard')
-    
+        messages.warning(request, "Archive not found or already approved.")
+        return redirect("users:moderation_dashboard")
+
     try:
         from core.notifications_utils import send_broadcast_notification
-        uploaded_by_name = archive.uploaded_by.get_display_name() if archive.uploaded_by else 'Unknown'
-        send_post_approved_notification(archive, 'archive')
+
+        uploaded_by_name = archive.uploaded_by.get_display_name() if archive.uploaded_by else "Unknown"
+        send_post_approved_notification(archive, "archive")
         send_broadcast_notification(
-            f"New Archive: {archive.title}", 
-            f"Explore a new heritage archive from {uploaded_by_name}", 
-            archive.get_absolute_url()
+            f"New Archive: {archive.title}",
+            f"Explore a new heritage archive from {uploaded_by_name}",
+            archive.get_absolute_url(),
         )
-        
+
         # Queue for weekly digest
         from core.email_service import queue_for_digest
-        queue_for_digest('archive', archive.id, archive.title, uploaded_by_name, archive.get_absolute_url())
+
+        queue_for_digest("archive", archive.id, archive.title, uploaded_by_name, archive.get_absolute_url())
     except Exception:
         logger.warning("Failed to send archive approval/broadcast notification")
-        
+
     messages.success(request, f'Archive "{archive.title}" approved.')
-    return redirect('users:moderation_dashboard')
+    return redirect("users:moderation_dashboard")
+
 
 @staff_member_required
 def reject_archive(request, pk):
     archive = get_object_or_404(Archive, pk=pk)
-    if request.method == 'POST':
-        reason = request.POST.get('reason', '')
+    if request.method == "POST":
+        reason = request.POST.get("reason", "")
         # For archives, rejection leaves it unapproved but allows user to edit/resubmit
         archive.is_approved = False
         archive.is_rejected = True
         archive.rejection_reason = reason
         archive.save()
-        
+
         try:
-            send_post_rejected_notification(archive, reason, 'archive')
+            send_post_rejected_notification(archive, reason, "archive")
         except Exception:
             logger.warning("Failed to send archive rejection notification")
         messages.info(request, f'Archive "{archive.title}" rejected.')
-        return redirect('users:moderation_dashboard')
-    return render(request, 'users/admin/reject_post.html', {'post': archive, 'post_type': 'archive'})
+        return redirect("users:moderation_dashboard")
+    return render(request, "users/admin/reject_post.html", {"post": archive, "post_type": "archive"})
+
 
 # --- NEW: Author Edit Moderation ---
 @staff_member_required
 @require_POST
 def approve_author_edit(request, pk):
     from django.db import transaction
+
     try:
         with transaction.atomic():
             edit_req = AuthorDescriptionRequest.objects.select_for_update().get(pk=pk, is_approved=False)
             edit_req.is_approved = True
             edit_req.save()
-            
+
             author = edit_req.author
             author.description = edit_req.proposed_description
             if edit_req.proposed_image:
@@ -212,11 +234,12 @@ def approve_author_edit(request, pk):
                 author.image.save(edit_req.proposed_image.name, edit_req.proposed_image.file, save=False)
             author.save()
     except AuthorDescriptionRequest.DoesNotExist:
-        messages.warning(request, 'Author edit request not found or already approved.')
-        return redirect('users:moderation_dashboard')
-    
+        messages.warning(request, "Author edit request not found or already approved.")
+        return redirect("users:moderation_dashboard")
+
     messages.success(request, f'Biography for "{author.name}" approved.')
-    return redirect('users:moderation_dashboard')
+    return redirect("users:moderation_dashboard")
+
 
 @staff_member_required
 @require_POST
@@ -225,11 +248,12 @@ def reject_author_edit(request, pk):
     # Delete the proposed image from storage if it exists
     if edit_req.proposed_image:
         edit_req.proposed_image.delete(save=False)
-    
+
     edit_req.is_rejected = True
     edit_req.save()
     messages.info(request, f'Biography edit for "{edit_req.author.name}" rejected.')
-    return redirect('users:moderation_dashboard')
+    return redirect("users:moderation_dashboard")
+
 
 # --- NEW: Community Note Moderation ---
 @staff_member_required
@@ -240,19 +264,22 @@ def approve_archive_note(request, pk):
         note.is_approved = True
         note.save()
     except ArchiveNote.DoesNotExist:
-        messages.warning(request, 'Community note not found or already approved.')
-        return redirect('users:moderation_dashboard')
-    
+        messages.warning(request, "Community note not found or already approved.")
+        return redirect("users:moderation_dashboard")
+
     # Notify the note author
     try:
         from core.notifications_utils import send_note_approved_notification
+
         send_note_approved_notification(note)
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).warning(f"Failed to send note approval notification: {e}")
-    
+
     messages.success(request, f'Community note on "{note.archive.title}" approved.')
-    return redirect('users:moderation_dashboard')
+    return redirect("users:moderation_dashboard")
+
 
 @staff_member_required
 @require_POST
@@ -261,4 +288,4 @@ def reject_archive_note(request, pk):
     archive_title = note.archive.title
     note.delete()  # Rejection for notes currently just deletes them
     messages.info(request, f'Community note on "{archive_title}" rejected.')
-    return redirect('users:moderation_dashboard')
+    return redirect("users:moderation_dashboard")

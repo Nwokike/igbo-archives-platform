@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('books', '0002_remove_extra_cover_images'),
+        ("books", "0002_remove_extra_cover_images"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bookrecommendation',
-            name='is_rejected',
-            field=models.BooleanField(default=False, help_text='Set to true if admin rejects the submission'),
+            model_name="bookrecommendation",
+            name="is_rejected",
+            field=models.BooleanField(default=False, help_text="Set to true if admin rejects the submission"),
         ),
         migrations.AddField(
-            model_name='bookrecommendation',
-            name='rejection_reason',
-            field=models.TextField(blank=True, help_text='Internal reason for rejection'),
+            model_name="bookrecommendation",
+            name="rejection_reason",
+            field=models.TextField(blank=True, help_text="Internal reason for rejection"),
         ),
     ]

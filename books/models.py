@@ -1,7 +1,7 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
+from django.db import models
 from django.urls import reverse
-from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 
 from core.validators import validate_image_size
 
@@ -13,91 +13,81 @@ class BookRecommendation(models.Model):
     Book recommendations - not reviews.
     Ratings and reviews are done by users via UserBookRating model.
     """
-    
+
     book_title = models.CharField(max_length=255)
     author = models.CharField(max_length=255, help_text="Book author(s)")
     isbn = models.CharField(max_length=20, blank=True)
-    external_url = models.URLField(
-        max_length=500,
-        blank=True,
-        help_text="URL to book information or purchase page"
-    )
+    external_url = models.URLField(max_length=500, blank=True, help_text="URL to book information or purchase page")
     publisher = models.CharField(max_length=255, blank=True)
     publication_year = models.IntegerField(null=True, blank=True)
-    
+
     # Recommendation details (not review)
     title = models.CharField(max_length=255, help_text="Recommendation title")
     slug = models.SlugField(max_length=255, unique=True)
-    
-    content_json = models.JSONField(
+
+    content_json = models.JSONField(blank=True, null=True, help_text="Block-based content using Editor.js")
+
+    legacy_content = models.TextField(blank=True, help_text="Legacy HTML content")
+
+    # No reviewer rating - users rate instead
+
+    cover_image = models.ImageField(
+        upload_to="book_covers/",
         blank=True,
         null=True,
-        help_text="Block-based content using Editor.js"
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp"]), validate_image_size],
+        help_text="Book cover image (max 5MB)",
     )
-    
-    legacy_content = models.TextField(blank=True, help_text="Legacy HTML content")
-    
-    # No reviewer rating - users rate instead
-    
-    cover_image = models.ImageField(
-        upload_to='book_covers/', 
-        blank=True, 
-        null=True,
-        validators=[
-            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_image_size
-        ],
-        help_text="Book cover image (max 5MB)"
-    )
-    
+
     # Who added the recommendation
-    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='book_recommendations')
+    added_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="book_recommendations"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     is_published = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
     pending_approval = models.BooleanField(default=False, help_text="Pending admin approval")
     is_rejected = models.BooleanField(default=False, help_text="Set to true if admin rejects the submission")
     rejection_reason = models.TextField(blank=True, help_text="Internal reason for rejection")
     submitted_at = models.DateTimeField(null=True, blank=True, help_text="When submitted for approval")
-    
 
-    
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['is_published', 'is_approved', '-created_at'], name='book_pub_date_idx'),
-            models.Index(fields=['added_by', 'is_published'], name='book_user_pub_idx'),
+            models.Index(fields=["is_published", "is_approved", "-created_at"], name="book_pub_date_idx"),
+            models.Index(fields=["added_by", "is_published"], name="book_user_pub_idx"),
         ]
-    
+
     def __str__(self):
         return f"{self.book_title} by {self.author}"
-    
+
     def get_absolute_url(self):
         """Return the URL for this book recommendation."""
-        return reverse('books:detail', args=[self.slug])
-    
+        return reverse("books:detail", args=[self.slug])
+
     @property
     def content(self):
         """Return content_json if it has blocks, otherwise legacy_content"""
-        if self.content_json and (isinstance(self.content_json, dict) and self.content_json.get('blocks')):
+        if self.content_json and (isinstance(self.content_json, dict) and self.content_json.get("blocks")):
             return self.content_json
         return self.legacy_content
-    
+
     @property
     def average_rating(self):
         """Return annotated avg_rating if available, else query DB."""
-        if hasattr(self, 'avg_rating'):
+        if hasattr(self, "avg_rating"):
             return self.avg_rating
         from django.db.models import Avg
-        result = self.ratings.aggregate(avg=Avg('rating'))
-        return result['avg']
-    
+
+        result = self.ratings.aggregate(avg=Avg("rating"))
+        return result["avg"]
+
     @property
     def rating_count(self):
         """Return annotated review_count if available, else query DB."""
-        if hasattr(self, 'review_count'):
+        if hasattr(self, "review_count"):
             return self.review_count
         return self.ratings.count()
 
@@ -107,38 +97,22 @@ class UserBookRating(models.Model):
     User ratings and reviews for recommended books.
     This allows users to rate books, not the recommender.
     """
-    book = models.ForeignKey(
-        BookRecommendation,
-        on_delete=models.CASCADE,
-        related_name='ratings'
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='book_ratings'
-    )
+
+    book = models.ForeignKey(BookRecommendation, on_delete=models.CASCADE, related_name="ratings")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="book_ratings")
     rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
-        help_text="Rating from 1 to 5 stars"
+        validators=[MinValueValidator(1), MaxValueValidator(5)], help_text="Rating from 1 to 5 stars"
     )
-    review_text = models.TextField(
-        blank=True,
-        help_text="Optional review comment"
-    )
+    review_text = models.TextField(blank=True, help_text="Optional review comment")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['book', 'user'],
-                name='unique_user_book_rating'
-            )
-        ]
-        ordering = ['-created_at']
-        verbose_name = 'User Book Rating'
-        verbose_name_plural = 'User Book Ratings'
-    
+        constraints = [models.UniqueConstraint(fields=["book", "user"], name="unique_user_book_rating")]
+        ordering = ["-created_at"]
+        verbose_name = "User Book Rating"
+        verbose_name_plural = "User Book Ratings"
+
     def __str__(self):
         return f"{self.user} rated {self.book.book_title}: {self.rating}/5"
 
@@ -147,8 +121,10 @@ class UserBookRating(models.Model):
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
 @receiver(post_save, sender=BookRecommendation)
 def auto_post_book_to_social(sender, instance, created, **kwargs):
     if created:
         from core.tasks import post_to_social_media_task
-        post_to_social_media_task(app_label='books', model_name='BookRecommendation', object_id=instance.id)
+
+        post_to_social_media_task(app_label="books", model_name="BookRecommendation", object_id=instance.id)

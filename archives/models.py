@@ -1,19 +1,20 @@
-import re
 import json
 import logging
-from django.db import models
+import re
+
 from django.contrib.auth import get_user_model
+from django.core.validators import FileExtensionValidator
+from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
-from django.core.validators import FileExtensionValidator
 
 logger = logging.getLogger(__name__)
 
 from core.validators import (
+    validate_audio_size,
+    validate_document_size,
     validate_image_size,
     validate_video_size,
-    validate_document_size,
-    validate_audio_size,
 )
 
 User = get_user_model()
@@ -21,24 +22,21 @@ User = get_user_model()
 
 class Category(models.Model):
     CATEGORY_TYPES = [
-        ('archive', 'Archive'),
-        ('lore', 'Lore'),
+        ("archive", "Archive"),
+        ("lore", "Lore"),
     ]
-    
+
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     type = models.CharField(
-        max_length=20, 
-        choices=CATEGORY_TYPES, 
-        default='archive',
-        help_text="Is this for Archives or Lore?"
+        max_length=20, choices=CATEGORY_TYPES, default="archive", help_text="Is this for Archives or Lore?"
     )
-    
+
     class Meta:
-        verbose_name_plural = 'Categories'
-        ordering = ['name']
-    
+        verbose_name_plural = "Categories"
+        ordering = ["name"]
+
     def __str__(self):
         return self.name
 
@@ -47,11 +45,12 @@ class Author(models.Model):
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = models.TextField(blank=True, help_text="Bio or description of the author")
-    image = models.ImageField(upload_to='authors/', blank=True, null=True)
-    
+    image = models.ImageField(upload_to="authors/", blank=True, null=True)
+
     def save(self, *args, **kwargs):
         if not self.slug:
             from core.editorjs_helpers import generate_unique_slug
+
             self.slug = generate_unique_slug(self.name, Author)
         super().save(*args, **kwargs)
 
@@ -59,198 +58,151 @@ class Author(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('archives:author_detail', args=[self.slug])
+        return reverse("archives:author_detail", args=[self.slug])
+
 
 class AuthorDescriptionRequest(models.Model):
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='description_requests')
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="description_requests")
     requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     proposed_description = models.TextField()
     proposed_image = models.ImageField(
-        upload_to='authors/suggestions/', 
-        blank=True, 
+        upload_to="authors/suggestions/",
+        blank=True,
         null=True,
-        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']), validate_image_size]
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp"]), validate_image_size],
     )
     is_approved = models.BooleanField(default=False, help_text="Has this been approved by admin?")
     is_rejected = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"Description request for {self.author} by {self.requested_by}"
 
 
 class Archive(models.Model):
     ARCHIVE_TYPES = [
-        ('image', 'Image'),
-        ('video', 'Video'),
-        ('document', 'Document'),
-        ('audio', 'Audio'),
+        ("image", "Image"),
+        ("video", "Video"),
+        ("document", "Document"),
+        ("audio", "Audio"),
     ]
-    
+
     title = models.CharField(max_length=255, help_text="Required: Archive title")
-    slug = models.SlugField(max_length=255, unique=True, blank=True, default='', help_text="URL-friendly version of title")
+    slug = models.SlugField(
+        max_length=255, unique=True, blank=True, default="", help_text="URL-friendly version of title"
+    )
     description = models.TextField(help_text="Required: Detailed description (plain text)")
     archive_type = models.CharField(max_length=20, choices=ARCHIVE_TYPES, help_text="Required: Type of archive")
-    
+
     category = models.ForeignKey(
-        Category, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True,
-        limit_choices_to={'type': 'archive'}
+        Category, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={"type": "archive"}
     )
-    
+
     image = models.ImageField(
-        upload_to='archives/',
-        validators=[
-            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_image_size
-        ],
+        upload_to="archives/",
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp"]), validate_image_size],
         blank=True,
         null=True,
-        help_text="For image-type archives (max 5MB)"
+        help_text="For image-type archives (max 5MB)",
     )
     video = models.FileField(
-        upload_to='archives/videos/',
-        validators=[
-            FileExtensionValidator(['mp4', 'webm', 'ogg', 'mov']),
-            validate_video_size
-        ],
+        upload_to="archives/videos/",
+        validators=[FileExtensionValidator(["mp4", "webm", "ogg", "mov"]), validate_video_size],
         blank=True,
         null=True,
-        help_text="For video-type archives (max 50MB)"
+        help_text="For video-type archives (max 50MB)",
     )
     document = models.FileField(
-        upload_to='archives/documents/',
-        validators=[
-            FileExtensionValidator(['pdf', 'doc', 'docx', 'txt']),
-            validate_document_size
-        ],
+        upload_to="archives/documents/",
+        validators=[FileExtensionValidator(["pdf", "doc", "docx", "txt"]), validate_document_size],
         blank=True,
         null=True,
-        help_text="For document-type archives (max 10MB)"
+        help_text="For document-type archives (max 10MB)",
     )
     audio = models.FileField(
-        upload_to='archives/audio/',
-        validators=[
-            FileExtensionValidator(['mp3', 'wav', 'ogg', 'm4a']),
-            validate_audio_size
-        ],
+        upload_to="archives/audio/",
+        validators=[FileExtensionValidator(["mp3", "wav", "ogg", "m4a"]), validate_audio_size],
         blank=True,
         null=True,
-        help_text="For audio-type archives (max 10MB)"
+        help_text="For audio-type archives (max 10MB)",
     )
-    
+
     # URL Streaming alternatives
     image_url = models.URLField(blank=True, help_text="External URL for image streaming")
     video_url = models.URLField(blank=True, help_text="External URL for video streaming or YouTube embed")
     document_url = models.URLField(blank=True, help_text="External URL for document access")
     audio_url = models.URLField(blank=True, help_text="External URL for audio streaming")
-    
+
     featured_image = models.ImageField(
-        upload_to='archives/featured/',
+        upload_to="archives/featured/",
         blank=True,
         null=True,
-        validators=[
-            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_image_size
-        ],
-        help_text="Thumbnail for videos/audio (optional, max 5MB)"
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp"]), validate_image_size],
+        help_text="Thumbnail for videos/audio (optional, max 5MB)",
     )
-    
-    caption = models.CharField(
-        max_length=500,
-        blank=True,
-        default='',
-        help_text="Caption for the archive"
-    )
+
+    caption = models.CharField(max_length=500, blank=True, default="", help_text="Caption for the archive")
     copyright_holder = models.CharField(
-        max_length=255,
-        blank=True,
-        default='',
-        help_text="Copyright holder (displays small after caption)"
+        max_length=255, blank=True, default="", help_text="Copyright holder (displays small after caption)"
     )
-    original_url = models.URLField(
-        blank=True,
-        default='',
-        help_text="Original URL from source museum/collection"
-    )
+    original_url = models.URLField(blank=True, default="", help_text="Original URL from source museum/collection")
     original_identity_number = models.CharField(
-        max_length=100,
-        blank=True,
-        default='',
-        help_text="Museum catalog/identity number"
+        max_length=100, blank=True, default="", help_text="Museum catalog/identity number"
     )
-    item_count = models.PositiveSmallIntegerField(
-        default=1,
-        help_text="Number of items in this archive (1-5)"
-    )
+    item_count = models.PositiveSmallIntegerField(default=1, help_text="Number of items in this archive (1-5)")
     alt_text = models.CharField(
+        max_length=255, blank=True, default="", help_text="Required for images: Alt text for accessibility"
+    )
+
+    original_author = models.CharField(
         max_length=255,
         blank=True,
-        default='',
-        help_text="Required for images: Alt text for accessibility"
-    )
-    
-    original_author = models.CharField(
-        max_length=255, 
-        blank=True,
-        help_text="Optional: Original photographer/creator (e.g., Northcote Thomas). Will auto-link to Author profile if match exists."
+        help_text="Optional: Original photographer/creator (e.g., Northcote Thomas). Will auto-link to Author profile if match exists.",
     )
     author = models.ForeignKey(
         Author,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='archives',
-        help_text="Link to a full author profile"
+        related_name="archives",
+        help_text="Link to a full author profile",
     )
-    date_created = models.DateField(
-        null=True, 
-        blank=True,
-        help_text="Optional: Exact date if known"
-    )
+    date_created = models.DateField(null=True, blank=True, help_text="Optional: Exact date if known")
     circa_date = models.CharField(
-        max_length=100, 
-        blank=True,
-        help_text="Optional: Approximate date (e.g., 'c1910', 'around 1910s')"
+        max_length=100, blank=True, help_text="Optional: Approximate date (e.g., 'c1910', 'around 1910s')"
     )
     location = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Optional: Where the photo/artifact was taken/found"
+        max_length=255, blank=True, help_text="Optional: Where the photo/artifact was taken/found"
     )
-    
+
     sort_year = models.IntegerField(
-        null=True, 
-        blank=True, 
-        db_index=True,
-        help_text="Numeric year for sorting purposes (auto-calculated)"
+        null=True, blank=True, db_index=True, help_text="Numeric year for sorting purposes (auto-calculated)"
     )
-    
-    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='archives')
+
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="archives")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_approved = models.BooleanField(default=False, help_text="Admin approval status")
     is_rejected = models.BooleanField(default=False, help_text="Set to true if admin rejects the archive")
     rejection_reason = models.TextField(blank=True, help_text="Internal reason for rejection")
-    
+
     class Meta:
-        ordering = ['-created_at']
-        verbose_name_plural = 'Archives'
+        ordering = ["-created_at"]
+        verbose_name_plural = "Archives"
         indexes = [
-            models.Index(fields=['is_approved', '-created_at'], name='arch_approved_date_idx'),
-            models.Index(fields=['archive_type', 'is_approved'], name='arch_type_approved_idx'),
-            models.Index(fields=['category', 'is_approved'], name='arch_cat_approved_idx'),
-            models.Index(fields=['sort_year'], name='arch_sort_year_idx'),
+            models.Index(fields=["is_approved", "-created_at"], name="arch_approved_date_idx"),
+            models.Index(fields=["archive_type", "is_approved"], name="arch_type_approved_idx"),
+            models.Index(fields=["category", "is_approved"], name="arch_cat_approved_idx"),
+            models.Index(fields=["sort_year"], name="arch_sort_year_idx"),
         ]
-    
+
     def __str__(self):
         return self.title
-    
+
     def _generate_slug(self):
         """Auto-generate a unique slug from title."""
         import uuid
+
         base_slug = slugify(self.title)[:200]
         if not base_slug:
             base_slug = "archive"
@@ -279,23 +231,24 @@ class Archive(models.Model):
             self.sort_year = self.date_created.year
         elif self.circa_date:
             circa_str = str(self.circa_date).strip()
-            match = re.search(r'\b(1\d{3}|20\d{2})\b', circa_str)
+            match = re.search(r"\b(1\d{3}|20\d{2})\b", circa_str)
             if match:
                 self.sort_year = int(match.group(1))
             else:
-                century_match = re.search(r'(\d{1,2})(?:st|nd|rd|th)?\s+century', circa_str, re.IGNORECASE)
+                century_match = re.search(r"(\d{1,2})(?:st|nd|rd|th)?\s+century", circa_str, re.IGNORECASE)
                 if century_match:
                     self.sort_year = (int(century_match.group(1)) - 1) * 100
                 else:
-                    match = re.search(r'(\d{4})', circa_str)
+                    match = re.search(r"(\d{4})", circa_str)
                     if match:
                         self.sort_year = int(match.group(1))
 
     def save(self, *args, **kwargs):
         # Skip heavy logic when only specific fields are being updated (e.g. from signals)
-        update_fields = kwargs.get('update_fields')
+        update_fields = kwargs.get("update_fields")
         if update_fields is None:
             import nh3
+
             self.description = nh3.clean(self.description)
             if not self.slug:
                 self._generate_slug()
@@ -305,7 +258,8 @@ class Archive(models.Model):
             # Auto-compress images (only on full save)
             try:
                 from core.image_utils import compress_model_images
-                compress_model_images(self, 'image', 'featured_image', max_size_mb=1.5)
+
+                compress_model_images(self, "image", "featured_image", max_size_mb=1.5)
             except Exception as e:
                 logger.warning(f"Image compression failed for Archive {self.pk}: {e}")
 
@@ -313,25 +267,23 @@ class Archive(models.Model):
 
     def get_absolute_url(self):
         """Return the URL for this archive."""
-        return reverse('archives:detail', args=[self.slug])
-    
+        return reverse("archives:detail", args=[self.slug])
+
     def get_primary_file(self):
         """Return the primary file based on archive type"""
-        if self.archive_type == 'image' and self.image:
+        if self.archive_type == "image" and self.image:
             return self.image
-        elif self.archive_type == 'video' and self.video:
+        elif self.archive_type == "video" and self.video:
             return self.video
-        elif self.archive_type == 'document' and self.document:
+        elif self.archive_type == "document" and self.document:
             return self.document
-        elif self.archive_type == 'audio' and self.audio:
+        elif self.archive_type == "audio" and self.audio:
             return self.audio
         return None
-    
+
     def has_featured_image(self):
         """Check if archive has a displayable featured image"""
-        if self.archive_type == 'image' and self.image:
-            return True
-        elif self.featured_image:
+        if self.archive_type == "image" and self.image or self.featured_image:
             return True
         return False
 
@@ -341,126 +293,98 @@ class ArchiveItem(models.Model):
     Individual items within a multi-item archive.
     Allows archives to have 1-5 items (e.g., front/side views, image+audio).
     """
+
     ITEM_TYPES = [
-        ('image', 'Image'),
-        ('video', 'Video'),
-        ('document', 'Document'),
-        ('audio', 'Audio'),
+        ("image", "Image"),
+        ("video", "Video"),
+        ("document", "Document"),
+        ("audio", "Audio"),
     ]
-    
-    archive = models.ForeignKey(
-        Archive,
-        on_delete=models.CASCADE,
-        related_name='items'
-    )
-    item_number = models.PositiveSmallIntegerField(
-        help_text="Order of this item (1-5)"
-    )
-    item_type = models.CharField(
-        max_length=20,
-        choices=ITEM_TYPES,
-        help_text="Type of this item"
-    )
-    
+
+    archive = models.ForeignKey(Archive, on_delete=models.CASCADE, related_name="items")
+    item_number = models.PositiveSmallIntegerField(help_text="Order of this item (1-5)")
+    item_type = models.CharField(max_length=20, choices=ITEM_TYPES, help_text="Type of this item")
+
     # File fields - only one should be filled based on item_type
     image = models.ImageField(
-        upload_to='archives/items/',
-        validators=[
-            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
-            validate_image_size
-        ],
+        upload_to="archives/items/",
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp"]), validate_image_size],
         blank=True,
-        null=True
+        null=True,
     )
     video = models.FileField(
-        upload_to='archives/items/videos/',
-        validators=[
-            FileExtensionValidator(['mp4', 'webm', 'ogg', 'mov']),
-            validate_video_size
-        ],
+        upload_to="archives/items/videos/",
+        validators=[FileExtensionValidator(["mp4", "webm", "ogg", "mov"]), validate_video_size],
         blank=True,
-        null=True
+        null=True,
     )
     audio = models.FileField(
-        upload_to='archives/items/audio/',
-        validators=[
-            FileExtensionValidator(['mp3', 'wav', 'ogg', 'm4a']),
-            validate_audio_size
-        ],
+        upload_to="archives/items/audio/",
+        validators=[FileExtensionValidator(["mp3", "wav", "ogg", "m4a"]), validate_audio_size],
         blank=True,
-        null=True
+        null=True,
     )
     document = models.FileField(
-        upload_to='archives/items/documents/',
-        validators=[
-            FileExtensionValidator(['pdf', 'doc', 'docx', 'txt']),
-            validate_document_size
-        ],
+        upload_to="archives/items/documents/",
+        validators=[FileExtensionValidator(["pdf", "doc", "docx", "txt"]), validate_document_size],
         blank=True,
-        null=True
+        null=True,
     )
-    
+
     # URL Streaming alternatives
     image_url = models.URLField(blank=True)
     video_url = models.URLField(blank=True)
     audio_url = models.URLField(blank=True)
     document_url = models.URLField(blank=True)
-    
+
     # Item-specific metadata
     caption = models.CharField(max_length=500, blank=True, help_text="Caption for this item")
     description = models.TextField(blank=True, help_text="Description for this item")
     alt_text = models.CharField(max_length=255, blank=True, help_text="Alt text for accessibility")
-    
+
     class Meta:
-        ordering = ['item_number']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['archive', 'item_number'],
-                name='unique_archive_item_number'
-            )
-        ]
-        verbose_name = 'Archive Item'
-        verbose_name_plural = 'Archive Items'
-    
+        ordering = ["item_number"]
+        constraints = [models.UniqueConstraint(fields=["archive", "item_number"], name="unique_archive_item_number")]
+        verbose_name = "Archive Item"
+        verbose_name_plural = "Archive Items"
+
     def __str__(self):
         return f"{self.archive.title} - Item {self.item_number}"
-    
+
     def get_file(self):
         """Return the file based on item type."""
-        if self.item_type == 'image' and self.image:
+        if self.item_type == "image" and self.image:
             return self.image
-        elif self.item_type == 'video' and self.video:
+        elif self.item_type == "video" and self.video:
             return self.video
-        elif self.item_type == 'audio' and self.audio:
+        elif self.item_type == "audio" and self.audio:
             return self.audio
-        elif self.item_type == 'document' and self.document:
+        elif self.item_type == "document" and self.document:
             return self.document
         return None
+
 
 class ArchiveNote(models.Model):
     """
     Community Notes (Additional Context) for an archive using Editor.js.
     """
-    archive = models.ForeignKey(Archive, on_delete=models.CASCADE, related_name='community_notes')
-    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='archive_notes')
-    
-    content_json = models.JSONField(
-        blank=True,
-        null=True,
-        help_text="Block-based content using Editor.js"
-    )
+
+    archive = models.ForeignKey(Archive, on_delete=models.CASCADE, related_name="community_notes")
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="archive_notes")
+
+    content_json = models.JSONField(blank=True, null=True, help_text="Block-based content using Editor.js")
     legacy_content = models.TextField(blank=True, help_text="Legacy HTML content")
-    
+
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
-        ordering = ['-created_at']
-    
+        ordering = ["-created_at"]
+
     def __str__(self):
         return f"Note by {self.added_by} on {self.archive.title}"
-        
+
     @property
     def content(self):
         if self.content_json:
@@ -471,29 +395,27 @@ class ArchiveNote(models.Model):
                 except (ValueError, TypeError):
                     return self.legacy_content
             # If it's already a dict (JSONField with proper decoder)
-            elif isinstance(self.content_json, dict) and self.content_json.get('blocks'):
+            elif isinstance(self.content_json, dict) and self.content_json.get("blocks"):
                 return self.content_json
         return self.legacy_content
+
 
 class ArchiveNoteSuggestion(models.Model):
     """
     A suggestion to edit/append to an existing ArchiveNote.
     The original note author must approve this.
     """
-    note = models.ForeignKey(ArchiveNote, on_delete=models.CASCADE, related_name='suggestions')
-    suggested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='note_suggestions')
-    
-    suggestion_text = models.JSONField(
-        blank=True,
-        null=True,
-        help_text="Proposed block-based content using Editor.js"
-    )
-    
+
+    note = models.ForeignKey(ArchiveNote, on_delete=models.CASCADE, related_name="suggestions")
+    suggested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="note_suggestions")
+
+    suggestion_text = models.JSONField(blank=True, null=True, help_text="Proposed block-based content using Editor.js")
+
     is_approved = models.BooleanField(default=False)
     is_rejected = models.BooleanField(default=False)
     rejection_reason = models.TextField(blank=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"Suggestion by {self.suggested_by} on {self.note}"

@@ -1,28 +1,30 @@
+from django.contrib.auth import get_user_model
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
+
 from archives.models import Archive
-from lore.models import LorePost
 from books.models import BookRecommendation
-from django.contrib.auth import get_user_model
+from lore.models import LorePost
 
 User = get_user_model()
 
 
 class StaticPagesSitemap(Sitemap):
     """Sitemap for static/informational pages"""
-    protocol = 'https'
+
+    protocol = "https"
     priority = 0.8
-    changefreq = 'monthly'
+    changefreq = "monthly"
 
     def items(self):
         return [
-            'core:home',
-            'core:about',
-            'core:privacy',
-            'core:terms',
-            'core:copyright',
-            'core:contact',
-            'core:donate',
+            "core:home",
+            "core:about",
+            "core:privacy",
+            "core:terms",
+            "core:copyright",
+            "core:contact",
+            "core:donate",
         ]
 
     def location(self, item):
@@ -30,65 +32,60 @@ class StaticPagesSitemap(Sitemap):
 
 
 class ArchiveSitemap(Sitemap):
-    protocol = 'https'
+    protocol = "https"
     changefreq = "weekly"
     priority = 0.8
-    
+
     def items(self):
-        return Archive.objects.filter(is_approved=True).only('id', 'slug', 'updated_at')
-    
+        return Archive.objects.filter(is_approved=True).only("id", "slug", "updated_at")
+
     def lastmod(self, obj):
-        return obj.updated_at if hasattr(obj, 'updated_at') else obj.created_at
-    
+        return obj.updated_at if hasattr(obj, "updated_at") else obj.created_at
+
     def location(self, obj):
-        return reverse('archives:detail', args=[obj.slug])
+        return reverse("archives:detail", args=[obj.slug])
 
 
 class LoreSitemap(Sitemap):
-    protocol = 'https'
+    protocol = "https"
     changefreq = "daily"
     priority = 0.9
-    
+
     def items(self):
-        return LorePost.objects.filter(
-            is_published=True, is_approved=True
-        ).only('id', 'slug', 'updated_at')
-    
+        return LorePost.objects.filter(is_published=True, is_approved=True).only("id", "slug", "updated_at")
+
     def lastmod(self, obj):
         return obj.updated_at
-    
+
     def location(self, obj):
-        return reverse('lore:detail', args=[obj.slug])
+        return reverse("lore:detail", args=[obj.slug])
 
 
 class BookSitemap(Sitemap):
-    protocol = 'https'
+    protocol = "https"
     changefreq = "weekly"
     priority = 0.7
-    
+
     def items(self):
-        return BookRecommendation.objects.filter(
-            is_published=True, is_approved=True
-        ).only('id', 'slug', 'updated_at')
-    
+        return BookRecommendation.objects.filter(is_published=True, is_approved=True).only("id", "slug", "updated_at")
+
     def lastmod(self, obj):
         return obj.updated_at
-    
+
     def location(self, obj):
-        return reverse('books:detail', args=[obj.slug])
+        return reverse("books:detail", args=[obj.slug])
 
 
 class UserProfileSitemap(Sitemap):
-    protocol = 'https'
+    protocol = "https"
     changefreq = "monthly"
     priority = 0.5
-    
+
     def items(self):
-        return User.objects.filter(is_active=True).only('id', 'username', 'last_login', 'date_joined')
-    
+        return User.objects.filter(is_active=True).only("id", "username", "last_login", "date_joined")
+
     def location(self, obj):
-        return reverse('users:profile', args=[obj.username])
-    
+        return reverse("users:profile", args=[obj.username])
+
     def lastmod(self, obj):
         return obj.last_login or obj.date_joined
-

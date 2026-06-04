@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0001_email_tracking'),
+        ("core", "0001_email_tracking"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='digestqueue',
-            name='content_type',
-            field=models.CharField(choices=[('archive', 'New Archive'), ('lore', 'New Lore'), ('book', 'New Book Recommendation')], max_length=20),
+            model_name="digestqueue",
+            name="content_type",
+            field=models.CharField(
+                choices=[("archive", "New Archive"), ("lore", "New Lore"), ("book", "New Book Recommendation")],
+                max_length=20,
+            ),
         ),
     ]

@@ -3,228 +3,244 @@ Django REST Framework ViewSets for Igbo Archives API.
 Provides RESTful API endpoints for Archive, BookRecommendation, and LorePost models.
 Also exposed as MCP tools for AI agent integration.
 """
-from rest_framework import viewsets, permissions, status
+
+from django.core.cache import cache
+from django.db.models import Avg, Count, Q
+from djangorestframework_mcp.decorators import mcp_viewset
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.core.cache import cache
-from django.db.models import Q, Avg, Count
-from djangorestframework_mcp.decorators import mcp_viewset
 
-from archives.models import Archive, Category, ArchiveNote, Author
+from archives.models import Archive, ArchiveNote, Author, Category
 from books.models import BookRecommendation, UserBookRating
+
 from .serializers import (
-    CategorySerializer, AuthorSerializer, AuthorListSerializer,
-    ArchiveListSerializer, ArchiveSerializer, ArchiveCreateSerializer,
-    ArchiveNoteSerializer, ArchiveNoteCreateSerializer,
-    BookRecommendationListSerializer, BookRecommendationSerializer, BookRecommendationCreateSerializer,
-    UserBookRatingSerializer, UserBookRatingCreateSerializer,
-    LorePostSerializer, LorePostCreateSerializer,
+    ArchiveCreateSerializer,
+    ArchiveListSerializer,
+    ArchiveNoteCreateSerializer,
+    ArchiveNoteSerializer,
+    ArchiveSerializer,
+    AuthorListSerializer,
+    AuthorSerializer,
+    BookRecommendationCreateSerializer,
+    BookRecommendationListSerializer,
+    BookRecommendationSerializer,
+    CategorySerializer,
+    LorePostCreateSerializer,
+    LorePostSerializer,
+    UserBookRatingCreateSerializer,
+    UserBookRatingSerializer,
 )
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """Custom permission: read-only for unauthenticated, write for owner."""
-    
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
         # Handle different model ownership fields
-        if hasattr(obj, 'uploaded_by'):
+        if hasattr(obj, "uploaded_by"):
             return obj.uploaded_by == request.user
-        if hasattr(obj, 'added_by'):
+        if hasattr(obj, "added_by"):
             return obj.added_by == request.user
-        if hasattr(obj, 'author'):
+        if hasattr(obj, "author"):
             return obj.author == request.user
         return False
 
 
-@mcp_viewset(basename='categories')
+@mcp_viewset(basename="categories")
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for archive categories.
     GET /api/v1/categories/ - List all categories
     GET /api/v1/categories/{slug}/ - Category detail
     """
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
-    lookup_field = 'slug'
+    lookup_field = "slug"
 
 
-@mcp_viewset(basename='authors')
+@mcp_viewset(basename="authors")
 class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for authors in the Igbo Archives database.
-    
+
     IMPORTANT FOR AI AGENTS: Before creating content (archives, lore, books),
     use this endpoint to check if an author already exists and get the exact
     name string. This prevents duplicate Author records.
-    
+
     GET /api/v1/authors/ - List all authors
     GET /api/v1/authors/?search=chinua - Search authors by name
     GET /api/v1/authors/{slug}/ - Author detail
     """
+
     serializer_class = AuthorSerializer
     permission_classes = [permissions.AllowAny]
-    lookup_field = 'slug'
-    
+    lookup_field = "slug"
+
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return AuthorListSerializer
         return AuthorSerializer
 
     def get_queryset(self):
-        queryset = Author.objects.all().order_by('name')
-        search = self.request.query_params.get('search')
+        queryset = Author.objects.all().order_by("name")
+        search = self.request.query_params.get("search")
         if search:
             queryset = queryset.filter(name__icontains=search)
         return queryset
 
 
-@mcp_viewset(basename='archives')
+@mcp_viewset(basename="archives")
 class ArchiveViewSet(viewsets.ModelViewSet):
     """
     API endpoint for archives.
-    
+
     GET /api/v1/archives/ - List approved archives
     GET /api/v1/archives/{slug}/ - Archive detail
     POST /api/v1/archives/ - Create archive (auth required)
     PUT/PATCH /api/v1/archives/{slug}/ - Update archive (owner only)
     DELETE /api/v1/archives/{slug}/ - Delete archive (owner only)
     """
+
     # authentication_classes inherited from DEFAULT_AUTHENTICATION_CLASSES in settings
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    lookup_field = 'slug'
-    
+    lookup_field = "slug"
+
     def get_queryset(self):
         """Filter archives based on authentication and query params."""
         queryset = Archive.objects.filter(is_approved=True)
-        
+
         # Filter by type
-        archive_type = self.request.query_params.get('type')
+        archive_type = self.request.query_params.get("type")
         if archive_type:
             queryset = queryset.filter(archive_type=archive_type)
-        
+
         # Filter by category
-        category = self.request.query_params.get('category')
+        category = self.request.query_params.get("category")
         if category:
             queryset = queryset.filter(category__slug=category)
-        
+
         # Search
-        search = self.request.query_params.get('search')
+        search = self.request.query_params.get("search")
         if search:
             queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(description__icontains=search) |
-                Q(caption__icontains=search)
+                Q(title__icontains=search) | Q(description__icontains=search) | Q(caption__icontains=search)
             )
-        
-        queryset = queryset.select_related('category', 'uploaded_by')
-        
+
+        queryset = queryset.select_related("category", "uploaded_by")
+
         # Only add prefetch_related for detail/retrieve (list doesn't need items/tags)
-        if self.action in ('retrieve', 'update', 'partial_update'):
-            queryset = queryset.prefetch_related('items')
-        
+        if self.action in ("retrieve", "update", "partial_update"):
+            queryset = queryset.prefetch_related("items")
+
         return queryset
-    
+
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return ArchiveListSerializer
-        if self.action == 'create':
+        if self.action == "create":
             return ArchiveCreateSerializer
         return ArchiveSerializer
-    
+
     def perform_create(self, serializer):
-        from django.urls import reverse
         import logging
-        
+
+        from django.urls import reverse
+
         archive = serializer.save(uploaded_by=self.request.user)
-        
+
         # Notify admins
         try:
             from core.notifications_utils import send_admin_notification
-            subject = f'New Archive Uploaded: {archive.title}'
+
+            subject = f"New Archive Uploaded: {archive.title}"
             message = (
                 f"A new archive has been submitted by {self.request.user.get_display_name()}.\n\n"
                 f"Title: {archive.title}\n"
                 f"Description: {archive.description[:200]}...\n"
             )
-            send_admin_notification(subject, message, target_url=reverse('users:moderation_dashboard'))
+            send_admin_notification(subject, message, target_url=reverse("users:moderation_dashboard"))
         except Exception as e:
             logging.getLogger(__name__).warning(f"Failed to send notification email: {e}")
-        
+
     def perform_update(self, serializer):
         """Force updated archives back into the moderation queue."""
         serializer.save(is_approved=False)
-    
-    @action(detail=False, methods=['get'])
+
+    @action(detail=False, methods=["get"])
     def featured(self, request):
         """Get featured archives — cached random selection."""
-        cache_key = 'api_featured_archives'
+        cache_key = "api_featured_archives"
         cached = cache.get(cache_key)
         if cached is not None:
             return Response(cached)
-        
+
         # Use database-level random on a limited queryset (memory-safe)
-        featured = Archive.objects.filter(
-            is_approved=True, archive_type='image'
-        ).select_related('category', 'uploaded_by').order_by('?')[:10]
+        featured = (
+            Archive.objects.filter(is_approved=True, archive_type="image")
+            .select_related("category", "uploaded_by")
+            .order_by("?")[:10]
+        )
         serializer = ArchiveListSerializer(featured, many=True)
         cache.set(cache_key, serializer.data, 600)  # Cache for 10 minutes
         return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'])
+
+    @action(detail=False, methods=["get"])
     def recent(self, request):
         """Get most recent archives."""
-        recent = self.get_queryset().order_by('-created_at')[:20]
+        recent = self.get_queryset().order_by("-created_at")[:20]
         serializer = ArchiveListSerializer(recent, many=True)
         return Response(serializer.data)
 
 
-@mcp_viewset(basename='archive_notes')
+@mcp_viewset(basename="archive_notes")
 class ArchiveNoteViewSet(viewsets.ModelViewSet):
     """
     API endpoint for archive community notes.
-    
+
     GET /api/v1/archive-notes/ - List approved notes
     GET /api/v1/archive-notes/{id}/ - Note detail
     POST /api/v1/archive-notes/ - Create a note (auth required)
     PUT/PATCH /api/v1/archive-notes/{id}/ - Update note (owner only)
     DELETE /api/v1/archive-notes/{id}/ - Delete note (owner only)
     """
+
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    
+
     def get_queryset(self):
-        queryset = ArchiveNote.objects.filter(is_approved=True).select_related('added_by', 'archive')
-        
+        queryset = ArchiveNote.objects.filter(is_approved=True).select_related("added_by", "archive")
+
         # Filter by archive_id
-        archive_id = self.request.query_params.get('archive_id')
+        archive_id = self.request.query_params.get("archive_id")
         if archive_id:
             queryset = queryset.filter(archive_id=archive_id)
-            
+
         return queryset
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return ArchiveNoteCreateSerializer
         return ArchiveNoteSerializer
-        
+
     def perform_create(self, serializer):
         import logging
-        note = serializer.save(
-            added_by=self.request.user,
-            is_approved=False
-        )
-        
+
+        note = serializer.save(added_by=self.request.user, is_approved=False)
+
         # Notify original uploader and admins
         try:
-            from core.notifications_utils import send_community_note_notification, send_admin_notification
+            from core.notifications_utils import send_admin_notification, send_community_note_notification
+
             send_community_note_notification(note, note.archive)
-            
+
             send_admin_notification(
                 subject=f"New Community Note on {note.archive.title}",
                 description=f"{self.request.user.get_display_name()} added a new community note to the archive '{note.archive.title}'.",
-                target_url=note.archive.get_absolute_url()
+                target_url=note.archive.get_absolute_url(),
             )
         except Exception as e:
             logging.getLogger(__name__).warning(f"Failed to send note notifications: {e}")
@@ -234,192 +250,164 @@ class ArchiveNoteViewSet(viewsets.ModelViewSet):
         serializer.save(is_approved=False)
 
 
-@mcp_viewset(basename='books')
+@mcp_viewset(basename="books")
 class BookRecommendationViewSet(viewsets.ModelViewSet):
     """
     API endpoint for book recommendations.
-    
+
     GET /api/v1/books/ - List approved books
     GET /api/v1/books/{slug}/ - Book detail
     POST /api/v1/books/ - Create book recommendation (auth required)
     PUT/PATCH /api/v1/books/{slug}/ - Update book (owner only)
     DELETE /api/v1/books/{slug}/ - Delete book (owner only)
-    
+
     Special endpoints:
     GET /api/v1/books/top_rated/ - Top rated books
     POST /api/v1/books/{slug}/rate/ - Rate a book (auth required)
     GET /api/v1/books/{slug}/ratings/ - Get book ratings
     """
+
     # authentication_classes inherited from DEFAULT_AUTHENTICATION_CLASSES in settings
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    lookup_field = 'slug'
-    
+    lookup_field = "slug"
+
     def get_queryset(self):
-        queryset = BookRecommendation.objects.filter(
-            is_published=True, is_approved=True
-        ).annotate(
-            avg_rating=Avg('ratings__rating'),
-            num_ratings=Count('ratings')
+        queryset = BookRecommendation.objects.filter(is_published=True, is_approved=True).annotate(
+            avg_rating=Avg("ratings__rating"), num_ratings=Count("ratings")
         )
-        
+
         # Search
-        search = self.request.query_params.get('search')
+        search = self.request.query_params.get("search")
         if search:
             queryset = queryset.filter(
-                Q(book_title__icontains=search) |
-                Q(author__icontains=search) |
-                Q(title__icontains=search)
+                Q(book_title__icontains=search) | Q(author__icontains=search) | Q(title__icontains=search)
             )
-        
-        return queryset.select_related('added_by')
-    
+
+        return queryset.select_related("added_by")
+
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return BookRecommendationListSerializer
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return BookRecommendationCreateSerializer
         return BookRecommendationSerializer
-    
+
     def perform_create(self, serializer):
         """Create with pending approval status."""
-        from django.urls import reverse
         import logging
-        
-        book = serializer.save(
-            added_by=self.request.user,
-            is_published=False,
-            is_approved=False,
-            pending_approval=True
-        )
-        
+
+        from django.urls import reverse
+
+        book = serializer.save(added_by=self.request.user, is_published=False, is_approved=False, pending_approval=True)
+
         try:
-            from core.notifications_utils import send_post_submitted_notification, send_admin_notification
-            send_post_submitted_notification(book, post_type='book recommendation')
-            
+            from core.notifications_utils import send_admin_notification, send_post_submitted_notification
+
+            send_post_submitted_notification(book, post_type="book recommendation")
+
             send_admin_notification(
                 subject=f"New Book Recommendation: {book.book_title}",
                 description=f"A new book recommendation has been submitted by {self.request.user.get_display_name()}.\n\nBook: {book.book_title}\nTitle: {book.title}",
-                target_url=reverse('users:moderation_dashboard')
+                target_url=reverse("users:moderation_dashboard"),
             )
         except Exception as e:
             logging.getLogger(__name__).warning(f"Failed to send notification email: {e}")
-        
+
     def perform_update(self, serializer):
         """Force updated books back into the moderation queue."""
-        serializer.save(
-            is_published=False,
-            is_approved=False,
-            pending_approval=True
-        )
-    
-    @action(detail=False, methods=['get'])
+        serializer.save(is_published=False, is_approved=False, pending_approval=True)
+
+    @action(detail=False, methods=["get"])
     def top_rated(self, request):
         """Get top-rated books (minimum 3 ratings to qualify)."""
-        top = self.get_queryset().filter(
-            num_ratings__gte=3
-        ).order_by('-avg_rating')[:10]
+        top = self.get_queryset().filter(num_ratings__gte=3).order_by("-avg_rating")[:10]
         serializer = BookRecommendationListSerializer(top, many=True)
         return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def rate(self, request, slug=None):
         """Rate a book (create or update rating). Rate-limited per user."""
         # Rate limiting: 5 ratings per hour per user
-        rate_key = f'api_rate_{request.user.id}'
+        rate_key = f"api_rate_{request.user.id}"
         rate_count = cache.get(rate_key, 0)
         if rate_count >= 5:
-            return Response(
-                {'error': 'Rating limit reached. Please wait.'},
-                status=status.HTTP_429_TOO_MANY_REQUESTS
-            )
-        
+            return Response({"error": "Rating limit reached. Please wait."}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
         book = self.get_object()
         serializer = UserBookRatingCreateSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             rating, created = UserBookRating.objects.update_or_create(
-                book=book,
-                user=request.user,
-                defaults=serializer.validated_data
+                book=book, user=request.user, defaults=serializer.validated_data
             )
             cache.set(rate_key, rate_count + 1, 3600)
             response_serializer = UserBookRatingSerializer(rating)
             status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
             return Response(response_serializer.data, status=status_code)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=True, methods=['get'])
+
+    @action(detail=True, methods=["get"])
     def ratings(self, request, slug=None):
         """Get all ratings for a book."""
         book = self.get_object()
-        ratings = book.ratings.select_related('user').order_by('-created_at')
+        ratings = book.ratings.select_related("user").order_by("-created_at")
         serializer = UserBookRatingSerializer(ratings, many=True)
         return Response(serializer.data)
 
 
-@mcp_viewset(basename='lore')
+@mcp_viewset(basename="lore")
 class LorePostViewSet(viewsets.ModelViewSet):
     """
     API endpoint for lore posts.
-    
+
     GET /api/v1/lore/ - List published lore posts
     GET /api/v1/lore/{slug}/ - Lore post detail
     POST /api/v1/lore/ - Create lore post (auth required)
     PUT/PATCH /api/v1/lore/{slug}/ - Update post (owner only)
     DELETE /api/v1/lore/{slug}/ - Delete post (owner only)
     """
+
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    lookup_field = 'slug'
-    
+    lookup_field = "slug"
+
     def get_queryset(self):
         from lore.models import LorePost
-        queryset = LorePost.objects.filter(
-            is_approved=True, is_published=True
-        ).select_related('author')
-        
+
+        queryset = LorePost.objects.filter(is_approved=True, is_published=True).select_related("author")
+
         # Search
-        search = self.request.query_params.get('search')
+        search = self.request.query_params.get("search")
         if search:
-            queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(excerpt__icontains=search)
-            )
-        
+            queryset = queryset.filter(Q(title__icontains=search) | Q(excerpt__icontains=search))
+
         return queryset
-    
+
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return LorePostCreateSerializer
         return LorePostSerializer
-    
+
     def perform_create(self, serializer):
-        from django.urls import reverse
         import logging
-        
-        post = serializer.save(
-            author=self.request.user,
-            is_published=False,
-            is_approved=False,
-            pending_approval=True
-        )
-        
+
+        from django.urls import reverse
+
+        post = serializer.save(author=self.request.user, is_published=False, is_approved=False, pending_approval=True)
+
         try:
-            from core.notifications_utils import send_post_submitted_notification, send_admin_notification
-            send_post_submitted_notification(post, post_type='lore post')
-            
+            from core.notifications_utils import send_admin_notification, send_post_submitted_notification
+
+            send_post_submitted_notification(post, post_type="lore post")
+
             send_admin_notification(
                 subject=f"New Lore Post: {post.title}",
                 description=f"A new lore post has been submitted by {self.request.user.get_display_name()}.\n\nTitle: {post.title}",
-                target_url=reverse('users:moderation_dashboard')
+                target_url=reverse("users:moderation_dashboard"),
             )
         except Exception as e:
             logging.getLogger(__name__).warning(f"Failed to send notification email: {e}")
-        
+
     def perform_update(self, serializer):
         """Force updated lore posts back into the moderation queue."""
-        serializer.save(
-            is_published=False,
-            is_approved=False,
-            pending_approval=True
-        )
+        serializer.save(is_published=False, is_approved=False, pending_approval=True)

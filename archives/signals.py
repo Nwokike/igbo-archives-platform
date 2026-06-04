@@ -1,9 +1,12 @@
 import logging
-from django.db.models.signals import post_save, post_delete
+
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+
 from .models import Archive, ArchiveItem
 
 logger = logging.getLogger(__name__)
+
 
 @receiver(post_save, sender=ArchiveItem)
 @receiver(post_delete, sender=ArchiveItem)
@@ -25,61 +28,72 @@ def sync_archive_header(sender, instance, **kwargs):
     except Exception as e:
         logger.error(f"Failed to sync archive header for item {instance.pk}: {e}")
 
+
 def update_parent_archive(archive):
     """Helper function to perform the sync."""
     try:
         # 1. Update Count
         current_count = archive.items.count()
         archive.item_count = current_count
-        
+
         # 2. Get the first item (lowest item_number)
-        first_item = archive.items.order_by('item_number').first()
-        
+        first_item = archive.items.order_by("item_number").first()
+
         if first_item:
             # Copy metadata from Item 1
             archive.archive_type = first_item.item_type
-            
+
             # We only auto-update the parent caption if it's currently empty
             if not archive.caption:
                 archive.caption = first_item.caption
             if not archive.alt_text and first_item.alt_text:
                 archive.alt_text = first_item.alt_text
-                
+
             # Reset all media fields on the parent to clean state
             archive.image = None
             archive.video = None
             archive.audio = None
             archive.document = None
-            
+
             # Copy the specific file from Item 1 to the Parent
-            if first_item.item_type == 'image':
+            if first_item.item_type == "image":
                 archive.image = first_item.image
-            elif first_item.item_type == 'video':
+            elif first_item.item_type == "video":
                 archive.video = first_item.video
-            elif first_item.item_type == 'audio':
+            elif first_item.item_type == "audio":
                 archive.audio = first_item.audio
-            elif first_item.item_type == 'document':
+            elif first_item.item_type == "document":
                 archive.document = first_item.document
-                
+
             # Save specific fields to avoid recursion
-            archive.save(update_fields=[
-                'item_count', 'archive_type', 'image', 'video', 
-                'audio', 'document', 'caption', 'alt_text'
-            ])
-        
+            archive.save(
+                update_fields=[
+                    "item_count",
+                    "archive_type",
+                    "image",
+                    "video",
+                    "audio",
+                    "document",
+                    "caption",
+                    "alt_text",
+                ]
+            )
+
         else:
             # If NO items exist (e.g. user deleted the last item)
             archive.image = None
             archive.video = None
             archive.audio = None
             archive.document = None
-            archive.save(update_fields=['item_count', 'image', 'video', 'audio', 'document'])
+            archive.save(update_fields=["item_count", "image", "video", "audio", "document"])
     except Exception as e:
         logger.error(f"Failed to update parent archive {archive.pk}: {e}")
+
 
 @receiver(post_save, sender=Archive)
 def auto_post_archive_to_social(sender, instance, created, **kwargs):
     if created:
         from core.tasks import post_to_social_media_task
+
         # Queue the social media posting task
-        post_to_social_media_task(app_label='archives', model_name='Archive', object_id=instance.id)
+        post_to_social_media_task(app_label="archives", model_name="Archive", object_id=instance.id)

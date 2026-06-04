@@ -1,82 +1,71 @@
-from allauth.account.forms import SignupForm, LoginForm
+from allauth.account.forms import LoginForm, SignupForm
 from django import forms
-from django.conf import settings
 from django.core.exceptions import ValidationError
-from .models import CustomUser
+
 from core.turnstile import verify_turnstile
+
+from .models import CustomUser
 
 
 class CustomSignupForm(SignupForm):
     full_name = forms.CharField(
         max_length=200,
         required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Enter your full name'
-        })
+        widget=forms.TextInput(attrs={"class": "form-input", "placeholder": "Enter your full name"}),
     )
     accept_terms = forms.BooleanField(
         required=True,
-        label='I agree to the Terms of Service and Privacy Policy',
-        widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input'
-        })
+        label="I agree to the Terms of Service and Privacy Policy",
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
     )
-    
+
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
+        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
-        if 'username' in self.fields:
-            del self.fields['username']
-        
-        self.fields['email'].widget.attrs.update({
-            'class': 'form-input',
-            'placeholder': 'Enter your email address'
-        })
-        self.fields['password1'].widget.attrs.update({
-            'class': 'form-input',
-            'placeholder': 'Create a strong password'
-        })
-        self.fields['password2'].widget.attrs.update({
-            'class': 'form-input',
-            'placeholder': 'Confirm your password'
-        })
-    
+        if "username" in self.fields:
+            del self.fields["username"]
+
+        self.fields["email"].widget.attrs.update({"class": "form-input", "placeholder": "Enter your email address"})
+        self.fields["password1"].widget.attrs.update({"class": "form-input", "placeholder": "Create a strong password"})
+        self.fields["password2"].widget.attrs.update({"class": "form-input", "placeholder": "Confirm your password"})
+
     def clean_email(self):
-        email = self.cleaned_data.get('email', '').lower().strip()
+        email = self.cleaned_data.get("email", "").lower().strip()
         # Check if email already exists - tell user to login instead
         if CustomUser.objects.filter(email__iexact=email).exists():
             raise ValidationError(
-                'An account with this email already exists. Please login instead.',
-                code='email_exists'
+                "An account with this email already exists. Please login instead.", code="email_exists"
             )
         return email
-    
+
     def clean(self):
         cleaned_data = super().clean()
         # Validate Turnstile with client IP
-        token = self.data.get('cf-turnstile-response', '')
+        token = self.data.get("cf-turnstile-response", "")
         remote_ip = None
         if self.request:
-            remote_ip = self.request.META.get('HTTP_CF_CONNECTING_IP') or \
-                       self.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
-                       self.request.META.get('REMOTE_ADDR')
+            remote_ip = (
+                self.request.META.get("HTTP_CF_CONNECTING_IP")
+                or self.request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+                or self.request.META.get("REMOTE_ADDR")
+            )
         result = verify_turnstile(token, remote_ip)
-        if not result.get('success'):
-            raise ValidationError('Please complete the security verification.')
+        if not result.get("success"):
+            raise ValidationError("Please complete the security verification.")
         return cleaned_data
-    
+
     def save(self, request):
         from users.username_utils import generate_unique_username
-        email = self.cleaned_data['email']
+
+        email = self.cleaned_data["email"]
         username = generate_unique_username(email)
-        
-        self.cleaned_data['username'] = username
-        
+
+        self.cleaned_data["username"] = username
+
         user = super().save(request)
-        user.full_name = self.cleaned_data.get('full_name', '')
+        user.full_name = self.cleaned_data.get("full_name", "")
         user.save()
-        
+
         return user
 
 
@@ -84,111 +73,108 @@ class CustomLoginForm(LoginForm):
     def __init__(self, *args, **kwargs):
         # Store request - check both args and kwargs
         # allauth passes request as first positional arg
-        if args and hasattr(args[0], 'META'):
+        if args and hasattr(args[0], "META"):
             self.request = args[0]
         else:
-            self.request = kwargs.get('request', None)
-        
+            self.request = kwargs.get("request")
+
         # Pass everything to parent class unmodified
         super().__init__(*args, **kwargs)
-        
-        self.fields['login'].widget.attrs.update({
-            'class': 'form-input',
-            'placeholder': 'Enter your email address'
-        })
-        self.fields['login'].label = 'Email'
-        self.fields['password'].widget.attrs.update({
-            'class': 'form-input',
-            'placeholder': 'Enter your password'
-        })
-    
+
+        self.fields["login"].widget.attrs.update({"class": "form-input", "placeholder": "Enter your email address"})
+        self.fields["login"].label = "Email"
+        self.fields["password"].widget.attrs.update({"class": "form-input", "placeholder": "Enter your password"})
+
     def clean(self):
         cleaned_data = super().clean()
         # Validate Turnstile with client IP
-        token = self.data.get('cf-turnstile-response', '')
+        token = self.data.get("cf-turnstile-response", "")
         remote_ip = None
         if self.request:
-            remote_ip = self.request.META.get('HTTP_CF_CONNECTING_IP') or \
-                       self.request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or \
-                       self.request.META.get('REMOTE_ADDR')
+            remote_ip = (
+                self.request.META.get("HTTP_CF_CONNECTING_IP")
+                or self.request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+                or self.request.META.get("REMOTE_ADDR")
+            )
         result = verify_turnstile(token, remote_ip)
-        if not result.get('success'):
-            raise ValidationError('Please complete the security verification.')
+        if not result.get("success"):
+            raise ValidationError("Please complete the security verification.")
         return cleaned_data
 
 
 class ProfileEditForm(forms.ModelForm):
-    twitter = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://twitter.com/username'
-    }))
-    facebook = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://facebook.com/username'
-    }))
-    linkedin = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://linkedin.com/in/username'
-    }))
-    instagram = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://instagram.com/username'
-    }))
-    youtube = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://youtube.com/@username'
-    }))
-    academia = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://academia.edu/username'
-    }))
-    researchgate = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://researchgate.net/profile/username'
-    }))
-    orcid = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://orcid.org/0000-0000-0000-0000'
-    }))
-    website = forms.URLField(required=False, widget=forms.URLInput(attrs={
-        'class': 'form-input',
-        'placeholder': 'https://yourwebsite.com'
-    }))
-    
+    twitter = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={"class": "form-input", "placeholder": "https://twitter.com/username"}),
+    )
+    facebook = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={"class": "form-input", "placeholder": "https://facebook.com/username"}),
+    )
+    linkedin = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={"class": "form-input", "placeholder": "https://linkedin.com/in/username"}),
+    )
+    instagram = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={"class": "form-input", "placeholder": "https://instagram.com/username"}),
+    )
+    youtube = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={"class": "form-input", "placeholder": "https://youtube.com/@username"}),
+    )
+    academia = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={"class": "form-input", "placeholder": "https://academia.edu/username"}),
+    )
+    researchgate = forms.URLField(
+        required=False,
+        widget=forms.URLInput(
+            attrs={"class": "form-input", "placeholder": "https://researchgate.net/profile/username"}
+        ),
+    )
+    orcid = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={"class": "form-input", "placeholder": "https://orcid.org/0000-0000-0000-0000"}),
+    )
+    website = forms.URLField(
+        required=False, widget=forms.URLInput(attrs={"class": "form-input", "placeholder": "https://yourwebsite.com"})
+    )
+
     class Meta:
         model = CustomUser
-        fields = ['full_name', 'bio', 'profile_picture']
+        fields = ["full_name", "bio", "profile_picture"]
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'form-input'}),
-            'bio': forms.Textarea(attrs={'class': 'form-input', 'rows': 4}),
-            'profile_picture': forms.FileInput(attrs={'class': 'form-input', 'accept': 'image/*'}),
+            "full_name": forms.TextInput(attrs={"class": "form-input"}),
+            "bio": forms.Textarea(attrs={"class": "form-input", "rows": 4}),
+            "profile_picture": forms.FileInput(attrs={"class": "form-input", "accept": "image/*"}),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.social_links:
-            self.fields['twitter'].initial = self.instance.social_links.get('twitter', '')
-            self.fields['facebook'].initial = self.instance.social_links.get('facebook', '')
-            self.fields['linkedin'].initial = self.instance.social_links.get('linkedin', '')
-            self.fields['instagram'].initial = self.instance.social_links.get('instagram', '')
-            self.fields['youtube'].initial = self.instance.social_links.get('youtube', '')
-            self.fields['academia'].initial = self.instance.social_links.get('academia', '')
-            self.fields['researchgate'].initial = self.instance.social_links.get('researchgate', '')
-            self.fields['orcid'].initial = self.instance.social_links.get('orcid', '')
-            self.fields['website'].initial = self.instance.social_links.get('website', '')
-    
+            self.fields["twitter"].initial = self.instance.social_links.get("twitter", "")
+            self.fields["facebook"].initial = self.instance.social_links.get("facebook", "")
+            self.fields["linkedin"].initial = self.instance.social_links.get("linkedin", "")
+            self.fields["instagram"].initial = self.instance.social_links.get("instagram", "")
+            self.fields["youtube"].initial = self.instance.social_links.get("youtube", "")
+            self.fields["academia"].initial = self.instance.social_links.get("academia", "")
+            self.fields["researchgate"].initial = self.instance.social_links.get("researchgate", "")
+            self.fields["orcid"].initial = self.instance.social_links.get("orcid", "")
+            self.fields["website"].initial = self.instance.social_links.get("website", "")
+
     def save(self, commit=True):
         user = super().save(commit=False)
         social_links = {
-            'twitter': self.cleaned_data.get('twitter', ''),
-            'facebook': self.cleaned_data.get('facebook', ''),
-            'linkedin': self.cleaned_data.get('linkedin', ''),
-            'instagram': self.cleaned_data.get('instagram', ''),
-            'youtube': self.cleaned_data.get('youtube', ''),
-            'academia': self.cleaned_data.get('academia', ''),
-            'researchgate': self.cleaned_data.get('researchgate', ''),
-            'orcid': self.cleaned_data.get('orcid', ''),
-            'website': self.cleaned_data.get('website', ''),
+            "twitter": self.cleaned_data.get("twitter", ""),
+            "facebook": self.cleaned_data.get("facebook", ""),
+            "linkedin": self.cleaned_data.get("linkedin", ""),
+            "instagram": self.cleaned_data.get("instagram", ""),
+            "youtube": self.cleaned_data.get("youtube", ""),
+            "academia": self.cleaned_data.get("academia", ""),
+            "researchgate": self.cleaned_data.get("researchgate", ""),
+            "orcid": self.cleaned_data.get("orcid", ""),
+            "website": self.cleaned_data.get("website", ""),
         }
         user.social_links = {k: v for k, v in social_links.items() if v}
         if commit:

@@ -1,13 +1,14 @@
 """
 Shared validators and sort whitelists for all apps.
 """
+
 from django.core.exceptions import ValidationError
 
 
 def validate_file_size(file, max_mb):
     """Validate file size against maximum MB limit."""
     if file.size > max_mb * 1024 * 1024:
-        raise ValidationError(f'Maximum file size is {max_mb}MB')
+        raise ValidationError(f"Maximum file size is {max_mb}MB")
 
 
 def validate_image_size(file):
@@ -31,29 +32,28 @@ def validate_audio_size(file):
 
 
 ALLOWED_ARCHIVE_SORTS = {
-    'recently-added': '-created_at',
-    'newest': '-sort_year',
-    'oldest': 'sort_year',
-    'a-z': 'title',
-    'z-a': '-title',
+    "recently-added": "-created_at",
+    "newest": "-sort_year",
+    "oldest": "sort_year",
+    "a-z": "title",
+    "z-a": "-title",
 }
 
 ALLOWED_LORE_SORTS = {
-    'recently-added': '-created_at',
-    'oldest': 'created_at',
-    'a-z': 'title',
-    'z-a': '-title',
+    "recently-added": "-created_at",
+    "oldest": "created_at",
+    "a-z": "title",
+    "z-a": "-title",
 }
 
 ALLOWED_BOOK_SORTS = {
-    'recently-added': '-created_at',
-    'newest': '-publication_year',
-    'oldest': 'publication_year',
-    'top-rated': '-rating',
+    "recently-added": "-created_at",
+    "newest": "-publication_year",
+    "oldest": "publication_year",
+    "top-rated": "-rating",
 }
 
 
-def get_safe_sort(sort_param, allowed_sorts, default='-created_at'):
+def get_safe_sort(sort_param, allowed_sorts, default="-created_at"):
     """Get a safe sort parameter from whitelist."""
     return allowed_sorts.get(sort_param, default)
-
